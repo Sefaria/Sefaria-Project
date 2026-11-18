@@ -4,6 +4,8 @@ export {
   PortalHeader,
   SkipLink,
   SEARCH_OPEN_EVENT,
+  NOT_FOUND_SECTION_LABEL,
+  NOT_FOUND_SUBNAV_LABEL,
   type PortalHeaderProps,
   type PortalHeaderSubnav,
 } from './PortalHeader/PortalHeader';

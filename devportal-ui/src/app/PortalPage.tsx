@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useLoaderData, useLocation } from 'react-router';
 import type { DocPayload, EndpointPayload, PagePayload } from '../contracts';
 import type { DocPageSlots } from '../docs';
-import { NotFoundPage, PortalFrame, PortalHeader } from '../shell';
+import { NOT_FOUND_SECTION_LABEL, NOT_FOUND_SUBNAV_LABEL, NotFoundPage, PortalFrame, PortalHeader } from '../shell';
 import { AdoptedHtml } from '../ui';
 import { mountPagePlacements } from './placements';
 
@@ -111,15 +111,17 @@ export function PortalPage({ slots }: { slots: PageSlots }) {
   let body: ReactNode;
   switch (data.kind) {
     case 'notfound':
+      // The same markup as devportal/templates/devportal/404.html.
       body = (
-        <PortalFrame layout="plain">
+        <main className="dp-main" id="dp-main">
           <NotFoundPage suggestions={data.suggestions} />
-        </PortalFrame>
+        </main>
       );
       break;
     case 'doc':
       body = slots.docPage ? (
-        <main className="dp-main" id="dp-main">
+        // Live's `main` is both the mapped element and the "article" region of docs pages (visual parity).
+        <main className="dp-main" id="dp-main" data-visual="main" data-visual-region="article">
           {slots.docPage(data, { sidebarId: SIDEBAR_ID, sidebarOpen })}
         </main>
       ) : (
@@ -149,7 +151,7 @@ export function PortalPage({ slots }: { slots: PageSlots }) {
       body = slots.home ? (
         slots.home(data)
       ) : (
-        <main className="dp-rm-app" id="content">
+        <main className="dp-rm-app" id="content" tabIndex={-1}>
           <AdoptedHtml adoptKey="body" html={data.bodyHtml} />
         </main>
       );
@@ -164,9 +166,22 @@ export function PortalPage({ slots }: { slots: PageSlots }) {
       break;
   }
 
+  // The 404 page's header at ≤768px, as live: "Page Not Found" and a "404 Not Found" sub-nav that opens nothing
+  // (the server includes the same prerendered variant, header-subnav "notfound").
+  const header =
+    data.kind === 'notfound' ? (
+      <PortalHeader
+        activeTab={activeTab}
+        sectionLabel={NOT_FOUND_SECTION_LABEL}
+        subnav={{ label: NOT_FOUND_SUBNAV_LABEL, expanded: false, onToggle: () => {} }}
+      />
+    ) : (
+      <PortalHeader activeTab={activeTab} subnav={subnav} />
+    );
+
   return (
     <div className="dp-app" data-kind={data.kind}>
-      <PortalHeader activeTab={activeTab} subnav={subnav} />
+      {header}
       {body}
     </div>
   );

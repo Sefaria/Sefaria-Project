@@ -332,7 +332,7 @@
   --dp-callout-title: var(--dp-md-text);
 
   display: flow-root;
-  margin: var(--dp-md-spacing) 0;
+  margin: 0 0 var(--dp-md-spacing);
   padding: 1.25rem;
   border-color: var(--dp-callout-border);
   border-radius: 2px;
@@ -945,12 +945,11 @@
   border-radius: 0 !important;
 }
 
+/* Live's Embedly frame: the full width of the card (the media box's -15px margins) and the height the embed
+   gives (its height attribute, 480px for YouTube), at every width. */
 .dp-markdown .dp-embed-iframe {
   display: block;
-  max-width: 100%;
-  height: auto;
   border: 0;
-  aspect-ratio: 16 / 9;
 }
 
 /* ------------------------------------------------------------------ HTML blocks and raw iframes */

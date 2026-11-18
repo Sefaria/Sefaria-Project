@@ -177,7 +177,7 @@ def test_html_page_embeds_the_payload_island_and_the_root(pages):
     html = response.content.decode()
     assert response.status_code == 200
     assert html.startswith("<!doctype html>")
-    assert '<html lang="en" dir="ltr">' in html
+    assert '<html lang="en" dir="ltr" data-visual="html">' in html
     assert "<title>Welcome to Sefaria&#x27;s Technical Documentation</title>" in html
     assert html.count('id="dp-root"') == 1 and html.count('id="dp-data"') == 1
     assert html.index('id="dp-root"') < html.index('id="dp-data"')
@@ -199,9 +199,12 @@ def test_404_page_copies_live(pages):
     html = response.content.decode()
     assert response.status_code == 404
     assert "<title>404 Not Found</title>" in html
-    assert '<h2 class="dp-notfound-title">Page Not Found</h2>' in html
+    assert '<h1 class="dp-notfound-title" data-visual-region="notFound">Page Not Found</h1>' in html
     assert "Maybe you were looking for one of these:" in html
-    assert '<a class="dp-notfound-link" href="/docs/text-references">Text References</a>' in html
+    assert (
+        '<a class="dp-notfound-link" href="/docs/text-references" data-visual-mask="notFoundSuggestions">'
+        "Text References</a>" in html
+    )
 
 
 # Link headers (copied from live) -------------------------------------------------------------------

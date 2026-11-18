@@ -1,0 +1,9 @@
+{% comment %}
+  The table of contents of a docs page (src/docs/TableOfContents.tsx). Context: `page`. The first entry is marked
+  current, as the client's scroll spy marks it at the top of the page.
+{% endcomment %}{% if page.toc %}<nav class="dp-toc" aria-label="Table of Contents">
+  <ul class="dp-toc-list">
+    {% for entry in page.toc %}<li class="dp-toc-item dp-toc-item--h{% if entry.level <= 1 %}1{% elif entry.level == 2 %}2{% else %}3{% endif %}">{% if entry.id %}<a class="dp-toc-link{% if forloop.first %} dp-active{% endif %}" href="#{{ entry.id }}"{% if forloop.first %} aria-current="location"{% endif %}>{{ entry.text }}</a>{% endif %}</li>
+    {% endfor %}
+  </ul>
+</nav>{% endif %}

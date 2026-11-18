@@ -25,7 +25,13 @@ export interface PortalHeaderProps {
   activeTab: PortalHeaderTab | null;
   /** The ≤768px sub-nav row with the sidebar dropdown button. Pages without a sidebar have none. */
   subnav?: PortalHeaderSubnav | null;
+  /** The text next to the hamburger at ≤768px, instead of the active tab's ("Page Not Found" on the 404 page). */
+  sectionLabel?: string;
 }
+
+/** The 404 page's header at ≤768px, as live: "Page Not Found" beside the hamburger, a "404 Not Found" sub-nav. */
+export const NOT_FOUND_SECTION_LABEL = 'Page Not Found';
+export const NOT_FOUND_SUBNAV_LABEL = '404 Not Found';
 
 /** The section name next to the hamburger at ≤768px. Live shows nothing on custom pages. */
 const MOBILE_SECTION_LABEL: Record<PortalHeaderTab, string> = {
@@ -159,6 +165,7 @@ function LinksMenu() {
         ref={buttonRef}
         type="button"
         className={styles.linksMenuButton}
+        data-visual="moduleBtn"
         aria-label="Open links menu"
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -169,6 +176,9 @@ function LinksMenu() {
       </button>
       {open && (
         <div className={styles.linksPanel} id={LINKS_PANEL_ID} role="dialog" aria-label="Links menu" ref={panelRef}>
+          {/* Live's menu box (tippy) reaches 10px above and below the panel; this empty box has its bounds, for the
+              visual-parity harness only. */}
+          <span className={styles.linksRegion} aria-hidden="true" data-visual-region="popover" />
           <div className={styles.linksLogo} />
           <div className={styles.linksBox}>
             {LINKS_MENU_ITEMS.map((item) => (
@@ -211,6 +221,7 @@ function MobileMenu({ activeTab }: { activeTab: PortalHeaderTab | null }) {
         ref={buttonRef}
         type="button"
         className={styles.mobileMenuButton}
+        data-visual="hamburger"
         aria-label="Toggle navigation menu"
         aria-expanded={open}
         aria-controls={DRAWER_ID}
@@ -218,11 +229,11 @@ function MobileMenu({ activeTab }: { activeTab: PortalHeaderTab | null }) {
       >
         <MenuIcon />
       </button>
-      <div id={DRAWER_ID} className={styles.drawerRoot} hidden={!open} data-visual-region="mobileNav">
+      <div id={DRAWER_ID} className={styles.drawerRoot} hidden={!open}>
         {/* The overlay is a pointer convenience; keyboard users close with Escape or the button. */}
         {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
         <div className={styles.drawerOverlay} onClick={() => setOpen(false)} />
-        <div className={styles.drawer}>
+        <div className={styles.drawer} data-visual-region="mobileNav">
           {DRAWER_LINKS.map((link) => {
             const active = link.tab !== undefined && link.tab === activeTab;
             return (
@@ -248,21 +259,24 @@ function MobileMenu({ activeTab }: { activeTab: PortalHeaderTab | null }) {
   );
 }
 
-export function PortalHeader({ activeTab, subnav = null }: PortalHeaderProps) {
+export function PortalHeader({ activeTab, subnav = null, sectionLabel: sectionLabelProp }: PortalHeaderProps) {
   const keyHint = useKeyHint();
-  const sectionLabel = activeTab === null ? '' : MOBILE_SECTION_LABEL[activeTab];
+  const sectionLabel = sectionLabelProp ?? (activeTab === null ? '' : MOBILE_SECTION_LABEL[activeTab]);
+  // data-visual*: the visual-parity hooks (e2e-tests/developers-visual/README.md), on the elements that match
+  // live's mapped header elements.
   return (
     <header
       className={`dp-rm-header ${styles.header}`}
       data-has-subnav={subnav ? 'true' : undefined}
+      data-visual="header"
       data-visual-region="header"
     >
       <SkipLink />
-      <div className={styles.bar}>
+      <div className={styles.bar} data-visual="headerBottom">
         <div className={styles.left}>
           <MobileMenu activeTab={activeTab} />
           <a className={styles.logo} href="/">
-            <img className={styles.logoImg} src={LOGO_SRC} alt={LOGO_ALT} />
+            <img className={styles.logoImg} src={LOGO_SRC} alt={LOGO_ALT} data-visual="logo" />
           </a>
           {sectionLabel && <div className={styles.sectionLabel}>{sectionLabel}</div>}
         </div>
@@ -273,6 +287,7 @@ export function PortalHeader({ activeTab, subnav = null }: PortalHeaderProps) {
               <a
                 key={link.label}
                 className={styles.navLink}
+                data-visual={active ? 'navLinkActive' : 'navLink'}
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
                 {...linkTargetProps(link)}
@@ -283,7 +298,13 @@ export function PortalHeader({ activeTab, subnav = null }: PortalHeaderProps) {
           })}
         </nav>
         <div className={styles.search}>
-          <button type="button" className={styles.searchToggle} aria-label="Search ⌘k" onClick={openSearch}>
+          <button
+            type="button"
+            className={styles.searchToggle}
+            aria-label="Search ⌘k"
+            onClick={openSearch}
+            data-visual="search"
+          >
             <SearchIcon className={styles.searchIcon} />
             <span className={styles.searchPlaceholder}>Search</span>
             <kbd className={styles.searchKbd} aria-hidden="true">
@@ -303,6 +324,7 @@ export function PortalHeader({ activeTab, subnav = null }: PortalHeaderProps) {
             aria-expanded={subnav.expanded}
             aria-controls={subnav.controls}
             onClick={subnav.onToggle}
+            data-visual="mobileSubnav"
           >
             <span className={styles.subnavLabel}>{subnav.label}</span>
             <ChevronUpDownIcon />

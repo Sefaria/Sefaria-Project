@@ -3,7 +3,7 @@
 // renders the same component; prerender.test.tsx checks that both produce the same markup.
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { PortalHeaderTab } from './headerLinks';
-import { PortalHeader } from './PortalHeader';
+import { NOT_FOUND_SECTION_LABEL, NOT_FOUND_SUBNAV_LABEL, PortalHeader } from './PortalHeader';
 
 /** Manifest key for a page with no active tab (the 404 page, the gallery, the editor). */
 export const NO_TAB = 'none';
@@ -18,16 +18,32 @@ export const SUBNAV_LABEL_TOKEN = '__DP_SUBNAV_LABEL__';
 /** The sidebar column's id (`SIDEBAR_ID` in src/app/PortalPage.tsx), which the sub-nav button controls. */
 export const SUBNAV_CONTROLS = 'dp-sidebar';
 
+/**
+ * Manifest key prefix (kind `header-subnav`) of the 404 page's headers, one per active tab (`notfound-docs`, …):
+ * "Page Not Found" and the "404 Not Found" sub-nav.
+ */
+export const NOT_FOUND_PREFIX = 'notfound-';
+export type NotFoundVariantKey = `${typeof NOT_FOUND_PREFIX}${HeaderVariantKey}`;
+
 export interface HeaderVariant {
   /** Manifest kind: `header`, or `header-subnav` for the variant with the sub-nav row. */
   kind: 'header' | 'header-subnav';
-  key: HeaderVariantKey;
+  key: HeaderVariantKey | NotFoundVariantKey;
   file: string;
   /** The props the variant renders with (the client renders the same ones). */
   props: Parameters<typeof PortalHeader>[0];
 }
 
 const noop = () => {};
+
+/** The 404 page's header props; src/app/PortalPage.tsx renders the same. */
+export function notFoundHeaderProps(activeTab: PortalHeaderTab | null): HeaderVariant['props'] {
+  return {
+    activeTab,
+    sectionLabel: NOT_FOUND_SECTION_LABEL,
+    subnav: { label: NOT_FOUND_SUBNAV_LABEL, expanded: false, onToggle: noop },
+  };
+}
 
 export function headerVariants(): HeaderVariant[] {
   return HEADER_VARIANT_KEYS.flatMap((key): HeaderVariant[] => {
@@ -42,6 +58,12 @@ export function headerVariants(): HeaderVariant[] {
           activeTab,
           subnav: { label: SUBNAV_LABEL_TOKEN, expanded: false, onToggle: noop, controls: SUBNAV_CONTROLS },
         },
+      },
+      {
+        kind: 'header-subnav',
+        key: `${NOT_FOUND_PREFIX}${key}`,
+        file: `header-${NOT_FOUND_PREFIX}${key}.html`,
+        props: notFoundHeaderProps(activeTab),
       },
     ];
   });

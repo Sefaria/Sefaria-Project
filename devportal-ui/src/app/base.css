@@ -7,11 +7,30 @@ html {
   scrollbar-width: thin;
 }
 
+/* Roboto with Heebo for Hebrew (D-1: "Roboto and Heebo instead of the system font"): Hebrew in English text
+   (the citation guide's title, sidebar rows) is drawn in the design system's Hebrew system font, not Arial. */
+html:root {
+  --font-en-system: roboto, heebo, 'Helvetica Neue', arial, sans-serif;
+}
+
+/* Live's page scroller keeps its scrollbar's room on a page shorter than the window (the 404 page). Only there:
+   a stable gutter also takes the scrollbar out of 100vw, which the homepage's carousel is sized with. */
+
+/* The skip link's target ("Jump to Content", #content) takes focus (tabindex="-1") so keyboard and screen-reader
+   users land in the content (HDR-012). It is a container, not a control: no focus ring, so nothing shows. */
+#content:focus {
+  outline: none;
+}
+
+html:has(.dp-notfound) {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   background-color: var(--rm-color-bg-page, #fff);
   color: var(--rm-color-text-default, #32343a);
-  font-family: var(--font-en-system, Roboto, 'Helvetica Neue', Arial, sans-serif);
+  font-family: var(--font-en-system, Roboto, Heebo, 'Helvetica Neue', Arial, sans-serif);
   font-size: 16px;
   line-height: 1.5;
 }

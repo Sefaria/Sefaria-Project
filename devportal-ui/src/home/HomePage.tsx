@@ -9,7 +9,7 @@ export type HomePayload = Extract<PagePayload, { kind: 'home' }>;
 
 export function HomePage({ data }: { data: HomePayload }) {
   return (
-    <main className="dp-rm-app" id="content" data-visual="main">
+    <main className="dp-rm-app" id="content" tabIndex={-1} data-visual="main">
       <AdoptedHtml adoptKey="body" html={data.bodyHtml} />
     </main>
   );

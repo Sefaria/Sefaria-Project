@@ -1,60 +1,64 @@
-{% comment %}
-  The docs page layout, rendered on the server (PLAN.md §2.5; SITE_ATLAS §4). W2's base template
-  includes it inside the portal's <main> (PortalMain, contract C6) for payloads of kind "doc":
+{% load devportal_discord %}{% comment %}
+  The docs page layout, rendered on the server (PLAN.md §2.5; SITE_ATLAS §4). pages.render_page puts it in
+  base.html's <main class="dp-main"> for payloads of kind "doc".
 
-      {% include "devportal/page_doc.html" with payload=payload %}
+  `payload` is the C3 doc payload (page-payload.schema.json, kind "doc"): the same dict the view writes with
+  json_script, so this markup and the client's (src/app/slots.tsx renderDocPage: the shell's Sidebar beside
+  src/docs/DocPage.tsx) are the same DOM, and React's takeover moves nothing. The body is the revision's
+  rendered_html (already sanitized); React adopts its nodes (DocBody, takeServerBody). Classes are global dp-
+  classes from devportal-ui/src/docs/docs.css, src/shell/Sidebar/sidebar.css and src/styles/article.css.
 
-  `payload` is the C3 doc payload (page-payload.schema.json, kind "doc"): the same dict the view
-  writes with json_script, so this markup and devportal-ui/src/docs/DocPage.tsx render the same DOM
-  and React's takeover moves nothing. The body is the revision's rendered_html (already sanitized);
-  React adopts its nodes (DocBody, takeServerBody). Classes are global dp- classes from
-  devportal-ui/src/docs/docs.css and src/styles/article.css.
+  Three layouts, as DocPage.tsx: `standard` (/docs/...: rail with Copy Page and the table of contents beside
+  the body), `guide` (guide pages of the reference section: Copy Page in the header, the table of contents in
+  a column at the right edge) and `custom` (/page/...: no sidebar, no rail, no "Updated").
 
-  Server-only differences, none of which moves anything: the sidebar carries dp-sidebar--static (CSS opens
-  the current page's branch) and no group toggle buttons; "Updated" prints the date, which the client
-  replaces with "N ago"; the Copy Page, feedback and Discord slots are empty until their components mount.
-  The sidebar tree is the C3 tree: a category plus at most three levels (Page.MAX_DEPTH), unrolled here.
+  Server-only differences, none of which moves anything: "Updated" prints the date, which the client replaces
+  with "N ago"; the first table-of-contents entry is marked current, as the client's scroll spy marks it at the
+  top of the page; Copy Page and the feedback widget keep their boxes empty until their components mount.
+  `data-visual*` attributes are the visual-parity hooks (e2e-tests/developers-visual/README.md).
 {% endcomment %}{% with page=payload.page tree=payload.nav.tree active=payload.path %}
-<div class="dp-docs dp-docs--{% if payload.section == "page" %}custom{% else %}standard{% endif %}" data-layout="{{ payload.layout }}">
-  {% if tree %}
+{% if tree %}<div class="dp-docs-frame">
   <div class="dp-docs__sidebar" data-slot="sidebar" id="dp-sidebar">
     {% include "devportal/sidebar_tree.html" %}
   </div>
-  {% endif %}
-  <article id="content" class="dp-article dp-docs__article">
-    <header class="dp-docs-header">
-      <h1 class="dp-docs-header__title">{{ page.title }}</h1>
-      {% if page.excerpt %}<div class="dp-docs-header__excerpt"><p>{{ page.excerpt }}</p></div>{% endif %}
+{% endif %}
+<div class="dp-docs dp-docs--{% if payload.section == "page" %}custom{% elif payload.section == "reference" %}guide{% else %}standard{% endif %}" data-layout="{{ payload.layout }}">
+  {% if payload.section == "reference" %}<div class="dp-docs__guide" data-visual="articleWrap">{% endif %}
+  <article id="content" class="dp-article dp-docs__article" tabindex="-1" data-visual="article">
+    <header class="dp-docs-header" data-visual-region="headline">
+      {% if payload.section == "reference" %}<div class="dp-docs-header__top"><div class="dp-docs-header__actions" data-slot="copy-page"></div></div>
+      <div class="dp-docs-header__title-row"><h1 class="dp-docs-header__title" data-visual="h1">{{ page.title }}</h1></div>{% else %}<h1 class="dp-docs-header__title" data-visual="h1">{{ page.title }}</h1>{% endif %}
+      {% if page.excerpt %}{% if payload.section == "reference" %}<div class="dp-docs-header__excerpt dp-docs-header__excerpt--guide" data-visual="docBody"><p data-visual="docP">{{ page.excerpt }}</p></div>{% else %}<div class="dp-docs-header__excerpt"><div class="dp-docs-header__excerpt-body" data-visual="docBody"><p data-visual="docP">{{ page.excerpt }}</p></div></div>{% endif %}{% endif %}
     </header>
-    <div class="dp-docs__grid">
+    {% if payload.section != "reference" %}<div class="dp-docs__grid">{% endif %}
       <div class="dp-docs__content">
-        <div class="dp-markdown" id="dp-article-body">{{ page.bodyHtml|safe }}</div>
+        <div class="dp-markdown" id="dp-article-body" data-visual="docBody">{{ page.bodyHtml|safe }}</div>
         <footer class="dp-docs-footer">
-          {% if page.updatedAt and payload.section != "page" %}<div class="dp-updated"><p class="dp-updated__line"><span class="dp-updated__icon" aria-hidden="true"></span>Updated <time datetime="{{ page.updatedAt }}">{{ page.updatedAt|slice:":10" }}</time></p></div>{% endif %}
+          {% if page.updatedAt and payload.section != "page" %}<div class="dp-updated-row"><div class="dp-updated" data-visual-region="pageFooter"><p class="dp-updated__line" data-visual="updated" data-visual-mask="updatedAgo"><span class="dp-updated__icon" aria-hidden="true"></span>Updated <time datetime="{{ page.updatedAt }}">{{ page.updatedAt|slice:":10" }}</time></p></div></div>
+          <hr class="dp-docs-footer__divider">{% endif %}
           {% if payload.pager.prev or payload.pager.next %}
-          <nav class="dp-pagination" aria-label="Pagination Controls">
-            {% if payload.pager.prev %}<a class="dp-pagination__link dp-pagination__link--prev" href="{{ payload.pager.prev.path }}" aria-label="Previous Page: {{ payload.pager.prev.title }}"><span class="dp-pagination__icon" aria-hidden="true"></span><span class="dp-pagination__text">{{ payload.pager.prev.title }}</span></a>{% endif %}
-            {% if payload.pager.next %}<a class="dp-pagination__link dp-pagination__link--next" href="{{ payload.pager.next.path }}" aria-label="Next Page: {{ payload.pager.next.title }}"><span class="dp-pagination__text">{{ payload.pager.next.title }}</span><span class="dp-pagination__icon" aria-hidden="true"></span></a>{% endif %}
+          <nav class="dp-pagination" aria-label="Pagination Controls" data-visual="pagination" data-visual-region="pageFooter">
+            {% if payload.pager.prev %}<a data-visual="pageLink" class="dp-pagination__link dp-pagination__link--prev" href="{{ payload.pager.prev.path }}" aria-label="Previous Page: {{ payload.pager.prev.title }}"><span class="dp-pagination__icon" aria-hidden="true"></span><span class="dp-pagination__text">{{ payload.pager.prev.title }}</span></a>{% endif %}
+            {% if payload.pager.next %}<a{% if not payload.pager.prev %} data-visual="pageLink"{% endif %} class="dp-pagination__link dp-pagination__link--next" href="{{ payload.pager.next.path }}" aria-label="Next Page: {{ payload.pager.next.title }}"><span class="dp-pagination__text">{{ payload.pager.next.title }}</span><span class="dp-pagination__icon" aria-hidden="true"></span></a>{% endif %}
           </nav>
           {% endif %}
           <div class="dp-docs-footer__feedback" data-slot="feedback"></div>
-          <div class="dp-docs-footer__discord" data-slot="discord" data-discord-placement="docs_page_end"></div>
+          {% if payload.section != "page" %}<div class="dp-docs-footer__discord" data-slot="discord" data-discord-placement="docs_page_end">{% devportal_discord_button "docs_page_end" %}</div>{% else %}<div class="dp-docs-footer__discord" data-slot="discord" data-discord-placement="docs_page_end"></div>{% endif %}
         </footer>
       </div>
-      {% if payload.section != "page" %}
-      <div class="dp-docs__rail">
-        <div class="dp-docs__copy-page" data-slot="copy-page"></div>
-        {% if page.toc %}
-        <nav class="dp-toc" aria-label="Table of Contents">
-          <ul class="dp-toc-list">
-            {% for entry in page.toc %}<li class="dp-toc-item dp-toc-item--h{% if entry.level <= 1 %}1{% elif entry.level == 2 %}2{% else %}3{% endif %}">{% if entry.id %}<a class="dp-toc-link" href="#{{ entry.id }}">{{ entry.text }}</a>{% endif %}</li>
-            {% endfor %}
-          </ul>
-        </nav>
-        {% endif %}
+    {% if payload.section == "docs" %}
+      <div class="dp-docs__rail" data-visual-region="docsToc">
+        <div class="dp-docs__copy-page" data-slot="copy-page" data-visual="copyPage"></div>
+        {% include "devportal/toc.html" %}
       </div>
-      {% endif %}
-    </div>
+    {% endif %}
+    {% if payload.section != "reference" %}</div>{% endif %}
   </article>
+  {% if payload.section == "reference" %}
+  <div class="dp-docs__rail" data-visual-region="docsToc">
+    {% include "devportal/toc.html" %}
+  </div>
+  </div>{% endif %}
 </div>
+{% if tree %}</div>{% endif %}
 {% endwith %}

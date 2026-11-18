@@ -285,7 +285,9 @@ export function CopyPage({ markdownUrl, mcpUrl, env: envOverrides }: CopyPagePro
           aria-expanded={open}
           aria-controls={open ? menuId : undefined}
           data-open={open ? 'true' : undefined}
-          onClick={() => (open ? close(false) : openMenu(null))}
+          // A click from Enter or Space (detail 0) moves focus into the menu, as the WAI-ARIA menu button pattern asks;
+          // a pointer click leaves it on the button.
+          onClick={(event) => (open ? close(false) : openMenu(event.detail === 0 ? 'first' : null))}
           onKeyDown={onToggleKeyDown}
         >
           <ChevronDown className={styles.chevron} aria-hidden="true" strokeWidth={2} />

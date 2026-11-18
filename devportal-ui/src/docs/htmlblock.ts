@@ -22,11 +22,40 @@ export function frameContentHeight(frame: HTMLIFrameElement): number | null {
   return height > 0 ? Math.ceil(height) : null;
 }
 
+/**
+ * The margins the block's first and last elements would give the page if the HTML were inline, as on live:
+ * there they collapse out of the block into the article (the "Powered by Sefaria" call-to-action's 32px
+ * bottom margin). Inside the frame they stay inside its document, so the block passes them on instead.
+ */
+export function frameOuterMargins(frame: HTMLIFrameElement): { top: number; bottom: number } | null {
+  let doc: Document | null;
+  try {
+    doc = frame.contentDocument;
+  } catch {
+    return null;
+  }
+  const body = doc?.body;
+  const view = doc?.defaultView;
+  if (!body || !view) return null;
+  const first = body.firstElementChild;
+  const last = body.lastElementChild;
+  const px = (el: Element | null, side: 'marginTop' | 'marginBottom') =>
+    el ? Math.max(0, parseFloat(view.getComputedStyle(el)[side]) || 0) : 0;
+  return { top: px(first, 'marginTop'), bottom: px(last, 'marginBottom') };
+}
+
 /** Sets the frame's height attribute to its content height. Returns the height set, or null. */
 export function sizeFrame(frame: HTMLIFrameElement): number | null {
   const height = frameContentHeight(frame);
   if (height !== null && frame.getAttribute('height') !== String(height)) {
     frame.setAttribute('height', String(height));
+  }
+  // The block's margins go on its wrapper through the CSSOM (allowed by the CSP, unlike a style attribute).
+  const block = frame.parentElement;
+  const margins = frameOuterMargins(frame);
+  if (block?.classList.contains('dp-htmlblock') && margins) {
+    block.style.marginTop = margins.top ? `${margins.top}px` : '';
+    block.style.marginBottom = margins.bottom ? `${margins.bottom}px` : '';
   }
   return height;
 }

@@ -1,7 +1,7 @@
 /*
  * The homepage (PLAN.md Phase 5), ported from live's custom CSS
  * (docs/dev-portal/research/site/custom-css.css, the hero/carousel/tools/footer rules) and its custom
- * HTML block's <style>. Markup: devportal/templates/devportal/home_body.html. Everything is scoped under
+ * HTML block's \3c style>. Markup: devportal/templates/devportal/home_body.html. Everything is scoped under
  * .dp-home and every class starts with dp-home (contract C5); there is no inline style on the page (CSP).
  *
  * Values are live's computed values (Roboto injected, D-1), including the ones ReadMe's Markdown styles

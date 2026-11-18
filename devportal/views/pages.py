@@ -336,8 +336,16 @@ def suggestions_for(path, limit=3):
     return [{"title": title, "path": url_path} for _, url_path, title in scored[:limit] if title]
 
 
+def _notfound_tab(path):
+    """Live keeps the section's header tab current on a 404 under /docs/ or /reference/."""
+    for tab, prefix in (("docs", "/docs/"), ("reference", "/reference/")):
+        if path.startswith(prefix):
+            return tab
+    return None
+
+
 def notfound_payload(origin, site, path):
-    payload = _base("notfound", path, NOT_FOUND_TITLE, _meta(origin, path, robots="noindex"), None, site)
+    payload = _base("notfound", path, NOT_FOUND_TITLE, _meta(origin, path, robots="noindex"), _notfound_tab(path), site)
     payload["suggestions"] = suggestions_for(path)
     return payload
 
@@ -420,8 +428,9 @@ def _content_html(payload):
     if kind == "doc":
         # W7's docs layout (sidebar, article, TOC, page footer); the body is rendered and sanitized by
         # devportal.markdown at publish time.
+        # data-visual*: the visual-parity hooks, as the client's PortalPage puts them on the same element.
         return format_html(
-            '<main class="dp-main" id="dp-main">{}</main>',
+            '<main class="dp-main" id="dp-main" data-visual="main" data-visual-region="article">{}</main>',
             mark_safe(render_to_string("devportal/page_doc.html", {"payload": payload})),  # noqa: S308
         )
     return ""

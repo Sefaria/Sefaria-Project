@@ -8,13 +8,14 @@ export function containsPath(item: SidebarItem, path: string): boolean {
 
 /**
  * The ids of the groups that contain the current page: the only groups open on load (REFERENCE_SPEC §1.2:
- * "Only the group containing the current page is expanded on load").
+ * "Only the group containing the current page is expanded on load"). A group that is itself the current page opens
+ * too, as on live (/docs/powered-by-sefaria shows "Project Acceptance Criteria").
  */
 export function groupsContaining(categories: readonly SidebarCategory[], path: string): number[] {
   const ids: number[] = [];
   const walk = (items: readonly SidebarItem[]) => {
     for (const item of items) {
-      if (item.children.length > 0 && item.children.some((c) => containsPath(c, path))) {
+      if (item.children.length > 0 && containsPath(item, path)) {
         ids.push(item.id);
         walk(item.children);
       }

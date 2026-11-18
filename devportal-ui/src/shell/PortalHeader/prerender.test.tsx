@@ -36,9 +36,13 @@ function clientDom(props: Parameters<typeof PortalHeader>[0]): string {
 describe('prerendered header', () => {
   const variants = headerVariants();
 
-  it('has a plain and a sub-nav variant for every tab and for none', () => {
+  it('has a plain, a sub-nav and a 404 variant for every tab and for none', () => {
     expect(variants.map((variant) => variant.file).sort()).toEqual(
-      HEADER_VARIANT_KEYS.flatMap((key) => [`header-${key}.html`, `header-${key}-subnav.html`]).sort()
+      HEADER_VARIANT_KEYS.flatMap((key) => [
+        `header-${key}.html`,
+        `header-${key}-subnav.html`,
+        `header-notfound-${key}.html`,
+      ]).sort()
     );
   });
 

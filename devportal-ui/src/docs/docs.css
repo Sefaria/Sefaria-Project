@@ -52,6 +52,16 @@
   margin-top: 12px;
 }
 
+.dp-docs-header__excerpt-body {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.dp-docs-header__excerpt--guide {
+  font-size: 18px;
+  line-height: 1.5556;
+}
+
 .dp-docs-header__excerpt p {
   margin: 0;
   font-size: 18px;
@@ -69,23 +79,79 @@
   padding-top: 32px;
 }
 
+/* Live's `section.content-toc`: 280px including its padding, one viewport tall, scrolling on its own. */
 .dp-docs__rail {
   position: sticky;
   top: 0;
+  box-sizing: border-box;
   flex: 0 0 280px;
   width: 280px;
+  height: 100vh;
+  max-height: 100vh;
   padding: 30px 20px 30px 40px;
+  overflow-y: auto;
   font-size: 13px;
   line-height: 1.5;
 }
 
+/* Live's `.rm-AIDropdown` in the rail. It keeps its 32px row before Copy Page mounts (the server markup),
+   so the table of contents under it does not move when React fills it. */
 .dp-docs__copy-page {
+  display: inline-flex;
+  min-height: 32px;
   margin: 0 0 16px 23px;
   padding-top: 8px;
+  vertical-align: top;
 }
 
-.dp-docs__copy-page:empty {
-  display: none;
+/* Guide pages of the reference section (live's SuperHubReference layout): the article is at most 800px
+   wide, the table of contents sits in a 280px column at the right edge, from the top of the page. */
+.dp-docs__guide {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.dp-docs--guide .dp-docs__article {
+  box-sizing: border-box;
+  max-width: 800px;
+}
+
+/* flow-root: the top row's 2px margin stays inside the header, as live's. */
+.dp-docs--guide .dp-docs-header {
+  display: flow-root;
+  margin-bottom: 32px;
+}
+
+.dp-docs--guide .dp-docs__content {
+  padding-top: 0;
+}
+
+/* The header's top row ("breadcrumbs" on live, empty here) holds Copy Page at the right. */
+.dp-docs-header__top {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  height: 28px;
+  margin: 2px 0 8px;
+}
+
+.dp-docs-header__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+
+.dp-docs-header__title-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
 }
 
 @media (width <= 1025px) {
@@ -139,6 +205,7 @@
 }
 
 .dp-docs--custom .dp-docs__article {
+  box-sizing: border-box;
   max-width: calc(var(--rm-hub-main-max-width, 800px) + 64px);
   margin: 0 auto;
   padding: 40px 32px 0;
@@ -298,13 +365,6 @@
   padding-right: 49px;
 }
 
-/* Server markup (page_doc.html), before React adopts the page: groups on the current page's branch are
-   open, every other group is closed. The server renders no toggle buttons (they need JavaScript); they are
-   absolutely positioned, so React adding them moves nothing. */
-.dp-sidebar--static .dp-sidebar-item:not(:has([aria-current='page'])) > .dp-sidebar-list--sub {
-  display: none;
-}
-
 /* ------------------------------------------------------------------ table of contents */
 
 .dp-toc {
@@ -339,6 +399,10 @@
   margin: 0;
   padding: 0;
   list-style: none;
+
+  /* Live breaks a long identifier ("versionPreferencesByCorpus") inside the 197px column. */
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .dp-toc-item--h2 {
@@ -389,8 +453,24 @@
 
 /* ------------------------------------------------------------------ page footer */
 
+/* Live's flex row around "Updated": the line's 13px margins stay inside it (65.5px tall). */
+.dp-updated-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .dp-updated {
   padding-top: 20px;
+}
+
+/* Live's `hr.NextStepsDivider`. */
+.dp-docs-footer__divider {
+  height: 0;
+  margin: 8px 0;
+  border: 0;
+  border-top: 1px solid rgb(0 0 0 / 10%);
 }
 
 .dp-updated__line {
@@ -415,10 +495,12 @@
     center / contain no-repeat;
 }
 
+/* Live's grid: 3fr 1fr 3fr (342, 114, 342px at 1440); the previous link fills its column, the next one
+   sits at the end of the third. */
 .dp-pagination {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 3fr 1fr 3fr;
+  align-items: flex-start;
   padding: 20px 0;
 }
 
@@ -431,13 +513,12 @@
 
 .dp-pagination__link--prev {
   grid-column: 1;
-  justify-self: start;
 }
 
 .dp-pagination__link--next {
-  grid-column: 2;
+  grid-column: 3;
   justify-self: end;
-  text-align: right;
+  text-align: end;
 }
 
 .dp-pagination__link:focus-visible {
@@ -478,9 +559,11 @@
   transform: scaleX(-1);
 }
 
+/* The feedback widget is 124px tall; the server markup keeps that space before it mounts. */
 .dp-docs-footer__feedback {
   display: flex;
   justify-content: center;
+  min-height: 124px;
 }
 
 .dp-docs-footer__discord {
@@ -489,7 +572,6 @@
   padding-bottom: 40px;
 }
 
-.dp-docs-footer__feedback:empty,
 .dp-docs-footer__discord:empty {
   display: none;
 }

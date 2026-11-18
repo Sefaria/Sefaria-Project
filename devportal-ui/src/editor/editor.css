@@ -22,7 +22,7 @@ ol[data-dp-editor-tight] > li > p {
 }
 
 /* ProseMirror's own required rules (prosemirror-view/style/prosemirror.css and TipTap's injected CSS, which the
-   CSP does not allow as a <style> element). Class names are the libraries'. */
+   CSP does not allow as a \3c style> element). Class names are the libraries'. */
 /* stylelint-disable selector-class-pattern */
 .ProseMirror {
   position: relative;

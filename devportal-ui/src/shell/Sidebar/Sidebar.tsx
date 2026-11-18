@@ -8,6 +8,7 @@
 // filter has text, every group with a remaining row is open.
 import {
   useEffect,
+  useLayoutEffect,
   useId,
   useRef,
   useState,
@@ -148,7 +149,14 @@ function Row({ item, depth, ctx }: { item: SidebarItem; depth: number; ctx: RowC
         )}
       </div>
       {hasChildren && (
-        <ul id={listId} className="dp-sidebar-list dp-sidebar-list--sub" hidden={!open}>
+        // A closed group keeps its rows laid out in a 0px-tall list, as live does (so the rows measure as live's
+        // do, PLAN §6.1); `inert` and aria-hidden keep them out of the tab order and the accessibility tree.
+        <ul
+          id={listId}
+          className={`dp-sidebar-list dp-sidebar-list--sub${open ? '' : ' dp-sidebar-list--collapsed'}`}
+          inert={!open}
+          aria-hidden={open ? undefined : true}
+        >
           {item.children.map((child) => (
             <Row key={child.id} item={child} depth={depth + 1} ctx={ctx} />
           ))}
@@ -202,6 +210,19 @@ export function Sidebar({ tree, activePath, footer, filterable }: SidebarProps) 
   const [closedWhileFiltering, setClosedWhileFiltering] = useState<ReadonlySet<number>>(() => new Set());
   const [openedFor, setOpenedFor] = useState(activePath);
   const filterRef = useRef<HTMLInputElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  // On load, a current page below the sidebar's fold is scrolled into the middle of the column (as far as it
+  // goes), as live does (/docs/sefaria-research-at-pyconn-2024: the column scrolls to its end).
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    const current = nav?.querySelector<HTMLElement>('a[aria-current="page"]');
+    if (!nav || !current) return;
+    const top = current.getBoundingClientRect().top - nav.getBoundingClientRect().top + nav.scrollTop;
+    if (top + current.offsetHeight <= nav.clientHeight) return;
+    nav.scrollTop = top - (nav.clientHeight - current.offsetHeight) / 2;
+    // Only on the first render: later navigations keep the reader's scroll position.
+  }, []);
   const apple = useSyncExternalStore(subscribeNever, isApplePlatform, () => false);
   // In the ≤768 panel live shows every group open; the reader can still close one.
   const mobile = useSyncExternalStore(subscribeMobile, isMobile, () => false);
@@ -266,6 +287,7 @@ export function Sidebar({ tree, activePath, footer, filterable }: SidebarProps) 
 
   return (
     <nav
+      ref={navRef}
       className="dp-sidebar dp-sidebar--app"
       aria-label={SIDEBAR_LABEL}
       id={reference ? 'reference-sidebar' : undefined}

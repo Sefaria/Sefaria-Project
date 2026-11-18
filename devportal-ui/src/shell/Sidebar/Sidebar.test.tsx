@@ -209,6 +209,21 @@ describe('Sidebar: docs', () => {
     const { container } = render(<Sidebar tree={docsTree} activePath="/docs/linker-v3" />);
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it('opens a group that is itself the current page, as live', () => {
+    render(<Sidebar tree={docsTree} activePath="/docs/linker" />);
+    expect(toggles('The Sefaria Linker')[0]).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Embed Linker v3 on Your Site' })).toBeVisible();
+  });
+
+  it('keeps a closed group laid out but inert and hidden from assistive technology (visual parity)', () => {
+    const { container } = render(<Sidebar tree={docsTree} activePath="/docs/welcome" />);
+    const list = container.querySelector('.dp-sidebar-list--collapsed')!;
+    expect(list).toHaveAttribute('inert');
+    expect(list).toHaveAttribute('aria-hidden', 'true');
+    expect(list.querySelectorAll('a[data-visual="sbLink"]').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('link', { name: 'Embed Linker v3 on Your Site' })).toBeNull();
+  });
 });
 
 describe('tree helpers', () => {

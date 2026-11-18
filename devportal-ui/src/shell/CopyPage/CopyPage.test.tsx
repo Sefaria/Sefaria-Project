@@ -157,6 +157,21 @@ describe('CopyPage', () => {
     t.cleanup();
   });
 
+  it('moves focus into the menu when Enter opens it, and leaves it on the button for a pointer click', async () => {
+    const user = userEvent.setup();
+    const t = setup();
+    const toggle = screen.getByRole('button', { name: 'Copy Page options' });
+    toggle.focus();
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(document.activeElement).toHaveTextContent('Open in ChatGPT'));
+    await user.keyboard('{Escape}');
+    expect(document.activeElement).toBe(toggle);
+    await user.click(toggle);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(document.activeElement).toBe(toggle);
+    t.cleanup();
+  });
+
   it('closes on a click outside', async () => {
     const user = userEvent.setup();
     const t = setup();

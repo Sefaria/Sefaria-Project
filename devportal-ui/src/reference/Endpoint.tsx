@@ -83,7 +83,13 @@ export function Endpoint({
     <EndpointProvider op={op} {...options}>
       <div className={styles.wrapper} data-visual="articleWrap">
         <div className={styles.container}>
-          <article id="content" className={styles.article} data-visual="article" data-visual-region="article">
+          <article
+            id="content"
+            className={styles.article}
+            tabIndex={-1}
+            data-visual="article"
+            data-visual-region="article"
+          >
             <EndpointArticle
               title={title ?? op.title}
               descriptionHtml={descriptionHtml}

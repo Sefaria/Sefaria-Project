@@ -115,6 +115,32 @@ def test_prerendered_file_is_included(bundle):
     assert render('{% devportal_prerendered "endpoint" "get-v3-texts" %}') == "<article>"
 
 
+def test_header_matches_the_client_variant_for_the_payload(bundle):
+    # The client (src/app/PortalPage.tsx) adds the ≤768px sub-nav row on pages with a sidebar, and the 404 page has
+    # its own header; the server includes the same variant, so the layout does not move when React takes over.
+    _write_prerender(
+        bundle,
+        {
+            "tokens": {"subnavLabel": "__DP_SUBNAV_LABEL__"},
+            "header": {"docs": "header-docs.html", "none": "header-none.html"},
+            "header-subnav": {"docs": "header-docs-subnav.html", "notfound-docs": "header-notfound-docs.html"},
+        },
+        {
+            "header-docs.html": "<header>docs</header>",
+            "header-none.html": "<header>none</header>",
+            "header-docs-subnav.html": "<header>docs <span>__DP_SUBNAV_LABEL__</span></header>",
+            "header-notfound-docs.html": "<header>404</header>",
+        },
+    )
+    doc = {"kind": "doc", "nav": {"tree": {"categories": []}}, "page": {"title": "A <b> & B"}}
+    tag = "{% devportal_header payload tab %}"
+    assert render(tag, payload=doc, tab="docs") == "<header>docs <span>A &lt;b&gt; &amp; B</span></header>"
+    assert render(tag, payload={**doc, "nav": None}, tab="docs") == "<header>docs</header>"
+    assert render(tag, payload={"kind": "notfound"}, tab="docs") == "<header>404</header>"
+    assert render(tag, payload={"kind": "home"}, tab=None) == "<header>none</header>"
+    assert render(tag, payload="", tab=None) == "<header>none</header>"
+
+
 def test_missing_prerendered_file_falls_back_to_plain_markup(bundle, caplog):
     header = render('{% devportal_prerendered "header" tab %}', tab="reference")
     assert header.startswith('<header class="dp-header dp-header-fallback">')

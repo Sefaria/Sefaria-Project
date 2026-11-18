@@ -18,7 +18,7 @@
   {% if prerendered|is_prerendered_endpoint %}
   {{ prerendered|endpoint_page:payload }}
   {% else %}
-  <article id="content" class="dp-endpoint dp-endpoint-layout__article" data-operation-id="{{ op.operationId }}" data-dp-prerender="missing">
+  <article id="content" class="dp-endpoint dp-endpoint-layout__article" tabindex="-1" data-operation-id="{{ op.operationId }}" data-dp-prerender="missing">
     <header class="dp-endpoint-header">
       <h1 class="dp-endpoint-title" dir="auto">{{ page.title }}</h1>
       {% if op.deprecated %}<span class="dp-endpoint-deprecated">Deprecated</span>{% endif %}

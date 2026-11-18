@@ -184,7 +184,7 @@ def test_payload_carries_the_same_body(seeded):
     adopted = re.search(r'<div data-dp-adopt="body">(.*)</div></main>', html, re.S).group(1)
     assert adopted == payload["bodyHtml"]
     assert payload["bodyHtml"].startswith('<div class="dp-home">')
-    assert '<main class="dp-rm-app" id="content" data-visual="main">' in html
+    assert '<main class="dp-rm-app" id="content" tabindex="-1" data-visual="main">' in html
 
 
 def test_head_and_post(seeded):

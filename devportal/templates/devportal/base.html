@@ -1,5 +1,5 @@
 {% load devportal_assets %}<!doctype html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" data-visual="html">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,10 +15,10 @@
 <link rel="manifest" href="/site.webmanifest?v=e9b1b3beada0">
 {% devportal_entry %}
 </head>
-<body class="dp-body">
+<body class="dp-body" data-visual="body">
 <div hidden aria-hidden="true">{{ ai_banner }}</div>
 <div id="dp-root">
-{% devportal_prerendered "header" active_tab %}
+{% devportal_header payload active_tab %}
 {% block content %}{{ content_html }}{% endblock %}
 </div>
 {% devportal_data_island payload %}

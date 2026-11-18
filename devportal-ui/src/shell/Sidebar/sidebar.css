@@ -56,7 +56,34 @@
   margin-bottom: 2px;
 }
 
+/*
+ * A closed group: its rows stay laid out in a list 0px tall, 24px below the top of the group's row (live's
+ * `ul.subpages` of a closed group), out of the flow so the row keeps its height. Nothing of it shows.
+ */
+.dp-sidebar--app .dp-sidebar-item:has(> .dp-sidebar-list--collapsed) {
+  position: relative;
+}
+
+.dp-sidebar--app .dp-sidebar-list--collapsed {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  left: 0;
+  height: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+/* A 24px target (WCAG 2.5.8) around live's 16px chevron, which stays where live draws it (8px from the row's top,
+   5px from its right edge): the button grows 4px on each side, transparent. */
 .dp-sidebar--app .dp-sidebar-toggle {
+  top: 4px;
+  right: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   color: var(--rm-color-text-minimum-icon, rgb(102 107 121 / 60%));
 }
 

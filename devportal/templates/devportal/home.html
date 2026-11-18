@@ -6,4 +6,4 @@
   it data-dp-adopt="body" and src/app/PortalPage.tsx renders <main class="dp-rm-app" id="content"> with
   an AdoptedHtml "body" inside, the same structure. No inline style or script (CSP).
 {% endcomment %}
-{% block content %}<main class="dp-rm-app" id="content" data-visual="main"><div data-dp-adopt="body">{{ payload.bodyHtml|safe }}</div></main>{% endblock %}
+{% block content %}<main class="dp-rm-app" id="content" tabindex="-1" data-visual="main"><div data-dp-adopt="body">{{ payload.bodyHtml|safe }}</div></main>{% endblock %}

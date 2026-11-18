@@ -235,6 +235,31 @@ def devportal_prerendered(kind, key=None):
     return mark_safe(html)  # noqa: S308 - our own build output, never user input
 
 
+SUBNAV_LABEL_TOKEN = "__DP_SUBNAV_LABEL__"  # devportal-ui/src/shell/PortalHeader/prerender.tsx
+NOT_FOUND_HEADER_PREFIX = "notfound-"  # one 404 header per active tab (prerender.tsx)
+
+
+@register.simple_tag
+def devportal_header(payload, active_tab):
+    """The header the client renders for this payload (src/app/PortalPage.tsx), so the ≤768px layout does not move
+    when React takes over: with the sub-nav row (labelled with the page title) on pages with a sidebar, the 404 page's
+    own variant, otherwise `{% devportal_prerendered "header" active_tab %}`."""
+    kind = payload.get("kind") if isinstance(payload, dict) else None
+    key = "none" if active_tab is None else active_tab
+    html = None
+    if kind == "notfound":
+        html = prerendered_html("header-subnav", NOT_FOUND_HEADER_PREFIX + key)
+    elif kind in ("doc", "endpoint") and (payload.get("nav") or {}).get("tree"):
+        html = prerendered_html("header-subnav", key)
+        if html is not None:
+            manifest = _json_files.load(bundle_dir() / PRERENDER_MANIFEST) or {}
+            token = (manifest.get("tokens") or {}).get("subnavLabel") or SUBNAV_LABEL_TOKEN
+            html = html.replace(token, str(format_html("{}", payload["page"]["title"])))
+    if html is None:
+        return devportal_prerendered("header", active_tab)
+    return mark_safe(html)  # noqa: S308 - our own build output; the only substitution is escaped
+
+
 @register.simple_tag(takes_context=True)
 def devportal_data_island(context, payload):
     """The page data island: Django's json_script, plus the request's CSP nonce."""

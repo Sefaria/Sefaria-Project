@@ -5,6 +5,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { BODY_ELEMENT_ID } from './adopt';
 import { enhanceArticle, type EnhanceOptions } from './enhance';
+import { tagVisualHooks } from './visual';
 
 export interface DocBodyProps {
   /** Server-rendered, sanitized HTML (payload `page.bodyHtml`). */
@@ -24,8 +25,9 @@ export function DocBody({ html, adopt, enhance, onEnhanced }: DocBodyProps) {
     if (adopt && adopt.length > 0) el.replaceChildren(...adopt);
     else el.innerHTML = html;
     const enhanced = enhanceArticle(el, enhance);
+    tagVisualHooks(el);
     onEnhanced?.(enhanced.highlighted);
     return enhanced.cleanup;
   }, [html, adopt, enhance, onEnhanced]);
-  return <div className="dp-markdown" id={BODY_ELEMENT_ID} ref={ref} />;
+  return <div className="dp-markdown" id={BODY_ELEMENT_ID} ref={ref} data-visual="docBody" />;
 }

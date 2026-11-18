@@ -84,6 +84,9 @@
   padding: 5px;
   border: 1px solid transparent;
   border-radius: 4px;
+
+  /* Live's link colour; nothing shows it, but the logo inherits it (computed styles, visual parity). */
+  color: #666;
 }
 
 .logoImg {
@@ -155,6 +158,9 @@
   box-shadow: 0 0 0 1px rgb(0 0 0 / 10%);
   color: #000;
   font: inherit;
+
+  /* Live's button keeps the browser's 13.33px; its placeholder and key hint set their own sizes. */
+  font-size: 13.3333px;
   line-height: 32px;
   cursor: pointer;
   transition: box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -214,6 +220,10 @@
   border-radius: 6px;
   background-color: transparent;
   color: #fff;
+
+  /* Live's Button_md text style (the button shows only the dot grid). */
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition:
     background-color 0.15s cubic-bezier(0.16, 1, 0.3, 1),
@@ -243,6 +253,13 @@
   background-color: #fff;
   color: #32343a;
   font-size: 14px;
+}
+
+/* Live's tippy box: the panel plus 10px above (the logo's overhang) and below. Draws nothing. */
+.linksRegion {
+  position: absolute;
+  inset: -10px 0;
+  pointer-events: none;
 }
 
 .linksLogo {
@@ -438,6 +455,10 @@
     border-radius: 4px;
     background-color: transparent;
     color: #fff;
+
+    /* Live's icon-font button (20px glyph); the portal draws an SVG, so this only matches its text style. */
+    font-size: 20px;
+    line-height: 20px;
     cursor: pointer;
   }
 
