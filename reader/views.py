@@ -112,6 +112,7 @@ from sefaria.image_generator import (
 )
 from sefaria.model import *
 from sefaria.model.abstract import SluggedAbstractMongoRecord
+from sefaria.model.category import TocCategory, TocTextIndex
 from sefaria.model.collection import CollectionSet
 from sefaria.model.following import general_follow_recommendations
 from sefaria.model.media import get_media_for_ref
@@ -1169,6 +1170,27 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
     return text_list
 
 
+def _toc_category_at(toc_tree, cats):
+    """
+    Return the TOC category that ends at `cats`, or None when the path does not name a category.
+    `TocTree.lookup` answers with an index node for a path that names a text, and such an index node
+    replaces a category that shares its path in the tree's path hash.
+    """
+    node = toc_tree.lookup(cats)
+    if not isinstance(node, TocTextIndex):
+        return node
+    parent = getattr(node, "parent", None)
+    if parent is None:
+        return None
+    # Compare against the resolved node, not the URL segment: the segment can be spelled
+    # differently from the TOC title that `lookup` matched.
+    title = node.primary_title()
+    for child in parent.children:
+        if isinstance(child, TocCategory) and child.primary_title() == title:
+            return child
+    return None
+
+
 @sanitize_get_params
 def texts_category_list(request, cats=None):
     """
@@ -1183,9 +1205,18 @@ def texts_category_list(request, cats=None):
         desc = _("Texts that you've recently viewed on Sefaria.")
     else:
         cats = cats.split("/")
-        tocObject = library.get_toc_tree().lookup(cats)
+        toc_tree = library.get_toc_tree()
+        tocObject = toc_tree.lookup(cats)
         if len(cats) == 0 or tocObject is None:
             return texts_list(request)
+        if isinstance(tocObject, TocTextIndex) and _toc_category_at(toc_tree, cats) is None:
+            # The last path segment names a text, not a category, e.g. /texts/Tanakh/Torah/Genesis.
+            # A category page cannot render such a path, so send the reader to the text itself.
+            url = "/" + urllib.parse.quote(tocObject.primary_title().replace(" ", "_"), safe="")
+            query = request.META.get("QUERY_STRING")
+            if query:
+                url = f"{url}?{query}"
+            return redirect(url)
         cat_string = (
             ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
         )
