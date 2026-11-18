@@ -1,0 +1,200 @@
+{
+    "result": {
+        "tools": [
+            {
+                "name": "list-endpoints",
+                "title": "List API Endpoints",
+                "description": "Lists all API paths and their HTTP methods with summaries, organized by path. Results can be passed directly into 'get-endpoint'.",
+                "inputSchema": {
+                    "type": "object",
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "properties": {}
+                },
+                "annotations": {
+                    "readOnlyHint": true,
+                    "destructiveHint": false,
+                    "openWorldHint": false
+                }
+            },
+            {
+                "name": "get-endpoint",
+                "title": "Get Endpoint Details",
+                "description": "Gets detailed information about a specific API endpoint, including security schemes and servers",
+                "inputSchema": {
+                    "type": "object",
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "properties": {
+                        "path": {
+                            "type": "string",
+                            "description": "The API endpoint path (e.g. /api/v1/users)."
+                        },
+                        "method": {
+                            "type": "string",
+                            "description": "The HTTP method (e.g. GET, POST, PUT, DELETE)."
+                        }
+                    },
+                    "required": [
+                        "path",
+                        "method"
+                    ]
+                },
+                "annotations": {
+                    "readOnlyHint": true,
+                    "destructiveHint": false,
+                    "openWorldHint": false
+                }
+            },
+            {
+                "name": "search-endpoints",
+                "title": "Search API Endpoints",
+                "description": "Performs a deep search through paths, operations, and parameters to discover relevant API endpoints. Use this tool to find specific API capabilities, required parameters, or data models based on search keywords. Results can be passed directly into 'get-endpoint'.",
+                "inputSchema": {
+                    "type": "object",
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "properties": {
+                        "pattern": {
+                            "type": "string",
+                            "description": "Search pattern (case-insensitive)"
+                        }
+                    },
+                    "required": [
+                        "pattern"
+                    ]
+                },
+                "annotations": {
+                    "readOnlyHint": true,
+                    "destructiveHint": false,
+                    "openWorldHint": false
+                }
+            },
+            {
+                "name": "execute-request",
+                "title": "Execute API Request",
+                "description": "Executes an API request with a given HAR request object.",
+                "inputSchema": {
+                    "type": "object",
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "properties": {
+                        "harRequest": {
+                            "type": "object",
+                            "properties": {
+                                "method": {
+                                    "type": "string",
+                                    "description": "options, get, head, patch, post, put, delete"
+                                },
+                                "url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "description": "full url to call"
+                                },
+                                "headers": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "value": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "name",
+                                            "value"
+                                        ]
+                                    }
+                                },
+                                "postData": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "mimeType": {
+                                                    "type": "string",
+                                                    "description": "e.g. application/json, text/plain"
+                                                },
+                                                "text": {
+                                                    "type": "string",
+                                                    "description": "Raw request body as a string"
+                                                }
+                                            },
+                                            "required": [
+                                                "mimeType",
+                                                "text"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "mimeType": {
+                                                    "type": "string",
+                                                    "description": "e.g. multipart/form-data, application/x-www-form-urlencoded. Use multipart/form-data for form submissions."
+                                                },
+                                                "params": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "value": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name"
+                                                        ]
+                                                    },
+                                                    "description": "Form parameters. Use this instead of text for multipart/form-data and url-encoded requests."
+                                                }
+                                            },
+                                            "required": [
+                                                "mimeType",
+                                                "params"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "queryString": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "value": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "name",
+                                            "value"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "method",
+                                "url"
+                            ],
+                            "description": "HAR request object"
+                        }
+                    },
+                    "required": [
+                        "harRequest"
+                    ]
+                },
+                "annotations": {
+                    "readOnlyHint": false,
+                    "destructiveHint": true,
+                    "openWorldHint": true
+                }
+            }
+        ]
+    },
+    "jsonrpc": "2.0",
+    "id": 2
+}

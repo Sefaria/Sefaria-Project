@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /*/api-next
+Disallow: /cdn-cgi/
+Disallow: /edit/
+Disallow: /*/edit/
+Disallow: /suggested-edits/
+Disallow: /login
+Disallow: /logout
+
+Sitemap: https://developers.sefaria.org/sitemap.xml
+# LLM Information: https://developers.sefaria.org/llms.txt

@@ -1,0 +1,17 @@
+schema html: 1384
+node lib label: API Request
+node libs: Library | Axios | fetch | http | API
+more langs: Agent Prompt | C | C# | C++ | Clojure | Crystal | Go | HTTP | Java | JavaScript | JSON | Kotlin | Objective-C | OCaml | PowerShell | R | Rust | Swift
+ai menu: Open in ChatGPT | Open in Claude | MCP | Connect to Cursor | Connect to VS Code | Copy MCP Config | Copy MCP Command | View as Markdown
+feedback popup: Leave an optional comment… | Vote
+links menu: Sefaria Library | Voices at Sefaria | Developers | More from Sefaria ›
+tryit v3 ms 2489
+resp header text: 200 | Headers
+resp buttons: |200|Button Button_xs APIResponse-action-button3OHrWUSymAt1 APIResponse-action-button ;; |Headers|Button Button_xs APIResponse-header-button26YvQnFGCQ5w Button_secondary Button_s ;; Copy to clipboard||Button Button_xs CopyToClipboard1605sk0q8t0p APIResponse-copyButton1Wx_vGKSR6nt 
+resp menu: application/json | 200 - Esther 1.1 | Clear Response
+json-fold: locator.click: Timeout 30000ms exceeded.
+logs: TIME	STATUS	USER AGENT	 |  | Less than a minute ago | 	 | 200 | 	 | Try It! | 	
+err resp: 200 | Headers | 1 | { | 2 |   "versions": [ | 3 |     { | 4 |       "status": "locked", | 5 |       "priority": 2, | 6 |       "license": "CC-BY-SA", | 7 |       "versionNotes": "<i>Miqra According to the Masorah</i> (MAM) is a digital Hebrew edition of the Tanakh based on the Aleppo Codex and related manuscripts. It is designed
+fr inputs: 2 ids body-postFindRefs_text_body:INPUT,body-postFindRefs_text_title:INPUT
+fr resp: 202 | Headers | 1 | { | 2 |   "task_id": "752d3ce7-d4c7-4921-88d0-270139ebe22d" | 3 | }
+combo: type: | string | Use example value | hebrew | Use example value | hebrew|Miqra according to the Masorah

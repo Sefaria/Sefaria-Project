@@ -1,0 +1,4942 @@
+[
+ {
+  "url": "https://developers.sefaria.org/docs/accessibility-interns-and-the-passages-api-september-2025",
+  "status": 200,
+  "title": "Accessibility, Interns, and the Passages API (September 2025, Issue 6)",
+  "h1": "Accessibility, Interns, and the Passages API (September 2025, Issue 6)",
+  "excerpt": "Pass a Talmud reference, get back the full sugya — Sefaria's underrated Passages API explained, plus accessibility work making every element keyboard-navigable, and a community project that mapped 30M Hebrew words of commentary across the entire Babylonian Talmud.",
+  "metaDesc": "Pass a Talmud reference, get back the full sugya — Sefaria's underrated Passages API explained, plus accessibility work making every element keyboard-navigable, and a community project that mapped 30M Hebrew words of commentary across the entire Babylonian Talmud.",
+  "updated": [],
+  "sidebarActive": [
+   "Accessibility, Interns, and the Passages API (September 2025, Issue 6)"
+  ],
+  "toc": [
+   "HOT OFF THE PRESSES:",
+   "Meet the Interns!",
+   "QUICK TECH TIP:",
+   "The Passages API",
+   "Behind the Scenes: Improving Accessibility",
+   "SPOTLIGHT: POWERED BY SEFARIA",
+   "The Talmud Commentary Atlas",
+   "Helpful Links"
+  ],
+  "pagination": [
+   {
+    "t": "Calendar API, a User-Requested feature, and More! (June 2025, Issue 5)",
+    "h": "/docs/calendar-api-a-user-requested-feature-and-more"
+   },
+   {
+    "t": "Django middleware innovation & MCPs (January 2026, Issue 7)",
+    "h": "/docs/django-middleware-innovation-mcps-january-2026-issue-7"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "img": 4,
+   "lightbox": 2,
+   "lightbox-inner": 2,
+   "heading": 8,
+   "heading-2": 4,
+   "heading-anchor": 8,
+   "heading-text": 8,
+   "heading-anchor-icon": 8,
+   "heading-3": 3,
+   "img-align-center": 1,
+   "heading-1": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [
+   ""
+  ],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ee0af6a0bec4e5f4a924d030475173f240b368a68075d233d6299f82ff110f93-image.png",
+   "https://files.readme.io/b694f092130a09830f6ed1f1485193b1e842fa1be5af748d1520f834f12ff6e6-archetypes_of_scholarship.png"
+  ],
+  "extLinks": [
+   "https://sefaria.activehosted.com/f/46",
+   "https://newsletter.sefaria.org/lt.php?x=4lZy~GDDU6ScE8Ctyt~LVulu13QljQH0kewvYHTJV3XN583.-0y.0OJs3HFzidbyj_Y2bHTDJXiaT8Du0_LFVOLcEu2i",
+   "https://newsletter.sefaria.org/lt.php?x=4lZy~GDDU6ScE8Ctyt~LVulu13QljQH0kewvYHTJV3XN583.-0y.0OJs3HFzidbyj_Y2bHTDJXicT8Du0_LFVOLcEu2i",
+   "https://newsletter.sefaria.org/lt.php?x=4lZy~GDDU6ScE8Ctyt~LVulu13QljQH0kewvYHTJV3XN583.-0y.0OJs3HFzidbyj_Y2bHTDJXmaT8Du0_LFVOLcEu2i",
+   "https://newsletter.sefaria.org/lt.php?x=4lZy~GDDU6ScE8Ctyt~LVulu13QljQH0kewvYHTJV3XN583.-0y.0OJs3HFzidbyj_Y2bHTDJXmbT8Du0_LFVOLcEu2i",
+   "https://newsletter.sefaria.org/lt.php?x=4lZy~GDDU6ScE8Ctyt~LVulu13QljQH0kewvYHTJV3XN583.-0y.0OJs3HFzidbyj_Y2bHTDJXmcT8Du0_LFVOLcEu2i",
+   "https://newsletter.sefaria.org/lt.php?x=4lZy~GDDU6ScE8Ctyt~LVulu13QljQH0kewvYHTJV3XN583.-0y.0OJs3HFzidbyj_Y2bHTDJXidT8Du0_LFVOLcEu2i",
+   "https://github.com/AChompSitsIn/The-Talmud-Commentary-Atlas?tab=readme-ov-file#visualizations",
+   "https://developers.sefaria.org/",
+   "https://developers.sefaria.org/reference/getting-started",
+   "https://github.com/Sefaria/Sefaria-Project",
+   "https://www.sefaria.org/about"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 HOT OFF THE PRESSES:",
+   "H3 Meet the Interns!",
+   "H2 QUICK TECH TIP:",
+   "H3 The Passages API",
+   "H2 Behind the Scenes: Improving Accessibility",
+   "H2 SPOTLIGHT: POWERED BY SEFARIA",
+   "H3 The Talmud Commentary Atlas"
+  ],
+  "len": 7820
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/alternate-structures",
+  "status": 200,
+  "title": "Alternate Structures",
+  "h1": "Alternate Structures",
+  "excerpt": "Learn how to work with texts that feature alternate structures.",
+  "metaDesc": "Learn how to work with texts that feature alternate structures.",
+  "updated": [],
+  "sidebarActive": [
+   "Alternate Structures"
+  ],
+  "toc": [
+   "Alternate Structures"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 1,
+   "heading-1": 1,
+   "heading-anchor": 1,
+   "heading-text": 1,
+   "heading-anchor-icon": 1,
+   "rdmd-code": 15,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "http://www.sefaria.org/Zohar"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 6372
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/api-wiki",
+  "status": 200,
+  "title": "Additional API Endpoints",
+  "h1": "Additional API Endpoints",
+  "excerpt": "Learn more about various API endpoints that are not yet listed in Sefaria's API playground.",
+  "metaDesc": "Learn more about various API endpoints that are not yet listed in Sefaria's API playground.",
+  "updated": [],
+  "sidebarActive": [
+   "Additional API Endpoints"
+  ],
+  "toc": [
+   "Text References",
+   "Additional API Endpoints"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 2,
+   "heading-2": 2,
+   "heading-anchor": 2,
+   "heading-text": 2,
+   "heading-anchor-icon": 2,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://github.com/Sefaria/Sefaria-Project",
+   "https://developers.sefaria.org/reference/getting-started",
+   "https://www.sefaria.org/texts"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Text References",
+   "H2 Additional API Endpoints"
+  ],
+  "len": 3269
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/async-task-api",
+  "status": 200,
+  "title": "The Sefaria Linker Async Task API",
+  "h1": "The Sefaria Linker Async Task API",
+  "excerpt": "Learn how to use the Sefaria Linker Async Task API",
+  "metaDesc": "Learn how to use the Sefaria Linker Async Task API",
+  "updated": [],
+  "sidebarActive": [
+   "The Sefaria Linker Async Task API"
+  ],
+  "toc": [
+   "GET /api/async/:task_id",
+   "Response Format"
+  ],
+  "pagination": [
+   {
+    "t": "The Sefaria Linker API",
+    "h": "/docs/linker-api"
+   },
+   {
+    "t": "Websites Using the Linker",
+    "h": "/docs/sites-using-the-linker"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 2,
+   "heading-1": 1,
+   "heading-anchor": 2,
+   "heading-text": 2,
+   "heading-anchor-icon": 2,
+   "heading-2": 1,
+   "CodeTabs": 1,
+   "CodeTabs_initial": 1,
+   "CodeTabs-toolbar": 1,
+   "CodeTabs-inner": 1,
+   "rdmd-code": 9,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "JavaScript",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Response Format"
+  ],
+  "len": 3491
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/calendar-api-a-user-requested-feature-and-more",
+  "status": 200,
+  "title": "Calendar API, a User-Requested feature, and More! (June 2025, Issue 5)",
+  "h1": "Calendar API, a User-Requested feature, and More! (June 2025, Issue 5)",
+  "excerpt": "Sefaria's Calendar API quirk explained, how a state-management overhaul saved half a million user sheets from data loss, and a tool that turns Torah verses into sound waves via Gematria.",
+  "metaDesc": "Sefaria's Calendar API quirk explained, how a state-management overhaul saved half a million user sheets from data loss, and a tool that turns Torah verses into sound waves via Gematria.",
+  "updated": [],
+  "sidebarActive": [
+   "Calendar API, a User-Requested feature, and More! (June 2025, Issue 5)"
+  ],
+  "toc": [
+   "HOT OFF THE PRESSES:",
+   "An Updated Sheet Editor",
+   "QUICK TECH TIP:",
+   "Something Odd About the Calendar API?",
+   "Behind the Scenes: A Key Feature for the Updated Editor",
+   "SPOTLIGHT: POWERED BY SEFARIA",
+   "The Gematriaphone",
+   "Helpful Links"
+  ],
+  "pagination": [
+   {
+    "t": "Top Tech Tips, New Projects, and More! (March 2025, Issue 4)",
+    "h": "/docs/top-tech-tips-new-projects-and-more-march-2025-issue-4"
+   },
+   {
+    "t": "Accessibility, Interns, and the Passages API (September 2025, Issue 6)",
+    "h": "/docs/accessibility-interns-and-the-passages-api-september-2025"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "img": 8,
+   "lightbox": 4,
+   "lightbox-inner": 4,
+   "heading": 8,
+   "heading-2": 5,
+   "heading-anchor": 8,
+   "heading-text": 8,
+   "heading-anchor-icon": 8,
+   "heading-3": 2,
+   "heading-1": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ee0af6a0bec4e5f4a924d030475173f240b368a68075d233d6299f82ff110f93-image.png",
+   "https://files.readme.io/10bfdd96570289b9d54b0c8ccafa47e0a4d0da78548ed76a4c8986c88da0bac7-image.png",
+   "https://files.readme.io/2468ea53dcf2c4b4612a01fd65418d862716eaf86c05d44c85206a8e45dd8b63-image.png",
+   "https://files.readme.io/c5853989ae7f6cae6a9ca0157420f44145ecf59968a7c8917b0ae1af36bfebca-image.png"
+  ],
+  "extLinks": [
+   "https://sefaria.activehosted.com/f/46",
+   "https://www.sefaria.org/sheets/639997?lang=en",
+   "https://developers.sefaria.org/reference/get-calendars",
+   "https://developers.sefaria.org/docs/text-references",
+   "https://alexboxer.com/gematriaphone/",
+   "https://developers.sefaria.org/",
+   "https://developers.sefaria.org/reference/getting-started",
+   "https://github.com/Sefaria/Sefaria-Project",
+   "https://www.sefaria.org/about"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 HOT OFF THE PRESSES:",
+   "H3 An Updated Sheet Editor",
+   "H2 QUICK TECH TIP:",
+   "H3 Something Odd About the Calendar API?",
+   "H2 Behind the Scenes: A Key Feature for the Updated Editor",
+   "H2 SPOTLIGHT: POWERED BY SEFARIA",
+   "H2 The Gematriaphone"
+  ],
+  "len": 8256
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/categories",
+  "status": 200,
+  "title": "Categories",
+  "h1": "Categories",
+  "excerpt": "Learn about how texts are categorized in the Sefaria Library.",
+  "metaDesc": "Learn about how texts are categorized in the Sefaria Library.",
+  "updated": [],
+  "sidebarActive": [
+   "Categories"
+  ],
+  "toc": [
+   "The Structure of the Category Object",
+   "path",
+   "titles or sharedTitle",
+   "Derived Attributes",
+   "lastPath",
+   "depth",
+   "Optional Attributes",
+   "Example Category Objects",
+   "Example 1: The Category for the commentary of Metzudat David:",
+   "Example 2: The Category for the commentary of Targum:"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "rdmd-code": 58,
+   "heading": 10,
+   "heading-2": 4,
+   "heading-anchor": 10,
+   "heading-text": 10,
+   "heading-anchor-icon": 10,
+   "heading-3": 6,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "CodeTabs": 2,
+   "CodeTabs_initial": 2,
+   "CodeTabs-toolbar": 2,
+   "CodeTabs-inner": 2,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://sefaria.org/",
+   "https://www.sefaria.org/texts/Tanakh",
+   "https://www.sefaria.org/texts/Talmud/Bavli/Rishonim%20on%20Talmud/Rosh/Commentary/Korban%20Netanel",
+   "https://www.sefaria.org/texts/Tanakh/Rishonim%20on%20Tanakh/Rashbam",
+   "https://sefaria.org/texts/Mishnah"
+  ],
+  "buttons": [
+   "JSON",
+   "JSON",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 The Structure of the Category Object",
+   "H3 path",
+   "H3 titles or sharedTitle",
+   "H2 Derived Attributes",
+   "H3 lastPath",
+   "H3 depth",
+   "H2 Optional Attributes",
+   "H2 Example Category Objects",
+   "H3 Example 1: The Category for the commentary of Metzudat David:",
+   "H3 Example 2: The Category for the commentary of Targum:"
+  ],
+  "len": 7015
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/category-creation",
+  "status": 200,
+  "title": "Category Creation",
+  "h1": "Category Creation",
+  "excerpt": "Creating categories on a local installation of the project.",
+  "metaDesc": "Creating categories on a local installation of the project.",
+  "updated": [],
+  "sidebarActive": [
+   "Category Creation"
+  ],
+  "toc": [
+   "Creating a New Category",
+   "POST Request"
+  ],
+  "pagination": [
+   {
+    "t": "Titles for Index",
+    "h": "/docs/titles-for-index"
+   },
+   {
+    "t": "The Sefaria Developer Community Archive",
+    "h": "/docs/the-sefaria-developer-community-archive"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 2,
+   "heading-2": 1,
+   "heading-anchor": 2,
+   "heading-text": 2,
+   "heading-anchor-icon": 2,
+   "rdmd-code": 9,
+   "heading-3": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://github.com/Sefaria/Sefaria-Project/blob/fe9c971217b99cd763c0dd8f42b82339379b961c/sefaria/model/category.py#L14"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Creating a New Category",
+   "H3 POST Request"
+  ],
+  "len": 3711
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/cli",
+  "status": 200,
+  "title": "Command-Line-Interface (CLI)",
+  "h1": "Command-Line-Interface (CLI)",
+  "excerpt": "Learn more about Sefaria's Command-Line-Interface tool.",
+  "metaDesc": "Learn more about Sefaria's Command-Line-Interface tool.",
+  "updated": [],
+  "sidebarActive": [
+   "Command-Line-Interface (CLI)"
+  ],
+  "toc": [
+   "Understanding the Shell Script",
+   "Seeing all Object Properties and Functions",
+   "CLI Examples",
+   "Link Counts",
+   "Text Segments",
+   "Versions"
+  ],
+  "pagination": [
+   {
+    "t": "Workflowy",
+    "h": "/docs/workflowy"
+   },
+   {
+    "t": "Technical Notes",
+    "h": "/docs/technical-notes"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "callout": 1,
+   "callout_warn": 1,
+   "callout-icon": 1,
+   "heading": 7,
+   "heading-3": 4,
+   "heading-anchor": 7,
+   "heading-text": 7,
+   "heading-anchor-icon": 7,
+   "heading-2": 3,
+   "rdmd-code": 12,
+   "CodeTabs": 4,
+   "CodeTabs_initial": 4,
+   "CodeTabs-toolbar": 4,
+   "CodeTabs-inner": 4,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "img-align-center": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/f8f0537f20f64330106a77101182da0b9862f0d662a3bc3299f2e6038520c664-Screenshot_2025-01-23_at_14.15.22.png"
+  ],
+  "extLinks": [
+   "https://dash.readme.com/project/sefaria/v1.0/docs/local-installation-instructions"
+  ],
+  "buttons": [
+   "python",
+   "Python",
+   "Python",
+   "Python",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H3 Local Install Required",
+   "H2 Understanding the Shell Script",
+   "H2 Seeing all Object Properties and Functions",
+   "H2 CLI Examples",
+   "H3 Link Counts",
+   "H3 Text Segments",
+   "H3 Versions"
+  ],
+  "len": 5690
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/commentaries",
+  "status": 200,
+  "title": "Commentaries",
+  "h1": "Commentaries",
+  "excerpt": "Learn about working with commentaries in Sefaria's database.",
+  "metaDesc": "Learn about working with commentaries in Sefaria's database. ",
+  "updated": [],
+  "sidebarActive": [
+   "Commentaries"
+  ],
+  "toc": [
+   "How to Work With Commentaries",
+   "Index Attributes for Commentaries",
+   "Commentaries and Categories"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 3,
+   "heading-1": 1,
+   "heading-anchor": 3,
+   "heading-text": 3,
+   "heading-anchor-icon": 3,
+   "rdmd-code": 47,
+   "heading-2": 2,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://github.com/Sefaria/Sefaria-Project/blob/fe9c971217b99cd763c0dd8f42b82339379b961c/sefaria/helper/link.py#L325",
+   "https://sefaria.org/",
+   "https://www.sefaria.org/texts/Tanakh",
+   "https://www.sefaria.org/texts/Tanakh/Rishonim%20on%20Tanakh/Ramban"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Index Attributes for Commentaries",
+   "H2 Commentaries and Categories"
+  ],
+  "len": 5931
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/contributions-to-sefarias-repositories",
+  "status": 200,
+  "title": "Public Contributions",
+  "h1": "Public Contributions",
+  "metaDesc": "A Note on Contributions There are endless avenues for improving and expanding Sefaria. Therefore, we have to select our projects carefully, whether we're fixing a bug or developing a new feature. Our priorities are guided by both Sefaria's long-term organizational vision and user research. As a resu…",
+  "updated": [],
+  "sidebarActive": [
+   "Public Contributions"
+  ],
+  "toc": [
+   "A Note on Contributions"
+  ],
+  "pagination": [
+   {
+    "t": "Getting Started",
+    "h": "/docs/getting-started-with-local-installation"
+   },
+   {
+    "t": "Local Installation Instructions",
+    "h": "/docs/local-installation-instructions"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "heading": 1,
+   "heading-2": 1,
+   "heading-anchor": 1,
+   "heading-text": 1,
+   "heading-anchor-icon": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://developers.sefaria.org/docs/powered-by-sefaria"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 A Note on Contributions"
+  ],
+  "len": 2983
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/django-middleware-innovation-mcps-january-2026-issue-7",
+  "status": 200,
+  "title": "Django middleware innovation & MCPs (January 2026, Issue 7)",
+  "h1": "Django middleware innovation & MCPs (January 2026, Issue 7)",
+  "excerpt": "How do you split one monolith into three products without touching the codebase? Sefaria's engineering team did it with subdomain-aware Django middleware — read how a single dictionary lookup powers module-aware routing across 100+ views.",
+  "metaDesc": "How do you split one monolith into three products without touching the codebase? Sefaria's engineering team did it with subdomain-aware Django middleware — read how a single dictionary lookup powers module-aware routing across 100+ views.",
+  "updated": [],
+  "sidebarActive": [
+   "Django middleware innovation & MCPs (January 2026, Issue 7)"
+  ],
+  "toc": [
+   "HOT OFF THE PRESSES",
+   "Django Middleware for a Modularized Platform",
+   "Middleware Implementation",
+   "Usage in Views & Templates",
+   "QUICK TECH TIP",
+   "The Sefaria MCPs",
+   "Helpful Links"
+  ],
+  "pagination": [
+   {
+    "t": "Accessibility, Interns, and the Passages API (September 2025, Issue 6)",
+    "h": "/docs/accessibility-interns-and-the-passages-api-september-2025"
+   },
+   {
+    "t": "Sefaria-Export, A Data Puzzle and Deep Wiki (April 2026, Issue 8)",
+    "h": "/docs/sefaria-export-a-data-puzzle-and-deep-wiki"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "img": 6,
+   "lightbox": 3,
+   "lightbox-inner": 3,
+   "heading": 7,
+   "heading-2": 2,
+   "heading-anchor": 7,
+   "heading-text": 7,
+   "heading-anchor-icon": 7,
+   "heading-3": 4,
+   "img-align-center": 2,
+   "heading-1": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ee0af6a0bec4e5f4a924d030475173f240b368a68075d233d6299f82ff110f93-image.png",
+   "https://files.readme.io/db6878f5e7eae2061f2b467445d63547349138ab6eecbf32d0e2725cc249d227-image.png",
+   "https://files.readme.io/b94ad18b77da0b60c8f33fe97767625b2a1a3b56a624ac78813c90b17ce763e1-image.png"
+  ],
+  "extLinks": [
+   "https://sefaria.activehosted.com/f/46",
+   "https://newsletter.sefaria.org/lt.php?x=4lZy~GDDU6ScE8Ctyt~LVulu13QljQH0kewvYHTJV3XN583.-0y7xeFr13InikA0_ueglPHFJXmc95_6yd-YVvFv2XMojq",
+   "https://www.sefaria.org/",
+   "https://voices.sefaria.org/",
+   "https://developers.sefaria.org/",
+   "https://newsletter.sefaria.org/lt.php?x=4lZy~GDDU6ScE8Ctyt~LVulu13QljQH0kewvYHTJV3XN583.-0y7xeFr13InikA0_ueglPHFJXmc95_6yd-YVvFv2XMok8",
+   "https://developers.sefaria.org/reference/getting-started",
+   "https://github.com/Sefaria/Sefaria-Project",
+   "https://www.sefaria.org/about"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 HOT OFF THE PRESSES",
+   "H3 Django Middleware for a Modularized Platform",
+   "H3 Middleware Implementation",
+   "H3 Usage in Views & Templates",
+   "H2 QUICK TECH TIP",
+   "H3 The Sefaria MCPs"
+  ],
+  "len": 8375
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/docker-compose-sefaria",
+  "status": 200,
+  "title": "Run Sefaria with Docker-Compose",
+  "h1": "Run Sefaria with Docker-Compose",
+  "metaDesc": "How to Run Sefaria With docker-compose Please note: This approach is experimental and has not yet been fully tested . If working with docker-compose is a method that would help you, please contact us. 1) Install Docker and Docker Compose Begin by installing Docker (instructions here ) and Docker Com…",
+  "updated": [],
+  "sidebarActive": [
+   "Run Sefaria with Docker-Compose"
+  ],
+  "toc": [
+   "How to Run Sefaria With docker-compose",
+   "1) Install Docker and Docker Compose",
+   "2) Run the project",
+   "3) Connect to Mongo and add texts.",
+   "4) Update your local settings file:",
+   "5) Connect to the Django container and run migrations.",
+   "6) Run webpack.",
+   "7) Visit the site."
+  ],
+  "pagination": [
+   {
+    "t": "Local Installation Instructions",
+    "h": "/docs/local-installation-instructions"
+   },
+   {
+    "t": "Workflowy",
+    "h": "/docs/workflowy"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "heading": 9,
+   "heading-1": 1,
+   "heading-anchor": 9,
+   "heading-text": 9,
+   "rdmd-code": 12,
+   "heading-anchor-icon": 9,
+   "callout": 1,
+   "callout_warn": 1,
+   "callout-icon": 1,
+   "heading-3": 8,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://docs.docker.com/docker-for-mac/install/",
+   "https://docs.docker.com/compose/install/",
+   "https://docs.docker.com/desktop/setup/install/windows-install/"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H3 Please note:",
+   "H3 1) Install Docker and Docker Compose",
+   "H3 2) Run the project",
+   "H3 3) Connect to Mongo and add texts.",
+   "H3 4) Update your local settings file:",
+   "H3 5) Connect to the Django container and run migrations.",
+   "H3 6) Run webpack.",
+   "H3 7) Visit the site."
+  ],
+  "len": 4735
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/general-faq",
+  "status": 200,
+  "title": "General FAQ",
+  "h1": "General FAQ",
+  "metaDesc": "What’s with the name? Something old, something new—just like what we’re developing. Sefaria comes from the Hebrew word Sefer (a scroll or book), playing off of the Hebrew word Sifria (library), while at the same time evoking something new. We hope Sefaria will allow more people around the world to e…",
+  "updated": [],
+  "sidebarActive": [
+   "General FAQ"
+  ],
+  "toc": [
+   "What’s with the name?",
+   "How does Sefaria make money?",
+   "Are you trying to put book publishers out of business?",
+   "What is the source of Sefaria’s translations? How accurate are they? And does the library include human (non-machine) translations only?",
+   "What is Sefaria’s policy on correcting translations?",
+   "What do I do if I spot a mistranslation or a discrepancy in a translation?",
+   "What if two people can’t agree on how to translate a text?",
+   "Will Sefaria host translations in languages besides English?",
+   "Do you have a mobile app?",
+   "I love the apps. How can I change the font size on the display?",
+   "How do I update my app?",
+   "How do I update my offline library after you have added updates?",
+   "Can I get Sefaria offline on my computer?",
+   "How can I get Android on my Amazon Fire device?",
+   "Can I print your texts or reuse them on my website?",
+   "I reported a bug. When will it be fixed?",
+   "Has anyone actually made any interesting applications using Sefaria's data or API?"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 3,
+   "heading": 17,
+   "heading-2": 17,
+   "heading-anchor": 17,
+   "heading-text": 17,
+   "heading-anchor-icon": 17,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "img-align-center": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/cdc29e5-Screen_Shot_2024-03-13_at_13.29.18.png"
+  ],
+  "extLinks": [
+   "https://www.sefaria.org/donate",
+   "https://www.sefaria.org/Berakhot.2a?ven=William_Davidson_Edition_-_English&lang=en",
+   "https://www.sefaria.org/Zohar%2C_Introduction.1-2?ven=Sefaria_Community_Translation&lang=en",
+   "https://www.sefaria.org/sheets/483970?lang=en",
+   "https://sefaria.readme.io/docs/how-to-report-a-mistake",
+   "https://www.sefaria.org/mobile",
+   "https://www.bluestacks.com/",
+   "https://github.com/Sefaria/Sefaria-Android/releases"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 What’s with the name?",
+   "H2 How does Sefaria make money?",
+   "H2 Are you trying to put book publishers out of business?",
+   "H2 What is the source of Sefaria’s translations? How accurate are they? And does the library include human (non-machine) translations only?",
+   "H2 What is Sefaria’s policy on correcting translations?",
+   "H2 What do I do if I spot a mistranslation or a discrepancy in a translation?",
+   "H2 What if two people can’t agree on how to translate a text?",
+   "H2 Will Sefaria host translations in languages besides English?",
+   "H2 Do you have a mobile app?",
+   "H2 I love the apps. How can I change the font size on the display?",
+   "H2 How do I update my app?",
+   "H2 How do I update my offline library after you have added updates?",
+   "H2 Can I get Sefaria offline on my computer?",
+   "H2 How can I get Android on my Amazon Fire device?",
+   "H2 Can I print your texts or reuse them on my website?",
+   "H2 I reported a bug. When will it be fixed?",
+   "H2 Has anyone actually made any interesting applications using Sefaria's data or API?"
+  ],
+  "len": 10921
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/getting-evals-right-for-a-jewish-ai-chatbot",
+  "status": 200,
+  "title": "Getting Evals Right for a Jewish AI Chatbot",
+  "h1": "Getting Evals Right for a Jewish AI Chatbot",
+  "excerpt": "Learn about our process and priorities for developing the Library Assistant",
+  "metaDesc": "Learn about our process and priorities for developing the Library Assistant",
+  "updated": [],
+  "sidebarActive": [
+   "Getting Evals Right for a Jewish AI Chatbot"
+  ],
+  "toc": [
+   "Building a Good Dataset",
+   "Defining Relevant Scorers",
+   "Our Current Practice"
+  ],
+  "pagination": [
+   {
+    "t": "Beyond KMeans - PyCon 2024",
+    "h": "/docs/sefaria-research-at-pyconn-2024"
+   },
+   {
+    "t": "General FAQ",
+    "h": "/docs/general-faq"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 3,
+   "heading-2": 3,
+   "heading-anchor": 3,
+   "heading-text": 3,
+   "heading-anchor-icon": 3,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Building a Good Dataset",
+   "H2 Defining Relevant Scorers",
+   "H2 Our Current Practice"
+  ],
+  "len": 6794
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/getting-started-with-local-installation",
+  "status": 200,
+  "title": "Getting Started",
+  "h1": "Getting Started",
+  "metaDesc": "If you're interested in working with Sefaria's data, we recommend using our public API . To work with a local set-up, use the documentation in this section to learn how to proceed.",
+  "updated": [],
+  "sidebarActive": [
+   "Getting Started"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "The Educator Playbook: A Quick Guide to Vibe-Coding with Sefaria",
+    "h": "/docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria"
+   },
+   {
+    "t": "Public Contributions",
+    "h": "/docs/contributions-to-sefarias-repositories"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 2291
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/guide-to-contributing",
+  "status": 200,
+  "title": "Guide to Contributing",
+  "h1": "Guide to Contributing",
+  "metaDesc": "If you can spare 10 minutes, you can bring one piece of Jewish learning into the Public Domain. Some contributions require scholarly knowledge; some are more like (holy) data-entry that anyone with an interest in Jewish texts can do. About the Public Domain Everything that you contribute to Sefaria…",
+  "updated": [],
+  "sidebarActive": [
+   "Guide to Contributing"
+  ],
+  "toc": [
+   "About the Public Domain",
+   "Ways You Can Contribute",
+   "1. Add Connections",
+   "2. Correct Errors",
+   "3. Translate Texts"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 3,
+   "heading": 5,
+   "heading-3": 5,
+   "heading-anchor": 5,
+   "heading-text": 5,
+   "heading-anchor-icon": 5,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://www.sefaria.org/sheets/483970.2?lang=bi&with=all&lang2=en"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H3 About the Public Domain",
+   "H3 Ways You Can Contribute",
+   "H3 1. Add Connections",
+   "H3 2. Correct Errors",
+   "H3 3. Translate Texts"
+  ],
+  "len": 5092
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/how-to-format-citations-for-the-linker",
+  "status": 200,
+  "title": "How to Format Citations for the Linker",
+  "h1": "How to Format Citations for the Linker",
+  "excerpt": "Learn about formatting citations to ensure they're recognized by the Sefaria Linker.",
+  "metaDesc": "Learn about formatting citations to ensure they're recognized by the Sefaria Linker. ",
+  "updated": [],
+  "sidebarActive": [
+   "How to Format Citations for the Linker"
+  ],
+  "toc": [
+   "Citation Format",
+   "Trickier Texts",
+   "Tip: Testing Citations With the Sefaria Library Search Bar"
+  ],
+  "pagination": [
+   {
+    "t": "Embed Linker v3 on Your Site",
+    "h": "/docs/linker-v3"
+   },
+   {
+    "t": "איך ליצור מראי מקורות להפניה - How to Format Citations (HE)",
+    "h": "/docs/איך-ליצור-מראי-מקורות-להפניה"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 3,
+   "heading-2": 1,
+   "heading-anchor": 3,
+   "heading-text": 3,
+   "heading-anchor-icon": 3,
+   "rdmd-code": 18,
+   "heading-3": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Citation Format",
+   "H3 Trickier Texts",
+   "H3 Tip: Testing Citations With the Sefaria Library Search Bar"
+  ],
+  "len": 6474
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/how-to-report-a-mistake",
+  "status": 200,
+  "title": "How to Report a Mistake",
+  "h1": "How to Report a Mistake",
+  "metaDesc": "No one is perfect, and Sefaria is no exception. If you spot a mistake in a locked text in Sefaria, we want to know about it. However, we find that most textual errors that get reported to us are not in fact mistakes. This is in part due to textual variances between different editions of a text. Befo…",
+  "updated": [],
+  "sidebarActive": [
+   "How to Report a Mistake"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "Guide to Contributing",
+    "h": "/docs/guide-to-contributing"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "img-align-center": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/cdc29e5-Screen_Shot_2024-03-13_at_13.29.18.png"
+  ],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 3844
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/index-and-versions",
+  "status": 200,
+  "title": "Index and Versions",
+  "h1": "Index and Versions",
+  "excerpt": "In the Sefaria Library, titles are represented by an Index, while editions of titles are represented by Versions.",
+  "metaDesc": "The document explains the structure and categorization of books in a library system through an Index, which includes metadata and schema, and describes how different Versions of a text, such as translations or editions, relate to a single Index while maintaining a consistent structure.",
+  "updated": [],
+  "sidebarActive": [
+   "Index and Versions"
+  ],
+  "toc": [
+   "The Index",
+   "Versions"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 2,
+   "heading-1": 2,
+   "heading-anchor": 2,
+   "heading-text": 2,
+   "heading-anchor-icon": 2,
+   "rdmd-code": 34,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://www.sefaria.org/api/v2/raw/index/Esther",
+   "https://developers.sefaria.org/reference/get-v3-texts"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 6407
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/jaggedarray-and-jaggedarray-nodes",
+  "status": 200,
+  "title": "JaggedArray and JaggedArray Nodes",
+  "h1": "JaggedArray and JaggedArray Nodes",
+  "excerpt": "JaggedArray and JaggedArrayNodes are objects used for representing both the text content and the structure of simple texts.",
+  "metaDesc": "The document explains the structure and use of JaggedArrayNodes and JaggedArrays in organizing text data, particularly in representing texts like the Tanakh, where chapters are sections and verses are segments within a nested list structure.",
+  "updated": [],
+  "sidebarActive": [
+   "JaggedArray and JaggedArray Nodes"
+  ],
+  "toc": [
+   "Content Nodes",
+   "JaggedArray",
+   "Example: A JaggedArray of depth=2",
+   "JaggedArrayNode",
+   "Segments and Sections"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 5,
+   "heading-1": 3,
+   "heading-anchor": 5,
+   "heading-text": 5,
+   "heading-anchor-icon": 5,
+   "rdmd-code": 19,
+   "heading-2": 2,
+   "CodeTabs": 1,
+   "CodeTabs_initial": 1,
+   "CodeTabs-toolbar": 1,
+   "CodeTabs-inner": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Python",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Example: A JaggedArray of depth=2",
+   "H2 Segments and Sections"
+  ],
+  "len": 4548
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/june-2024",
+  "status": 200,
+  "title": "All About Texts, Volunteering for Tests (June 2024, Issue 1)",
+  "h1": "All About Texts, Volunteering for Tests (June 2024, Issue 1)",
+  "excerpt": "How to strip nikkud from Tanakh via the Texts API, the known limitation with complex text retrieval and how to work around it, plus a developer who projected Talmud translations onto a physical page using Sefaria's data and a webcam.",
+  "metaDesc": "How to strip nikkud from Tanakh via the Texts API, the known limitation with complex text retrieval and how to work around it, plus a developer who projected Talmud translations onto a physical page using Sefaria's data and a webcam.",
+  "updated": [],
+  "sidebarActive": [
+   "All About Texts, Volunteering for Tests (June 2024, Issue 1)"
+  ],
+  "toc": [
+   "HOT OFF THE PRESSES: Playwright Tests",
+   "QUICK TECH TIP: Just the Text",
+   "Behind the Scenes",
+   "Spotlight: Powered By Sefaria",
+   "Shulkhan: A Touch Interface for the Printed Talmud",
+   "Your donation powers the future of Torah - for all."
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "img": 6,
+   "lightbox": 3,
+   "lightbox-inner": 3,
+   "heading": 6,
+   "heading-2": 4,
+   "heading-anchor": 6,
+   "heading-text": 6,
+   "heading-anchor-icon": 6,
+   "rdmd-code": 2,
+   "img-align-center": 2,
+   "heading-3": 2,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ee0af6a0bec4e5f4a924d030475173f240b368a68075d233d6299f82ff110f93-image.png",
+   "https://files.readme.io/da5e7f3350b24b117d0db01d853726f00bd9fac22219292a6ed6e53f9871598d-Screen_Shot_2024-10-10_at_10.38.10.png",
+   "https://files.readme.io/82e30fb3bc511a3983f784091dc835b987465ee1b8327cfab0cf550c48b16481-Screen_Shot_2024-10-10_at_10.41.24.png"
+  ],
+  "extLinks": [
+   "https://sefaria.activehosted.com/f/46",
+   "https://www.sefaria.org/Ecclesiastes.4.9?ven=The_Metsudah_Five_Megillot,_Lakewood,_N.J.,_2001&lang=bi",
+   "https://developers.sefaria.org/page/contact-us",
+   "https://github.com/Sefaria/Sefaria-playwright-tests",
+   "https://developers.sefaria.org/docs/the-schema-of-a-simple-text",
+   "https://developers.sefaria.org/docs/the-schema-of-a-complex-text",
+   "https://developers.sefaria.org/docs/schemanode",
+   "http://josephtepperman.com/shulkhan.htm?utm_source=Newsletter&utm_medium=email&utm_campaign=TECH_DEV_DIGEST_063024"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 HOT OFF THE PRESSES: Playwright Tests",
+   "H2 QUICK TECH TIP: Just the Text",
+   "H2 Behind the Scenes",
+   "H2 Spotlight: Powered By Sefaria",
+   "H3 Shulkhan: A Touch Interface for the Printed Talmud",
+   "H3 Your donation powers the future of Torah - for all."
+  ],
+  "len": 8113
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/lexicon-docs",
+  "status": 200,
+  "title": "Lexicon",
+  "h1": "Lexicon",
+  "excerpt": "Learn about the structure of dictionaries in the Sefaria Library",
+  "metaDesc": "Learn about the structure of dictionaries in the Sefaria Library",
+  "updated": [],
+  "sidebarActive": [
+   "Lexicon"
+  ],
+  "toc": [
+   "Understanding the Lexicon Object Model",
+   "Lexicon",
+   "Lexicon Entry",
+   "WordForm",
+   "Refs in WordForm",
+   "Many-to-Many",
+   "Index",
+   "DictionaryNode",
+   "Version",
+   "Important Notes"
+  ],
+  "pagination": [
+   {
+    "t": "Terms",
+    "h": "/docs/terms"
+   },
+   {
+    "t": "Text References",
+    "h": "/docs/text-references"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "rdmd-code": 85,
+   "heading": 10,
+   "heading-1": 1,
+   "heading-anchor": 10,
+   "heading-text": 10,
+   "heading-anchor-icon": 10,
+   "heading-2": 6,
+   "heading-3": 3,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://developers.sefaria.org/reference/get-words"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Lexicon",
+   "H2 Lexicon Entry",
+   "H2 WordForm",
+   "H3 Refs in WordForm",
+   "H3 Many-to-Many",
+   "H2 Index",
+   "H3 DictionaryNode",
+   "H2 Version",
+   "H2 Important Notes"
+  ],
+  "len": 15815
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/linear-integer-programming-for-topic-pages-sources-selection",
+  "status": 200,
+  "title": "Linear Integer Programming For Topic Page Sources Selection",
+  "h1": "Linear Integer Programming For Topic Page Sources Selection",
+  "excerpt": "See the integer programming used for selecting sources featured on Topic pages",
+  "metaDesc": "See the integer programming used for selecting sources featured on Topic pages ",
+  "updated": [],
+  "sidebarActive": [
+   "Linear Integer Programming For Topic Page Sources Selection"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "Topic Ontology",
+    "h": "/docs/topic-ontology"
+   },
+   {
+    "t": "Formatting within Sefaria Texts",
+    "h": "/docs/text-formatting-beyond-the-segment-level"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "img-align-center": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/b3a8b346bfde08be0878d7eec85cbe5031a2238df28390b630e06a3b0672790f-Screenshot_2024-12-17_at_10.54.17.png"
+  ],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 2416
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/linear-programming-topic-curation-and-api-tips",
+  "status": 200,
+  "title": "Linear Programming, Topic Curation, and API Tips (December 2024, Issue 3)",
+  "h1": "Linear Programming, Topic Curation, and API Tips (December 2024, Issue 3)",
+  "excerpt": "How Sefaria used linear programming to optimize topic page curation across the Jewish canon, plus a trick for deriving Texts API refs from the site URL and calculating verse numbers using nested arrays.",
+  "metaDesc": "How Sefaria used linear programming to optimize topic page curation across the Jewish canon, plus a trick for deriving Texts API refs from the site URL and calculating verse numbers using nested arrays.",
+  "updated": [],
+  "sidebarActive": [
+   "Linear Programming, Topic Curation, and API Tips (December 2024, Issue 3)"
+  ],
+  "toc": [
+   "HOT OFF THE PRESSES: Sefaria @ PyCon Israel",
+   "QUICK TECH TIP: Using the Texts API",
+   "Behind the Scenes",
+   "SPOTLIGHT: POWERED BY SEFARIA",
+   "Powering Talmud Study on Hadran",
+   "Your donation powers the future of Torah - for all."
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "img": 8,
+   "lightbox": 4,
+   "lightbox-inner": 4,
+   "heading": 6,
+   "heading-2": 4,
+   "heading-anchor": 6,
+   "heading-text": 6,
+   "heading-anchor-icon": 6,
+   "img-align-center": 3,
+   "rdmd-code": 11,
+   "heading-3": 2,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ee0af6a0bec4e5f4a924d030475173f240b368a68075d233d6299f82ff110f93-image.png",
+   "https://files.readme.io/e2e52bd8b7e647a1dc4106f22b0c25d28c925f989ea11f3a8f16123e15261686-Screenshot_2025-01-26_at_11.23.41.png",
+   "https://files.readme.io/e0f8b68b640bd4ebb06e887603815c4c485c4e1657c3b3611d5e7cf6085036ed-Screenshot_2025-01-26_at_11.26.41.png",
+   "https://files.readme.io/0aa9b75dd89d91b7f001fc7eafc01efd964193465feefa324e7e45fb3dd49b4e-Screenshot_2025-01-26_at_11.28.38.png"
+  ],
+  "extLinks": [
+   "https://sefaria.activehosted.com/f/46",
+   "https://www.sefaria.org.il/Kiddushin.30a.10?vhe=hebrew%7CWilliam_Davidson_Edition_-_Vocalized_Aramaic&lang=he",
+   "https://github.com/Sefaria/LLM/blob/main/experiments/topic_source_curation/solver.py",
+   "https://developers.sefaria.org/docs/linear-integer-programming-for-topic-pages-sources-selection",
+   "https://www.youtube.com/watch?v=JUSW7y4wYUQ",
+   "https://pypi.org/project/llm-cluster-optimizer",
+   "https://developers.sefaria.org/reference/get-v3-texts",
+   "https://developers.sefaria.org/docs/text-references",
+   "https://www.sefaria.org/",
+   "https://workspace.google.com/marketplace/app/sefaria_for_google_docs/849562338091",
+   "https://developers.google.com/apps-script/guides/docs",
+   "https://developers.sefaria.org/docs/powered-by-sefaria",
+   "https://www.sefaria.org/donate"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 HOT OFF THE PRESSES: Sefaria @ PyCon Israel",
+   "H2 QUICK TECH TIP: Using the Texts API",
+   "H2 Behind the Scenes",
+   "H2 SPOTLIGHT: POWERED BY SEFARIA",
+   "H3 Powering Talmud Study on Hadran",
+   "H3 Your donation powers the future of Torah - for all."
+  ],
+  "len": 9548
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/linker",
+  "status": 200,
+  "title": "The Sefaria Linker",
+  "h1": "The Sefaria Linker",
+  "excerpt": "Learn about using Sefaria's powerful citation tool to link your website to source texts.",
+  "metaDesc": "Learn about using Sefaria's powerful citation tool to link your website to source texts. ",
+  "updated": [],
+  "sidebarActive": [
+   "The Sefaria Linker"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "ElasticSearch Proxy API",
+    "h": "/docs/search-api"
+   },
+   {
+    "t": "Embed Linker v2 In Your Site",
+    "h": "/docs/linker-v2"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "http://www.sefaria.org/linker"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 2983
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/linker-api",
+  "status": 200,
+  "title": "The Sefaria Linker API",
+  "h1": "The Sefaria Linker API",
+  "excerpt": "Learn how to use the Sefaria Linker API.",
+  "metaDesc": "Learn how to use the Sefaria Linker API.",
+  "updated": [],
+  "sidebarActive": [
+   "The Sefaria Linker API"
+  ],
+  "toc": [
+   "Introduction",
+   "The API",
+   "POST /api/find-refs",
+   "URL Parameters",
+   "POST body",
+   "Response Format",
+   "with_text format",
+   "debug format",
+   "text format",
+   "Linker API Example",
+   "Example Input",
+   "Example Output",
+   "Debugging Using Local Webpage"
+  ],
+  "pagination": [
+   {
+    "t": "איך ליצור מראי מקורות להפניה - How to Format Citations (HE)",
+    "h": "/docs/איך-ליצור-מראי-מקורות-להפניה"
+   },
+   {
+    "t": "The Sefaria Linker Async Task API",
+    "h": "/docs/async-task-api"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 13,
+   "heading-1": 4,
+   "heading-anchor": 13,
+   "heading-text": 13,
+   "heading-anchor-icon": 13,
+   "rdmd-table": 4,
+   "rdmd-table-inner": 4,
+   "heading-2": 3,
+   "heading-3": 6,
+   "rdmd-code": 36,
+   "CodeTabs": 9,
+   "CodeTabs_initial": 9,
+   "CodeTabs-toolbar": 9,
+   "CodeTabs-inner": 9,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://www.sefaria.org/linker",
+   "https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-Auto-Linker-v3#debug"
+  ],
+  "buttons": [
+   "JavaScript",
+   "JavaScript",
+   "JavaScript",
+   "JavaScript",
+   "cURL",
+   "JavaScript",
+   "cURL",
+   "JavaScript",
+   "HTML",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 POST /api/find-refs",
+   "H3 URL Parameters",
+   "H3 POST body",
+   "H3 Response Format",
+   "H3 with_text format",
+   "H3 debug format",
+   "H3 text format",
+   "H2 Example Input",
+   "H2 Example Output"
+  ],
+  "len": 14695
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/linker-v2",
+  "status": 200,
+  "title": "Embed Linker v2 In Your Site",
+  "h1": "Embed Linker v2 In Your Site",
+  "excerpt": "Learn how to embed version two of Sefaria's powerful citation linking tool into your website.",
+  "metaDesc": "Learn how to embed version two of Sefaria's powerful citation linking tool into your website. ",
+  "updated": [],
+  "sidebarActive": [
+   "Embed Linker v2 In Your Site"
+  ],
+  "toc": [
+   "Embedding Code",
+   "Additional Options",
+   "selector",
+   "mode",
+   "contentLang",
+   "interfaceLang",
+   "excludeFromLinking",
+   "excludeFromTracking",
+   "quotationOnly",
+   "parenthesesOnly",
+   "dynamic",
+   "popupStyles",
+   "hidePopupsOnMobile",
+   "Dynamic Sites",
+   "Versions",
+   "Examples of Calling the Plugin With Options",
+   "Citation Format"
+  ],
+  "pagination": [
+   {
+    "t": "The Sefaria Linker",
+    "h": "/docs/linker"
+   },
+   {
+    "t": "Embed Linker v3 on Your Site",
+    "h": "/docs/linker-v3"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 17,
+   "heading-2": 5,
+   "heading-anchor": 17,
+   "heading-text": 17,
+   "heading-anchor-icon": 17,
+   "rdmd-code": 48,
+   "heading-3": 11,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "heading-1": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://developers.sefaria.org/update/docs/linker-v3",
+   "https://developers.sefaria.org/docs/%D7%90%D7%99%D7%9A-%D7%9C%D7%99%D7%A6%D7%95%D7%A8-%D7%9E%D7%A8%D7%90%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9C%D7%94%D7%A4%D7%A0%D7%99%D7%94"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Embedding Code",
+   "H2 Additional Options",
+   "H3 selector",
+   "H3 mode",
+   "H3 contentLang",
+   "H3 interfaceLang",
+   "H3 excludeFromLinking",
+   "H3 excludeFromTracking",
+   "H3 quotationOnly",
+   "H3 parenthesesOnly",
+   "H3 dynamic",
+   "H3 popupStyles",
+   "H3 hidePopupsOnMobile",
+   "H2 Dynamic Sites",
+   "H2 Versions",
+   "H2 Examples of Calling the Plugin With Options"
+  ],
+  "len": 9088
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/linker-v3",
+  "status": 200,
+  "title": "Embed Linker v3 on Your Site",
+  "h1": "Embed Linker v3 on Your Site",
+  "excerpt": "Learn about the Sefaria Linker: A tool that links references on external webpages and links them to corresponding texts in the Sefaria Library.",
+  "metaDesc": "Learn about the Sefaria Linker: A tool that links references on external webpages and links them to corresponding texts in the Sefaria Library.",
+  "updated": [],
+  "sidebarActive": [
+   "Embed Linker v3 on Your Site"
+  ],
+  "toc": [
+   "Bookmarklet",
+   "Embedding Code",
+   "Options",
+   "mode",
+   "contentLang",
+   "interfaceLang",
+   "excludeFromLinking",
+   "whitelistSelector",
+   "dynamic",
+   "popupStyles",
+   "hidePopupsOnMobile",
+   "versionPreferencesByCorpus",
+   "debug",
+   "Deprecated options",
+   "Dynamic Sites",
+   "Versions",
+   "Examples of Calling the Plugin With Options",
+   "Citation Format"
+  ],
+  "pagination": [
+   {
+    "t": "Embed Linker v2 In Your Site",
+    "h": "/docs/linker-v2"
+   },
+   {
+    "t": "How to Format Citations for the Linker",
+    "h": "/docs/how-to-format-citations-for-the-linker"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 18,
+   "heading-2": 7,
+   "heading-anchor": 18,
+   "heading-text": 18,
+   "heading-anchor-icon": 18,
+   "rdmd-code": 52,
+   "heading-3": 10,
+   "CodeTabs": 1,
+   "CodeTabs_initial": 1,
+   "CodeTabs-toolbar": 1,
+   "CodeTabs-inner": 1,
+   "heading-1": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "http://www.sefaria.org/linker",
+   "https://www.sefaria.org/Genesis?tab=versions"
+  ],
+  "buttons": [
+   "JSON",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Bookmarklet",
+   "H2 Embedding Code",
+   "H2 Options",
+   "H3 mode",
+   "H3 contentLang",
+   "H3 interfaceLang",
+   "H3 excludeFromLinking",
+   "H3 whitelistSelector",
+   "H3 dynamic",
+   "H3 popupStyles",
+   "H3 hidePopupsOnMobile",
+   "H3 versionPreferencesByCorpus",
+   "H3 debug",
+   "H2 Deprecated options",
+   "H2 Dynamic Sites",
+   "H2 Versions",
+   "H2 Examples of Calling the Plugin With Options"
+  ],
+  "len": 11102
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/local-installation-instructions",
+  "status": 200,
+  "title": "Local Installation Instructions",
+  "h1": "Local Installation Instructions",
+  "excerpt": "Learn about how set up a local Sefaria environment in order to run a local copy of the application and web server.",
+  "metaDesc": "Learn about how set up a local Sefaria environment in order to run a local copy of the application and web server.",
+  "updated": [],
+  "sidebarActive": [
+   "Local Installation Instructions"
+  ],
+  "toc": [
+   "Getting Started",
+   "Running Sefaria-Project Locally",
+   "1) Install Python 3.12 or later.",
+   "2) Install virtualenv (optional but recommended).",
+   "3) Install Pip (if necessary).",
+   "4) Install gettext.",
+   "5) Create a local settings file.",
+   "6) Create a log directory.",
+   "7) Get Mongo running:",
+   "8) Add some texts in your database.",
+   "9) Set up Django's local server",
+   "10) Install Node.",
+   "11) Run the development server:",
+   "Command Line Interface"
+  ],
+  "pagination": [
+   {
+    "t": "Public Contributions",
+    "h": "/docs/contributions-to-sefarias-repositories"
+   },
+   {
+    "t": "Run Sefaria with Docker-Compose",
+    "h": "/docs/docker-compose-sefaria"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "callout": 3,
+   "callout_warn": 2,
+   "callout-icon": 3,
+   "heading": 36,
+   "heading-3": 14,
+   "heading-anchor": 36,
+   "heading-text": 36,
+   "heading-anchor-icon": 36,
+   "heading-1": 1,
+   "rdmd-code": 106,
+   "callout_error": 1,
+   "heading-2": 2,
+   "heading-4": 19,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://github.com/Sefaria/Sefaria-Project",
+   "https://developers.sefaria.org/docs/docker-compose-sefaria",
+   "https://github.com/pyenv/pyenv#installation",
+   "https://opensource.com/article/19/5/python-3-default-mac#what-we-should-do",
+   "https://docs.python.org/3.7/using/windows.html",
+   "https://www.python.org/downloads/release/python-375/",
+   "https://github.com/pyenv/pyenv-virtualenv#installing-as-a-pyenv-plugin",
+   "https://github.com/pyenv/pyenv-virtualenv#installing-with-homebrew-for-macos-users",
+   "https://github.com/pyenv/pyenv-virtualenv#using-pyenv-virtualenv-with-pyenv",
+   "http://pypi.python.org/pypi/virtualenv",
+   "https://pip.pypa.io/en/stable/installing/",
+   "http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/",
+   "https://www.mongodb.com/docs/manual/administration/install-community/",
+   "https://www.mongodb.com/docs/manual/tutorial/manage-mongodb-processes/#start-mongod-processes",
+   "https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz",
+   "https://storage.googleapis.com/sefaria-mongo-backup/dump.tar.gz",
+   "https://www.mongodb.com/try/download/database-tools?tck=docs_databasetools",
+   "https://pypi.org/project/django-recaptcha/#installation",
+   "https://webpack.js.org/",
+   "https://nodejs.org/en/download/package-manager/",
+   "https://github.com/nodesource/distributions/blob/master/README.md",
+   "https://nodejs.org/en/download/package-manager/#nvm"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H3 Recommended: Use API Instead of Local Install",
+   "H3 Please note:",
+   "H2 Running Sefaria-Project Locally",
+   "H3 1) Install Python 3.12 or later.",
+   "H3 2) Install virtualenv (optional but recommended).",
+   "H3 3) Install Pip (if necessary).",
+   "H3 Important!",
+   "H3 4) Install gettext.",
+   "H3 5) Create a local settings file.",
+   "H3 6) Create a log directory.",
+   "H3 7) Get Mongo running:",
+   "H3 8) Add some texts in your database.",
+   "H3 9) Set up Django's local server",
+   "H3 10) Install Node.",
+   "H3 11) Run the development server:",
+   "H2 Command Line Interface"
+  ],
+  "len": 18422
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/node-titles",
+  "status": 200,
+  "title": "Node Titles",
+  "h1": "Node Titles",
+  "excerpt": "Learn how node titles work at Sefaria for books and sections of books, and how they work together in building text citations.",
+  "metaDesc": "Learn how node titles work at Sefaria for books and sections of books, and how they work together in building text citations.",
+  "updated": [],
+  "sidebarActive": [
+   "Node Titles"
+  ],
+  "toc": [
+   "Types of Titles",
+   "Notes on the Background of Titles",
+   "How Titles Are Created",
+   "1. Explicit Titles on Nodes",
+   "2. Shared Titles (Terms)",
+   "3. Default Nodes"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 6,
+   "heading-1": 2,
+   "heading-anchor": 6,
+   "heading-text": 6,
+   "heading-anchor-icon": 6,
+   "heading-3": 1,
+   "rdmd-code": 53,
+   "CodeTabs": 2,
+   "CodeTabs_initial": 2,
+   "CodeTabs-toolbar": 2,
+   "CodeTabs-inner": 2,
+   "heading-2": 3,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "JSON",
+   "JSON",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H3 Notes on the Background of Titles",
+   "H2 1. Explicit Titles on Nodes",
+   "H2 2. Shared Titles (Terms)",
+   "H2 3. Default Nodes"
+  ],
+  "len": 10144
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/patot",
+  "status": 200,
+  "title": "Patot",
+  "h1": "Patot",
+  "excerpt": "A Python toolkit for Hebrew/English-aware semantic chunking for model-ready units for downstream AI workflows",
+  "metaDesc": "A Python toolkit for Hebrew/English-aware semantic chunking for model-ready units for downstream AI workflows",
+  "updated": [],
+  "sidebarActive": [
+   "Patot"
+  ],
+  "toc": [
+   "Introducing Patot: Semantic Chunking for Jewish Texts",
+   "The Problem with Naive Chunking",
+   "How It Works",
+   "What You Get",
+   "Try It"
+  ],
+  "pagination": [
+   {
+    "t": "The Disambiguator",
+    "h": "/docs/the-disambiguator"
+   },
+   {
+    "t": "Beyond KMeans - PyCon 2024",
+    "h": "/docs/sefaria-research-at-pyconn-2024"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 5,
+   "heading-1": 1,
+   "heading-anchor": 5,
+   "heading-text": 5,
+   "heading-anchor-icon": 5,
+   "heading-2": 4,
+   "CodeTabs": 1,
+   "CodeTabs_initial": 1,
+   "CodeTabs-toolbar": 1,
+   "CodeTabs-inner": 1,
+   "rdmd-code": 1,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "img-align-center": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/d2b8fe0feff426d8ad4b339d7eff1b96cdfa7bfb58d0702111bce739c0a08cce-patot_chunking_pipeline.svg"
+  ],
+  "extLinks": [
+   "https://github.com/Sefaria/patot"
+  ],
+  "buttons": [
+   "Bash",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 The Problem with Naive Chunking",
+   "H2 How It Works",
+   "H2 What You Get",
+   "H2 Try It"
+  ],
+  "len": 5167
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/powered-by-sefaria",
+  "status": 200,
+  "title": "Projects Powered By Sefaria",
+  "h1": "Projects Powered By Sefaria",
+  "metaDesc": "Community showcase See what people have built with Sefaria Browse apps, study tools and AI projects made with Sefaria’s free texts and API. Explore the projects (opens in a new tab)",
+  "updated": [],
+  "sidebarActive": [
+   "Projects Powered By Sefaria"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "Welcome to Sefaria's Technical Documentation",
+    "h": "/docs/welcome"
+   },
+   {
+    "t": "Project Acceptance Criteria",
+    "h": "/docs/powered-by-sefaria-acceptance-criteria"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "rdmd-html": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://powered-by.sefaria.org/"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 2290
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/powered-by-sefaria-acceptance-criteria",
+  "status": 200,
+  "title": "Project Acceptance Criteria",
+  "h1": "Project Acceptance Criteria",
+  "metaDesc": "Powered by Sefaria is a curated showcase through which Sefaria highlights and amplifies projects that further our mission: making Jewish texts freely and meaningfully accessible to the world. The list of projects reflects Sefaria’s effort to curate a selection of submissions that we’re excited to hi…",
+  "updated": [],
+  "sidebarActive": [
+   "Project Acceptance Criteria"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "Projects Powered By Sefaria",
+    "h": "/docs/powered-by-sefaria"
+   },
+   {
+    "t": "Copyright and Data Use",
+    "h": "/docs/usage-of-our-name-and-logo"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 3607
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/schemanode",
+  "status": 200,
+  "title": "SchemaNode",
+  "h1": "SchemaNode",
+  "excerpt": "These intermediate nodes are used to define the schema of an Index, thereby creating the structure of a book.",
+  "metaDesc": "These intermediate nodes are used to define the schema of an Index, thereby creating the structure of a book.",
+  "updated": [],
+  "sidebarActive": [
+   "SchemaNode"
+  ],
+  "toc": [
+   "SchemaNode"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 1,
+   "heading-1": 1,
+   "heading-anchor": 1,
+   "heading-text": 1,
+   "rdmd-code": 11,
+   "heading-anchor-icon": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://en.wikipedia.org/wiki/Tree_(data_structure)"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 3086
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/search-api",
+  "status": 200,
+  "title": "ElasticSearch Proxy API",
+  "h1": "ElasticSearch Proxy API",
+  "excerpt": "Understand how to use the Sefaria proxy API to query the ElasticSearch API.",
+  "metaDesc": "Understand how to use the Sefaria proxy API to query the ElasticSearch API.",
+  "updated": [],
+  "sidebarActive": [
+   "ElasticSearch Proxy API"
+  ],
+  "toc": [
+   "POST /api/search/:index/\\_search",
+   "Making a POST Request",
+   "The Request's Header",
+   "The Request's Body",
+   "Returned JSON",
+   "Returned JSON for text Queries",
+   "Returned JSON for sheet Queries"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "rdmd-code": 55,
+   "heading": 12,
+   "heading-1": 1,
+   "heading-anchor": 12,
+   "heading-text": 12,
+   "heading-anchor-icon": 12,
+   "heading-2": 2,
+   "heading-3": 4,
+   "heading-4": 5,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html",
+   "https://en.wikipedia.org/wiki/PageRank",
+   "https://www.sefaria.org/api/search/text/_search",
+   "https://www.elastic.co/guide/en/elasticsearch/reference/current/analyzer.html"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Making a POST Request",
+   "H3 The Request's Header",
+   "H3 The Request's Body",
+   "H2 Returned JSON",
+   "H3 Returned JSON for text Queries",
+   "H3 Returned JSON for sheet Queries"
+  ],
+  "len": 46340
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/sefaria-export-a-data-puzzle-and-deep-wiki",
+  "status": 200,
+  "title": "Sefaria-Export, A Data Puzzle and Deep Wiki (April 2026, Issue 8)",
+  "h1": "Sefaria-Export, A Data Puzzle and Deep Wiki (April 2026, Issue 8)",
+  "metaDesc": "Want to get this quarterly newsletter in your inbox? Sign up today for the Sefaria Developer's Digest. Issue 8 | April 29, 2026 | 12 Iyyar, 5786 It’s been an exciting few months, as we hear about more and more projects being built with Sefaria’s API or codebase. You can learn about a few recent high…",
+  "updated": [],
+  "sidebarActive": [
+   "Sefaria-Export, A Data Puzzle and Deep Wiki (April 2026, Issue 8)"
+  ],
+  "toc": [
+   "HOT OFF THE PRESSES: Sefaria-Export Update",
+   "QUICK TECH TIP: Exploring the Codebase with DeepWiki",
+   "Help Us Solve the Dictionary Export Puzzle",
+   "COMMUNITY SPOTLIGHT: Share your Project",
+   "Helpful Links"
+  ],
+  "pagination": [
+   {
+    "t": "Django middleware innovation & MCPs (January 2026, Issue 7)",
+    "h": "/docs/django-middleware-innovation-mcps-january-2026-issue-7"
+   },
+   {
+    "t": "The Disambiguator",
+    "h": "/docs/the-disambiguator"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "heading": 5,
+   "heading-2": 4,
+   "heading-anchor": 5,
+   "heading-text": 5,
+   "heading-anchor-icon": 5,
+   "heading-1": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ee0af6a0bec4e5f4a924d030475173f240b368a68075d233d6299f82ff110f93-image.png"
+  ],
+  "extLinks": [
+   "https://sefaria.activehosted.com/f/46",
+   "https://sefaria.formstack.com/forms/powered_by_sefaria_submission_form",
+   "https://developers.sefaria.org/docs/powered-by-sefaria",
+   "https://github.com/Sefaria/Sefaria-Export",
+   "https://deepwiki.com/Sefaria/Sefaria-Project",
+   "https://eitz-harabanim.com/",
+   "https://apps.apple.com/us/app/derekh-learning-ai-chevruta/id6757946546",
+   "https://developers.sefaria.org/",
+   "https://developers.sefaria.org/reference/getting-started",
+   "https://github.com/Sefaria/Sefaria-Project",
+   "https://www.sefaria.org/about"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 HOT OFF THE PRESSES: Sefaria-Export Update",
+   "H2 QUICK TECH TIP: Exploring the Codebase with DeepWiki",
+   "H2 Help Us Solve the Dictionary Export Puzzle",
+   "H2 COMMUNITY SPOTLIGHT: Share your Project"
+  ],
+  "len": 5870
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/sefaria-research-at-pyconn-2024",
+  "status": 200,
+  "title": "Beyond KMeans - PyCon 2024",
+  "h1": "Beyond KMeans - PyCon 2024",
+  "excerpt": "Using LLMs to improve text clustering",
+  "metaDesc": "Using LLMs to improve text clustering",
+  "updated": [],
+  "sidebarActive": [
+   "Beyond KMeans - PyCon 2024"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "Patot",
+    "h": "/docs/patot"
+   },
+   {
+    "t": "Getting Evals Right for a Jewish AI Chatbot",
+    "h": "/docs/getting-evals-right-for-a-jewish-ai-chatbot"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "embed": 1,
+   "embed-media": 1,
+   "embedly-embed": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [
+   "https://cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fwww.youtube.com%2Fembed%2FJUSW7y4wYUQ%3Ffeature%3Doembed&display_name=YouTube&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DJUSW7y4wYUQ&image=https%3A%2F%2Fi.ytimg.com%2Fvi%2FJUSW7y4wYUQ%2Fhqdefault.jpg&key=7788cb384c9f4d5dbbdbeffd9fe4b92f&type=text%2Fhtml&schema=youtube"
+  ],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 2643
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/september-2024",
+  "status": 200,
+  "title": "Celery Queues, Local Install and the Shape API (September 2024, Issue 2)",
+  "h1": "Celery Queues, Local Install and the Shape API (September 2024, Issue 2)",
+  "excerpt": "Sefaria's citation detection upgraded from regex to a CNN-based ML model (Linker v3, available on HuggingFace), plus the underrated Shape API explained and how Celery queues solved text upload timeouts.",
+  "metaDesc": "Sefaria's citation detection upgraded from regex to a CNN-based ML model (Linker v3, available on HuggingFace), plus the underrated Shape API explained and how Celery queues solved text upload timeouts.",
+  "updated": [],
+  "sidebarActive": [
+   "Celery Queues, Local Install and the Shape API (September 2024, Issue 2)"
+  ],
+  "toc": [
+   "HOT OFF THE PRESSES: Local Install vs. API",
+   "QUICK TECH TIP: Meet the Shape API",
+   "Behind the Scenes",
+   "Spotlight: Powered by Sefaria",
+   "Your donation powers the future of Torah - for all."
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "img": 6,
+   "lightbox": 3,
+   "lightbox-inner": 3,
+   "rdmd-code": 1,
+   "heading": 5,
+   "heading-2": 4,
+   "heading-anchor": 5,
+   "heading-text": 5,
+   "heading-anchor-icon": 5,
+   "img-align-center": 2,
+   "heading-3": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ee0af6a0bec4e5f4a924d030475173f240b368a68075d233d6299f82ff110f93-image.png",
+   "https://files.readme.io/20f89fe0677105f4e991b78c471157c451a65f164a130e0d3c83e6fb6c2fcf8d-shape.jpg",
+   "https://files.readme.io/949e940e7c352c55ec520329627395ef1464bc0b963a59f2eaf0d0431e3cdf4f-Screen_Shot_2024-10-08_at_12.20.31.png"
+  ],
+  "extLinks": [
+   "https://sefaria.activehosted.com/f/46",
+   "https://www.sefaria.org/Pirkei_Avot.6?ven=The_Mishna_with_Obadiah_Bartenura_by_Rabbi_Shraga_Silverstein&lang=bi",
+   "https://huggingface.co/Sefaria?sort_models=modified&sort_datasets=modified",
+   "https://developers.sefaria.org/page/contact-us",
+   "https://docs.celeryq.dev/en/main/getting-started/introduction.html",
+   "https://developers.sefaria.org/reference/tutorial-tanakh-trivia-game",
+   "https://www.sefaria.org/donate"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 HOT OFF THE PRESSES: Local Install vs. API",
+   "H2 QUICK TECH TIP: Meet the Shape API",
+   "H2 Behind the Scenes",
+   "H2 Spotlight: Powered by Sefaria",
+   "H3 Your donation powers the future of Torah - for all."
+  ],
+  "len": 8529
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/sites-using-the-linker",
+  "status": 200,
+  "title": "Websites Using the Linker",
+  "h1": "Websites Using the Linker",
+  "excerpt": "The Sefaria Linker is a free JavaScript plugin for websites that cite Jewish texts. With just a few lines of code, textual citations on your website automatically become clickable, allowing users to view the original source in a pop-up. On Sefaria, users can view your web content as related resources when exploring specific texts. Over 150 websites currently use the Linker to connect their content with the Sefaria library:",
+  "metaDesc": "The Sefaria Linker is a free JavaScript plugin for websites that cite Jewish texts. With just a few lines of code, textual citations on your website automatically become clickable, allowing users to view the original source in a pop-up. On Sefaria, users can view your web content as related resources when exploring specific texts. Over 150 websites currently use the Linker to connect their content with the Sefaria library:",
+  "updated": [],
+  "sidebarActive": [
+   "Websites Using the Linker"
+  ],
+  "toc": [
+   "English Websites",
+   "Hebrew Websites"
+  ],
+  "pagination": [
+   {
+    "t": "The Sefaria Linker Async Task API",
+    "h": "/docs/async-task-api"
+   },
+   {
+    "t": "The Sefaria MCPs",
+    "h": "/docs/the-sefaria-mcp"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 2,
+   "heading-1": 2,
+   "heading-anchor": 2,
+   "heading-text": 2,
+   "heading-anchor-icon": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "http://www.myjewishlearning.com/",
+   "https://rabbisacks.org/",
+   "https://www.ou.org/torah/",
+   "http://etzion.org.il/",
+   "http://halachipedia.com/",
+   "http://www.torahinmotion.org/",
+   "https://traditiononline.org/",
+   "https://thelehrhaus.com/",
+   "http://blogs.timesofisrael.com/",
+   "https://www.aish.com/",
+   "http://jewishvirtuallibrary.org/",
+   "http://ravkooktorah.org/",
+   "http://yutorah.org/",
+   "http://www.tabletmag.com/",
+   "http://torah.org/",
+   "https://mishpacha.com/",
+   "https://jewishencyclopedia.com/",
+   "https://www.webyeshiva.org/",
+   "https://www.yeshiva.org.il/",
+   "https://www.jewfaq.org/",
+   "https://www.torahweb.org/",
+   "https://www.ots.org.il/",
+   "https://chiefrabbi.org/",
+   "https://www.orayta.org/",
+   "https://jwa.org/",
+   "http://lilith.org/",
+   "https://opensiddur.org/",
+   "https://parshanut.com/",
+   "https://www.realcleardaf.com/",
+   "https://www.nachnook.com/",
+   "https://www.sinaileeds.uk/",
+   "https://www.partnersintorah.org/",
+   "https://www.rabbiefremgoldberg.org/",
+   "https://www.rabbijohnnysolomon.com/",
+   "http://roshyeshivatmaharat.org/",
+   "https://www.rabbisharonsobel.com/",
+   "http://noahfarkas.com/",
+   "http://americanrabbi.com/",
+   "https://bethjacobrwc.org/",
+   "http://judaism.codidact.com/",
+   "http://jtsa.edu/",
+   "http://ritualwell.org/",
+   "http://reconstructingjudaism.org/",
+   "https://wildernesstorah.org/",
+   "https://www.orhalev.org/",
+   "https://jewishcontemplatives.blogspot.com/",
+   "https://sapirjournal.org/",
+   "https://talmudology.com/",
+   "https://www.hadran.org.il/",
+   "http://hebrewcollege.edu/",
+   "http://pardes.org/",
+   "http://yctorah.org/",
+   "http://psak.yctorah.org/",
+   "http://jewishideas.org/",
+   "https://www.sephardi.org.uk/",
+   "http://sinaiandsynapses.org/",
+   "https://www.jyungar.com/",
+   "http://justice-in-the-city.com/",
+   "https://www.jewschool.com/",
+   "https://www.truah.org/",
+   "https://www.askhalacha.com/",
+   "https://www.wexnerfoundation.org/blog/",
+   "https://www.jewishaction.com/",
+   "http://jewishexponent.com/",
+   "http://5tjt.com/",
+   "https://www.momentmag.com/",
+   "https://jewishstandard.timesofisrael.com/",
+   "https://jewishdrinking.com/",
+   "http://clevelandjewishnews.com/",
+   "https://theameninstitute.com/",
+   "http://mechonhadar.org.il/",
+   "https://www.beithillel.org.il/",
+   "https://www.sinai.org.il/",
+   "https://levana.org.il/",
+   "https://yitzchoklowy.com/",
+   "https://www.toravoda.org.il/",
+   "https://www.mayim.org.il/",
+   "http://mevoot.michlala.edu/",
+   "https://aish.co.il/",
+   "https://www.sivanrahavmeir.com/",
+   "https://benyehuda.org/",
+   "https://tali.org.il/parashat-hashavua/",
+   "https://929.org.il/p/home",
+   "https://www.nli.org.il/he/research-and-teach/catalogs/bibliographic-databases/rambi",
+   "https://maimlayam.co.il/",
+   "https://jewish-philosophy.vercel.app/",
+   "https://iyun.org.il/"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 4292
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/technical-notes",
+  "status": 200,
+  "title": "Technical Notes",
+  "h1": "Technical Notes",
+  "metaDesc": "While much of what's relevant for working with a local installation of Sefaria is already documented in previous sections, the following articles will provide added layers of knowledge specific to a local setup. Contents: Term Creation Titles for Index",
+  "updated": [],
+  "sidebarActive": [
+   "Technical Notes"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "Command-Line-Interface (CLI)",
+    "h": "/docs/cli"
+   },
+   {
+    "t": "Term Creation",
+    "h": "/docs/term-creation"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 2327
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/term-creation",
+  "status": 200,
+  "title": "Term Creation",
+  "h1": "Term Creation",
+  "excerpt": "Two ways of creating a Term on a local instance of Sefaria",
+  "metaDesc": "Two ways of creating a Term on a local instance of Sefaria",
+  "updated": [],
+  "sidebarActive": [
+   "Term Creation"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "Technical Notes",
+    "h": "/docs/technical-notes"
+   },
+   {
+    "t": "Titles for Index",
+    "h": "/docs/titles-for-index"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "rdmd-code": 5,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 3201
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/terms",
+  "status": 200,
+  "title": "Terms",
+  "h1": "Terms",
+  "excerpt": "Learn about these objects, used for grouping titles, alternate titles, and other bilingual terms.",
+  "metaDesc": "Learn about these objects, used for grouping titles, alternate titles, and other bilingual terms.",
+  "updated": [],
+  "sidebarActive": [
+   "Terms"
+  ],
+  "toc": [
+   "What is a Term?",
+   "Examples of Terms"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 2,
+   "heading-2": 2,
+   "heading-anchor": 2,
+   "heading-text": 2,
+   "heading-anchor-icon": 2,
+   "rdmd-code": 11,
+   "CodeTabs": 2,
+   "CodeTabs_initial": 2,
+   "CodeTabs-toolbar": 2,
+   "CodeTabs-inner": 2,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "JSON",
+   "JSON",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 What is a Term?",
+   "H2 Examples of Terms"
+  ],
+  "len": 3224
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/text-formatting-beyond-the-segment-level",
+  "status": 200,
+  "title": "Formatting within Sefaria Texts",
+  "h1": "Formatting within Sefaria Texts",
+  "excerpt": "Learn more about the HTML supported by Sefaria, used for in-line text formatting, as well as adding footnotes, commentaries, and other in-text emphasis.",
+  "metaDesc": "Learn more about the HTML supported by Sefaria, used for in-line text formatting, as well as adding footnotes, commentaries, and other in-text emphasis.",
+  "updated": [],
+  "sidebarActive": [
+   "Formatting within Sefaria Texts"
+  ],
+  "toc": [
+   "Text Formatting",
+   "Footnotes",
+   "Inline References",
+   "Allowed HTML Tags and Attributes",
+   "Allowed HTML Tags with Corresponding Attributes",
+   "Allowed HTML Tags"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 6,
+   "heading-2": 4,
+   "heading-anchor": 6,
+   "heading-text": 6,
+   "heading-anchor-icon": 6,
+   "rdmd-code": 77,
+   "heading-3": 2,
+   "rdmd-table": 2,
+   "rdmd-table-inner": 2,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://www.sefaria.org/Genesis.1.1?ven=The_Contemporary_Torah,_Jewish_Publication_Society,_2006&lang=bi&aliyot=0",
+   "https://www.sefaria.org/Mishnat_Eretz_Yisrael_on_Pirkei_Avot.1.1.42?lang=en&with=all&lang2=en"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Text Formatting",
+   "H2 Footnotes",
+   "H2 Inline References",
+   "H2 Allowed HTML Tags and Attributes",
+   "H3 Allowed HTML Tags with Corresponding Attributes",
+   "H3 Allowed HTML Tags"
+  ],
+  "len": 9653
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/text-references",
+  "status": 200,
+  "title": "Text References",
+  "h1": "Text References",
+  "excerpt": "The core of Sefaria's system is the system of text references. Understanding how they work is key to using our API and our broader codebase.",
+  "metaDesc": "The core of Sefaria's system is the system of text references. Understanding how they work is key to using our API and our broader codebase.",
+  "updated": [],
+  "sidebarActive": [
+   "Text References"
+  ],
+  "toc": [
+   "Text References (Citations)",
+   "Section String Separators",
+   "Notes",
+   "Classes of References Not Yet Supported"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 4,
+   "heading-1": 1,
+   "heading-anchor": 4,
+   "heading-text": 4,
+   "heading-anchor-icon": 4,
+   "rdmd-code": 41,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "img-align-center": 1,
+   "heading-2": 3,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/b9c1dec-ref.drawio_1.png"
+  ],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Section String Separators",
+   "H2 Notes",
+   "H2 Classes of References Not Yet Supported"
+  ],
+  "len": 4817
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/the-disambiguator",
+  "status": 200,
+  "title": "The Disambiguator",
+  "h1": "The Disambiguator",
+  "excerpt": "Precise linking improvements through citation disambiguation",
+  "metaDesc": "Precise linking improvements through citation disambiguation",
+  "updated": [],
+  "sidebarActive": [
+   "The Disambiguator"
+  ],
+  "toc": [
+   "Bringing Redemption to Citations: Building Sefaria's Citation Disambiguator",
+   "After the Linker",
+   "Problem #1: Citations That Are Too Broad",
+   "Problem #2: Citations That Are Ambiguous",
+   "A Compound Case: Broad and Ambiguous",
+   "Building a Citation Disambiguator",
+   "How It Works",
+   "",
+   "Why Some Matches Can Skip the LLM",
+   "What Changed in Practice",
+   "Results"
+  ],
+  "pagination": [
+   {
+    "t": "Sefaria-Export, A Data Puzzle and Deep Wiki (April 2026, Issue 8)",
+    "h": "/docs/sefaria-export-a-data-puzzle-and-deep-wiki"
+   },
+   {
+    "t": "Patot",
+    "h": "/docs/patot"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 10,
+   "heading-1": 1,
+   "heading-anchor": 10,
+   "heading-text": 10,
+   "heading-anchor-icon": 10,
+   "heading-2": 9,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "img": 8,
+   "lightbox": 4,
+   "lightbox-inner": 4,
+   "img-align-center": 4,
+   "img-frame": 2,
+   "img-frame-center": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/b984ed51cefba58c98b4189f30bd4f56e73949c7d96939028ac8eba8943fbaa2-image_3.png",
+   "https://files.readme.io/b8b229267ee0e3548f41661a1aa3a74bd4894f96f2b84fb0229ec02511263bd0-image.png",
+   "https://files.readme.io/40c694ee9553bb3b4cf771f61e7c5e55d36071e318aa4206090b4abfcf0b92a0-image.png",
+   "https://files.readme.io/15a6be8e83fe9ceb05d3bd158777bd60d3afa77a0deb3e0ddd07a7bd08400d57-image.png"
+  ],
+  "extLinks": [
+   "https://github.com/Sefaria/Sefaria-Project/blob/master/sefaria/helper/linker/disambiguator.py",
+   "https://www.sefaria.org/Megillah.15a.20?lang=he&with=all&lang2=he",
+   "https://www.sefaria.org/Shemot_Rabbah.29.9?lang=he&with=all&lang2=he",
+   "https://www.sefaria.org/Jeremiah.10.7?lang=he",
+   "https://www.sefaria.org/Malbim_Beur_Hamilot_on_Isaiah.26.7.1?lang=he&with=all&lang2=he",
+   "https://www.sefaria.org/Proverbs.2.9?lang=he",
+   "https://www.sefaria.org/Ikar_Tosafot_Yom_Tov_on_Mishnah_Terumot.8.8.1?lang=he&with=all&lang2=he",
+   "https://www.sefaria.org/Nazir.57a.6?lang=he&with=all&lang2=he"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 After the Linker",
+   "H2 Problem #1: Citations That Are Too Broad",
+   "H2 Problem #2: Citations That Are Ambiguous",
+   "H2 A Compound Case: Broad and Ambiguous",
+   "H2 Building a Citation Disambiguator",
+   "H2 How It Works",
+   "H2 Why Some Matches Can Skip the LLM",
+   "H2 What Changed in Practice",
+   "H2 Results"
+  ],
+  "len": 12768
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria",
+  "status": 200,
+  "title": "The Educator Playbook: A Quick Guide to Vibe-Coding with Sefaria",
+  "h1": "The Educator Playbook: A Quick Guide to Vibe-Coding with Sefaria",
+  "metaDesc": "Welcome to the Educator’s Playbook! Below, you’ll find information about how to make sure you get the data you need from Sefaria’s database. Click the links below to see what to add to a specific prompt you have to ensure your AI Assistant is building the tool you intend it to build. I want to build…",
+  "updated": [],
+  "sidebarActive": [
+   "The Educator Playbook: A Quick Guide to Vibe-Coding with Sefaria"
+  ],
+  "toc": [
+   "Prompt #1: I want to build with text-related data",
+   "Prompt #2: I want to build with learning schedules (i.e., Parashah, Daf Yomi, and similar)",
+   "Prompt #3: I want to build with data about linked texts",
+   "Prompt #4: I want to build with languages and translations of texts",
+   "Prompt #5: I want my AI to see all the data available from Sefaria"
+  ],
+  "pagination": [
+   {
+    "t": "The Sefaria MCPs",
+    "h": "/docs/the-sefaria-mcp"
+   },
+   {
+    "t": "Getting Started",
+    "h": "/docs/getting-started-with-local-installation"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "heading": 5,
+   "heading-3": 5,
+   "heading-anchor": 5,
+   "heading-text": 5,
+   "heading-anchor-icon": 5,
+   "CodeTabs": 5,
+   "CodeTabs_initial": 5,
+   "CodeTabs-toolbar": 5,
+   "CodeTabs-inner": 5,
+   "rdmd-code": 5,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://developers.sefaria.org/#prompt-1-i-want-to-build-with-text-related-data",
+   "https://developers.sefaria.org/docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria#prompt-3-i-want-to-build-with-data-about-linked-texts"
+  ],
+  "buttons": [
+   "Text",
+   "Text",
+   "Text",
+   "Text",
+   "Text",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H3 Prompt #1: I want to build with text-related data",
+   "H3 Prompt #2: I want to build with learning schedules (i.e., Parashah, Daf Yomi, and similar)",
+   "H3 Prompt #3: I want to build with data about linked texts",
+   "H3 Prompt #4: I want to build with languages and translations of texts",
+   "H3 Prompt #5: I want my AI to see all the data available from Sefaria"
+  ],
+  "len": 14904
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/the-index-schema",
+  "status": 200,
+  "title": "The Index Schema",
+  "h1": "The Index Schema",
+  "excerpt": "Learn about how we define the structure of a book in the Sefaria Library.",
+  "metaDesc": "The document explains the structure of book index schemas in Sefaria, which are tree-like structures composed of SchemaNode and JaggedArrayNode objects.",
+  "updated": [],
+  "sidebarActive": [
+   "The Index Schema"
+  ],
+  "toc": [
+   "Index Schemas",
+   "Node Types for an Index Schema Tree"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 2,
+   "heading-1": 2,
+   "heading-anchor": 2,
+   "heading-text": 2,
+   "heading-anchor-icon": 2,
+   "rdmd-code": 7,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "img-align-center": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/b4a570b-index_schema_hierarchy.png"
+  ],
+  "extLinks": [
+   "https://en.wikipedia.org/wiki/Tree_(data_structure)",
+   "https://github.com/Sefaria/Sefaria-Project/blob/fe9c971217b99cd763c0dd8f42b82339379b961c/sefaria/model/schema.py#L1218",
+   "https://github.com/Sefaria/Sefaria-Project/blob/master/sefaria/model/schema.py"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 3256
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/the-sefaria-developer-community-archive",
+  "status": 200,
+  "title": "The Sefaria Developer Community Archive",
+  "h1": "The Sefaria Developer Community Archive",
+  "metaDesc": "Sefaria hosts a Developer Community on Discord where folks can learn, build and collaborate on everything at the intersection of Torah and technology. Join us inside! Archive October 5th, 2026: Weekly Review Notable Discussion Sefaria Frontend Toolkit Feedback - Previously, a developer shared a new…",
+  "updated": [],
+  "sidebarActive": [
+   "The Sefaria Developer Community Archive"
+  ],
+  "toc": [
+   "Archive",
+   "October 5th, 2026: Weekly Review",
+   "Notable Discussion",
+   "September 25th, 2026: Weekly Review",
+   "New Tools & Libraries",
+   "September 18th, 2026: Weekly Review",
+   "Community & Culture",
+   "Notable Projects & Insights",
+   "Support Takeaway",
+   "Call to Action",
+   "September 11th, 2026: Weekly Review",
+   "Notable Projects & Announcements",
+   "Community Growth",
+   "September 4th, 2026: Weekly Review",
+   "🚨 Infrastructure Alert",
+   "🔧 Technical Improvements",
+   "📦 New Projects on Powered-by-Sefaria",
+   "💡 Community Insight",
+   "August 28th, 2026: Weekly Review",
+   "Notable Questions & Updates",
+   "Interesting Insights",
+   "August 21st, 2026: Weekly Review",
+   "New Community Project:",
+   "Community News",
+   "Key Takeaway",
+   "August 14th, 2026: Weekly Review",
+   "Notable Discussion: Graph Database for Sefaria Data",
+   "Link Quality Issue Reported",
+   "Community Wins",
+   "August 7th, 2026: Weekly Review",
+   "✨Notable Projects & Community Tools",
+   "🤝 Community Connection",
+   "July 31st, 2026: Weekly Review",
+   "✨Notable Projects & Community Tools",
+   "🔧Key Technical Insights",
+   "🎯Support & Best Practices",
+   "July 24th, 2026: Weekly Review",
+   "✨Notable Projects & Community Tools",
+   "🔧Infrastructure & API Insights",
+   "🎯 Support Questions & Answers",
+   "July 16th, 2026: Weekly Review",
+   "🎯 Key Support Questions & Answers",
+   "💡 Notable Insights",
+   "July 9th, 2026: Weekly Review",
+   "🔧 Project Highlights",
+   "💡 Technical Insights",
+   "🤝 Collaboration Interests"
+  ],
+  "pagination": [
+   {
+    "t": "Category Creation",
+    "h": "/docs/category-creation"
+   },
+   {
+    "t": "All About Texts, Volunteering for Tests (June 2024, Issue 1)",
+    "h": "/docs/june-2024"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "heading": 48,
+   "heading-1": 1,
+   "heading-anchor": 48,
+   "heading-text": 48,
+   "heading-anchor-icon": 48,
+   "heading-2": 13,
+   "heading-3": 33,
+   "rdmd-code": 11,
+   "heading-4": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://sefaria.formstack.com/forms/sefaria_developer_discord_community",
+   "https://github.com/Arithmomaniac/sefaria-frontend-toolkit",
+   "https://sefarim.net/",
+   "https://discord.com/channels/1240573950182817792/1240573950182817795/1556540700370141255",
+   "https://demo.sefarim.net/",
+   "https://github.com/Sefaria/Sefaria-Export",
+   "https://gist.github.com/Arithmomaniac/9df021bd09c1b69289dc920d9940f448",
+   "https://sefaria.formstack.com/forms/powered_by_sefaria_submission_form",
+   "https://donate.sefaria.org/give/451346",
+   "https://github.com/lightning-learning-Studios/yochai-kg",
+   "https://github.com/Arithmomaniac/sefaria-web-components",
+   "https://www.yochai.wiki/",
+   "https://www.lightningstudios.ai/",
+   "https://aitorah.ai/",
+   "https://daniepstein.com/gold-review/",
+   "https://daniepstein.com/gold-review/why-not-just-sefaria.html",
+   "https://zakdev26.github.io/sefaria-links/",
+   "http://github.com/Sefaria/Sefaria-Export",
+   "https://developers.sefaria.org/docs/the-sefaria-mcp",
+   "https://developers.sefaria.org/reference/get-translations",
+   "https://gist.github.com/Arithmomaniac/924ef9e00ff2cabf72142d75c9263da0",
+   "https://developers.sefaria.org/docs/powered-by-sefaria"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 October 5th, 2026: Weekly Review",
+   "H3 Notable Discussion",
+   "H2 September 25th, 2026: Weekly Review",
+   "H3 New Tools & Libraries",
+   "H2 September 18th, 2026: Weekly Review",
+   "H3 Community & Culture",
+   "H3 Notable Projects & Insights",
+   "H3 Support Takeaway",
+   "H3 Call to Action",
+   "H2 September 11th, 2026: Weekly Review",
+   "H3 Notable Projects & Announcements",
+   "H3 Community Growth",
+   "H2 September 4th, 2026: Weekly Review",
+   "H3 🚨 Infrastructure Alert",
+   "H3 🔧 Technical Improvements",
+   "H3 📦 New Projects on Powered-by-Sefaria",
+   "H3 💡 Community Insight",
+   "H2 August 28th, 2026: Weekly Review",
+   "H3 Notable Questions & Updates",
+   "H3 Interesting Insights",
+   "H2 August 21st, 2026: Weekly Review",
+   "H3 New Community Project:",
+   "H3 Community News",
+   "H3 Key Takeaway",
+   "H2 August 14th, 2026: Weekly Review",
+   "H3 Notable Discussion: Graph Database for Sefaria Data",
+   "H3 Link Quality Issue Reported",
+   "H3 Community Wins",
+   "H2 August 7th, 2026: Weekly Review",
+   "H3 ✨Notable Projects & Community Tools",
+   "H3 🤝 Community Connection",
+   "H2 July 31st, 2026: Weekly Review",
+   "H3 ✨Notable Projects & Community Tools",
+   "H3 🔧Key Technical Insights",
+   "H3 🎯Support & Best Practices",
+   "H2 July 24th, 2026: Weekly Review",
+   "H3 ✨Notable Projects & Community Tools",
+   "H3 🔧Infrastructure & API Insights",
+   "H3 🎯 Support Questions & Answers",
+   "H2 July 16th, 2026: Weekly Review"
+  ],
+  "len": 21933
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/the-sefaria-mcp",
+  "status": 200,
+  "title": "The Sefaria MCPs",
+  "h1": "The Sefaria MCPs",
+  "excerpt": "Use our MCPs to integrate your LLM of choice with the texts in the Sefaria Library and with our open-source data.",
+  "metaDesc": "Use our MCPs to integrate your LLM of choice with the texts in the Sefaria Library and with our open-source data.",
+  "updated": [],
+  "sidebarActive": [
+   "The Sefaria MCPs"
+  ],
+  "toc": [
+   "What is an MCP?",
+   "The Sefaria Developers MCP - https://developers.sefaria.org/mcp",
+   "The Sefaria Texts MCP - http://chat.sefaria.org/mcp/",
+   "Quick Setup Guide"
+  ],
+  "pagination": [
+   {
+    "t": "Websites Using the Linker",
+    "h": "/docs/sites-using-the-linker"
+   },
+   {
+    "t": "The Educator Playbook: A Quick Guide to Vibe-Coding with Sefaria",
+    "h": "/docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 5,
+   "heading-2": 2,
+   "heading-anchor": 5,
+   "heading-text": 5,
+   "heading-anchor-icon": 5,
+   "heading-3": 3,
+   "callout": 1,
+   "callout_error": 1,
+   "callout-icon": 1,
+   "rdmd-code": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://github.com/Sefaria/sefaria-mcp",
+   "https://developers.sefaria.org/mcp",
+   "http://chat.sefaria.org/mcp/"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 What is an MCP?",
+   "H3 The Sefaria Developers MCP - https://developers.sefaria.org/mcp",
+   "H3 The Sefaria Texts MCP - http://chat.sefaria.org/mcp/",
+   "H3 Second-Party Requirements",
+   "H2 Quick Setup Guide"
+  ],
+  "len": 4948
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/the-structure-of-a-complex-text",
+  "status": 200,
+  "title": "The Structure of a Complex Text",
+  "h1": "The Structure of a Complex Text",
+  "excerpt": "Learn more about the Index schema of \"complex\" texts and how they work in the context of the structures of texts in the Sefaria Library.",
+  "metaDesc": "Learn more about the Index schema of \"complex\" texts and how they work in the context of the structures of texts in the Sefaria Library. ",
+  "updated": [],
+  "sidebarActive": [
+   "The Structure of a Complex Text"
+  ],
+  "toc": [
+   "Complex Schemas (Multi-Node Trees)",
+   "",
+   "Example 1: A \"Simple\" Complex Text",
+   "Example 2: Abarbanel on Torah",
+   "The Index Record Schema for Abarbanel on Torah",
+   "Summary"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 5,
+   "heading-1": 2,
+   "heading-anchor": 5,
+   "heading-text": 5,
+   "heading-anchor-icon": 5,
+   "rdmd-code": 48,
+   "heading-2": 2,
+   "CodeTabs": 3,
+   "CodeTabs_initial": 3,
+   "CodeTabs-toolbar": 3,
+   "CodeTabs-inner": 3,
+   "img": 4,
+   "lightbox": 2,
+   "lightbox-inner": 2,
+   "img-align-center": 2,
+   "heading-3": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ef788d0-complex_schema.drawio.png",
+   "https://files.readme.io/79a8c38-abarbanel_complex.drawio.png"
+  ],
+  "extLinks": [
+   "https://www.sefaria.org/Abarbanel_on_Torah?tab=contents"
+  ],
+  "buttons": [
+   "Python",
+   "JSON",
+   "JSON",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Example 1: A \"Simple\" Complex Text",
+   "H2 Example 2: Abarbanel on Torah",
+   "H3 The Index Record Schema for Abarbanel on Torah"
+  ],
+  "len": 12380
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/the-structure-of-a-simple-text",
+  "status": 200,
+  "title": "The Structure of a Simple Text",
+  "h1": "The Structure of a Simple Text",
+  "excerpt": "Learn more about the index schema for \"simple\" texts in the Sefaria Library.",
+  "metaDesc": "Learn more about the index schema for \"simple\" texts in the Sefaria Library. ",
+  "updated": [],
+  "sidebarActive": [
+   "The Structure of a Simple Text"
+  ],
+  "toc": [
+   "The Schema of a Simple Text",
+   "Example: Genesis",
+   "Properties on the Schema"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 3,
+   "heading-1": 1,
+   "heading-anchor": 3,
+   "heading-text": 3,
+   "heading-anchor-icon": 3,
+   "rdmd-code": 54,
+   "img": 2,
+   "lightbox": 1,
+   "lightbox-inner": 1,
+   "img-align-center": 1,
+   "heading-2": 1,
+   "CodeTabs": 2,
+   "CodeTabs_initial": 2,
+   "CodeTabs-toolbar": 2,
+   "CodeTabs-inner": 2,
+   "heading-3": 1,
+   "rdmd-table": 1,
+   "rdmd-table-inner": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/2a6915c-complex_schema.drawio_1.png"
+  ],
+  "extLinks": [
+   "https://www.sefaria.org/Em_LaMikra%2C_Genesis.1.1.2?lang=en&with=all&lang2=en"
+  ],
+  "buttons": [
+   "Python",
+   "JSON",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Example: Genesis",
+   "H3 Properties on the Schema"
+  ],
+  "len": 6691
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/the-structure-of-a-text-on-sefaria",
+  "status": 200,
+  "title": "The Structure of a Book in the Sefaria Library",
+  "h1": "The Structure of a Book in the Sefaria Library",
+  "excerpt": "Learn about the structure the data corresponding to individual texts in the Sefaria Library.",
+  "metaDesc": "Each book on Sefaria is represented by a unique Index, which may have one or more Version objects (translations or editions) associated with it, and is supported by a schema that provides structural and metadata information.",
+  "updated": [],
+  "sidebarActive": [
+   "The Structure of a Book in the Sefaria Library"
+  ],
+  "toc": [
+   "Quick Notes on Indexes and Versions in the Sefaria Library"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 1,
+   "heading-3": 1,
+   "heading-anchor": 1,
+   "heading-text": 1,
+   "heading-anchor-icon": 1,
+   "rdmd-code": 10,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H3 Quick Notes on Indexes and Versions in the Sefaria Library"
+  ],
+  "len": 3063
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/titles-for-index",
+  "status": 200,
+  "title": "Titles for Index",
+  "h1": "Titles for Index",
+  "excerpt": "How to initialize a new Index on a local instance of Sefaria",
+  "metaDesc": "How to initialize a new Index on a local instance of Sefaria",
+  "updated": [],
+  "sidebarActive": [
+   "Titles for Index"
+  ],
+  "toc": [
+   ""
+  ],
+  "pagination": [
+   {
+    "t": "Term Creation",
+    "h": "/docs/term-creation"
+   },
+   {
+    "t": "Category Creation",
+    "h": "/docs/category-creation"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "rdmd-code": 4,
+   "CodeTabs": 1,
+   "CodeTabs_initial": 1,
+   "CodeTabs-toolbar": 1,
+   "CodeTabs-inner": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Python",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [],
+  "len": 2631
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/top-tech-tips-new-projects-and-more-march-2025-issue-4",
+  "status": 200,
+  "title": "Top Tech Tips, New Projects, and More! (March 2025, Issue 4)",
+  "h1": "Top Tech Tips, New Projects, and More! (March 2025, Issue 4)",
+  "excerpt": "How to fetch Hebrew author names via the v2/index API, a zero-ellipsis CSS trick for clamped topic grids, and an interesting community project for a clean read of the Talmud building on Sefaria's data.",
+  "metaDesc": "How to fetch Hebrew author names via the v2/index API, a zero-ellipsis CSS trick for clamped topic grids, and an interesting community project for a clean read of the Talmud building on Sefaria's data.",
+  "updated": [],
+  "sidebarActive": [
+   "Top Tech Tips, New Projects, and More! (March 2025, Issue 4)"
+  ],
+  "toc": [
+   "HOT OFF THE PRESSES: Powered & Linked by Sefaria",
+   "QUICK TECH TIP: Hebrew Author Names",
+   "Behind the Scenes: CSS Tricks",
+   "SPOTLIGHT: POWERED BY SEFARIA**",
+   "Read the Talmud",
+   "Helpful Links"
+  ],
+  "pagination": [
+   {
+    "t": "Linear Programming, Topic Curation, and API Tips (December 2024, Issue 3)",
+    "h": "/docs/linear-programming-topic-curation-and-api-tips"
+   },
+   {
+    "t": "Calendar API, a User-Requested feature, and More! (June 2025, Issue 5)",
+    "h": "/docs/calendar-api-a-user-requested-feature-and-more"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "img": 8,
+   "lightbox": 4,
+   "lightbox-inner": 4,
+   "heading": 6,
+   "heading-2": 4,
+   "heading-anchor": 6,
+   "heading-text": 6,
+   "heading-anchor-icon": 6,
+   "rdmd-code": 2,
+   "heading-1": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/ee0af6a0bec4e5f4a924d030475173f240b368a68075d233d6299f82ff110f93-image.png",
+   "https://files.readme.io/6b123248280a0959fe2deb3da4e064134076d8a636e0582156d8190bc871116b-image.png",
+   "https://files.readme.io/469dc03ffd6578479f909626f1200d1651970e10646fa893b5240b3db70f950f-image.png",
+   "https://files.readme.io/75d3121b43d6e04b7b8aaeeaf44ce5b3282a110d3cbaabaa03ef226a074f5b66-image.png"
+  ],
+  "extLinks": [
+   "https://sefaria.activehosted.com/f/46",
+   "https://developers.sefaria.org/docs/powered-by-sefaria",
+   "https://developers.sefaria.org/docs/sites-using-the-linker",
+   "https://sefaria.formstack.com/forms/powered_by_sefaria_submission_form",
+   "https://developers.sefaria.org/reference/get-v2-index",
+   "https://developer.mozilla.org/en-US/docs/Web/CSS/line-clamp",
+   "https://github.com/Sefaria/Sefaria-Project/blob/38c56cd3094a7306110b1db09170822f239563b1/static/css/s2.css",
+   "https://stackoverflow.com/questions/72207010/is-it-possible-to-use-line-clamp-without-displaying-an-ellipsis",
+   "https://talmud.page/browse",
+   "https://developers.sefaria.org/",
+   "https://developers.sefaria.org/reference/getting-started",
+   "https://github.com/Sefaria/Sefaria-Project",
+   "https://www.sefaria.org/about"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 HOT OFF THE PRESSES: Powered & Linked by Sefaria",
+   "H2 QUICK TECH TIP: Hebrew Author Names",
+   "H2 Behind the Scenes: CSS Tricks",
+   "H2 Read the Talmud"
+  ],
+  "len": 7356
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/topic-ontology",
+  "status": 200,
+  "title": "Topic Ontology",
+  "h1": "Topic Ontology",
+  "excerpt": "Learn how Topics on Sefaria are organized, and how to access them using the Sefaria API.",
+  "metaDesc": "Learn how Topics on Sefaria are organized, and how to access them using the Sefaria API.",
+  "updated": [],
+  "sidebarActive": [
+   "Topic Ontology"
+  ],
+  "toc": [
+   "An Overview of BFO",
+   "Slugs and Nodes",
+   "Overview of Sefaria's Nodes",
+   "BFO Node: Process",
+   "BFO Node: Temporal Region",
+   "BFO Node: Realizable Entity",
+   "BFO Node: Qualities",
+   "BFO Node: Generically Dependent Continuants",
+   "BFO Node: Object Aggregate",
+   "BFO Node: Object",
+   "BFO Node: Immaterial Entity",
+   "BFO Node: Fiat Object Part",
+   "Overview of Sefaria Link Types",
+   "Link Types Between People",
+   "Link Types Between Other Types of Nodes",
+   "General Link Types"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "rdmd-code": 381,
+   "heading": 16,
+   "heading-1": 3,
+   "heading-anchor": 16,
+   "heading-text": 16,
+   "heading-anchor-icon": 16,
+   "heading-2": 13,
+   "rdmd-table": 13,
+   "rdmd-table-inner": 13,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://en.wikipedia.org/wiki/Basic_Formal_Ontology",
+   "https://github.com/BFO-ontology/BFO#implementations"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Slugs and Nodes",
+   "H2 BFO Node: Process",
+   "H2 BFO Node: Temporal Region",
+   "H2 BFO Node: Realizable Entity",
+   "H2 BFO Node: Qualities",
+   "H2 BFO Node: Generically Dependent Continuants",
+   "H2 BFO Node: Object Aggregate",
+   "H2 BFO Node: Object",
+   "H2 BFO Node: Immaterial Entity",
+   "H2 BFO Node: Fiat Object Part",
+   "H2 Link Types Between People",
+   "H2 Link Types Between Other Types of Nodes",
+   "H2 General Link Types"
+  ],
+  "len": 17938
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/usage-of-our-name-and-logo",
+  "status": 200,
+  "title": "Copyright and Data Use",
+  "h1": "Copyright and Data Use",
+  "excerpt": "Learn about how to find copyright details for texts in the Library and proper usage of Sefaria's name and logo.",
+  "metaDesc": "Learn about how to find copyright details for texts in the Library and proper usage of Sefaria's name and logo.",
+  "updated": [],
+  "sidebarActive": [
+   "Copyright and Data Use"
+  ],
+  "toc": [
+   "Code License",
+   "Text Copyright",
+   "⚠️ Important: Text Licenses in the Sefaria Library",
+   "Understanding Reuse Licenses",
+   "Links License",
+   "Usage of Sefaria's Name and Logo"
+  ],
+  "pagination": [
+   {
+    "t": "Project Acceptance Criteria",
+    "h": "/docs/powered-by-sefaria-acceptance-criteria"
+   },
+   {
+    "t": "The Structure of a Book in the Sefaria Library",
+    "h": "/docs/the-structure-of-a-text-on-sefaria"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 6,
+   "heading-2": 4,
+   "heading-anchor": 6,
+   "heading-text": 6,
+   "heading-anchor-icon": 6,
+   "heading-3": 2,
+   "img": 4,
+   "lightbox": 2,
+   "lightbox-inner": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/87c5652-image.png",
+   "https://files.readme.io/dcee0a8-image.png"
+  ],
+  "extLinks": [
+   "https://github.com/Sefaria/Sefaria-Project/blob/master/LICENSE.md",
+   "https://help.sefaria.org/hc/en-us/articles/18490043237148-How-to-Find-and-Understand-Licensing-Information",
+   "https://help.sefaria.org/",
+   "https://creativecommons.org/licenses/by/4.0/"
+  ],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 Code License",
+   "H2 Text Copyright",
+   "H3 ⚠️ Important: Text Licenses in the Sefaria Library",
+   "H3 Understanding Reuse Licenses",
+   "H2 Links License",
+   "H2 Usage of Sefaria's Name and Logo"
+  ],
+  "len": 5163
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/welcome",
+  "status": 200,
+  "title": "Welcome to Sefaria's Technical Documentation",
+  "h1": "Welcome to Sefaria's Technical Documentation",
+  "excerpt": "Explore Sefaria's technical documentation, including API insights, details about text structure, and more.",
+  "metaDesc": "Sefaria's Technical Documentation provides evolving insights into the structure of texts, formatting, and accessibility, along with detailed API endpoints, while updates are ongoing; for further assistance, contact their engineering team.",
+  "updated": [],
+  "sidebarActive": [
+   "Welcome to Sefaria's Technical Documentation"
+  ],
+  "toc": [
+   "Welcome to Sefaria's Technical Documentation",
+   "Quick Questions and Answers",
+   "Need more information before exploring Sefaria's API?",
+   "Interested in the structure of the Sefaria Library?",
+   "Looking for additional endpoints beyond the API Reference?",
+   "We're here to help!"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 4,
+   "heading": 7,
+   "heading-1": 1,
+   "heading-anchor": 7,
+   "heading-text": 7,
+   "heading-anchor-icon": 7,
+   "callout": 1,
+   "callout_warn": 1,
+   "callout-icon": 1,
+   "heading-3": 4,
+   "heading-2": 2,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H3 This is a work in progress.",
+   "H2 Quick Questions and Answers",
+   "H3 Need more information before exploring Sefaria's API?",
+   "H3 Interested in the structure of the Sefaria Library?",
+   "H3 Looking for additional endpoints beyond the API Reference?",
+   "H2 We're here to help!"
+  ],
+  "len": 3997
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/workflowy",
+  "status": 200,
+  "title": "Workflowy",
+  "h1": "Workflowy",
+  "excerpt": "When working with local installation, tools like our Workflowy Parser may be helpful for creating indices and adding text on Sefaria.",
+  "metaDesc": "When working with local installation, tools like our Workflowy Parser may be helpful for creating indices and adding text on Sefaria.",
+  "updated": [],
+  "sidebarActive": [
+   "Workflowy"
+  ],
+  "toc": [
+   "What is Sefaria's Workflowy Parser?",
+   "What is Workflowy?",
+   "How can we use Workflowy to add texts to the Sefaria Library?",
+   "Part 1: Preparing the Workflowy Document:",
+   "1) Book Structure Definition",
+   "2) Segment Depth Specification",
+   "3) Default Titles",
+   "4) Specifying Categories",
+   "Important Notes",
+   "Delimiters and Forbidden Characters",
+   "Commenting",
+   "5) Optional: Adding version text to the Workflowy outline",
+   "6) Exporting the Workflowy:",
+   "Part 2: Uploading the Index via Moderator Tools"
+  ],
+  "pagination": [
+   {
+    "t": "Run Sefaria with Docker-Compose",
+    "h": "/docs/docker-compose-sefaria"
+   },
+   {
+    "t": "Command-Line-Interface (CLI)",
+    "h": "/docs/cli"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-PageHeader-excerpt": 1,
+   "rm-Markdown": 3,
+   "heading": 21,
+   "heading-1": 4,
+   "heading-anchor": 21,
+   "heading-text": 21,
+   "heading-anchor-icon": 21,
+   "rdmd-code": 40,
+   "heading-2": 2,
+   "heading-3": 8,
+   "heading-4": 7,
+   "CodeTabs": 1,
+   "CodeTabs_initial": 1,
+   "CodeTabs-toolbar": 1,
+   "CodeTabs-inner": 1,
+   "img": 4,
+   "lightbox": 2,
+   "lightbox-inner": 2,
+   "img-align-center": 2,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/a93b28b-Screen_Shot_2024-02-21_at_12.58.33.png",
+   "https://files.readme.io/e067bb5-Screen_Shot_2024-02-21_at_12.47.22.png"
+  ],
+  "extLinks": [
+   "https://workflowy.com/",
+   "https://www.sefaria.org/Mesilat_Yesharim?tab=contents",
+   "https://www.sefaria.org/Horeb?tab=contents",
+   "https://www.sefaria.org/Shulchan_Arukh_HaRav?tab=contents",
+   "https://www.sefaria.org/Guide_for_the_Perplexed?tab=contents",
+   "https://www.sefaria.org/From_Sinai_to_Ethiopia?tab=contents",
+   "http://127.0.0.1:8000/modtools",
+   "https://github.com/Sefaria/Sefaria-Project/blob/54f78cb72a2c071261cee3cfd8317141fc5bed9d/sefaria/views.py#L1334"
+  ],
+  "buttons": [
+   "OPML",
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 What is Workflowy?",
+   "H2 How can we use Workflowy to add texts to the Sefaria Library?",
+   "H3 1) Book Structure Definition",
+   "H3 2) Segment Depth Specification",
+   "H3 3) Default Titles",
+   "H3 4) Specifying Categories",
+   "H3 Delimiters and Forbidden Characters",
+   "H3 Commenting",
+   "H3 5) Optional: Adding version text to the Workflowy outline",
+   "H3 6) Exporting the Workflowy:"
+  ],
+  "len": 11270
+ },
+ {
+  "url": "https://developers.sefaria.org/docs/איך-ליצור-מראי-מקורות-להפניה",
+  "status": 200,
+  "title": "איך ליצור מראי מקורות להפניה - How to Format Citations (HE)",
+  "h1": "איך ליצור מראי מקורות להפניה - How to Format Citations (HE)",
+  "metaDesc": "איך ליצור מראי מקורות להפניה עבדנו קשה כדי שמחולל ההפניות שלנו יצליח לזהות כמה שיותר מראי מקומות להפניה. באופן כללי, אם הכותרת של המקור כתובה במלואה עם מספור תקין, המחולל יזהה את המקור. כל מקור בספריא יכול ליצור הפניות אליו וממנו, אך במקרים מסוימים זה מעט מסובך. נרד קצת לפרטים: סימני פסוק אינם אמורי…",
+  "updated": [],
+  "sidebarActive": [
+   "איך ליצור מראי מקורות להפניה - How to Format Citations (HE)"
+  ],
+  "toc": [],
+  "pagination": [
+   {
+    "t": "How to Format Citations for the Linker",
+    "h": "/docs/how-to-format-citations-for-the-linker"
+   },
+   {
+    "t": "The Sefaria Linker API",
+    "h": "/docs/linker-api"
+   }
+  ],
+  "cls": {
+   "rm-Container": 1,
+   "rm-Container_flex": 1,
+   "rm-Sidebar": 2,
+   "rm-Sidebar_guides": 1,
+   "rm-Sidebar-section": 5,
+   "rm-Sidebar-heading": 5,
+   "rm-Sidebar-list": 14,
+   "rm-Sidebar-link": 60,
+   "rm-Article": 1,
+   "rm-Guides-SuperHub": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 2,
+   "rdmd-html": 1,
+   "rm-Pagination": 1,
+   "rm-PageThumbs": 1,
+   "rm-Aside": 1,
+   "rm-Aside_line": 1,
+   "rm-AIDropdown": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [],
+  "buttons": [
+   "Yes",
+   "No",
+   "Copy Page",
+   ""
+  ],
+  "headings": [
+   "H2 איך ליצור מראי מקורות להפניה",
+   "H3 איך לבחון מראי מקורות"
+  ],
+  "len": 4257
+ },
+ {
+  "url": "https://developers.sefaria.org/page/contact-us",
+  "status": 200,
+  "title": "Contact Us",
+  "h1": "Contact Us",
+  "metaDesc": "Use this form to contact Sefaria's engineering team with engineering-related questions, inquiries or clarifications. If you have a general question about Sefaria.org, please email hello@sefaria.org instead. If you want your project to be featured on our Powered-By-Sefaria page, click here Thanks!",
+  "updated": [],
+  "sidebarActive": [],
+  "toc": [],
+  "pagination": [],
+  "cls": {
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 1
+  },
+  "iframes": [
+   "https://sefaria.formstack.com/forms/developer_contact"
+  ],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://sefaria.formstack.com/forms/powered_by_sefaria_submission_form"
+  ],
+  "buttons": [],
+  "headings": [],
+  "len": 308
+ },
+ {
+  "url": "https://developers.sefaria.org/",
+  "status": 200,
+  "title": "Sefaria",
+  "h1": "Expand Digital Torah",
+  "metaDesc": "",
+  "updated": [],
+  "sidebarActive": [],
+  "toc": [],
+  "pagination": [],
+  "cls": {
+   "rm-Markdown": 1,
+   "rdmd-html": 1,
+   "card-1": 1,
+   "card-content": 3,
+   "card-text": 3,
+   "card-image-container": 3,
+   "card-image": 3,
+   "card-image-1": 1,
+   "card-nav": 3,
+   "card-nav-button": 3,
+   "card-2": 1,
+   "card-image-2": 1,
+   "card-3": 1,
+   "card-image-3": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [
+   "https://files.readme.io/1326b33efb7fa752d6963597a33befcbe67edbeddb6a14863337508b57986ca0-Developers_logo_in_white.svg"
+  ],
+  "extLinks": [
+   "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim&pli=1",
+   "https://koveah.org/",
+   "https://hadran.org.il/",
+   "https://powered-by.sefaria.org/",
+   "https://github.com/Sefaria/Sefaria-Export",
+   "https://huggingface.co/Sefaria",
+   "https://developers.sefaria.org/reference/data-visualization",
+   "https://developers.sefaria.org/reference/getting-started",
+   "https://www.sefaria.org.il/ai",
+   "https://developers.sefaria.org/docs/welcome",
+   "https://sefaria.activehosted.com/f/46"
+  ],
+  "buttons": [],
+  "headings": [],
+  "len": 1851
+ },
+ {
+  "url": "https://developers.sefaria.org/reference/getting-started",
+  "status": 200,
+  "title": "Getting Started With the Sefaria API",
+  "h1": "Getting Started With the Sefaria API",
+  "metaDesc": "Learn how to use the Sefaria API to access Jewish texts and their interconnections. Get started without needing API keys or authorization.",
+  "updated": [],
+  "sidebarActive": [
+   "Getting Started With the Sefaria API"
+  ],
+  "toc": [
+   "The Sefaria API",
+   "Welcome to the Sefaria API Reference!",
+   "Getting Started",
+   "API Pathways",
+   "Where are the books?",
+   "Ready to dive into some text data?",
+   "Links and relationships between texts",
+   "Building around a learning schedule?",
+   "Topics",
+   "Images",
+   "Dictionaries and language tools",
+   "Building for non-English readers?",
+   "Randomized Content"
+  ],
+  "pagination": [],
+  "cls": {
+   "rm-Sidebar": 2,
+   "rm-JumpTo": 1,
+   "rm-JumpTo-input": 1,
+   "rm-Sidebar-section": 2,
+   "rm-Sidebar-heading": 2,
+   "rm-Sidebar-list": 15,
+   "rm-Sidebar-link": 80,
+   "rm-APIMethod": 61,
+   "rm-Article": 1,
+   "rm-AIDropdown": 1,
+   "rm-PageHeader": 1,
+   "rm-PageHeader-title": 1,
+   "rm-Markdown": 4,
+   "heading": 14,
+   "heading-2": 4,
+   "heading-anchor": 14,
+   "heading-text": 14,
+   "heading-anchor-icon": 14,
+   "callout": 1,
+   "callout_warn": 1,
+   "callout-icon": 1,
+   "heading-3": 10,
+   "rm-PageThumbs": 2,
+   "rm-ToC": 1
+  },
+  "iframes": [],
+  "forms": [],
+  "images": [],
+  "extLinks": [
+   "https://github.com/Sefaria/Sefaria-Project/blob/master/docs/openAPI.json",
+   "https://developers.sefaria.org/docs/welcome"
+  ],
+  "buttons": [
+   "Copy Page",
+   "",
+   "Yes",
+   "No"
+  ],
+  "headings": [
+   "H2 The Sefaria API",
+   "H2 Welcome to the Sefaria API Reference!",
+   "H3 Work-In-Progress",
+   "H2 Getting Started",
+   "H2 API Pathways",
+   "H3 Where are the books?",
+   "H3 Ready to dive into some text data?",
+   "H3 Links and relationships between texts",
+   "H3 Building around a learning schedule?",
+   "H3 Topics",
+   "H3 Images",
+   "H3 Dictionaries and language tools",
+   "H3 Building for non-English readers?",
+   "H3 Randomized Content"
+  ],
+  "len": 5424
+ }
+]

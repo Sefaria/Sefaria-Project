@@ -1,0 +1,226 @@
+{
+ "_note": "STATIC parse of the CSS sources reachable from this sandbox. NOT computed :root values: cdn.readme.io (main/ui-styles/Reference CSS, which define most ReadMe --vars) was policy-blocked. Re-run ref-crawl/cssvars-live.js from an unrestricted network to get the real computed set.",
+ "rm-custom-css (SSR inline, generated from project theme)": {
+  ":root": {
+   "--project-color-primary": "#612854",
+   "--project-color-inverse": "#fff",
+   "--recipe-button-color": "#666",
+   "--recipe-button-color-hover": "#333333",
+   "--recipe-button-color-active": "#1a1a1a",
+   "--recipe-button-color-focus": "rgba(102, 102, 102, 0.25)",
+   "--recipe-button-color-disabled": "#cccccc",
+   "--primary": "#612854",
+   "--text-primary": "#2d3748",
+   "--text-secondary": "#718096",
+   "--project-blurb": "#666666",
+   "--indicator-off": "#EDEDEC",
+   "--background-color": "#fbfbfa",
+   "--indicator-hover": "#CCCCCC",
+   "--indicator-on": "#999999",
+   "--card-radius": "20px",
+   "--transition": "all 0.3s ease",
+   "--min-display-width": "390px",
+   "--nav-link-hover": "#999999"
+  },
+  "[id=enterprise] .ReadMeUI[is=AlgoliaSearch]": {
+   "--project-color-primary": "#612854",
+   "--project-color-inverse": "#fff"
+  }
+ },
+ "stylesheet_hub2 (Sefaria custom CSS from ssr-props; mostly landing page)": {
+  "/* ============================================\n   CSS VARIABLES\n   ============": {
+   "--primary": "#612854",
+   "--text-primary": "#2d3748",
+   "--text-secondary": "#718096",
+   "--project-blurb": "#666666",
+   "--indicator-off": "#EDEDEC",
+   "--background-color": "#fbfbfa",
+   "--indicator-hover": "#CCCCCC",
+   "--indicator-on": "#999999",
+   "--card-radius": "20px",
+   "--transition": "all 0.3s ease",
+   "--min-display-width": "390px",
+   "--nav-link-hover": "#999999"
+  }
+ },
+ "@readme/markdown@16.2.3 dist/main.css (npm; markdown-body)": {
+  ".CardsGrid": {
+   "--CardsGrid-gap": "1.5em",
+   "--CardsGrid-columns": "auto-fit",
+   "--CardsGrid-cardWidth": "auto"
+  },
+  ".Card": {
+   "--Card-badge-bg-color": "var(--yellow)",
+   "--Card-badge-color": "var(--yellow10)",
+   "--Card-content-color": "var(--color-text-minimum)",
+   "--Card-gap": "0.25em",
+   "--Card-href-arrow-opacity": "0",
+   "--Card-href-arrow-transform": "translateX(-5px)",
+   "--Card-icon-color": "var(--color-text-default)",
+   "--Card-icon-opacity": "0.65",
+   "--Card-icon-opacity-hover": "0.75",
+   "--Card-line-height": "1.4",
+   "--Card-shadow": "none",
+   "--Card-title-color": "var(--color-text-default)"
+  },
+  ".Card_card": {
+   "--Card-bg-color": "rgba(var(--color-bg-page-inverse-rgb), 0)",
+   "--Card-bg-color-hover": "rgba(var(--color-bg-page-inverse-rgb), 0)",
+   "--Card-border-color": "var(--color-border-default)",
+   "--Card-layout": "column",
+   "--Card-padding": "1.5em"
+  },
+  ".rm-ReadMe[data-color-mode=dark] .Card_card": {
+   "--Card-bg-color": "rgba(var(--color-bg-page-inverse-rgb), 0.05)",
+   "--Card-bg-color-hover": "rgba(var(--color-bg-page-inverse-rgb), 0.1)"
+  },
+  ".rm-ReadMe[data-color-mode=system] .Card_card": {
+   "--Card-bg-color": "rgba(var(--color-bg-page-inverse-rgb), 0.05)",
+   "--Card-bg-color-hover": "rgba(var(--color-bg-page-inverse-rgb), 0.1)"
+  },
+  ".Card_tile": {
+   "--Card-gap": "1em",
+   "--Card-icon-opacity": "0.5",
+   "--Card-layout": "row"
+  },
+  ".Card_tile .Card-content": {
+   "--Card-gap": "0"
+  },
+  ".Card[href]:not([href=\"\"]):hover,.Card[href]:not([href=\"\"]):active,.Card[href]:n": {
+   "--Card-icon-opacity": "var(--Card-icon-opacity-hover)",
+   "--Card-href-arrow-opacity": "0.75",
+   "--Card-href-arrow-transform": "none"
+  },
+  ".rm-ToC": {
+   "--ToC-border-active-color": "var(--color-tab-active, rgba(var(--color-bg-page-inverse-rgb), 1))",
+   "--ToC-border-active-height": "0",
+   "--ToC-border-active-top": "0",
+   "--ToC-border-color": "rgba(var(--color-bg-page-inverse-rgb), 0.075)",
+   "--ToC-color": "var(--color-text-minimum)",
+   "--ToC-color-active": "var(--color-text-default)",
+   "--ToC-color-hover": "var(--color-text-minimum-hover)"
+  },
+  ".markdown-body": {
+   "--font-size": "90%"
+  },
+  ".callout": {
+   "--emoji": "1em",
+   "--icon-font": "var(--fa-style-family, \"Font Awesome 6 Pro\", FontAwesome)"
+  },
+  ".callout.callout": {
+   "--Callout-bg": "var(--background)",
+   "--Callout-border": "var(--border)",
+   "--Callout-border-radius": "2px",
+   "--Callout-title": "var(--title, var(--color-text-default, var(--text)))"
+  },
+  ".callout.callout_default": {
+   "--Callout-bg": "var(--background, rgb(247.6206896552, 248.3125, 249.0043103448))",
+   "--Callout-border": "var(--border, rgb(138.5227272727, 146.9090909091, 156.2272727273))",
+   "--Callout-title": "var(--title, var(--text, var(--color-text-default)))"
+  },
+  ".rm-ReadMe[data-color-mode=dark] .callout.callout_default": {
+   "--Callout-bg": "rgba(var(--gray100-rgb), 0.05)"
+  },
+  ".rm-ReadMe[data-color-mode=system] .callout.callout_default": {
+   "--Callout-bg": "rgba(var(--gray100-rgb), 0.05)"
+  },
+  ".callout.callout_info": {
+   "--Callout-bg": "var(--background, rgba(var(--blue-rgb), 0.1))",
+   "--Callout-border": "var(--border, rgba(var(--blue-rgb), 1))",
+   "--Callout-title": "var(--title, var(--blue20))"
+  },
+  ".rm-ReadMe[data-color-mode=dark] .callout.callout_info": {
+   "--Callout-bg": "var(--background, rgba(var(--blue-rgb), 0.075))",
+   "--Callout-title": "var(--title, var(--blue90))"
+  },
+  ".rm-ReadMe[data-color-mode=system] .callout.callout_info": {
+   "--Callout-bg": "var(--background, rgba(var(--blue-rgb), 0.075))",
+   "--Callout-title": "var(--title, var(--blue90))"
+  },
+  ".callout.callout_warn,.callout.callout_warning": {
+   "--Callout-bg": "var(--background, rgba(var(--yellow-rgb), 0.1))",
+   "--Callout-border": "var(--border, rgba(var(--yellow-rgb), 1))",
+   "--Callout-title": "var(--title, var(--yellow10))"
+  },
+  ".rm-ReadMe[data-color-mode=dark] .callout.callout_warn,.rm-ReadMe[data-color-mod": {
+   "--Callout-bg": "var(--background, rgba(var(--yellow-rgb), 0.075))",
+   "--Callout-title": "var(--title, var(--yellow70))"
+  },
+  ".rm-ReadMe[data-color-mode=system] .callout.callout_warn,.rm-ReadMe[data-color-m": {
+   "--Callout-bg": "var(--background, rgba(var(--yellow-rgb), 0.075))",
+   "--Callout-title": "var(--title, var(--yellow70))"
+  },
+  ".callout.callout_ok,.callout.callout_okay,.callout.callout_success": {
+   "--Callout-bg": "var(--background, rgba(var(--green-rgb), 0.1))",
+   "--Callout-border": "var(--border, rgba(var(--green-rgb), 1))",
+   "--Callout-title": "var(--title, var(--green10))"
+  },
+  ".rm-ReadMe[data-color-mode=dark] .callout.callout_ok,.rm-ReadMe[data-color-mode=": {
+   "--Callout-bg": "var(--background, rgba(var(--green-rgb), 0.075))",
+   "--Callout-title": "var(--title, var(--green80))"
+  },
+  ".rm-ReadMe[data-color-mode=system] .callout.callout_ok,.rm-ReadMe[data-color-mod": {
+   "--Callout-bg": "var(--background, rgba(var(--green-rgb), 0.075))",
+   "--Callout-title": "var(--title, var(--green80))"
+  },
+  ".callout.callout_err,.callout.callout_error": {
+   "--Callout-bg": "var(--background, rgba(var(--red-rgb), 0.1))",
+   "--Callout-border": "var(--border, rgba(var(--red-rgb), 1))",
+   "--Callout-title": "var(--title, var(--red20))"
+  },
+  ".rm-ReadMe[data-color-mode=dark] .callout.callout_err,.rm-ReadMe[data-color-mode": {
+   "--Callout-bg": "var(--background, rgba(var(--red-rgb), 0.05))",
+   "--Callout-title": "var(--title, var(--red90))"
+  },
+  ".rm-ReadMe[data-color-mode=system] .callout.callout_err,.rm-ReadMe[data-color-mo": {
+   "--Callout-bg": "var(--background, rgba(var(--red-rgb), 0.05))",
+   "--Callout-title": "var(--title, var(--red90))"
+  },
+  ".callout.callout h3,.callout.callout .callout-heading": {
+   "--markdown-title-weight": "500"
+  },
+  ".callout.callout>.callout-icon_fa": {
+   "--fa-primary-color": "var(--Callout-title)",
+   "--fa-secondary-color": "var(--Callout-title)"
+  },
+  ".rdmdCallouts--useIconFont .callout": {
+   "--emoji": "unset"
+  },
+  ".rdmdCallouts--useIconFont .callout_okay": {
+   "--icon": "\"\uf164\""
+  },
+  ".rdmdCallouts--useIconFont .callout_info": {
+   "--icon": "\"\uf05a\""
+  },
+  ".rdmdCallouts--useIconFont .callout_warn": {
+   "--icon": "\"\uf071\""
+  },
+  ".rdmdCallouts--useIconFont .callout_error": {
+   "--icon": "\"\uf06a\""
+  },
+  ".rdmdCallouts--useIconFont .callout_default": {
+   "--emoji": "1rem"
+  },
+  ".GlossaryItem-tooltip-content": {
+   "--Glossary-bg": "var(--color-bg-page, var(--white))",
+   "--Glossary-color": "var(--color-text-default, var(--gray20))",
+   "--Glossary-shadow": "var( --box-shadow-menu-light, 0 5px 10px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.025), 0 1px 3px rgba(0, 0, 0, 0.025) )"
+  },
+  ".rm-ReadMe[data-color-mode=dark] .GlossaryItem-tooltip-content": {
+   "--Glossary-bg": "var(--gray15)",
+   "--Glossary-color": "var(--color-text-default, var(--white))",
+   "--Glossary-shadow": "var( --box-shadow-menu-dark, 0 1px 3px rgba(0, 0, 0, 0.025), 0 2px 6px rgba(0, 0, 0, 0.025), 0 5px 10px rgba(0, 0, 0, 0.05) )"
+  },
+  ".rm-ReadMe[data-color-mode=auto] .GlossaryItem-tooltip-content,.rm-ReadMe[data-c": {
+   "--Glossary-bg": "var(--Tooltip-bg, var(--gray0))",
+   "--Glossary-color": "var(--color-text-default, var(--white))",
+   "--Glossary-shadow": "var( --box-shadow-menu-dark, 0 1px 3px rgba(0, 0, 0, 0.025), 0 2px 6px rgba(0, 0, 0, 0.025), 0 5px 10px rgba(0, 0, 0, 0.05) )"
+  },
+  ":root": {
+   "--markdown-title": "inherit"
+  },
+  ".field-description h1,.field-description h2,.field-description h3,.field-descrip": {
+   "--markdown-img-margin": "0"
+  }
+ }
+}

@@ -1,0 +1,102 @@
+{
+ "(any-pointer: coarse)": [
+  "main"
+ ],
+ "(forced-colors: active)": [
+  "ui-styles"
+ ],
+ "(hover: hover)": [
+  "ui-styles"
+ ],
+ "(hover: none)": [
+  "ui-styles"
+ ],
+ "(max-width: 1025px)": [
+  "ui-styles"
+ ],
+ "(max-width: 1028px)": [
+  "3047"
+ ],
+ "(max-width: 1200px)": [
+  "main"
+ ],
+ "(max-width: 1300px)and (min-width: 1113px),(max-width: 1011px)and (min-width: 769px),(max-width: 531px)": [
+  "Reference"
+ ],
+ "(max-width: 1450px)": [
+  "3047"
+ ],
+ "(max-width: 360px)": [
+  "main"
+ ],
+ "(max-width: 414px)": [
+  "Header",
+  "ui-styles"
+ ],
+ "(max-width: 500px)": [
+  "main"
+ ],
+ "(max-width: 520px)": [
+  "3047",
+  "Header",
+  "main"
+ ],
+ "(max-width: 768px)": [
+  "3047",
+  "Header",
+  "Reference",
+  "ui-styles"
+ ],
+ "(max-width: 768px)and (max-width: 768px)": [
+  "Header"
+ ],
+ "(max-width: 768px)and (prefers-color-scheme: dark)": [
+  "Header"
+ ],
+ "(min-width: 1024px)": [
+  "Containers-EndUserContainer"
+ ],
+ "(min-width: 1029px)": [
+  "3047"
+ ],
+ "(min-width: 414px)": [
+  "ui-styles"
+ ],
+ "(min-width: 768px)": [
+  "main",
+  "ui-styles"
+ ],
+ "(min-width: 769px)": [
+  "Header"
+ ],
+ "(prefers-color-scheme: dark)": [
+  "3047",
+  "Header",
+  "Reference",
+  "main",
+  "ui-styles"
+ ],
+ "(prefers-color-scheme: light)": [
+  "main"
+ ],
+ "(prefers-reduced-motion)": [
+  "main",
+  "ui-styles"
+ ],
+ "(prefers-reduced-motion: no-preference)": [
+  "ui-styles"
+ ],
+ "(prefers-reduced-motion: reduce)": [
+  "3047",
+  "Header",
+  "main",
+  "ui-styles"
+ ],
+ "(prefers-reduced-motion:reduce)": [
+  "main"
+ ],
+ "print": [
+  "main",
+  "ui-styles"
+ ]
+}

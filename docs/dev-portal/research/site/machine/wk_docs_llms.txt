@@ -1,0 +1,74 @@
+# Sefaria Documentation
+
+> Expand Digital Torah! Leverage the largest open-source database of Jewish texts in history to build apps and services for the People of the Book.
+
+This file lists one part of the documentation. The full index is at https://developers.sefaria.org/llms.txt.
+
+## Docs: TECHNICAL DOCS
+- [Welcome to Sefaria's Technical Documentation](https://developers.sefaria.org/docs/welcome.md): Explore Sefaria's technical documentation, including API insights, details about text structure, and more.
+- [Projects Powered By Sefaria](https://developers.sefaria.org/docs/powered-by-sefaria.md)
+  - [Project Acceptance Criteria](https://developers.sefaria.org/docs/powered-by-sefaria-acceptance-criteria.md)
+- [Copyright and Data Use](https://developers.sefaria.org/docs/usage-of-our-name-and-logo.md): Learn about how to find copyright details for texts in the Library and proper usage of Sefaria's name and logo.
+- [The Structure of a Book in the Sefaria Library](https://developers.sefaria.org/docs/the-structure-of-a-text-on-sefaria.md): Learn about the structure the data corresponding to individual texts in the Sefaria Library.
+  - [Index and Versions](https://developers.sefaria.org/docs/index-and-versions.md): In the Sefaria Library, titles are represented by an Index, while editions of titles are represented by Versions.
+  - [The Index Schema](https://developers.sefaria.org/docs/the-index-schema.md): Learn about how we define the structure of a book in the Sefaria Library.
+    - [JaggedArray and JaggedArray Nodes](https://developers.sefaria.org/docs/jaggedarray-and-jaggedarray-nodes.md): JaggedArray and JaggedArrayNodes are objects used for representing both the text content and the structure of simple texts.
+    - [SchemaNode](https://developers.sefaria.org/docs/schemanode.md): These intermediate nodes are used to define the schema of an Index, thereby creating the structure of a book.
+    - [The Structure of a Simple Text](https://developers.sefaria.org/docs/the-structure-of-a-simple-text.md): Learn more about the index schema for "simple" texts in the Sefaria Library.
+    - [The Structure of a Complex Text](https://developers.sefaria.org/docs/the-structure-of-a-complex-text.md): Learn more about the Index schema of "complex" texts and how they work in the context of the structures of texts in the Sefaria Library.
+    - [Node Titles](https://developers.sefaria.org/docs/node-titles.md): Learn how node titles work at Sefaria for books and sections of books, and how they work together in building text citations.
+  - [Alternate Structures](https://developers.sefaria.org/docs/alternate-structures.md): Learn how to work with texts that feature alternate structures.
+  - [Commentaries](https://developers.sefaria.org/docs/commentaries.md): Learn about working with commentaries in Sefaria's database.
+  - [Terms](https://developers.sefaria.org/docs/terms.md): Learn about these objects, used for grouping titles, alternate titles, and other bilingual terms.
+  - [Lexicon](https://developers.sefaria.org/docs/lexicon-docs.md): Learn about the structure of dictionaries in the Sefaria Library
+- [Text References](https://developers.sefaria.org/docs/text-references.md): The core of Sefaria's system is the system of text references. Understanding how they work is key to using our API and our broader codebase.
+- [Categories](https://developers.sefaria.org/docs/categories.md): Learn about how texts are categorized in the Sefaria Library.
+- [Topic Ontology](https://developers.sefaria.org/docs/topic-ontology.md): Learn how Topics on Sefaria are organized, and how to access them using the Sefaria API.
+  - [Linear Integer Programming For Topic Page Sources Selection](https://developers.sefaria.org/docs/linear-integer-programming-for-topic-pages-sources-selection.md): See the integer programming used for selecting sources featured on Topic pages
+- [Formatting within Sefaria Texts](https://developers.sefaria.org/docs/text-formatting-beyond-the-segment-level.md): Learn more about the HTML supported by Sefaria, used for in-line text formatting, as well as adding footnotes, commentaries, and other in-text emphasis.
+- [Additional API Endpoints](https://developers.sefaria.org/docs/api-wiki.md): Learn more about various API endpoints that are not yet listed in Sefaria's API playground.
+  - [ElasticSearch Proxy API](https://developers.sefaria.org/docs/search-api.md): Understand how to use the Sefaria proxy API to query the ElasticSearch API.
+- [The Sefaria Linker](https://developers.sefaria.org/docs/linker.md): Learn about using Sefaria's powerful citation tool to link your website to source texts.
+  - [Embed Linker v2 In Your Site](https://developers.sefaria.org/docs/linker-v2.md): Learn how to embed version two of Sefaria's powerful citation linking tool into your website.
+  - [Embed Linker v3 on Your Site](https://developers.sefaria.org/docs/linker-v3.md): Learn about the Sefaria Linker: A tool that links references on external webpages and links them to corresponding texts in the Sefaria Library.
+  - [How to Format Citations for the Linker](https://developers.sefaria.org/docs/how-to-format-citations-for-the-linker.md): Learn about formatting citations to ensure they're recognized by the Sefaria Linker.
+  - [איך ליצור מראי מקורות להפניה - How to Format Citations (HE)](https://developers.sefaria.org/docs/איך-ליצור-מראי-מקורות-להפניה.md)
+  - [The Sefaria Linker API](https://developers.sefaria.org/docs/linker-api.md): Learn how to use the Sefaria Linker API.
+  - [The Sefaria Linker Async Task API](https://developers.sefaria.org/docs/async-task-api.md): Learn how to use the Sefaria Linker Async Task API
+  - [Websites Using the Linker](https://developers.sefaria.org/docs/sites-using-the-linker.md): The Sefaria Linker is a free JavaScript plugin for websites that cite Jewish texts. With just a few lines of code, textual citations on your website automatically become clickable, allowing users to…
+- [The Sefaria MCPs](https://developers.sefaria.org/docs/the-sefaria-mcp.md): Use our MCPs to integrate your LLM of choice with the texts in the Sefaria Library and with our open-source data.
+- [The Educator Playbook: A Quick Guide to Vibe-Coding with Sefaria](https://developers.sefaria.org/docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria.md)
+
+## Docs: local installation
+- [Getting Started](https://developers.sefaria.org/docs/getting-started-with-local-installation.md)
+- [Public Contributions](https://developers.sefaria.org/docs/contributions-to-sefarias-repositories.md)
+- [Local Installation Instructions](https://developers.sefaria.org/docs/local-installation-instructions.md): Learn about how set up a local Sefaria environment in order to run a local copy of the application and web server.
+  - [Run Sefaria with Docker-Compose](https://developers.sefaria.org/docs/docker-compose-sefaria.md)
+- [Workflowy](https://developers.sefaria.org/docs/workflowy.md): When working with local installation, tools like our Workflowy Parser may be helpful for creating indices and adding text on Sefaria.
+- [Command-Line-Interface (CLI)](https://developers.sefaria.org/docs/cli.md): Learn more about Sefaria's Command-Line-Interface tool.
+- [Technical Notes](https://developers.sefaria.org/docs/technical-notes.md)
+  - [Term Creation](https://developers.sefaria.org/docs/term-creation.md): Two ways of creating a Term on a local instance of Sefaria
+  - [Titles for Index](https://developers.sefaria.org/docs/titles-for-index.md): How to initialize a new Index on a local instance of Sefaria
+  - [Category Creation](https://developers.sefaria.org/docs/category-creation.md): Creating categories on a local installation of the project.
+
+## Docs: Dev Digest Archive
+- [The Sefaria Developer Community Archive](https://developers.sefaria.org/docs/the-sefaria-developer-community-archive.md)
+- [All About Texts, Volunteering for Tests (June 2024, Issue 1)](https://developers.sefaria.org/docs/june-2024.md): How to strip nikkud from Tanakh via the Texts API, the known limitation with complex text retrieval and how to work around it, plus a developer who projected Talmud translations onto a physical page…
+- [Celery Queues, Local Install and the Shape API (September 2024, Issue 2)](https://developers.sefaria.org/docs/september-2024.md): Sefaria's citation detection upgraded from regex to a CNN-based ML model (Linker v3, available on HuggingFace), plus the underrated Shape API explained and how Celery queues solved text upload…
+- [Linear Programming, Topic Curation, and API Tips (December 2024, Issue 3)](https://developers.sefaria.org/docs/linear-programming-topic-curation-and-api-tips.md): How Sefaria used linear programming to optimize topic page curation across the Jewish canon, plus a trick for deriving Texts API refs from the site URL and calculating verse numbers using nested…
+- [Top Tech Tips, New Projects, and More! (March 2025, Issue 4)](https://developers.sefaria.org/docs/top-tech-tips-new-projects-and-more-march-2025-issue-4.md): How to fetch Hebrew author names via the v2/index API, a zero-ellipsis CSS trick for clamped topic grids, and an interesting community project for a clean read of the Talmud building on Sefaria's…
+- [Calendar API, a User-Requested feature, and More! (June 2025, Issue 5)](https://developers.sefaria.org/docs/calendar-api-a-user-requested-feature-and-more.md): Sefaria's Calendar API quirk explained, how a state-management overhaul saved half a million user sheets from data loss, and a tool that turns Torah verses into sound waves via Gematria.
+- [Accessibility, Interns, and the Passages API (September 2025, Issue 6)](https://developers.sefaria.org/docs/accessibility-interns-and-the-passages-api-september-2025.md): Pass a Talmud reference, get back the full sugya — Sefaria's underrated Passages API explained, plus accessibility work making every element keyboard-navigable, and a community project that mapped…
+- [Django middleware innovation & MCPs (January 2026, Issue 7)](https://developers.sefaria.org/docs/django-middleware-innovation-mcps-january-2026-issue-7.md): How do you split one monolith into three products without touching the codebase? Sefaria's engineering team did it with subdomain-aware Django middleware — read how a single dictionary lookup powers…
+- [Sefaria-Export, A Data Puzzle and Deep Wiki (April 2026, Issue 8)](https://developers.sefaria.org/docs/sefaria-export-a-data-puzzle-and-deep-wiki.md)
+
+## Docs: SEFARIA RESEARCH
+- [The Disambiguator](https://developers.sefaria.org/docs/the-disambiguator.md): Precise linking improvements through citation disambiguation
+- [Patot](https://developers.sefaria.org/docs/patot.md): A Python toolkit for Hebrew/English-aware semantic chunking for model-ready units for downstream AI workflows
+- [Beyond KMeans - PyCon 2024](https://developers.sefaria.org/docs/sefaria-research-at-pyconn-2024.md): Using LLMs to improve text clustering
+- [Getting Evals Right for a Jewish AI Chatbot](https://developers.sefaria.org/docs/getting-evals-right-for-a-jewish-ai-chatbot.md): Learn about our process and priorities for developing the Library Assistant
+
+## Docs: about Sefaria
+- [General FAQ](https://developers.sefaria.org/docs/general-faq.md)
+- [Guide to Contributing](https://developers.sefaria.org/docs/guide-to-contributing.md)
+  - [How to Report a Mistake](https://developers.sefaria.org/docs/how-to-report-a-mistake.md)
