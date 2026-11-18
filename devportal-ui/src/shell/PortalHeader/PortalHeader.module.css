@@ -99,6 +99,9 @@
   min-width: 0;
   padding: 5px 0 5px 20px;
   overflow: auto;
+
+  /* Live clips the links when they do not fit (1024: "Get in Touc") and shows no scrollbar. */
+  scrollbar-width: none;
 }
 
 .navLink {

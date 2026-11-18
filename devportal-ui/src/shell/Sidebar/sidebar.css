@@ -1,0 +1,404 @@
+/*
+ * The sidebar's own parts (contract C6 "Sidebar"), measured on live at 1440 (REFERENCE_SPEC §1.2,
+ * research/reference/data/computed-get-v3-texts.json). The tree rows (`dp-sidebar-row`, `dp-sidebar-link`,
+ * toggles, headings) are styled by src/docs/docs.css, shared with page_doc.html's server markup; this file adds the
+ * column, the filter, method pills, the reference deprecation marker, the footer and the collapse control.
+ * Global `dp-` classes (C5) so a server template can render the same markup.
+ */
+
+/* ------------------------------------------------------------------ column */
+
+.dp-sidebar--app {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: var(--rm-hub-sidebar-width, 288px);
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  box-shadow: 1px 0 0 0 rgb(0 0 0 / 10%);
+  color: var(--rm-color-text-default, #32343a);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* Live's 7px scrollbar, invisible until hovered: the rows are 251px wide at 1440 (288 - 15 - 15 - 7). */
+.dp-sidebar--app::-webkit-scrollbar {
+  width: 7px;
+}
+
+.dp-sidebar--app::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: transparent;
+}
+
+.dp-sidebar--app:hover::-webkit-scrollbar-thumb {
+  background: rgb(0 0 0 / 20%);
+}
+
+/* Live's sections do not collapse margins: heading 8px above and below, list 2px, sections 20px apart. */
+.dp-sidebar--app .dp-sidebar-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * Rows as live measures them (computed-get-v3-texts.json): 32.01px tall (padding 0.429em = 6.006px), 1px apart, the
+ * chevron inside the row's 5px right padding. docs.css (W7, shared with page_doc.html) draws 32px rows with no gap.
+ */
+.dp-sidebar--app .dp-sidebar-item {
+  margin-top: 1px;
+}
+
+.dp-sidebar--app .dp-sidebar-list--sub {
+  margin-bottom: 2px;
+}
+
+.dp-sidebar--app .dp-sidebar-toggle {
+  color: var(--rm-color-text-minimum-icon, rgb(102 107 121 / 60%));
+}
+
+.dp-sidebar--app .dp-sidebar-link,
+.dp-sidebar--app .dp-sidebar-row--parent .dp-sidebar-link,
+.dp-sidebar--app .dp-sidebar-row--deprecated .dp-sidebar-link {
+  padding: 0.429em 5px 0.429em 10px;
+}
+
+.dp-sidebar--app .dp-sidebar-row--parent .dp-sidebar-link__text,
+.dp-sidebar--app .dp-sidebar-row--deprecated:not(.dp-sidebar-row--endpoint) .dp-sidebar-link__text {
+  margin-right: 24px;
+}
+
+.dp-sidebar--app .dp-sidebar-row--parent.dp-sidebar-row--deprecated .dp-sidebar-link__text {
+  margin-right: 44px;
+}
+
+.dp-sidebar__body {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------------ filter (reference only) */
+
+.dp-sidebar-filter {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 12px 15px 0;
+}
+
+.dp-sidebar-filter__input {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  padding: 1px 53px 1px 26px;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--rm-color-text-default, #32343a);
+  font: inherit;
+  font-size: 14px;
+  line-height: normal;
+  appearance: none;
+}
+
+.dp-sidebar-filter__input:not(:placeholder-shown) {
+  padding-right: 8px;
+}
+
+.dp-sidebar-filter__input::placeholder {
+  color: var(--rm-color-text-minimum, #666b79);
+  opacity: 0.75;
+}
+
+.dp-sidebar-filter__input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.dp-sidebar-filter__input:focus {
+  border-color: #012bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(1 43 255 / 25%);
+}
+
+.dp-sidebar-filter__icon {
+  position: absolute;
+  top: 20px;
+  left: 22px;
+  width: 16px;
+  height: 16px;
+  color: var(--rm-color-text-minimum, #666b79);
+  pointer-events: none;
+}
+
+.dp-sidebar-filter__kbd {
+  position: absolute;
+  top: 20px;
+  right: 27px;
+  box-sizing: border-box;
+  height: 16px;
+  padding: 0 3px;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 4px;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
+
+.dp-sidebar-filter__clear {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background-color: var(--rm-color-text-default, #32343a);
+  cursor: pointer;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.25' fill='none' stroke='black' stroke-width='1.5'/%3E%3Cpath d='m5.75 5.75 4.5 4.5m0-4.5-4.5 4.5' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.dp-sidebar-filter__clear:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.dp-sidebar-empty {
+  margin: 8px 0;
+  padding-left: 10px;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* ------------------------------------------------------------------ endpoint rows */
+
+.dp-sidebar-link__meta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 20px;
+}
+
+.dp-sidebar-method {
+  display: flex;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 40px;
+  height: 16px;
+  border-radius: 8px;
+  background-color: var(--rm-green30, #008756);
+  box-shadow: var(
+    --rm-box-shadow-pill,
+    inset 0 1px 1px 0 rgb(255 255 255 / 20%),
+    inset 0 -1px 2px 0 rgb(0 0 0 / 20%),
+    0 1px 2px 0 rgb(0 0 0 / 5%)
+  );
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.1px;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 10%);
+  text-transform: uppercase;
+}
+
+.dp-sidebar-method--post {
+  background-color: var(--rm-blue40, #0222c6);
+}
+
+.dp-sidebar-method--put {
+  background-color: #6d5ba6;
+}
+
+.dp-sidebar-method--patch {
+  background-color: #df7d03;
+}
+
+.dp-sidebar-method--delete {
+  background-color: #cb4452;
+}
+
+/* "Deprecated Endpoint": a 12px marker just left of the pill (Texts (v1), Topic (v1)). */
+.dp-sidebar-row--endpoint .dp-sidebar-deprecated {
+  top: 10px;
+  right: 49px;
+  width: 12px;
+  height: 12px;
+}
+
+.dp-sidebar-row--endpoint .dp-sidebar-deprecated::before {
+  width: 12px;
+  height: 12px;
+}
+
+/* ------------------------------------------------------------------ footer (Discord, D-2) */
+
+/*
+ * Right under the tree, where live has "Powered by ReadMe": live's footer box is 71px (padding 40px 0 10px) and the
+ * column ends 24px below it, so the footer area is 95px whatever the Discord placement draws inside (D-2 masks it).
+ */
+.dp-sidebar--app .dp-sidebar-tree {
+  padding-bottom: 0;
+}
+
+.dp-sidebar-footer {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-height: 95px;
+}
+
+/* ------------------------------------------------------------------ collapse */
+
+/* Expanded: live's invisible 8px hit strip near the right edge, full height (x=270-278 at 1440). */
+.dp-sidebar-collapse {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--rm-hub-sidebar-width, 288px) - 18px);
+  width: 8px;
+  height: auto;
+  min-height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #000;
+  cursor: w-resize;
+  opacity: 0;
+}
+
+.dp-sidebar-collapse:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: -2px;
+  opacity: 1;
+}
+
+.dp-sidebar-collapse__icon {
+  display: none;
+  width: 16px;
+  height: 16px;
+}
+
+@media (width >= 769px) {
+  /* Collapsed: a 32px column holding only the "Show sidebar navigation" button (live: x=20, w=32). */
+  .dp-sidebar--app[data-collapsed='true'] {
+    width: 32px;
+    margin-left: 20px;
+    overflow: visible;
+    box-shadow: none;
+  }
+
+  .dp-sidebar--app[data-collapsed='true'] .dp-sidebar__body {
+    display: none;
+  }
+
+  .dp-sidebar--app[data-collapsed='true'] .dp-sidebar-collapse {
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-height: 0;
+    margin-top: 20px;
+    border-radius: 6px;
+    color: var(--rm-color-text-muted, #484c58);
+    cursor: pointer;
+    opacity: 1;
+  }
+
+  .dp-sidebar--app[data-collapsed='true'] .dp-sidebar-collapse:hover {
+    background-color: rgb(0 0 0 / 5%);
+  }
+
+  .dp-sidebar--app[data-collapsed='true'] .dp-sidebar-collapse__icon {
+    display: block;
+  }
+}
+
+/* ------------------------------------------------------------------ mobile panel (≤768) */
+
+/*
+ * The sub-nav panel, as live draws it (mobile_subnav_sidebar_open at 390 and 768): the nav itself is a fixed sheet,
+ * 30px from the left and 20px from the top and bottom, at most 333px wide, with a 390px shadow spread that dims the
+ * page around it. Every group is open (Sidebar.tsx).
+ */
+@media (width <= 768px) {
+  .dp-sidebar--app {
+    position: fixed;
+    top: 20px;
+    left: 30px;
+    z-index: 1000;
+    width: min(333px, calc(100vw - 60px));
+    height: calc(100vh - 40px);
+    border: 0 solid transparent;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow:
+      0 0 0 390px rgb(0 0 0 / 12.5%),
+      0 0 15px -3px rgb(0 0 0 / 33%);
+  }
+
+  .dp-sidebar--app .dp-sidebar-filter__kbd {
+    display: none;
+  }
+
+  .dp-sidebar--app .dp-sidebar-tree {
+    padding: 10px 13px 0 10px;
+  }
+
+  /* Live keeps the invisible strip at the panel's right edge (x=345 at 768); it does nothing here. */
+  .dp-sidebar-collapse {
+    left: calc(min(333px, 100vw - 60px) - 18px);
+    pointer-events: none;
+  }
+}
+
+/* ------------------------------------------------------------------ docs frame */
+
+/*
+ * Docs pages: the shell draws the sidebar column beside W7's DocPage (rendered without its own tree), so docs and
+ * reference share this component. The column keeps docs.css's `.dp-docs__sidebar` geometry; the nav inside
+ * carries the scroll, height and edge shadow.
+ */
+.dp-docs-frame {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.dp-docs-frame > .dp-docs {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dp-docs-frame > .dp-docs__sidebar {
+  flex-basis: auto;
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  box-shadow: none;
+}
+
+@media (width <= 768px) {
+  /* The nav is the fixed panel; the column only shows or hides it. */
+  .dp-docs-frame > .dp-docs__sidebar[data-open='true'] {
+    position: static;
+    width: auto;
+    max-height: none;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+}

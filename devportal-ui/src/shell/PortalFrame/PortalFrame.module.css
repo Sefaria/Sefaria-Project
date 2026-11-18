@@ -21,10 +21,6 @@
   top: 0;
   flex: 0 0 auto;
   align-self: flex-start;
-  width: var(--rm-hub-sidebar-width, 288px);
-  height: 100vh;
-  overflow-y: auto;
-  box-shadow: 1px 0 0 0 rgb(0 0 0 / 10%);
 }
 
 .article {
@@ -42,10 +38,22 @@
   max-width: none;
 }
 
-/* Reference: article (max 800px) and the playground column (480px). */
+/*
+ * Reference: article (max 800px) and the playground column (480px), in live's 1280px wrapper, which centres itself
+ * when the collapsed sidebar leaves it room (article at x=101 at 1440). The wrapper is a size container: live stacks
+ * the playground under the article when the wrapper, not the viewport, is narrow (1065 stacks and 1070 does not with
+ * the sidebar shown; at 1024 with the sidebar collapsed the columns stay side by side, v3_sidebar_collapsed).
+ */
+.columnsHost {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--rm-hub-content-max-width, 1280px);
+  margin: 0 auto;
+  container: dp-reference-columns / inline-size;
+}
+
 .columns {
   display: flex;
-  flex: 1 1 auto;
   align-items: flex-start;
   min-width: 0;
 }
@@ -78,7 +86,8 @@
   flex: 0 0 auto;
 }
 
-@media (width <= 1065px) {
+/* 1065px viewport - 10px scrollbar - 288px sidebar = 767px. */
+@container dp-reference-columns (width < 770px) {
   .columns {
     flex-direction: column;
     align-items: stretch;
@@ -98,19 +107,10 @@
     display: none;
   }
 
+  /* The sidebar draws the fixed sub-nav panel itself (src/shell/Sidebar/sidebar.css). */
   .sidebar[data-open='true'] {
-    position: absolute;
-    top: 0;
-    left: 20px;
-    z-index: 50;
+    position: static;
     display: block;
-    width: 293px;
-    height: auto;
-    max-height: 70vh;
-    border: 1px solid rgb(0 0 0 / 10%);
-    border-radius: 8px;
-    background-color: #fff;
-    box-shadow: 0 5px 10px 0 rgb(0 0 0 / 5%);
   }
 
   .docsColumns {
@@ -128,12 +128,5 @@
 @media (width <= 700px) {
   .article {
     padding: 32px 20px;
-  }
-}
-
-@media (width <= 414px) {
-  .sidebar[data-open='true'] {
-    left: 15px;
-    width: calc(100% - 30px);
   }
 }

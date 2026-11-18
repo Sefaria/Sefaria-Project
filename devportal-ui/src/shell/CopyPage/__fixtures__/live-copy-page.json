@@ -1,0 +1,34 @@
+{
+  "$comment": "Captured from live developers.sefaria.org on 2026-11-18 with a browser (GET only; metrics-proxy and every non-GET request blocked). Menu hrefs and the two copied MCP strings were read from the open menu; the Cursor and VS Code deep links were not followed (custom schemes) and are reproduced here with the code of ReadMe hub chunk 4242.5b0b54e9753dc1385a39.js that builds them (subdomain \"sefaria\", url <origin>/mcp). copyMarkdownRequest is the request Copy Page made.",
+  "origin": "https://developers.sefaria.org",
+  "mcpUrl": "https://developers.sefaria.org/mcp",
+  "pages": {
+    "/reference/get-v3-texts": {
+      "markdownUrl": "https://developers.sefaria.org/reference/get-v3-texts.md",
+      "open_chatgpt": "https://chat.openai.com/?q=Hi%20ChatGPT!%20Can%20you%20please%20read%20%5Bthis%20page%5D(https%3A%2F%2Fdevelopers.sefaria.org%2Freference%2Fget-v3-texts.md)%20and%20prepare%20to%20answer%20questions%20about%20it%3F",
+      "open_claude": "https://claude.ai/new?q=Hi%20Claude!%20Can%20you%20please%20read%20%5Bthis%20page%5D(https%3A%2F%2Fdevelopers.sefaria.org%2Freference%2Fget-v3-texts.md)%20and%20prepare%20to%20answer%20questions%20about%20it%3F"
+    },
+    "/docs/linker-v3": {
+      "markdownUrl": "https://developers.sefaria.org/docs/linker-v3.md",
+      "open_chatgpt": "https://chat.openai.com/?q=Hi%20ChatGPT!%20Can%20you%20please%20read%20%5Bthis%20page%5D(https%3A%2F%2Fdevelopers.sefaria.org%2Fdocs%2Flinker-v3.md)%20and%20prepare%20to%20answer%20questions%20about%20it%3F",
+      "open_claude": "https://claude.ai/new?q=Hi%20Claude!%20Can%20you%20please%20read%20%5Bthis%20page%5D(https%3A%2F%2Fdevelopers.sefaria.org%2Fdocs%2Flinker-v3.md)%20and%20prepare%20to%20answer%20questions%20about%20it%3F",
+      "view_markdown_opened": "https://developers.sefaria.org/docs/linker-v3.md",
+      "view_markdown_target": "_blank",
+      "copyMarkdownRequest": "GET https://developers.sefaria.org/docs/linker-v3.md"
+    }
+  },
+  "copy_mcp_config": "{\n  \"mcpServers\": {\n    \"sefaria\": {\n      \"type\": \"http\",\n      \"url\": \"https://developers.sefaria.org/mcp\"\n    }\n  }\n}",
+  "copy_mcp_command": "npx add-mcp \"https://developers.sefaria.org/mcp\"",
+  "connect_cursor": "cursor://anysphere.cursor-deeplink/mcp/install?name=sefaria&config=eyJ0eXBlIjoiaHR0cCIsInVybCI6Imh0dHBzOi8vZGV2ZWxvcGVycy5zZWZhcmlhLm9yZy9tY3AifQ==",
+  "connect_vscode": "vscode:mcp/install?%7B%22name%22%3A%22sefaria%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fdevelopers.sefaria.org%2Fmcp%22%7D",
+  "menu": [
+    "Open in ChatGPT",
+    "Open in Claude",
+    "MCP",
+    "Connect to Cursor",
+    "Connect to VS Code",
+    "Copy MCP Config",
+    "Copy MCP Command",
+    "View as Markdown"
+  ]
+}

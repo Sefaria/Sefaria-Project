@@ -1,0 +1,193 @@
+/*
+ * "Did this page help you?", measured on live at 1440 (v3_footer_feedback, v3_feedback_yes_open): a 288x44 pill
+ * centred in a table box with 40px 20px padding; the popover is 250px wide, centred above the chosen button.
+ */
+.root {
+  flex: 1 1 auto;
+  width: 100%;
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system, Roboto, 'Helvetica Neue', Arial, sans-serif);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.thumbs {
+  display: table;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 10px;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.prompt {
+  margin-right: 10px;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-size: 14px;
+  line-height: 21px;
+  white-space: nowrap;
+}
+
+.anchor {
+  position: relative;
+  display: flex;
+}
+
+.thumb {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  box-sizing: border-box;
+  height: 32px;
+  margin: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--rm-color-text-muted, #484c58);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  cursor: pointer;
+}
+
+.thumb:hover {
+  background: rgb(0 0 0 / 5%);
+}
+
+.thumb:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.thumbIcon {
+  flex: 0 0 auto;
+  margin-left: -4px;
+  width: 16px;
+  height: 16px;
+}
+
+.thumb[data-selected='true'] {
+  color: var(--rm-color-text-default, #32343a);
+}
+
+.thumb[data-selected='true'] .up {
+  color: #12ca93;
+}
+
+.thumb[data-selected='true'] .down {
+  color: #e95f6a;
+}
+
+.thanks {
+  margin: 0;
+  padding: 11px 10px;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+/* The popover's frame: transparent bands above and below the visible box, as live's tooltip box. */
+.popover {
+  position: absolute;
+  bottom: calc(100% - 6px);
+  left: 50%;
+  z-index: 100;
+  padding: 9px 0 10px;
+  transform: translateX(calc(-50% + 2.3px));
+}
+
+.dialog {
+  box-sizing: border-box;
+  width: 250px;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 6%);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 10px 16px;
+  border-bottom: 1px solid rgb(0 0 0 / 10%);
+}
+
+.label {
+  margin-bottom: 10px;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.textarea {
+  box-sizing: border-box;
+  width: 100%;
+  height: 71px;
+  margin: 0;
+  padding: 5px 8px;
+  border: 1px solid rgb(0 0 0 / 20%);
+  border-radius: 4px;
+  color: var(--rm-color-text-default, #32343a);
+  font: inherit;
+  font-size: 14px;
+  line-height: 21px;
+  resize: vertical;
+}
+
+.textarea:focus {
+  border-color: #012bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(1 43 255 / 25%);
+}
+
+.actions {
+  padding: 10px;
+}
+
+.vote {
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  padding: 2px 10px 0;
+  border: 1px solid #52576d;
+  border-radius: 6px;
+  background: #666;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  cursor: pointer;
+}
+
+.vote:hover {
+  background: #555;
+}
+
+.vote:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.vote:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.error {
+  margin: 8px 0 0;
+  color: #ad273c;
+  font-size: 13px;
+  line-height: 19.5px;
+}

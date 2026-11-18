@@ -1,0 +1,199 @@
+/*
+ * The Copy Page split button and menu, measured on live (REFERENCE_SPEC §1.4; v3_copy_page_menu_open at 1440:
+ * button 32px tall, menu 208px wide below the chevron).
+ */
+.root {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system, Roboto, 'Helvetica Neue', Arial, sans-serif);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.left,
+.right {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 32px;
+  margin: 0;
+  border: 1px solid rgb(0 0 0 / 10%);
+  background: #fff;
+  color: var(--rm-color-text-muted, #484c58);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  cursor: pointer;
+}
+
+.left {
+  gap: 4px;
+  padding: 0 12px;
+  border-radius: 6px 0 0 6px;
+  white-space: nowrap;
+}
+
+.right {
+  justify-content: center;
+  width: 32px;
+  padding: 0;
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.left:hover,
+.right:hover,
+.right[data-open='true'] {
+  background: rgb(0 0 0 / 5%);
+}
+
+.left:focus-visible,
+.right:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.leftIcon,
+.chevron {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.leftIcon {
+  margin-left: -4px;
+}
+
+.anchor {
+  position: relative;
+  display: flex;
+}
+
+/* The menu's frame: transparent bands above and below the visible box, as live's tooltip box. */
+.popover {
+  position: absolute;
+  top: calc(100% - 6px);
+  left: 0;
+  z-index: 100;
+  padding: 10px 0;
+}
+
+.popoverEnd {
+  right: 0;
+  left: auto;
+}
+
+.menu {
+  box-sizing: border-box;
+  width: 208px;
+  padding: 6px 0;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 5px 10px 0 rgb(0 0 0 / 5%);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  padding: 0 10px 0 36px;
+  border: 0;
+  background: transparent;
+  color: var(--rm-color-text-default, #32343a);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.item:hover,
+.item:focus-visible {
+  outline: none;
+  background: rgb(0 0 0 / 5%);
+}
+
+.item:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--functional-focus-blue, #4871bf);
+}
+
+.itemIcon {
+  display: flex;
+  flex: 0 0 auto;
+  margin-right: 6px;
+  color: var(--rm-color-text-minimum, #666b79);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}
+
+.itemLabel {
+  min-width: 0;
+}
+
+.externalIcon {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  margin-left: 2px;
+  color: var(--rm-color-text-muted, #484c58);
+}
+
+.header {
+  padding: 0 12px 6px;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.divider {
+  height: 1px;
+  margin: 4px 0;
+  background: rgb(0 0 0 / 5%);
+}
+
+/* Messages ("Copied to clipboard!", failures, "Cursor does not appear to be installed."), bottom right. */
+.toastRegion {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+}
+
+.toast {
+  max-width: 320px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  background: var(--rm-color-text-default, #32343a);
+  box-shadow: 0 5px 10px 0 rgb(0 0 0 / 15%);
+  color: #fff;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.toast[data-kind='error'] {
+  background: #ad273c;
+}
+
+.toast a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.toast a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}

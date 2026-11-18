@@ -137,14 +137,14 @@ describe('search (W10)', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe(endpoint.path));
   });
 
-  it("bridges the header's search event to the search module's", async () => {
+  it("dispatches the search module's own event from the header, so no bridge is needed", async () => {
     mockFetch({});
     const doc = fixture<DocPayload>('doc');
     renderAt(doc.path, doc, siteOf(doc));
     await screen.findByRole('heading', { level: 1, name: doc.page.title });
     const opened = vi.fn();
     window.addEventListener('dp:open-search', opened);
-    window.dispatchEvent(new CustomEvent('dp:search-open'));
+    screen.getAllByRole('button', { name: 'Search ⌘k' })[0]!.click();
     window.removeEventListener('dp:open-search', opened);
     expect(opened).toHaveBeenCalledTimes(1);
   });

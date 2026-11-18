@@ -35,11 +35,13 @@ export function PortalFrame({ layout, sidebar, sidebarOpen = false, sidebarId, r
           </div>
         )}
         {layout === 'reference' ? (
-          <div className={styles.columns}>
-            <article id="content" className={styles.article} tabIndex={-1}>
-              {children}
-            </article>
-            {hasRail && <div className={`dp-rm-playground ${styles.playground}`}>{rail}</div>}
+          <div className={styles.columnsHost}>
+            <div className={styles.columns}>
+              <article id="content" className={styles.article} tabIndex={-1}>
+                {children}
+              </article>
+              {hasRail && <div className={`dp-rm-playground ${styles.playground}`}>{rail}</div>}
+            </div>
           </div>
         ) : (
           <article id="content" className={styles.article} tabIndex={-1}>

@@ -9,8 +9,8 @@ import styles from './PortalHeader.module.css';
 
 export type { PortalHeaderTab } from './headerLinks';
 
-/** The `CustomEvent` the search toggle dispatches on `window`; the search module opens its dialog on it. */
-export const SEARCH_OPEN_EVENT = 'dp:search-open';
+/** The event the search toggle dispatches on `window`; the search module (src/search, `OPEN_SEARCH_EVENT`) opens its dialog on it. */
+export const SEARCH_OPEN_EVENT = 'dp:open-search';
 
 export interface PortalHeaderSubnav {
   /** The current page's title; the button's text and accessible name (C6 `MobileSubnav`). */
