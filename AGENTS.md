@@ -43,6 +43,7 @@ agent_docs/
 | The `Sefaria` JS singleton                          | [`agent_docs/frontend/sefaria_js.md`](./agent_docs/frontend/sefaria_js.md)                   |
 | Reader views (the main reading app)                 | [`agent_docs/reader/README.md`](./agent_docs/reader/README.md)                               |
 | API, sourcesheets, chatbot, guides, etc.            | [`agent_docs/apps/README.md`](./agent_docs/apps/README.md)                                   |
+| Developer portal (developers.sefaria.org)           | [`agent_docs/apps/devportal.md`](./agent_docs/apps/devportal.md)                             |
 | Scripts / one-off jobs                              | [`agent_docs/scripts.md`](./agent_docs/scripts.md)                                           |
 | Config, exports, stats, sitemap, image gen          | [`agent_docs/sefaria/config_and_utilities.md`](./agent_docs/sefaria/config_and_utilities.md) |
 
