@@ -66,3 +66,11 @@ button.open { padding: 0; border: 0; background: none; cursor: pointer; }
 @media (max-width: 842px) { .list { margin-inline: -4px; } }
 /* on a phone the text starts 6px under its source line (1px on a wide screen), as there */
 @media (max-width: 842px) { .text { margin-block-start: 5px; } }
+/* A phone's sheet, as sefaria.org's (measured 2026-11-18, Genesis 1:3 with Commentary and with Rashi, 375x812): no title or recent
+   filters over the list (its header's back link says where you are), and a text's number is s2.css .textRange .numberLabel: out of
+   the text, 12px light #ccc centred in 30px past the text's end edge, level with its source line */
+@media (max-width: 842px) {
+  .title, .recent { display: none; }
+  .item { position: relative; }
+  .number { position: absolute; inset-block-start: 12px; inset-inline-end: -30px; width: 30px; min-width: 0; margin: 0; text-align: center; font-size: 12px; font-weight: lighter; color: #ccc; }
+}

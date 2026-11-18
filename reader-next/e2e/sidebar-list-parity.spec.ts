@@ -65,4 +65,23 @@ test.describe("on a phone", () => {
     expect(Math.abs(t - page.viewportSize()!.width / 2)).toBeLessThanOrEqual(2);
     await expect(aside(page).getByRole("button", { name: "Close", exact: true })).toBeVisible();
   });
+
+  // @feature CON-002 @feature CON-009
+  test("a sub-view: a 50px header with the back link 15px in, no title over the list, each number past the text's end in #ccc @mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await open(page, "/Genesis.1.1?lang=bi&with=Commentary");
+    const back = aside(page).getByRole("link", { name: "Resources" });
+    await expect(back).toBeVisible({ timeout: 20_000 });
+    const header = back.locator("..");
+    expect(Math.round((await header.boundingBox())!.height)).toBe(50);
+    const word = await back.locator("span").last().evaluate((e) => { const r = document.createRange(); r.selectNodeContents(e); return Math.round(r.getBoundingClientRect().x); });
+    expect(word).toBe(41);
+    await expect(aside(page).locator("h3[class*='_title_']").first()).toBeHidden();
+    const item = aside(page).locator("ul li:has([class*='_number_'])").first();
+    const num = item.locator("[class*='_number_']").first();
+    const n = (await num.boundingBox())!, it = (await item.boundingBox())!;
+    expect(n.x).toBeGreaterThanOrEqual(it.x + it.width - 1); // out of the text, past its end
+    expect(await css(num, "color")).toBe("rgb(204, 204, 204)");
+    expect(await css(num, "font-size")).toBe("12px");
+  });
 });

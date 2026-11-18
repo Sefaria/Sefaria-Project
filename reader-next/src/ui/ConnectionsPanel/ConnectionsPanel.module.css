@@ -31,3 +31,10 @@
 
 /* Print (legacy s2-print.css .connectionsPanel, .connectionsHeader): the sidebar is not printed */
 @media print { .panel { display: none !important; } }
+/* A phone's sheet header with a back link (sefaria.org .singlePanel .connectionsPanelHeader, 2026-11-18): 50px with 15px sides, the
+   link 20px down; its chevron 7px in and its word 6px after it (the chevron at 22, "Resources" at 41). The main view's stays 60px. */
+@media (max-width: 842px) {
+  .header:has(> .back) { min-height: 50px; padding-inline: 15px; align-items: flex-start; padding-block-start: 19px; box-sizing: border-box; }
+  .header:has(> .back) > button:last-child { margin-block-start: -10px; }
+  .back { gap: 6px; }
+}
