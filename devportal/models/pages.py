@@ -123,6 +123,91 @@ class Page(models.Model):
             return None
         return f"/{self.section}/{self.slug}"
 
+    @property
+    def depth(self):
+        """1 for a root row (a category, or a custom page), 2 for its child, and so on."""
+        depth, node, seen = 1, self.parent, set()
+        while node is not None:
+            if node.pk in seen:
+                break
+            seen.add(node.pk)
+            depth += 1
+            node = node.parent
+        return depth
+
+    def subtree_height(self):
+        """1 for a leaf, 2 for a page with children, and so on (non-deleted rows only)."""
+        children = list(self.children.filter(deleted_at__isnull=True)) if self.pk else []
+        return 1 + max((c.subtree_height() for c in children), default=0)
+
+    def clean(self):
+        super().clean()
+        validate_tree_position(self, self.parent)
+
+    def current_revision(self):
+        """The revision the editor opens: the pending draft if any, else the published one."""
+        return self.draft_revision or self.published_revision
+
+
+# Which parent kinds each kind may have (None: a root row). PLAN.md §2.3.3, §2.11.
+ALLOWED_PARENT_KINDS = {
+    PageKind.CATEGORY: {None},
+    PageKind.PAGE: {PageKind.CATEGORY, PageKind.PAGE},
+    PageKind.LINK: {PageKind.CATEGORY, PageKind.PAGE},
+    PageKind.TAG_GROUP: {PageKind.CATEGORY},
+    PageKind.ENDPOINT: {PageKind.TAG_GROUP},
+    PageKind.API_CONFIG: {PageKind.CATEGORY},
+}
+# Custom pages are one flat list with no category.
+SECTION_KINDS = {
+    Section.DOCS: {PageKind.CATEGORY, PageKind.PAGE, PageKind.LINK},
+    Section.REFERENCE: set(PageKind),
+    Section.PAGE: {PageKind.PAGE, PageKind.LINK},
+}
+
+
+def validate_tree_position(page, parent):
+    """Raise `ValidationError` unless `page` may sit under `parent` (None for a root row).
+
+    Rules: the parent is in the same section and not deleted; the parent's kind is allowed for
+    the page's kind; custom pages are flat; no cycles; the deepest row of the page's subtree stays
+    within `Page.MAX_DEPTH` (a category plus three levels).
+    """
+    from django.core.exceptions import ValidationError
+
+    if page.kind not in SECTION_KINDS.get(page.section, set()):
+        msg = f"A {page.kind} cannot be in section {page.section!r}."
+        raise ValidationError(msg)
+    parent_kind = parent.kind if parent is not None else None
+    if page.section == Section.PAGE and parent is not None:
+        msg = "Custom pages are a flat list; they have no parent."
+        raise ValidationError(msg)
+    if page.section != Section.PAGE and page.kind != PageKind.CATEGORY and parent is None:
+        msg = f"A {page.kind} in {page.section} must have a parent."
+        raise ValidationError(msg)
+    if page.section != Section.PAGE and parent_kind not in ALLOWED_PARENT_KINDS[page.kind]:
+        msg = f"A {page.kind} cannot be placed under a {parent_kind or 'root'}."
+        raise ValidationError(msg)
+    if parent is None:
+        depth = 1
+    else:
+        if parent.section != page.section:
+            msg = "A page and its parent must be in the same section."
+            raise ValidationError(msg)
+        if parent.deleted_at is not None:
+            msg = "The parent page is deleted."
+            raise ValidationError(msg)
+        node = parent
+        while node is not None:
+            if page.pk is not None and node.pk == page.pk:
+                msg = "A page cannot be moved under itself."
+                raise ValidationError(msg)
+            node = node.parent
+        depth = parent.depth + 1
+    if depth + page.subtree_height() - 1 > Page.MAX_DEPTH:
+        msg = f"The tree would be deeper than {Page.MAX_DEPTH} levels (a category plus three)."
+        raise ValidationError(msg)
+
 
 class PageRevision(models.Model):
     """An immutable snapshot of a page's content. Restoring creates a new revision."""

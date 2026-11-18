@@ -55,12 +55,85 @@ _ATTR = re.compile(r"""(\b(?:href|src)\s*=\s*)(["'])(.*?)\2""", re.IGNORECASE)
 _CODE_SPAN = re.compile(r"(`+)(?:.|\n)*?(?<!`)\1(?!`)")
 
 
+_COMPONENT_OPEN = re.compile(r"^[ \t]*<(Callout|Table)(?=[\s>]|$)")
+
+
+def _component_spans(lines):
+    """Line ranges `[start, end)` of `<Callout>` and `<Table>` blocks.
+
+    The renderer dedents a component's body before parsing it (components.py), so indentation inside a
+    component is not an indented code block. Code ranges inside a component are computed on its dedented body.
+    """
+    spans = []
+    i = 0
+    while i < len(lines):
+        m = _COMPONENT_OPEN.match(lines[i])
+        if not m:
+            i += 1
+            continue
+        name = m.group(1)
+        depth = 0
+        for j in range(i, len(lines)):
+            depth += len(re.findall(rf"<{name}(?=[\s>]|$)", lines[j]))
+            depth -= lines[j].count(f"</{name}>")
+            if depth <= 0 and f"</{name}>" in lines[j]:
+                spans.append((i, j + 1))
+                i = j + 1
+                break
+        else:
+            i += 1
+    return spans
+
+
+_CELL_OPEN = re.compile(r"<(td|th)\b[^>]*>", re.IGNORECASE)
+_CELL_CLOSE = re.compile(r"</(td|th)>", re.IGNORECASE)
+
+
+def _component_regions(lines, spans):
+    """Line ranges whose text the renderer parses as their own dedented Markdown document.
+
+    A `<Callout>` body is one region. A `<Table>` is parsed cell by cell (components.py), so each multi-line
+    `<td>`/`<th>` body is one region.
+    """
+    regions = []
+    for start, end in spans:
+        if _COMPONENT_OPEN.match(lines[start]).group(1) == "Callout":
+            regions.append((start + 1, end - 1))
+            continue
+        cell_start = None
+        for i in range(start + 1, end - 1):
+            line = lines[i]
+            if cell_start is None and _CELL_OPEN.search(line) and not _CELL_CLOSE.search(line):
+                cell_start = i + 1
+            elif cell_start is not None and _CELL_CLOSE.search(line):
+                regions.append((cell_start, i))
+                cell_start = None
+    return regions
+
+
 def _code_line_ranges(source):
-    """Line ranges `[start, end)` that are code blocks or fences."""
+    """Line ranges `[start, end)` that are code blocks or fences, as the renderer would parse them."""
+    lines = source.splitlines(keepends=True)
+    spans = _component_spans(lines)
+    masked = list(lines)
+    for start, end in spans:
+        for i in range(start + 1, end - 1):
+            masked[i] = "\n" if lines[i].endswith("\n") else ""
     ranges = []
-    for tok in _md.parse(source):
+    for tok in _md.parse("".join(masked)):
         if tok.type in ("fence", "code_block") and tok.map:
-            ranges.append(tuple(tok.map))
+            start, end = tok.map
+            if not any(s <= start < e for s, e in spans):
+                ranges.append((start, end))
+    for start, end in _component_regions(lines, spans):
+        inner = lines[start:end]
+        if not any(x.strip() for x in inner):
+            continue
+        indent = min(len(x) - len(x.lstrip(" \t")) for x in inner if x.strip())
+        dedented = "".join(x[indent:] if x.strip() else x for x in inner)
+        for tok in _md.parse(dedented):
+            if tok.type in ("fence", "code_block") and tok.map:
+                ranges.append((start + tok.map[0], start + tok.map[1]))
     return ranges
 
 
