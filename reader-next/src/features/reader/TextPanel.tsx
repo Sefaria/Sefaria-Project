@@ -19,7 +19,6 @@ import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/q
 import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
 import type { AsideId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
-import { IconButton } from "~/ui/IconButton/IconButton";
 import { CloseTextButton, DisplayOptionsButton, SaveTextButton } from "~/ui/ReaderControls/ReaderControls";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { PanelHeader } from "~/ui/PanelHeader/PanelHeader";
@@ -28,6 +27,7 @@ import { SplitView } from "~/ui/SplitView/SplitView";
 import type { SavedPosition } from "~/lib/reader/position-store";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { TextColumnBanner } from "~/ui/TextColumnBanner/TextColumnBanner";
+import { MenuBars } from "~/ui/SiteHeader/SiteHeader";
 import { rememberPlace } from "~/lib/reader/last-place";
 import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
@@ -728,7 +728,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         start={
           <>
             <span className={styles.notPhone}><CloseTextButton label={alone ? (he ? "חזרה לספריה" : "Back to the library") : he ? "סגירת הטקסט" : "Close this text"} onClick={() => void closePanel()} /></span>
-            <span className={styles.onlyPhone}><IconButton icon="menu" label={he ? "תפריט" : "Menu"} aria-expanded={phoneMenuOpen} aria-controls="mobile-nav" onClick={() => setMobileMenuOpen(!phoneMenuOpen)} /></span>
+            <span className={styles.onlyPhone}><button type="button" className={styles.phoneMenu} data-he={he || undefined} aria-label={he ? "תפריט" : "Menu"} title={he ? "תפריט" : "Menu"} aria-expanded={phoneMenuOpen} aria-controls="mobile-nav" onClick={() => setMobileMenuOpen(!phoneMenuOpen)}><MenuBars /></button></span>
           </>
         }
         end={

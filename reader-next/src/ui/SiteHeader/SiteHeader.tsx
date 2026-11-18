@@ -192,6 +192,11 @@ function OptInItems({ actions, variant, t, onDone }: { actions: HeaderOptInActio
   );
 }
 
+/** The phone menu button's glyph: Font Awesome's fa-bars, as sefaria.org draws it in its site header and its reader bar. */
+export const MenuBars = () => (
+  <svg viewBox="0 0 1536 1280" width="21" height="17" aria-hidden="true" focusable="false"><path fill="currentColor" d="M1536 1088v128q0 26-19 45t-45 19H64q-26 0-45-19t-19-45v-128q0-26 19-45t45-19h1408q26 0 45 19t19 45zm0-512v128q0 26-19 45t-45 19H64q-26 0-45-19T0 704V576q0-26 19-45t45-19h1408q26 0 45 19t19 45zm0-512v128q0 26-19 45t-45 19H64q-26 0-45-19T0 192V64q0-26 19-45T64 0h1408q26 0 45 19t19 45z" /></svg>
+);
+
 export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, optIn, onOpenAssistant }: SiteHeaderProps) {
   const lang = useInterfaceLang();
   // relative on the Library host (in-app), the Library's own address on a Voices host (lib/routing/library-href.ts)
@@ -313,7 +318,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
         <div>
           <button ref={menuButton} type="button" className={styles.menuButton} aria-label={t("Menu", "תפריט")} title={t("Menu", "תפריט")} aria-expanded={mobileOpen} aria-controls="mobile-nav" onClick={() => setMobileOpen((o) => !o)}>
             {/* the old Font Awesome 4 "fa-bars" glyph at 24px */}
-            <svg viewBox="0 0 1536 1280" width="21" height="17" aria-hidden="true" focusable="false"><path fill="currentColor" d="M1536 1088v128q0 26-19 45t-45 19H64q-26 0-45-19t-19-45v-128q0-26 19-45t45-19h1408q26 0 45 19t19 45zm0-512v128q0 26-19 45t-45 19H64q-26 0-45-19T0 704V576q0-26 19-45t45-19h1408q26 0 45 19t19 45zm0-512v128q0 26-19 45t-45 19H64q-26 0-45-19T0 192V64q0-26 19-45T64 0h1408q26 0 45 19t19 45z" /></svg>
+            <MenuBars />
           </button>
         </div>
         <div className={styles.mobileCenter}>

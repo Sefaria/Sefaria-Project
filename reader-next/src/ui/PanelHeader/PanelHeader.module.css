@@ -38,3 +38,10 @@
 .subtitle { margin-top: -1px; } /* the old version line overlaps the title's box by 1px */
 .end { gap: 0; }
 .end > * + * { margin-inline-start: 0; }
+
+/* A phone: the bar's controls sit 15px in from the screen's edges (sefaria.org's .singlePanel .readerControls .readerControlsInner),
+   its icons 3px lower than on a wide screen (measured 2026-11-18 at 375x812: the bookmark at 302,24, the menu glyph at 15,20) */
+@media (max-width: 842px) {
+  .bar { padding-inline: 15px; }
+  .end { position: relative; top: 3px; }
+}

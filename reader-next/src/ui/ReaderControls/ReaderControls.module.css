@@ -1,5 +1,5 @@
 /* The old s2.css values: .leftButtons .readerNavMenuCloseButton, .rightButtons .saveButton, .rightButtons .readerOptions, .tooltip-toggle */
-.close, .save, .options { display: inline-flex; align-items: center; height: 56px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--sefaria-color-text-dark-grey); }
+.close, .save, .options { flex-shrink: 0; display: inline-flex; align-items: center; height: 56px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--sefaria-color-text-dark-grey); }
 .close { justify-content: center; width: 40px; font-family: var(--sefaria-font-text-en); font-size: 44px; line-height: 56px; }
 .close span { display: block; line-height: 56px; }
 .save { justify-content: flex-end; width: 30px; }
@@ -7,6 +7,10 @@
 .options { justify-content: flex-end; width: 40px; padding-inline-end: 4px; }
 .options img { height: 16px; margin-top: 1px; }
 .options[data-he] img { height: 18px; }
+/* The Hebrew interface's nudges (s2.css): .interface-hebrew .rightButtons { margin-left: -3px }, .rightButtons .readerOptions
+   { margin-inline-end: 11px }, .readerOptions .int-he { margin-left: 8px } — the options box 51px with its א 19px in from its
+   left, the save button right after it (measured 2026-11-18 at 375 and 1280: א at 306, the bookmark at 338 on a 1280 panel) */
+.options[data-he] { width: 51px; padding-inline-end: 19px; margin-inline-end: -3px; }
 
 /* The tooltip card: white, 13px Roboto, 140px wide, under the button; fades in on hover only */
 .tooltip { position: relative; }

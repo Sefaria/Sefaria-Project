@@ -33,6 +33,12 @@
   .notPhone { display: none; }
   .onlyPhone { display: contents; }
 }
+/* The phone's menu button in the reader's bar, as sefaria.org's span.readerNavMenuMenuButton (2026-11-18, 375x812): a 40x56 target
+   6px down, #666, its fa-bars glyph (24px, 21 wide) at its start, the glyph's top 18px into it; 2px further in for Hebrew
+   (.interface-hebrew .leftButtons { margin-right: 2px }) */
+.phoneMenu { display: flex; align-items: flex-start; justify-content: flex-start; flex-shrink: 0; width: 40px; height: 56px; padding: 0; border: 0; background: none; color: var(--sefaria-color-text-dark-grey); cursor: pointer; position: relative; top: 6px; }
+.phoneMenu[data-he] { margin-inline-start: 2px; }
+.phoneMenu svg { display: block; width: 20.57px; height: 17.14px; margin-block-start: 18.3px; }
 
 /* The "Aa" menu card, as the old .texts-properties-menu (VERIFIED on sefaria.org 1280px, 2026-10-29): 256px inside a 1px #ededec
    border, radius 5, a soft #ededec shadow below, hung from the bottom of the 56px button, flush with its end */
