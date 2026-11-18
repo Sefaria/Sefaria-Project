@@ -10,7 +10,8 @@ from django.urls import path, re_path
 
 from devportal.mcp.django_view import mcp_view
 
-from .views import api, pages
+from .views import api, gallery, pages, reference
+from .views.htmlblock import htmlblock_frame
 
 app_name = "devportal"
 
@@ -28,7 +29,18 @@ urlpatterns = [
     # Internal endpoints.
     path("_portal/page.json", api.page_json, name="page_json"),
     path("_portal/csrf", api.csrf_token, name="csrf"),
+    re_path(r"^_portal/search-docs\.(?P<sha>[0-9a-f]{7,64})\.json$", api.search_docs, name="search_docs"),
+    path("_portal/htmlblock/<str:revision>/<str:n>", htmlblock_frame, name="htmlblock"),
     re_path(r"^_portal/", api.portal_not_found, name="portal_not_found"),
+    # API reference (C9): /reference redirects; tag groups redirect to their first child; endpoints and
+    # hand-written reference pages render here. reference/llms.txt and .md routes must come before these.
+    path("reference", reference.reference_root, name="reference_root"),
+    path("reference/<str:slug>", reference.reference_page, name="reference_page"),
+    # The Powered by Sefaria gallery (PLAN.md §2.14).
+    path("powered-by", gallery.gallery_index, name="gallery"),
+    path("powered-by/charts", gallery.gallery_charts, name="gallery_charts"),
+    path("powered-by/projects/<str:slug>", gallery.gallery_project, name="gallery_project"),
+    path("powered-by/<path:rest>", gallery.gallery_unknown, name="gallery_unknown"),
     # Fallback: must stay last.
     re_path(r"^.*$", pages.portal_page, name="page"),
 ]

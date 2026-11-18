@@ -34,7 +34,6 @@ from devportal.security.headers import request_origin
 CONTRACT_VERSION = 1
 
 # PortalArtifact names this module reads. The publish pipeline writes them.
-SEARCH_DOCS_ARTIFACT = "search-docs.json"
 SIDEBAR_ARTIFACT = "sidebar-{section}.json"
 
 NAV_SECTIONS = (Section.DOCS, Section.REFERENCE)
@@ -78,11 +77,17 @@ def _generation():
 
 
 def search_docs_url(generation):
-    artifact = PortalArtifact.objects.filter(name=SEARCH_DOCS_ARTIFACT).only("sha256").first()
-    sha = (artifact.sha256 if artifact else "")[:12]
-    if not re.fullmatch(r"[0-9a-f]{12}", sha):
-        sha = hashlib.sha256(f"generation:{generation}".encode()).hexdigest()[:12]
-    return f"/_portal/search-docs.{sha}.json"
+    """`/_portal/search-docs.<sha>.json` of the stored search documents (devportal.services.search_index).
+
+    Before the first build there is no file; the URL then names a sha that answers 404, and the search modal
+    shows its empty state.
+    """
+    from devportal.services import search_index  # noqa: PLC0415
+
+    current = search_index.current_search_docs()
+    if current is not None:
+        return search_index.artifact_url(current[0])
+    return search_index.artifact_url(hashlib.sha256(f"generation:{generation}".encode()).hexdigest()[:16])
 
 
 def site_config(origin, generation, analytics_section="default"):
@@ -302,15 +307,11 @@ def _content_html(payload):
     if kind == "home":
         return format_html('<main class="dp-main" id="dp-main">{}</main>', mark_safe(payload["bodyHtml"]))  # noqa: S308
     if kind == "doc":
-        page = payload["page"]
-        excerpt = format_html('<p class="dp-excerpt">{}</p>', page["excerpt"]) if page["excerpt"] else ""
+        # W7's docs layout (sidebar, article, TOC, page footer); the body is rendered and sanitized by
+        # devportal.markdown at publish time.
         return format_html(
-            '<main class="dp-main" id="dp-main"><article class="dp-article"><header class="dp-article-header">'
-            "<h1>{}</h1>{}</header>"
-            '<div class="dp-article-body">{}</div></article></main>',
-            page["title"],
-            excerpt,
-            mark_safe(page["bodyHtml"]),  # noqa: S308 - rendered and sanitized by devportal.markdown
+            '<main class="dp-main" id="dp-main">{}</main>',
+            mark_safe(render_to_string("devportal/page_doc.html", {"payload": payload})),  # noqa: S308
         )
     return ""
 
@@ -461,3 +462,11 @@ def login_redirect(request):
     if is_portal_path(next_path) and "\\" not in next_path and not any(ord(c) < 32 for c in next_path):
         target += "?next=" + quote(f"{request_origin(request)}{next_path}", safe="")
     return HttpResponseRedirect(target)
+
+
+def doc_page(request, section, slug):
+    """A hand-written page of `section` (e.g. the reference guides that devportal.views.reference
+    delegates to): the same response as the fallback route gives for `/<section>/<slug>`."""
+    if request.method not in ("GET", "HEAD"):
+        return HttpResponseNotAllowed(["GET", "HEAD"])
+    return response_for_path(request, f"/{section}/{slug}")

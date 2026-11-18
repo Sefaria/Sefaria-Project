@@ -1,6 +1,6 @@
 """Internal JSON endpoints under /_portal/ (contract C9). Never under /api/ (C9 rule no_api_prefix)."""
 
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.http import require_GET
 
@@ -47,4 +47,17 @@ def csrf_token(request):
     set a cookie; the client calls it on the first use of the feedback widget or the editor."""
     response = JsonResponse({"csrfToken": get_token(request)})
     response["Cache-Control"] = "no-store"
+    return response
+
+
+def search_docs(request, sha):
+    """`/_portal/search-docs.<sha>.json`: the stored search documents. A stale `<sha>` is a 404, so a client
+    with an old page payload reloads it; a current one is immutable and cached for a year."""
+    from devportal.services import search_index  # noqa: PLC0415
+
+    current = search_index.current_search_docs()
+    if current is None or current[0] != sha:
+        return error_response(404, "not_found", "No such search index; reload the page.")
+    response = HttpResponse(current[1], content_type="application/json; charset=utf-8")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
     return response

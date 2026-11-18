@@ -21,8 +21,11 @@ def get_server() -> McpServer:
 
         from devportal.mcp.execute import DEFAULT_API_ORIGIN  # noqa: PLC0415
         from devportal.mcp.ratelimit import FixedWindowRateLimiter  # noqa: PLC0415
+        from devportal.spec.mcp_provider import SpecEndpointProvider  # noqa: PLC0415
+        from devportal.views.reference import published_overlays  # noqa: PLC0415
 
         _server = McpServer(
+            provider=SpecEndpointProvider(overlay_loader=published_overlays),
             ratelimiter=FixedWindowRateLimiter(cache),
             api_origin=getattr(settings, "DEVPORTAL_API_ORIGIN", DEFAULT_API_ORIGIN),
         )
