@@ -1,0 +1,9 @@
+{% extends "devportal/base.html" %}
+{% comment %}
+  The homepage (PLAN.md Phase 5), rendered by devportal.views.home.home_page. The body is the payload's
+  bodyHtml (devportal/home_body.html, rendered by devportal.views.home.home_body_html), so the markup
+  here and in /_portal/page.json?path=/ is the same. The browser adopts it unchanged: the server marks
+  it data-dp-adopt="body" and src/app/PortalPage.tsx renders <main class="dp-rm-app" id="content"> with
+  an AdoptedHtml "body" inside, the same structure. No inline style or script (CSP).
+{% endcomment %}
+{% block content %}<main class="dp-rm-app" id="content" data-visual="main"><div data-dp-adopt="body">{{ payload.bodyHtml|safe }}</div></main>{% endblock %}

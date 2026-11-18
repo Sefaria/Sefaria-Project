@@ -1,0 +1,98 @@
+/*
+ * The "Join our Discord" button (brief §4.7, PLAN I-3; contract C6 DiscordButton). A new element, so it
+ * follows the design system (Q31, contract C5): primary is action-primary with text-inverse,
+ * Roboto en-system-body-strong, and the design system's focus ring. Text only: the Discord logo is not
+ * in the design system's icon set. Global dp- classes because server templates print the same markup
+ * (devportal/templates/devportal/home_body.html).
+ *
+ * Secondary (I-3): the white button with dark text that sits on the homepage's purple hero, the
+ * treatment live gives "Sign Up" on purple.
+ */
+
+.dp-discord-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: var(--spacing-small) var(--spacing-large);
+  border: 1.5px solid transparent;
+  border-radius: var(--dimension-100);
+  font: var(--text-en-system-body-strong);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.dp-discord-button:hover {
+  text-decoration: none;
+}
+
+.dp-discord-button:focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 2px;
+}
+
+.dp-discord-button--primary,
+.dp-discord-button--primary:visited {
+  border-color: var(--action-primary);
+  background-color: var(--action-primary);
+  color: var(--text-inverse);
+}
+
+.dp-discord-button--primary:hover,
+.dp-discord-button--primary:active {
+  border-color: var(--action-primary-hover);
+  background-color: var(--action-primary-hover);
+  color: var(--text-inverse);
+}
+
+.dp-discord-button--secondary,
+.dp-discord-button--secondary:visited {
+  border-color: var(--surface-page);
+  background-color: var(--surface-page);
+  color: var(--action-primary);
+}
+
+.dp-discord-button--secondary:hover,
+.dp-discord-button--secondary:active {
+  border-color: var(--surface-hover);
+  background-color: var(--surface-hover);
+  color: var(--action-primary-hover);
+}
+
+/* A placement that shows a line of text with the button (contact page, request panel, sidebar footer). */
+.dp-discord-placement {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-small) var(--spacing-medium);
+  color: var(--text-secondary);
+  font: var(--text-en-system-small-comfortable);
+}
+
+.dp-discord-placement__text {
+  margin: 0;
+}
+
+.dp-discord-placement--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.dp-discord-placement--contact {
+  margin-top: var(--spacing-2xlarge);
+}
+
+/* Placement 3: the bottom of the docs and reference sidebar (D-2). */
+.dp-discord-sidebar-footer {
+  padding: var(--spacing-large) var(--spacing-xlarge);
+  border-top: 1px solid var(--border-default);
+}
+
+.dp-discord-sidebar-footer .dp-discord-button {
+  width: 100%;
+}

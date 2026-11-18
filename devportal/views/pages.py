@@ -135,8 +135,9 @@ def redirect_payload(path, status, location):
 
 def home_payload(origin, site):
     payload = _base("home", "/", HOME_TITLE, _meta(origin, "/"), "home", site)
-    # Placeholder until the homepage (Phase 5) lands.
-    payload["bodyHtml"] = '<div class="dp-home"></div>'
+    from .home import home_body_html  # noqa: PLC0415 - devportal.views.home imports this module
+
+    payload["bodyHtml"] = home_body_html()
     return payload
 
 

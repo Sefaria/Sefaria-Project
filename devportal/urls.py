@@ -10,7 +10,7 @@ from django.urls import path, re_path
 
 from devportal.mcp.django_view import mcp_view
 
-from .views import api, gallery, machine, pages, reference
+from .views import api, gallery, home, machine, pages, reference
 from .views.htmlblock import htmlblock_frame
 
 app_name = "devportal"
@@ -35,6 +35,8 @@ urlpatterns = [
     re_path(r"^_portal/search-docs\.(?P<sha>[0-9a-f]{7,64})\.json$", api.search_docs, name="search_docs"),
     path("_portal/htmlblock/<str:revision>/<str:n>", htmlblock_frame, name="htmlblock"),
     re_path(r"^_portal/", api.portal_not_found, name="portal_not_found"),
+    # The homepage (Phase 5).
+    path("", machine.negotiate_markdown(home.home_page), name="home"),
     # API reference (C9): /reference redirects; tag groups redirect to their first child; endpoints and
     # hand-written reference pages render here. reference/llms.txt and .md routes must come before these.
     path("reference", reference.reference_root, name="reference_root"),

@@ -49,6 +49,13 @@ def content(django_db_setup, django_db_blocker, tmp_path_factory):  # noqa: ARG0
             yield report
         finally:
             call_command("flush", interactive=False, verbosity=0)
+            # `flush` also removes rows that data migrations seed (the homepage cards and tiles); put them
+            # back so later modules see what a freshly migrated database holds.
+            from importlib import import_module  # noqa: PLC0415
+
+            from django.apps import apps  # noqa: PLC0415
+
+            import_module("devportal.migrations.0002_seed_homepage").seed(apps, None)
 
 
 def _reference_or_page(request, slug):

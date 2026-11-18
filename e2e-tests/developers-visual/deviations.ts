@@ -1,6 +1,6 @@
 /**
  * Registered deviations (PLAN.md §6.1.5). This file is the only place a known difference between
- * live and the portal may be declared. D-1…D-12 are exactly the plan's initial entries.
+ * live and the portal may be declared. D-1…D-12 are exactly the plan's initial entries; D-13 was added by the Integrator.
  *
  * An agent may add an entry only if it traces to the brief or to PLAN §1.3. Anything else goes to
  * the product owner, and every addition is the Integrator's decision, written into the PR
@@ -19,7 +19,7 @@ import type { RegionId } from './regions.ts';
 import type { Width } from './states.ts';
 
 export type DeviationId =
-  'D-1' | 'D-2' | 'D-3' | 'D-4' | 'D-5' | 'D-6' | 'D-7' | 'D-8' | 'D-9' | 'D-10' | 'D-11' | 'D-12';
+  'D-1' | 'D-2' | 'D-3' | 'D-4' | 'D-5' | 'D-6' | 'D-7' | 'D-8' | 'D-9' | 'D-10' | 'D-11' | 'D-12' | 'D-13';
 
 export type Treatment =
   | { kind: 'roboto-baseline' }
@@ -221,6 +221,16 @@ export const DEVIATIONS: readonly Deviation[] = [
     source: 'Brief §5',
     states: ['docs_powered_by_html_block', 'docs_hebrew_citations_rtl'],
     treatments: [{ kind: 'region-threshold', region: 'htmlBlock', maxDiffRatio: 0.02 }],
+  },
+  {
+    // Added by the Integrator (PLAN §4.5 rule 7): the brief and DECISIONS (Q14) require the designer's vector
+    // wave lines (research/design/wavy-lines-*.svg); live draws a stretched bitmap of a different drawing, so
+    // the strokes cannot coincide. W11 measured the hero at 1.23-1.35% with everything else matching.
+    id: 'D-13',
+    difference: "Homepage hero: the designer's SVG wave lines instead of live's stretched bitmap",
+    source: 'Brief §4.1; DECISIONS.md Q14',
+    states: ['home', 'home_full'],
+    treatments: [{ kind: 'region-threshold', region: 'homeHero', maxDiffRatio: 0.015 }],
   },
 ];
 
