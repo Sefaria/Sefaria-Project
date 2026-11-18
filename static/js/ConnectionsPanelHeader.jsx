@@ -9,6 +9,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import Util from './sefaria/util';
+import { attachPanelDrag } from './sefaria/panelDrag';
 
 class ConnectionsPanelHeader extends Component {
   constructor(props) {
@@ -22,6 +23,20 @@ class ConnectionsPanelHeader extends Component {
   }
   componentDidMount() {
     this.setMarginForScrollbar();
+    if (!this.props.multiPanel && this.props.closeConnectionsInPanel && this.headerRef) {
+      // Mobile web: drag the header down to close the Resources panel
+      this.detachDrag = attachPanelDrag(this.headerRef, () => this.headerRef.closest('.textList'), {
+        onClose: () => this.props.closeConnectionsInPanel(),
+        isExpanded: () => !!this.props.expanded,
+        setExpanded: this.props.setExpanded ? (expanded) => this.props.setExpanded(expanded) : null,
+      });
+    }
+  }
+  componentWillUnmount() {
+    this.detachDrag?.();
+  }
+  setHeaderRef(el) {
+    this.headerRef = el;
   }
   getPreviousMode() {
     return this.props.previousMode ? this.props.previousMode : this.previousModes[this.props.connectionsMode];
@@ -173,7 +188,24 @@ class ConnectionsPanelHeader extends Component {
       // Modeling the class structure when ConnectionsPanelHeader is created inside ReaderControls in the multiPanel case
       let classes = classNames({ readerControls: 1, connectionsHeader: 1, fullPanel: this.props.multiPanel });
       return (
-        <div className={classes} style={style}>
+        <div className={classes} style={style} ref={this.setHeaderRef}>
+          {/* Drag handle look, as on the Library Assistant's phone sheet; the whole header is the handle.
+              Also a button, so filling the page doesn't need a drag (WCAG 2.5.7) */}
+          {this.props.closeConnectionsInPanel && this.props.setExpanded ? (
+            <button
+              type="button"
+              className="connectionsPanelGrabber"
+              aria-expanded={!!this.props.expanded}
+              aria-label={Sefaria._(this.props.expanded ? 'misc.collapse' : 'misc.expand')}
+              onClick={() => this.props.setExpanded(!this.props.expanded)}
+            >
+              <span className="connectionsPanelGrabberBar" aria-hidden="true" />
+            </button>
+          ) : this.props.closeConnectionsInPanel ? (
+            <span className="connectionsPanelGrabber" aria-hidden="true">
+              <span className="connectionsPanelGrabberBar" />
+            </span>
+          ) : null}
           <div className="readerControlsInner">
             <div className="readerTextToc">
               <div className="connectionsPanelHeader" style={cStyle}>
@@ -191,6 +223,32 @@ class ConnectionsPanelHeader extends Component {
               </div>
             </div>
           </div>
+          {/* Centered on the whole header, so it lines up with the title */}
+          {this.props.closeConnectionsInPanel ? (
+            <button
+              type="button"
+              className="connectionsPanelClose"
+              aria-label={Sefaria._('common.close')}
+              title={Sefaria._('common.close')}
+              onClick={() => this.props.closeConnectionsInPanel()}
+            >
+              {/* Lucide "x" */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          ) : null}
         </div>
       );
     }
@@ -207,6 +265,9 @@ ConnectionsPanelHeader.propTypes = {
   setConnectionsMode: PropTypes.func.isRequired,
   setConnectionsCategory: PropTypes.func.isRequired,
   closePanel: PropTypes.func.isRequired,
+  closeConnectionsInPanel: PropTypes.func, // mobile web: closes the Resources panel back to the text
+  expanded: PropTypes.bool, // mobile web: the panel fills the page
+  setExpanded: PropTypes.func,
   toggleLanguage: PropTypes.func,
   interfaceLang: PropTypes.string.isRequired,
   backButtonSettings: PropTypes.object,

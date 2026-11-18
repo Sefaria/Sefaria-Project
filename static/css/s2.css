@@ -7861,6 +7861,114 @@ But not to use a display block directive that might break continuous mode for ot
   vertical-align: middle;
   margin-top: -2px;
 }
+/* Mobile web Resources panel: close button + drag-down-to-close (ConnectionsPanelHeader, sefaria/panelDrag.js).
+   The header is the drag handle; the grabber bar matches the Library Assistant's phone sheet.
+   Colors and sizes are Sefaria/design-system semantic tokens (static/design-system/semantic.css). */
+.singlePanel .readerControls.connectionsHeader {
+  touch-action: pan-x; /* vertical moves are the drag; the filter row still scrolls sideways */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.connectionsPanelGrabber {
+  /* A button: tap to fill the page or go back to half height. 48x24 hit area (WCAG 2.5.8);
+     taller would cover the title. */
+  position: absolute;
+  top: 0;
+  left: 50%; /* physical, so translateX centres it in RTL too */
+  transform: translateX(-50%);
+  width: 48px;
+  height: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--spacing-xsmall) 0 0; /* bar sits close to the edge, so it doesn't crowd the title */
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: grab;
+  -webkit-tap-highlight-color: transparent;
+}
+.connectionsPanelGrabberBar {
+  display: block;
+  width: 36px; /* no size token for a grabber: Library Assistant's 36x5 */
+  height: 5px;
+  border-radius: 3px;
+  background-color: var(--icon-disabled); /* trying: lighter than --icon-muted */
+}
+.connectionsPanelGrabber:active .connectionsPanelGrabberBar {
+  background-color: var(--icon-muted);
+}
+@media (hover: hover) {
+  .connectionsPanelGrabber:hover .connectionsPanelGrabberBar {
+    background-color: var(--icon-muted);
+  }
+}
+.connectionsPanelGrabber:focus-visible {
+  outline: var(--border-width-thick) solid var(--border-strong);
+  outline-offset: calc(-1 * var(--border-width-thick));
+}
+/* Dragged up or tapped open: the panel fills the page */
+.readerApp.singlePanel .textList.singlePanel.expanded {
+  height: 100vh;
+  height: 100dvh;
+}
+/* Title and back link in the mobile header */
+.singlePanel .readerControls.connectionsHeader .connectionsHeaderTitle {
+  color: var(--text-secondary);
+}
+.dark .singlePanel .readerControls.connectionsHeader .connectionsHeaderTitle {
+  color: var(--light-grey);
+}
+/* Only the category filter row is long enough to run under the close button; padding the whole
+   header instead would push the centered "Resources" title off center */
+.singlePanel .connectionsHeader .recentFilterSet.topFilters {
+  margin-inline-end: var(--spacing-2xlarge);
+}
+/* A child of the 60px header (not the shorter readerControlsInner), so it centers on the title */
+.connectionsPanelClose {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: var(--spacing-xsmall); /* right in English, left in Hebrew */
+  transform: translateY(-50%);
+  width: 44px; /* minimum touch target */
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--icon-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* no gray box on tap; the icon darkens instead */
+}
+.connectionsPanelClose:active {
+  color: var(--icon-default);
+}
+@media (hover: hover) {
+  .connectionsPanelClose:hover {
+    color: var(--icon-default);
+  }
+}
+.connectionsPanelClose svg {
+  width: var(--icon-medium);
+  height: var(--icon-medium);
+}
+.connectionsPanelClose:focus-visible {
+  /* --border-focus (#CCCCCC) is under 3:1 on this header, so the ring uses --border-strong */
+  outline: var(--border-width-thick) solid var(--border-strong);
+  outline-offset: calc(-1 * var(--spacing-xsmall));
+}
+.dark .connectionsPanelClose {
+  color: var(--light-grey);
+}
+/* While dragged, the panel lifts off the text: rounded top and an upward shadow */
+.textList.singlePanel.panelLifted {
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  box-shadow: 0 -1px 3px rgb(0 0 0 / 0.08), 0 -8px 32px rgb(0 0 0 / 0.22);
+}
 .connectionsPanel .flashMessage {
   font-size: 18px;
   color: var(--medium-grey);

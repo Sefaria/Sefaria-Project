@@ -708,6 +708,7 @@ class ConnectionsPanel extends Component {
       marginless: marginless,
       fullPanel: this.props.fullPanel,
       singlePanel: !this.props.fullPanel,
+      expanded: !this.props.fullPanel && this.props.connectionsExpanded,
     });
     return (
       <div className={classes} key={this.props.mode}>
@@ -724,6 +725,9 @@ class ConnectionsPanel extends Component {
             baseRefs={this.props.srefs}
             setFilter={this.props.setFilter}
             closePanel={this.props.closePanel}
+            closeConnectionsInPanel={this.props.closeConectionsInPanel}
+            expanded={this.props.connectionsExpanded}
+            setExpanded={this.props.setConnectionsExpanded}
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}
             backButtonSettings={this.props.backButtonSettings}
@@ -738,6 +742,8 @@ class ConnectionsPanel extends Component {
 }
 ConnectionsPanel.propTypes = {
   srefs: PropTypes.array.isRequired, // an array of ref strings
+  connectionsExpanded: PropTypes.bool, // mobile web: panel dragged up to fill the page
+  setConnectionsExpanded: PropTypes.func,
   filter: PropTypes.array.isRequired,
   recentFilters: PropTypes.array.isRequired,
   mode: PropTypes.string.isRequired, // "Resources", "ConnectionsList", "TextList" etc., called `connectionsMode` above
