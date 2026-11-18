@@ -4,7 +4,7 @@
 // directly. The wrappers below refuse a step whose body is empty: bddgen prints snippets
 // with empty bodies, and a pasted, unfilled snippet would otherwise pass while checking
 // nothing.
-import { BrowserContext, Page } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page } from '@playwright/test';
 import { test as base, createBdd } from 'playwright-bdd';
 import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../../utils';
 import { BROWSER_SETTINGS, LANGUAGES } from '../../globals';
@@ -27,7 +27,18 @@ export class Visitor {
   private _page?: Page;
   private _pm?: PageManager;
 
-  constructor(readonly context: BrowserContext) {}
+  constructor(
+    readonly context: BrowserContext,
+    /** A request client with its own cookie jar, for API set-up that must not touch the page's session. */
+    readonly request?: APIRequestContext,
+    readonly baseURL?: string,
+  ) {}
+
+  /** Make `page` the current page, e.g. after a step opened a new tab or another browser. */
+  use(page: Page): void {
+    this._page = page;
+    this._pm = undefined;
+  }
 
   urlFor(module: Module, path = '/'): string {
     const site = this.lang === LANGUAGES.HE ? MODULE_URLS.HE : MODULE_URLS.EN;
@@ -55,6 +66,7 @@ export class Visitor {
       await hideAllModalsAndPopups(this._page);
       return this._page;
     }
+    await useChatbotVersion(this.context, url);
     if (this.who === 'logged in') {
       const profile = this.lang === LANGUAGES.HE ? BROWSER_SETTINGS.heUser : BROWSER_SETTINGS.enUser;
       this._page = await goToPageWithUser(this.context, url, profile);
@@ -65,11 +77,23 @@ export class Visitor {
   }
 }
 
+/**
+ * CHATBOT_VERSION (optional): the ai-chatbot PR whose Library Assistant build to load, for
+ * testing an assistant change before it ships. Sefaria keeps the choice in the session, so one
+ * request on the context's cookie jar sets it for every page after. It asks /texts, since the
+ * home page redirects there and the redirect drops the parameter.
+ */
+export async function useChatbotVersion(context: BrowserContext, siteUrl: string): Promise<void> {
+  const version = process.env.CHATBOT_VERSION;
+  if (!version) return;
+  await context.request.get(new URL(`/texts?chatbot_version=${encodeURIComponent(version)}`, siteUrl).toString());
+}
+
 type Fixtures = { visitor: Visitor };
 
 export const test = base.extend<Fixtures>({
-  visitor: async ({ context }, use) => {
-    await use(new Visitor(context));
+  visitor: async ({ context, request, baseURL }, use) => {
+    await use(new Visitor(context, request, baseURL));
   },
 });
 
