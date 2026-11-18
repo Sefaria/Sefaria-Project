@@ -759,7 +759,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       />
       <VisuallyHidden role="status" aria-live="polite" aria-atomic="true" data-testid="reader-announcer">{announced}</VisuallyHidden>
       <SignUpModal kind={saveAsked ? "save" : undefined} onClose={() => setSaveAsked(false)} next={typeof window === "undefined" ? "/" : window.location.href} />
-      <div ref={bannerBox}>
+      <div ref={bannerBox} className={styles.bannerBox}>
       {transBanner ? (
         <TextColumnBanner
           onClose={() => { dismissBanner(); setBannerGone(true); }}

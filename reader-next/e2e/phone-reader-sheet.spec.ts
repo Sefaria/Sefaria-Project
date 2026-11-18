@@ -78,3 +78,31 @@ test.describe("the resources sheet on a phone", () => {
     expect(await top(page, "Genesis 1:3")).toBe(134);
   });
 });
+
+/*
+ * The translation suggestion ("Want to change the translation?") on a phone: sefaria.org keeps it under the reader's bar, 60px from
+ * the top, as the page scrolls (it is inside the fixed .readerControlsOuter; measured 2026-11-18 at 375x812), and leaves it out with
+ * the bar while the sheet is open. Here it was in the page above the text, so the opening scroll took it off the screen at once.
+ */
+test.describe("the translation suggestion on a phone", () => {
+  test.beforeEach(({ page }) => test.skip((page.viewportSize()?.width ?? 0) > 600, "phone project only"));
+
+  // @feature SHL-061
+  test("stays under the reader's bar as the page scrolls, its buttons take a tap, and it gives way to the sheet @mobile", async ({ page }) => {
+    await open(page, "/Genesis.1?lang=bi");
+    const go = page.getByRole("button", { name: "Go to translations" });
+    const banner = page.getByRole("region", { name: "Suggestion" });
+    await expect(go).toBeVisible();
+    const at = async () => Math.round((await banner.boundingBox())!.y);
+    expect(await at()).toBe(60);
+    await page.evaluate(() => window.scrollBy(0, 1200));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000);
+    expect(await at()).toBe(60);
+    expect(await covering(page, `[...document.querySelectorAll('[aria-label="Suggestion"] button')]`)).toEqual([null, null]);
+    // the sheet open: the banner gives way with the bar
+    await verseAt(page, "Genesis 1:3", 300);
+    await seg(page, "Genesis 1:3").tap({ position: { x: 20, y: 10 } });
+    await expect(sheet(page)).toHaveCount(1);
+    await expect(go).toBeHidden();
+  });
+});
