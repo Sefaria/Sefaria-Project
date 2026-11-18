@@ -1,0 +1,9 @@
+/*
+ * article.css: body styles shared by public pages, the HTMLBlock frame and the editor canvas (contract C5,
+ * PLAN §2.8). Phase 0 stub; W7 owns it from Phase 3. Rules here are global, so every selector is scoped
+ * under .dp-article and every class starts with dp-.
+ */
+.dp-article {
+  color: var(--rm-color-text-default);
+  font-family: var(--font-en-system);
+}

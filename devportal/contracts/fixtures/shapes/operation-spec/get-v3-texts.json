@@ -1,0 +1,157 @@
+{
+  "contractVersion": 1,
+  "specSha": "ae477027ea7d147ed5149687d49b1e11d724a73d286833f6bde40abd0f4f803d",
+  "operationId": "get-v3-texts",
+  "method": "get",
+  "path": "/api/v3/texts/{tref}",
+  "server": "https://www.sefaria.org",
+  "tags": ["Text"],
+  "title": "Texts (v3)",
+  "description": "The most up-to-date way to retrieve texts from Sefaria via the API, with enhanced control over language, language direction, and other parameters. ",
+  "deprecated": false,
+  "parameters": [
+    {
+      "name": "version",
+      "in": "query",
+      "required": false,
+      "description": "There are two possible forms for the string passed as the `version`:\n1. `language`\n2. `language|versionTitle`\n\nWhen in the form of `language`, the primary version of that language is returned in the `versions` field of the response object. When in the form of `language|versionTitle`, only that specific version is returned in the `versions` field. \n\n\n**Notes**: \n- `language` is the full English name of the language. In cases of dialectics with varying sub-specifities, please pass the ‘mother’ language (so for example, `arabic` rather than `judeo-arabic`). This field is NOT case sensitive.\n- `versionTitle` is the exact English `versionTitle` of the given `version` in the Sefaria database. \n- When only `language` is passed, the response will return a single version of the text in that language, the one that is highest priority in the Sefaria database.\n- Requests can have more than one `version` param. If no `version` was passed, the API defaults to `version=primary`.\n\n-----\n\n**Special Values**\nThe following values can be passed in as special values to the `version` parameter. \n- `source`: When `version=source` is passed, it retrieves the text in its \"source\" language (i.e. the original language the text was written in, versus a translation).\n- `translation`: When `version=translation`is passed, it retrieves a translation of the text. \n- `primary`: When `version=primary` is passed, it retrieves the primary text as per the Sefaria database (i.e. the `isPrimary` field on the `version` in the database is set to `True`). Usually the text returned is identical to what is returned with the special value of `source`, but it can also include other languages (e.g. Hebrew for the _Kuzari_, which was originally written in Judeo-Arabic)\n- `all`: get all texts in the required language.\n\n\nIf a required version is missing that information will be under the field warnings of the response.\n",
+      "deprecated": false,
+      "schema": {
+        "type": "string"
+      },
+      "examples": {
+        "language": {
+          "value": "hebrew"
+        },
+        "language|version": {
+          "value": "hebrew|Miqra according to the Masorah"
+        }
+      }
+    },
+    {
+      "name": "tref",
+      "in": "path",
+      "required": true,
+      "description": "A Sefaria-specific reference, `Ref`. This should be a segment `Ref` (the most specific reference possible), or bottom level section `Ref` (i.e.  a section of text one level up. A section is an array of segments). If a `Ref` which is not a segment or bottom level section is passed, the response will be to the first bottom level section `Ref` (e.g. `Genesis` will resolve to the bottom level section `Ref` of `Genesis 1`)",
+      "deprecated": false,
+      "schema": {
+        "type": "string",
+        "default": "Esther 1.1"
+      },
+      "examples": {
+        "Tanakh Segment Level Ref": {
+          "value": "Esther 1.1"
+        },
+        "Tanakh Bottom Level Section Ref": {
+          "value": "Esther 4"
+        },
+        "Talmud Segment Ref": {
+          "value": "Berakhot 14b.2"
+        },
+        "Talmud Bottom Level Section Ref": {
+          "value": "Berakhot 14b"
+        },
+        "Commentary Section Ref": {
+          "value": "Rashi on Genesis 1:1:1"
+        },
+        "Commentary Bottom Level Section Ref": {
+          "value": "Rashi on Genesis 1:1"
+        }
+      }
+    },
+    {
+      "name": "fill_in_missing_segments",
+      "in": "query",
+      "required": false,
+      "description": "This parameter is only relevant for cases where the requested text is incomplete (i.e. not all of the segments in the requested version exist in the database for that text, such as a partial translation).\n\nWhen `fill_in_missing_segments=1`, the segments of text that are missing in the requested version will be filled by other versions of the same language.\n\nThis value defaults to `0`. \n",
+      "deprecated": false,
+      "schema": {
+        "enum": ["0", "1"],
+        "type": "string"
+      }
+    },
+    {
+      "name": "return_format",
+      "in": "query",
+      "required": false,
+      "description": "This parameter formats the text that will be returned from the `v3` `texts/` API. It can have one of four values:\n1. `text_only` - This strips footnotes, inline references, and all HTML tags from the returned text.\n2. `strip_only_footnotes` - This strips only the footnotes and commentator tags without stripping the other HTML tags.This is useful for the native app, where we do not display footnotes.\n3. `wrap_all_entities` - This wraps the HTML for links and topic links.\n4. `default` - This returns the basic text as it is saved in Sefaria’s DB.\n",
+      "deprecated": false,
+      "schema": {
+        "enum": ["default", "wrap_all_entities", "strip_only_footnotes", "text_only"],
+        "type": "string",
+        "default": "default"
+      },
+      "examples": {
+        "Text Only": {
+          "value": "text_only"
+        },
+        "Wrap All Entities": {
+          "value": "wrap_all_entities"
+        }
+      }
+    }
+  ],
+  "requestBody": null,
+  "responses": [
+    {
+      "status": "200",
+      "description": "Successful retrieval of the desired texts.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "title": "Root Type for v3TextsJson",
+            "description": "The JSON returned from the `v3` `texts/` endpoint. ",
+            "type": "object",
+            "properties": {
+              "versions": {
+                "description": "The list of requested `version` objects. It includes all the data that is unique to the requested `versions`. \n",
+                "type": "array",
+                "items": {
+                  "title": "Root Type for v3TextVersionsJSON",
+                  "description": "",
+                  "type": "object"
+                }
+              },
+              "available_versions": {
+                "type": "array",
+                "items": {
+                  "title": "Root Type for v3AvailableVersionsTextJson",
+                  "description": "Data returned in the `available_versions` field of the `v3` `texts` API. This contains all of the available versions for a given text, not just the required versions. ",
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "title": "Root Type for v3TextVersionsJSON",
+                      "description": "",
+                      "type": "object"
+                    }
+                  ]
+                }
+              },
+              "ref": {
+                "description": "A string representing a citation to a Jewish text. \n\nA valid `Ref` consists of a title string followed optionally by a section string or a segment string. \n\nA title string is any one of the known text titles or title variants in the Sefaria Database.",
+                "type": "string"
+              },
+              "heRef": {
+                "description": "Hebrew `Ref` for the segment. ",
+                "type": "string"
+              }
+            }
+          },
+          "examples": {
+            "Esther 1.1": {
+              "value": {
+                "ref": "Esther 1:1",
+                "heRef": "אסתר א׳:א׳",
+                "sections": ["1", "1"],
+                "toSections": ["1", "1"]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

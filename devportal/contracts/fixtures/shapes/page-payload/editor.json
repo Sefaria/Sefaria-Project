@@ -1,0 +1,27 @@
+{
+  "contractVersion": 1,
+  "kind": "editor",
+  "path": "/editor/docs/welcome",
+  "title": "Editor",
+  "meta": {
+    "description": "",
+    "robots": "noindex",
+    "canonicalUrl": "https://developers.sefaria.org/editor/docs/welcome",
+    "markdownUrl": null
+  },
+  "header": {
+    "activeTab": null
+  },
+  "site": {
+    "apiOrigin": "https://www.sefaria.org",
+    "ga4": {},
+    "analyticsSection": "default",
+    "demoApiKey": null,
+    "searchDocsUrl": "/_portal/search-docs.3f9a2c41d0b7.json",
+    "mcpUrl": "https://developers.sefaria.org/mcp",
+    "generation": 42
+  },
+  "section": "docs",
+  "slug": "welcome",
+  "csrfUrl": "/_portal/csrf"
+}

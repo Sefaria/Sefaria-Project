@@ -1,0 +1,13 @@
+{
+  "contractVersion": 1,
+  "asset": {
+    "id": 31,
+    "url": "https://storage.googleapis.com/sefaria-topics/developers/9c1f0e2a-linker-diagram.png",
+    "contentType": "image/png",
+    "size": 183244,
+    "width": 1200,
+    "height": 640,
+    "sha256": "86bf97d7487233bb06d4604a5d82d4e6057e1378468acfe1cb1de5017008fce8"
+  },
+  "created": true
+}

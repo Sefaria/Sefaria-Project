@@ -1,0 +1,31 @@
+{
+  "baseRevision": 4,
+  "content": {
+    "title": "Welcome to Sefaria's Technical Documentation",
+    "excerpt": "",
+    "bodyMd": "Please note: For our API Documentation, see [Getting Started With The Sefaria API](ref:getting-started).\n\n## What is Sefaria?\n",
+    "hidden": false,
+    "deprecated": false,
+    "metadata": {
+      "title": "",
+      "description": "",
+      "robots": "index"
+    },
+    "next": {
+      "description": "",
+      "pages": [
+        {
+          "type": "basic",
+          "slug": "the-structure-of-a-text-on-sefaria",
+          "title": "The Structure of a Text on Sefaria"
+        }
+      ]
+    },
+    "linkUrl": null,
+    "linkNewTab": false,
+    "fullscreen": false,
+    "apiConfig": null,
+    "endpoint": null,
+    "bodyHtml": "<p>HTML from the client is never stored</p>"
+  }
+}

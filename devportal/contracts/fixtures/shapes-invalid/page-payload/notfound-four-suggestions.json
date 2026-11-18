@@ -1,0 +1,45 @@
+{
+  "contractVersion": 1,
+  "kind": "notfound",
+  "path": "/docs/get-text",
+  "title": "404 Not Found",
+  "meta": {
+    "description": "",
+    "robots": "noindex",
+    "canonicalUrl": "https://developers.sefaria.org/docs/get-text",
+    "markdownUrl": null
+  },
+  "header": {
+    "activeTab": null
+  },
+  "site": {
+    "apiOrigin": "https://www.sefaria.org",
+    "ga4": {
+      "default": "G-6SXQFSB219",
+      "gallery": "G-44RHV2ZWQ1"
+    },
+    "analyticsSection": "default",
+    "demoApiKey": null,
+    "searchDocsUrl": "/_portal/search-docs.3f9a2c41d0b7.json",
+    "mcpUrl": "https://developers.sefaria.org/mcp",
+    "generation": 42
+  },
+  "suggestions": [
+    {
+      "title": "Texts (v3)",
+      "path": "/reference/get-v3-texts"
+    },
+    {
+      "title": "Text References",
+      "path": "/docs/text-references"
+    },
+    {
+      "title": "Get a lexicon entry",
+      "path": "/reference/get-lexicon-entry"
+    },
+    {
+      "title": "Shape",
+      "path": "/reference/get-shape"
+    }
+  ]
+}

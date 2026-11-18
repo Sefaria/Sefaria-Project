@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/feedback-response.schema.json",
+  "title": "Feedback response",
+  "description": "201 answer of POST /_portal/feedback.",
+  "type": "object",
+  "properties": {
+    "ok": {
+      "const": true
+    }
+  },
+  "required": ["ok"],
+  "additionalProperties": false
+}

@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/common.schema.json",
+  "title": "C3 shared definitions",
+  "description": "Definitions shared by every C3 schema. JSON keys are camelCase throughout C3. This file has no fixtures of its own.",
+  "$defs": {
+    "contractVersion": {
+      "description": "Version of the C3 shapes. Bumped only by the Integrator.",
+      "const": 1
+    },
+    "section": {
+      "description": "URL section; also Page.section.",
+      "enum": ["docs", "reference", "page"]
+    },
+    "navSection": {
+      "description": "Sections that have a sidebar tree.",
+      "enum": ["docs", "reference"]
+    },
+    "pageKind": {
+      "description": "Page.kind (PLAN §2.3.3).",
+      "enum": ["category", "page", "link", "tag_group", "endpoint", "api_config"]
+    },
+    "httpMethod": {
+      "description": "HTTP method as the OpenAPI document spells it (lowercase).",
+      "enum": ["get", "post", "put", "patch", "delete"]
+    },
+    "portalPath": {
+      "type": "string",
+      "description": "A path on the developers host, starting with a single slash.",
+      "pattern": "^/(?!/)",
+      "maxLength": 2048
+    },
+    "absoluteUrl": {
+      "type": "string",
+      "description": "An absolute http(s) URL.",
+      "pattern": "^https?://",
+      "maxLength": 2048
+    },
+    "dateTime": {
+      "type": "string",
+      "description": "RFC 3339 date-time with a time zone. The pattern makes the check independent of format validators.",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "sha": {
+      "type": "string",
+      "description": "A lowercase hex digest (git short SHA up to sha256).",
+      "pattern": "^[0-9a-f]{7,64}$"
+    },
+    "id": {
+      "type": "integer",
+      "description": "A database id.",
+      "minimum": 1
+    },
+    "slug": {
+      "type": "string",
+      "description": "A page slug: Unicode, case-sensitive, no slash, whitespace, ? or #.",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[^/\\s?#]+$"
+    },
+    "operationId": {
+      "type": "string",
+      "description": "An OpenAPI operationId.",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "tocEntry": {
+      "type": "object",
+      "description": "One table-of-contents entry, from an H2 or H3. id is the heading's id.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string"
+        },
+        "level": {
+          "enum": [2, 3]
+        }
+      },
+      "required": ["id", "text", "level"],
+      "additionalProperties": false
+    },
+    "pagerLink": {
+      "type": "object",
+      "description": "A previous/next link in the page footer.",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/portalPath"
+        }
+      },
+      "required": ["title", "path"],
+      "additionalProperties": false
+    },
+    "pager": {
+      "type": "object",
+      "properties": {
+        "prev": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/pagerLink"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "next": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/pagerLink"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["prev", "next"],
+      "additionalProperties": false
+    },
+    "pageMetadata": {
+      "type": "object",
+      "description": "PageRevision.metadata (front matter `metadata`). Empty strings mean: use the page's own.",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "robots": {
+          "enum": ["index", "noindex"]
+        }
+      },
+      "required": ["title", "description", "robots"],
+      "additionalProperties": false
+    },
+    "nextPageRef": {
+      "type": "object",
+      "description": "One entry of front matter `next.pages`.",
+      "properties": {
+        "type": {
+          "enum": ["basic", "endpoint", "link"]
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": ["type", "slug", "title"],
+      "additionalProperties": false
+    },
+    "nextPages": {
+      "type": "object",
+      "description": "PageRevision.next (front matter `next`).",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nextPageRef"
+          }
+        }
+      },
+      "required": ["description", "pages"],
+      "additionalProperties": false
+    },
+    "userRef": {
+      "type": "object",
+      "description": "A staff user as the editor shows them.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name"],
+      "additionalProperties": false
+    }
+  }
+}

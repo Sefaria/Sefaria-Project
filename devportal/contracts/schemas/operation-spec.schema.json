@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/operation-spec.schema.json",
+  "title": "Operation spec file",
+  "description": "One operation of docs/openAPI.json, dereferenced, written by devportal-ui/scripts/build-spec.ts as /static/bundles/devportal/spec/<operationId>.json (PLAN §2.7).",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "specSha": {
+      "$ref": "common.schema.json#/$defs/sha"
+    },
+    "operationId": {
+      "$ref": "common.schema.json#/$defs/operationId"
+    },
+    "method": {
+      "$ref": "common.schema.json#/$defs/httpMethod"
+    },
+    "path": {
+      "type": "string",
+      "description": "Path template.",
+      "pattern": "^/"
+    },
+    "server": {
+      "type": "string",
+      "description": "servers[0].url of the spec.",
+      "pattern": "^https?://"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "title": {
+      "type": "string",
+      "description": "operation.summary, falling back to the path item's summary.",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "description": "operation.description only; empty when absent. Markdown."
+    },
+    "deprecated": {
+      "type": "boolean"
+    },
+    "parameters": {
+      "type": "array",
+      "description": "Merged from the path item and the operation (operation wins).",
+      "items": {
+        "$ref": "#/$defs/parameter"
+      }
+    },
+    "requestBody": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/requestBody"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "responses": {
+      "type": "array",
+      "description": "In the spec's order.",
+      "items": {
+        "$ref": "#/$defs/response"
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "contractVersion",
+    "specSha",
+    "operationId",
+    "method",
+    "path",
+    "server",
+    "tags",
+    "title",
+    "description",
+    "deprecated",
+    "parameters",
+    "requestBody",
+    "responses"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "example": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "value": {}
+      },
+      "required": ["value"],
+      "additionalProperties": false
+    },
+    "mediaType": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "object",
+          "description": "OpenAPI 3.0 Schema Object with every $ref inlined; a recursive reference is replaced by {\"x-dp-circular\": \"<component name>\"}."
+        },
+        "example": {},
+        "examples": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/example"
+          }
+        }
+      },
+      "required": ["schema"],
+      "additionalProperties": false
+    },
+    "parameter": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "in": {
+          "enum": ["path", "query", "header", "cookie"]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string",
+          "description": "Markdown as authored; empty when absent."
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "schema": {
+          "type": "object",
+          "description": "OpenAPI 3.0 Schema Object with every $ref inlined; a recursive reference is replaced by {\"x-dp-circular\": \"<component name>\"}."
+        },
+        "example": {},
+        "examples": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/example"
+          }
+        }
+      },
+      "required": ["name", "in", "required", "description", "deprecated", "schema"],
+      "additionalProperties": false
+    },
+    "requestBody": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "content": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/mediaType"
+          }
+        }
+      },
+      "required": ["required", "description", "content"],
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "\"200\", \"404\", \"default\"...",
+          "pattern": "^([1-5][0-9X]{2}|default)$"
+        },
+        "description": {
+          "type": "string"
+        },
+        "content": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/mediaType"
+          }
+        }
+      },
+      "required": ["status", "description", "content"],
+      "additionalProperties": false
+    }
+  }
+}

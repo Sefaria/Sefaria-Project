@@ -1,0 +1,173 @@
+{
+  "contractVersion": 1,
+  "kind": "doc",
+  "path": "/reference/getting-started",
+  "title": "Getting Started With the Sefaria API",
+  "meta": {
+    "description": "Everything you need to make your first call to the Sefaria API.",
+    "robots": "index",
+    "canonicalUrl": "https://developers.sefaria.org/reference/getting-started",
+    "markdownUrl": "https://developers.sefaria.org/reference/getting-started.md"
+  },
+  "header": {
+    "activeTab": "reference"
+  },
+  "site": {
+    "apiOrigin": "https://www.sefaria.org",
+    "ga4": {
+      "default": "G-6SXQFSB219",
+      "gallery": "G-44RHV2ZWQ1"
+    },
+    "analyticsSection": "default",
+    "demoApiKey": null,
+    "searchDocsUrl": "/_portal/search-docs.3f9a2c41d0b7.json",
+    "mcpUrl": "https://developers.sefaria.org/mcp",
+    "generation": 42
+  },
+  "section": "reference",
+  "slug": "getting-started",
+  "pageId": 201,
+  "layout": "standard",
+  "page": {
+    "title": "Getting Started With the Sefaria API",
+    "excerpt": "Everything you need to make your first call to the Sefaria API.",
+    "bodyHtml": "<p dir=\"auto\">Please note: For our API Documentation, see <a href=\"/reference/getting-started\">Getting Started With The Sefaria API</a>.</p>\n<h2 id=\"what-is-sefaria\" dir=\"auto\">What is Sefaria?</h2>\n<p dir=\"auto\">…</p>",
+    "toc": [],
+    "updatedAt": "2026-05-12T14:03:22Z",
+    "deprecated": false
+  },
+  "nav": {
+    "section": "reference",
+    "generation": 42,
+    "url": "/_portal/nav/reference.json",
+    "tree": {
+      "contractVersion": 1,
+      "section": "reference",
+      "generation": 42,
+      "categories": [
+        {
+          "id": 200,
+          "title": "welcome",
+          "items": [
+            {
+              "id": 201,
+              "kind": "page",
+              "title": "Getting Started With the Sefaria API",
+              "href": "/reference/getting-started",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 202,
+              "kind": "page",
+              "title": "Tutorials",
+              "href": "/reference/tutorials",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": [
+                {
+                  "id": 203,
+                  "kind": "page",
+                  "title": "Tutorial: The Dvar Torah Outliner",
+                  "href": "/reference/tutorial-dvar-torah-outliner",
+                  "newTab": false,
+                  "method": null,
+                  "deprecated": false,
+                  "children": []
+                },
+                {
+                  "id": 204,
+                  "kind": "page",
+                  "title": "Tutorial: Data Visualization",
+                  "href": "/reference/data-visualization",
+                  "newTab": false,
+                  "method": null,
+                  "deprecated": false,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": 205,
+              "kind": "page",
+              "title": "Frequently Asked Questions",
+              "href": "/reference/others-have-asked",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 210,
+          "title": "Sefaria API",
+          "items": [
+            {
+              "id": 211,
+              "kind": "tag_group",
+              "title": "Text",
+              "href": "/reference/text",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": [
+                {
+                  "id": 212,
+                  "kind": "endpoint",
+                  "title": "Texts (v3)",
+                  "href": "/reference/get-v3-texts",
+                  "newTab": false,
+                  "method": "get",
+                  "deprecated": false,
+                  "children": []
+                },
+                {
+                  "id": 213,
+                  "kind": "endpoint",
+                  "title": "Texts (v1)",
+                  "href": "/reference/get-v1-texts",
+                  "newTab": false,
+                  "method": "get",
+                  "deprecated": true,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": 220,
+              "kind": "tag_group",
+              "title": "Misc",
+              "href": "/reference/misc",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": [
+                {
+                  "id": 221,
+                  "kind": "endpoint",
+                  "title": "Find Refs",
+                  "href": "/reference/post-find-refs",
+                  "newTab": false,
+                  "method": "post",
+                  "deprecated": false,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "pager": {
+    "prev": null,
+    "next": {
+      "title": "Tutorials",
+      "path": "/reference/tutorials"
+    }
+  }
+}

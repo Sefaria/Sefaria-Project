@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-upload-response.schema.json",
+  "title": "Editor: uploaded asset",
+  "description": "Answer of POST /_portal/editor/uploads. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "asset": {
+      "type": "object",
+      "description": "A MediaAsset.",
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "url": {
+          "$ref": "common.schema.json#/$defs/absoluteUrl"
+        },
+        "contentType": {
+          "enum": ["image/png", "image/jpeg", "image/gif", "image/webp"]
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5242880
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": ["id", "url", "contentType", "size", "width", "height", "sha256"],
+      "additionalProperties": false
+    },
+    "created": {
+      "type": "boolean",
+      "description": "False when the same bytes were uploaded before and the existing asset is returned."
+    }
+  },
+  "required": ["contractVersion", "asset", "created"],
+  "additionalProperties": false
+}

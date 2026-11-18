@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-tree.schema.json",
+  "title": "Editor tree",
+  "description": "GET /_portal/editor/tree/<section>, and the 200 answer of a move. Includes hidden pages. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "section": {
+      "$ref": "common.schema.json#/$defs/section"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    }
+  },
+  "required": ["contractVersion", "section", "generation", "nodes"],
+  "additionalProperties": false,
+  "$defs": {
+    "node": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "kind": {
+          "$ref": "common.schema.json#/$defs/pageKind"
+        },
+        "title": {
+          "type": "string"
+        },
+        "slug": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/slug"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "hasDraft": {
+          "type": "boolean",
+          "description": "A draft newer than the published revision exists."
+        },
+        "isPublished": {
+          "type": "boolean"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/httpMethod"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/operationId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "slug",
+        "hidden",
+        "deprecated",
+        "hasDraft",
+        "isPublished",
+        "method",
+        "operationId",
+        "children"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

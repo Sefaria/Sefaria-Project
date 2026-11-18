@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/error-response.schema.json",
+  "title": "Error response",
+  "description": "Every non-2xx JSON answer of a /_portal/ endpoint, except the editor's 409 (editor-conflict-response). Codes: invalid_request, not_authenticated, forbidden, not_found, invalid_move, rate_limited, unsupported_media_type, file_too_large, server_error. `fields` maps request fields to messages (invalid_request).",
+  "type": "object",
+  "properties": {
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z_]*$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "required": ["code", "message"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["error"],
+  "additionalProperties": false
+}

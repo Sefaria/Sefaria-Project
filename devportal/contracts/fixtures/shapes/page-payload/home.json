@@ -1,0 +1,28 @@
+{
+  "contractVersion": 1,
+  "kind": "home",
+  "path": "/",
+  "title": "Sefaria",
+  "meta": {
+    "description": "Expand Digital Torah.",
+    "robots": "index",
+    "canonicalUrl": "https://developers.sefaria.org/",
+    "markdownUrl": null
+  },
+  "header": {
+    "activeTab": "home"
+  },
+  "site": {
+    "apiOrigin": "https://www.sefaria.org",
+    "ga4": {
+      "default": "G-6SXQFSB219",
+      "gallery": "G-44RHV2ZWQ1"
+    },
+    "analyticsSection": "default",
+    "demoApiKey": null,
+    "searchDocsUrl": "/_portal/search-docs.3f9a2c41d0b7.json",
+    "mcpUrl": "https://developers.sefaria.org/mcp",
+    "generation": 42
+  },
+  "bodyHtml": "<div class=\"dp-home\"><section class=\"dp-home-hero\"><h1>Expand Digital Torah</h1></section></div>"
+}

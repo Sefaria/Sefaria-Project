@@ -1,0 +1,58 @@
+{
+  "contractVersion": 1,
+  "page": {
+    "id": 212,
+    "section": "reference",
+    "kind": "endpoint",
+    "slug": "get-v3-texts",
+    "parentId": 211,
+    "position": 0,
+    "operationId": "get-v3-texts",
+    "path": "/reference/get-v3-texts",
+    "publishedRevision": 1,
+    "draftRevision": null,
+    "contentUpdatedAt": "2026-05-20T10:00:00Z"
+  },
+  "revision": {
+    "number": 1,
+    "source": "import",
+    "author": null,
+    "createdAt": "2026-11-18T08:00:00Z",
+    "title": "Welcome to Sefaria's Technical Documentation",
+    "isPublished": true,
+    "isDraft": false
+  },
+  "content": {
+    "title": "Texts (v3)",
+    "excerpt": "",
+    "bodyMd": "",
+    "hidden": false,
+    "deprecated": false,
+    "metadata": {
+      "title": "",
+      "description": "",
+      "robots": "index"
+    },
+    "next": {
+      "description": "",
+      "pages": []
+    },
+    "linkUrl": null,
+    "linkNewTab": false,
+    "fullscreen": false,
+    "apiConfig": null,
+    "endpoint": {
+      "sidebarLabel": null,
+      "titleOverride": null,
+      "descriptionOverrideMd": null
+    }
+  },
+  "spec": {
+    "method": "get",
+    "path": "/api/v3/texts/{tref}",
+    "title": "Texts (v3)",
+    "description": "The most up-to-date way to retrieve texts from Sefaria via the API, with enhanced control over language, language direction, and other parameters. ",
+    "tags": ["Text"],
+    "deprecated": false
+  }
+}

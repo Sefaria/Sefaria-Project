@@ -202,7 +202,8 @@
     ],
     "testEnvironment": "jsdom",
     "testPathIgnorePatterns": [
-      "<rootDir>/e2e-tests/"
+      "<rootDir>/e2e-tests/",
+      "<rootDir>/devportal-ui/"
     ]
   },
   "babel": {

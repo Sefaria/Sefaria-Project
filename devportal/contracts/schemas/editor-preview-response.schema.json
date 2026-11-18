@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-preview-response.schema.json",
+  "title": "Editor: preview result",
+  "description": "200 answer of POST /_portal/editor/preview. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "title": {
+      "type": "string"
+    },
+    "excerpt": {
+      "type": "string"
+    },
+    "bodyHtml": {
+      "type": "string"
+    },
+    "toc": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/tocEntry"
+      }
+    },
+    "sanitizerRemovals": {
+      "type": "array",
+      "description": "What the sanitizer removed, one entry per removal.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["contractVersion", "title", "excerpt", "bodyHtml", "toc", "sanitizerRemovals"],
+  "additionalProperties": false
+}
