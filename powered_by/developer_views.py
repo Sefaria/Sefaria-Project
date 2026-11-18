@@ -157,10 +157,14 @@ def new_link_api(request):
 def send_confirmation(request, user):
     """
     Reserves the send (check + record, atomically) before sending, so a failed send still
-    throttles.
+    throttles. A failed send clears the "sent" marker, so the page doesn't say an email is on its way.
     """
     developer.reserve_confirmation_send(user)
-    send_confirmation_email(request, user)
+    try:
+        send_confirmation_email(request, user)
+    except Exception:
+        developer.mark_confirmation_sent(user, False)
+        raise
 
 
 def confirmation_url(request, key):

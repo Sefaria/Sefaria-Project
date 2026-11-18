@@ -18,7 +18,7 @@ from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
-from powered_by import developer
+from powered_by import developer, developer_views
 from powered_by.models import ApiKey, ApiProject, ApiTier, Project, SubmissionSource
 from reader.conftest import create_test_user, page_props, purge_test_profiles
 from sefaria.model.user_profile import UserProfile
@@ -156,6 +156,14 @@ class VerificationTest(DeveloperApiTestCase):
         self.assertTrue(0 < int(response["Retry-After"]) <= 60)
         self.assertIn("error", json.loads(response.content))
         self.assertEqual(len(mail.outbox), 1)
+
+    def test_a_failed_send_is_not_shown_as_sent_but_still_throttles(self):
+        failing_send = patch("powered_by.developer_views.send_confirmation_email", side_effect=RuntimeError("refused"))
+        with failing_send, self.assertRaises(RuntimeError):
+            developer_views.send_confirmation(None, self.user)
+
+        self.assertIsNone(self.call("get", "state")[1]["confirmationSentAt"])
+        self.assertEqual(self.call("post", "confirmation")[0], 429)
 
     def test_cancelling_does_not_reset_the_cooldown(self):
         self.call("post", "confirmation")
