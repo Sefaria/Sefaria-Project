@@ -256,9 +256,10 @@
   cursor: pointer;
 }
 
+/* Live: hover darkens the blue to 90% (computed as color(srgb …)). */
 .tryIt:hover,
 .tryIt:focus-visible {
-  background: #012bff;
+  background: color-mix(in srgb, #012bff 90%, #000);
 }
 
 .tryIt:focus-visible {
@@ -268,7 +269,26 @@
 
 .tryIt:disabled {
   cursor: progress;
-  opacity: 0.8;
+}
+
+/* Running: live darkens the button to rgb(25 10 21) and draws a 16px white spinner over the label. */
+.tryItLoading,
+.tryItLoading:hover {
+  background: rgb(25 10 21);
+}
+
+.tryItSpinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 /* Response card (live's rm-PlaygroundResponse) */
@@ -357,6 +377,13 @@
 
 .responseMenu {
   min-width: 220px;
+}
+
+/* Live's menu (tippy) lands on whole pixels, 1px left of the trigger and half a pixel below where the frame's
+   calc(100% - 6px) would put it under this half-pixel trigger: [978, 220] at 1440 (pixel harness gate 3). */
+.responseMenuFrame {
+  top: calc(100% - 5.5px);
+  left: -1px;
 }
 
 .menuStatus {
@@ -511,23 +538,6 @@
   color: #484c58;
   font: 500 13px/19.5px var(--font-en-system);
   cursor: pointer;
-}
-
-.loading {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-}
-
-.spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgb(0 0 0 / 10%);
-  border-top-color: #484c58;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {

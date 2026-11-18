@@ -27,7 +27,7 @@ export function PortalFrame({ layout, sidebar, sidebarOpen = false, sidebarId, r
   const hasSidebar = layout !== 'plain' && sidebar !== undefined && sidebar !== null;
   const hasRail = layout !== 'plain' && rail !== undefined && rail !== null;
   return (
-    <main className={`dp-rm-app ${styles.main}`} data-layout={layout}>
+    <main className={`dp-rm-app ${styles.main}`} data-layout={layout} data-visual="main">
       <div className={styles.container}>
         {hasSidebar && (
           <div id={sidebarId} className={styles.sidebar} data-open={sidebarOpen ? 'true' : undefined}>
@@ -35,9 +35,9 @@ export function PortalFrame({ layout, sidebar, sidebarOpen = false, sidebarId, r
           </div>
         )}
         {layout === 'reference' ? (
-          <div className={styles.columnsHost}>
+          <div className={styles.columnsHost} data-visual="articleWrap">
             <div className={styles.columns}>
-              <article id="content" className={styles.article} tabIndex={-1}>
+              <article id="content" className={styles.article} tabIndex={-1} data-visual="article">
                 {children}
               </article>
               {hasRail && <div className={`dp-rm-playground ${styles.playground}`}>{rail}</div>}

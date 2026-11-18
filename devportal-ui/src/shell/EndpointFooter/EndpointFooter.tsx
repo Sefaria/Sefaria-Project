@@ -16,7 +16,7 @@ export interface EndpointFooterProps {
 
 export function EndpointFooter({ path, updatedAt, pager, now }: EndpointFooterProps) {
   return (
-    <div className="dp-endpoint-footer" data-visual-region="pageFooter">
+    <div className="dp-endpoint-footer">
       <PageFooter updatedAt={updatedAt} pager={pager} feedback={<Feedback path={path} />} now={now} />
     </div>
   );

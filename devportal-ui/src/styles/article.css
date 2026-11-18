@@ -863,7 +863,9 @@
   align-items: center;
   justify-content: center;
   min-width: 100vw;
-  min-height: 100vh;
+
+  /* Live's inner box runs half an em past the viewport, so the centred image sits 4px lower (15.25px at 1440). */
+  min-height: calc(100vh + 0.5em);
   margin: 0;
   padding: 0;
   border: 0;
@@ -882,8 +884,10 @@
 
 .dp-lightbox-close {
   position: fixed;
-  top: 1em;
-  right: 1em;
+
+  /* Where live's close mark lands (its centre at [1420, 36] at 1440; pixel harness). */
+  top: 1.5em;
+  right: 0.5em;
   z-index: 1;
   display: inline-block;
   width: 1.5em;

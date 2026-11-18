@@ -47,7 +47,6 @@ function writePreference(preference: LanguagePreference) {
 export type ResponseView =
   | { kind: 'empty' }
   | { kind: 'example'; exampleId: string }
-  | { kind: 'loading' }
   | { kind: 'result'; result: TryItResult; requestHeaders: HeaderEntry[] };
 
 export interface EndpointOptions {
@@ -75,6 +74,8 @@ export interface EndpointState {
   examples: ResponseExample[];
   response: ResponseView;
   setResponse: (view: ResponseView) => void;
+  /** True while a Try It request runs (the button shows a spinner; the response panel keeps its view). */
+  loading: boolean;
   recent: RecentRequest[];
   selectedRecent: number | null;
   selectRecent: (index: number | null) => void;
@@ -89,6 +90,8 @@ export function useEndpointState(op: OperationSpec, options: EndpointOptions): E
   const [values, setValuesState] = useState<FormValues>(initial);
   const [preference, setPreference] = useState<LanguagePreference>(readPreference);
   const examples = useMemo(() => responseExamples(op), [op]);
+  // While Try It runs, the response panel keeps what it shows (live does) and the button shows a spinner.
+  const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<ResponseView>(() =>
     examples[0] !== undefined ? { kind: 'example', exampleId: examples[0].id } : { kind: 'empty' }
   );
@@ -127,7 +130,7 @@ export function useEndpointState(op: OperationSpec, options: EndpointOptions): E
 
   const tryIt = useCallback(async () => {
     const { apiOrigin, fetchImpl, onAnalyticsEvent } = options;
-    setResponse({ kind: 'loading' });
+    setLoading(true);
     setAnnouncement('');
     const headers: Record<string, string> = {};
     for (const h of request.headers) headers[h.name] = h.value;
@@ -139,6 +142,7 @@ export function useEndpointState(op: OperationSpec, options: EndpointOptions): E
       if (!(error instanceof UnsafeRequestUrlError)) throw error;
       result = { ok: false, status: 0, message: error.message };
     }
+    setLoading(false);
     setResponse({ kind: 'result', result, requestHeaders: request.headers });
     setAnnouncement(result.ok ? `Response ${result.status}` : 'The request failed');
     const next = addRecentRequest({
@@ -171,6 +175,7 @@ export function useEndpointState(op: OperationSpec, options: EndpointOptions): E
     examples,
     response,
     setResponse,
+    loading,
     recent,
     selectedRecent,
     selectRecent,

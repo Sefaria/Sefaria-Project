@@ -24,7 +24,18 @@ export function mergeAllOf(schema: Schema): Schema {
   for (const part of [...parts, rest]) {
     for (const [key, value] of Object.entries(part)) {
       if (key === 'properties' && isRecord(value)) {
-        for (const [name, prop] of Object.entries(value)) properties[name] = asSchema(prop);
+        for (const [name, prop] of Object.entries(value)) {
+          const next = asSchema(prop);
+          const prev = properties[name];
+          // A property declared by two members is merged, as live's allOf merge does: later keys win, but a union
+          // keeps the first member's order (available_versions' digitizedBySefaria shows "string" first).
+          if (prev === undefined) properties[name] = next;
+          else {
+            const both: Schema = { ...prev, ...next };
+            for (const k of ['oneOf', 'anyOf'] as const) if (Array.isArray(prev[k])) both[k] = prev[k];
+            properties[name] = both;
+          }
+        }
       } else if (key === 'required' && Array.isArray(value)) {
         for (const name of value) if (typeof name === 'string') required.add(name);
       } else if (key === 'description' || key === 'title') {
@@ -72,6 +83,12 @@ const PLURAL: Record<string, string> = {
   array: 'arrays',
 };
 
+function numericFormat(schema: Schema): string | null {
+  const s = mergeAllOf(schema);
+  const type = schemaType(s);
+  return (type === 'integer' || type === 'number') && typeof s.format === 'string' && s.format !== '' ? s.format : null;
+}
+
 /** Live's type label: "string", "date", "number", "object", "array of objects", "array of strings"… */
 export function typeLabel(schema: Schema): string {
   const s = mergeAllOf(schema);
@@ -80,9 +97,12 @@ export function typeLabel(schema: Schema): string {
     const items = asSchema(s.items);
     if (unionVariants(items) !== null) return 'array';
     const itemType = schemaType(items);
+    if (numericFormat(items) !== null) return `array of ${numericFormat(items)}s`;
     return itemType !== null && PLURAL[itemType] !== undefined ? `array of ${PLURAL[itemType]}` : 'array';
   }
   if (type === 'string' && typeof s.format === 'string' && s.format !== '') return s.format;
+  // Live names integers and numbers by their format: "int32", "array of int32s".
+  if (numericFormat(s) !== null) return numericFormat(s) as string;
   if (type === null) return 'string';
   return type;
 }

@@ -23,10 +23,10 @@ export function NotFoundPage({ suggestions }: { suggestions: readonly NotFoundSu
           <p className="dp-notfound-prompt">
             {suggestions.length === 1 ? 'Maybe you were looking for this:' : 'Maybe you were looking for one of these:'}
           </p>
-          <ul className="dp-notfound-list">
+          <ul className="dp-notfound-list" data-visual-mask="notFoundSuggestions">
             {suggestions.slice(0, 3).map((suggestion) => (
               <li key={suggestion.path}>
-                <a className="dp-notfound-link" href={suggestion.path} data-visual-mask="notFoundSuggestions">
+                <a className="dp-notfound-link" href={suggestion.path}>
                   {suggestion.title}
                 </a>
               </li>

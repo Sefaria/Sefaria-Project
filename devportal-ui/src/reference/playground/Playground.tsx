@@ -124,7 +124,7 @@ function RequestExamples() {
 }
 
 function RequestCard() {
-  const { language, library, setLibrary, snippet, tryIt, response } = useEndpoint();
+  const { language, library, setLibrary, snippet, tryIt, loading } = useEndpoint();
   const label = requestLabel(language, library);
   return (
     <div className={`${styles.requestCard} dp-rm-request-card`} data-visual="reqCard" data-visual-region="requestCard">
@@ -134,6 +134,8 @@ function RequestCard() {
             <Dropdown
               label="Library"
               popup="menu"
+              // Live opens the library menu under the toggle's right end (tippy bottom-end; pixel harness).
+              align="end"
               trigger={(props) => (
                 <button type="button" className={styles.headerButton} title="Toggle library" {...props}>
                   <span>{label}</span>
@@ -175,13 +177,15 @@ function RequestCard() {
         </div>
         <button
           type="button"
-          className={styles.tryIt}
+          className={[styles.tryIt, loading ? styles.tryItLoading : ''].filter(Boolean).join(' ')}
           data-visual="tryIt"
-          disabled={response.kind === 'loading'}
+          disabled={loading}
+          aria-busy={loading}
           onClick={() => {
             void tryIt();
           }}
         >
+          {loading ? <span className={styles.tryItSpinner} role="progressbar" aria-label="Loading…" /> : null}
           Try It!
         </button>
       </footer>
@@ -210,6 +214,7 @@ function ResponseMenu({ view, trigger }: { view: ResponseView; trigger: ReactNod
   return (
     <Dropdown
       label="Response examples"
+      frameClassName={styles.responseMenuFrame}
       panelClassName={styles.responseMenu}
       trigger={(props) => (
         <button type="button" className={styles.statusButton} {...props}>
@@ -361,13 +366,6 @@ function ResponseCard() {
         </div>
       );
     }
-  } else if (response.kind === 'loading') {
-    header = <div className={styles.responseTitle}>Response</div>;
-    body = (
-      <div className={styles.loading} role="progressbar" aria-label="Loading…">
-        <span className={styles.spinner} aria-hidden="true" />
-      </div>
-    );
   }
   if (header === undefined || body === undefined) {
     header = <div className={styles.responseTitle}>Response</div>;

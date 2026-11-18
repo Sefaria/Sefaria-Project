@@ -30,6 +30,11 @@
   display: flex;
 }
 
+/* Stands in for the response rows not rendered yet (ResponseViewer). */
+.spacer {
+  display: block;
+}
+
 .number {
   position: sticky;
   left: 0;

@@ -10,8 +10,8 @@ takeover moves nothing; data-visual* are the visual-parity hooks.
 <h1 class="dp-notfound-title" data-visual-region="notFound">Page Not Found</h1>
 {% if suggestions %}<div class="dp-notfound-suggestions" data-visual-region="notFound">
 <p class="dp-notfound-prompt">{% if suggestions|length == 1 %}Maybe you were looking for this:{% else %}Maybe you were looking for one of these:{% endif %}</p>
-<ul class="dp-notfound-list">
-{% for suggestion in suggestions|slice:":3" %}<li><a class="dp-notfound-link" href="{{ suggestion.path }}" data-visual-mask="notFoundSuggestions">{{ suggestion.title }}</a></li>
+<ul class="dp-notfound-list" data-visual-mask="notFoundSuggestions">
+{% for suggestion in suggestions|slice:":3" %}<li><a class="dp-notfound-link" href="{{ suggestion.path }}">{{ suggestion.title }}</a></li>
 {% endfor %}</ul>
 </div>{% endif %}
 </div>

@@ -11,7 +11,9 @@
  * baselines). Baselines are live ReadMe captured with Roboto and Heebo injected, so they are
  * only comparable in the environment recorded in baselines/ENV.json (§6.1.1).
  */
-import { defineConfig, devices } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+import { chromium, defineConfig, devices } from '@playwright/test';
 import { t } from './e2e-tests/globals';
 
 // Same env handling as playwright.config.ts: outside CI, e2e-tests/.env is loaded.
@@ -36,6 +38,27 @@ const DEVELOPERS_URL =
   process.env.E2E_DEVELOPERS_URL ??
   (IS_LOCAL_SANDBOX ? localDevelopersBase(process.env.SANDBOX_URL!) : `https://developers.${SANDBOX_DOMAIN}`);
 
+// The browser the baselines were captured with (baselines/ENV.json): Playwright's pinned Chromium when it is
+// installed, otherwise the newest chromium_headless_shell-<rev> under PLAYWRIGHT_BROWSERS_PATH, or
+// DEVPORTAL_VISUAL_CHROMIUM. Same resolution as capture/browser.ts (kept inline: this config is loaded as
+// CommonJS and capture/ is an ES module package). The spec refuses to run on a different Chromium version.
+function visualChromium(): string | undefined {
+  if (process.env.DEVPORTAL_VISUAL_CHROMIUM) return process.env.DEVPORTAL_VISUAL_CHROMIUM;
+  const def = chromium.executablePath();
+  if (def && fs.existsSync(def)) return undefined;
+  const root = process.env.PLAYWRIGHT_BROWSERS_PATH || '/opt/pw-browsers';
+  if (!fs.existsSync(root)) return undefined;
+  const dirs = fs
+    .readdirSync(root)
+    .filter((d) => /^chromium_headless_shell-\d+$/.test(d))
+    .sort((a, b) => Number(b.split('-')[1]) - Number(a.split('-')[1]));
+  for (const d of dirs) {
+    const p = path.join(root, d, 'chrome-headless-shell-linux64', 'chrome-headless-shell');
+    if (fs.existsSync(p)) return p;
+  }
+  return undefined;
+}
+
 // The five widths of Appendix B. Desktop Chrome's other settings (user agent, no touch) are
 // kept; viewport and scale are fixed so the screenshots are byte-comparable.
 const WIDTHS = [
@@ -48,6 +71,8 @@ const WIDTHS = [
 
 export default defineConfig({
   testDir: './e2e-tests/developers-visual',
+  // tests/*.test.ts are node:test unit tests of the gates (npm --prefix e2e-tests/developers-visual run test:unit).
+  testMatch: 'parity.spec.ts',
   outputDir: './e2e-tests/e2e-test-logs/devportal-visual-results',
   // §6.1.1: every comparison target is a committed PNG under baselines/roboto/.
   snapshotPathTemplate: './e2e-tests/developers-visual/baselines/roboto/{arg}-{projectName}{ext}',
@@ -87,6 +112,13 @@ export default defineConfig({
       ...devices['Desktop Chrome'],
       viewport,
       deviceScaleFactor: 1,
+      launchOptions: {
+        executablePath: visualChromium(),
+        // Live scrolls an inner container whose classic scrollbar is part of every viewport baseline
+        // (content 1430px wide at 1440). The portal scrolls the window, so the window's scrollbar must be
+        // painted too: Playwright's headless default --hide-scrollbars is dropped for these projects.
+        ignoreDefaultArgs: ['--hide-scrollbars'],
+      },
     },
   })),
 });

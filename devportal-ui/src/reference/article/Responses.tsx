@@ -38,6 +38,15 @@ function SchemaCard({ schema, depth, nested }: { schema: Schema; depth: number; 
   const props = objectProperties(s);
   const variants = unionVariants(s);
   const text = schemaDescription(s);
+  if (variants !== null && nested) {
+    // A nameless union (the items of `text array`): live shows only the variant select, full width, then the
+    // chosen variant; no "one of" type row.
+    return (
+      <div className={`${styles.nestedCard} ${styles.namelessCard}`}>
+        <UnionBody variants={variants} depth={depth + 1} nameless />
+      </div>
+    );
+  }
   return (
     <div className={nested ? styles.nestedCard : styles.card}>
       <div className={styles.typeRow}>{variants !== null ? 'one of' : typeLabel(s)}</div>
@@ -89,16 +98,27 @@ function UnionSelect({
           </option>
         ))}
       </select>
-      <Icon name="chevron-up-down" className={styles.unionCaret} />
     </span>
   );
 }
 
-function UnionBody({ variants, depth }: { variants: Schema[]; depth: number }) {
+function UnionBody({ variants, depth, nameless = false }: { variants: Schema[]; depth: number; nameless?: boolean }) {
   const [index, setIndex] = useState(0);
   const selectId = useId();
   const chosen = variants[index] ?? variants[0] ?? {};
   const nested = nestedSchema(chosen);
+  if (nameless) {
+    return (
+      <>
+        <div className={styles.namelessHeader}>
+          <UnionSelect id={selectId} label={'Schema variant'} variants={variants} value={index} onChange={setIndex} />
+        </div>
+        <div className={styles.namelessVariant}>
+          {nested !== null ? <SchemaCard schema={nested} depth={depth} nested /> : null}
+        </div>
+      </>
+    );
+  }
   return (
     <div className={styles.unionBody}>
       <UnionSelect id={selectId} label={'Schema variant'} variants={variants} value={index} onChange={setIndex} />
@@ -146,15 +166,47 @@ function PropertyRow({
   const shown = variants !== null ? (variants[variantIndex] ?? schema) : schema;
   const nested = nestedSchema(shown);
   const text = schemaDescription(schema);
+  // Live draws a union of plain types ("priority: string | number") as a small select beside the name, and a union
+  // with an array or object among its variants ("text") as a full-width select under the description, followed by
+  // the chosen variant's expander.
+  const blockUnion = variants !== null && variants.some((v) => nestedSchema(v) !== null);
+  // An object without declared properties allows any: live says so in a box shaped like a closed expander.
+  const openObject =
+    nested === null && schemaType(shown) === 'object' && mergeAllOf(shown).additionalProperties !== false;
+  const children =
+    nested !== null ? (
+      depth === 0 ? (
+        <SchemaCard schema={nested} depth={depth + 1} nested />
+      ) : (
+        <Expander name={name} schema={shown} depth={depth} />
+      )
+    ) : openObject ? (
+      <div className={`${styles.expand} ${styles.additionalFields}`}>
+        <div className={styles.expandButton}>Has additional fields</div>
+      </div>
+    ) : null;
   return (
-    <div className={styles.propRow}>
+    <div
+      className={[
+        styles.propRow,
+        children === null && !blockUnion && schemaType(shown) !== 'array' ? styles.propRowLeaf : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div
-        className={[styles.propHeader, text === '' && nested === null ? styles.propHeaderAlone : '']
+        className={[
+          styles.propHeader,
+          // Live keeps a lone header as tall as a type select, except for arrays ("toSections array").
+          text === '' && children === null && !blockUnion && schemaType(shown) !== 'array'
+            ? styles.propHeaderAlone
+            : '',
+        ]
           .filter(Boolean)
           .join(' ')}
       >
         <span className={styles.propName}>{name}</span>
-        {variants !== null ? (
+        {blockUnion ? null : variants !== null ? (
           <UnionSelect
             id={selectId}
             label={`${name} type`}
@@ -172,16 +224,25 @@ function PropertyRow({
           <Markdown source={text} />
         </div>
       ) : null}
-      {nested !== null ? (
-        depth === 0 ? (
-          <div className={styles.propChildren}>
-            <SchemaCard schema={nested} depth={depth + 1} nested />
-          </div>
-        ) : (
-          <div className={styles.propChildren}>
-            <Expander name={name} schema={shown} depth={depth} />
-          </div>
-        )
+      {blockUnion && variants !== null ? (
+        <div className={`${styles.propChildren} ${styles.unionBody}`}>
+          <UnionSelect
+            id={selectId}
+            label={`${name} type`}
+            variants={variants}
+            value={variantIndex}
+            onChange={setVariantIndex}
+          />
+          {children}
+        </div>
+      ) : children !== null ? (
+        <div
+          className={[styles.propChildren, openObject || (nested !== null && depth > 0) ? styles.propChildrenBox : '']
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {children}
+        </div>
       ) : null}
     </div>
   );

@@ -400,9 +400,9 @@
   padding: 0;
   list-style: none;
 
-  /* Live breaks a long identifier ("versionPreferencesByCorpus") inside the 197px column. */
-  word-break: break-word;
-  overflow-wrap: break-word;
+  /* Live breaks a long identifier ("versionPreferencesByCorpus") inside the 197px column. Live's
+     deprecated word-break: break-word is defined as overflow-wrap: anywhere (CSS Text 3 §5.2). */
+  overflow-wrap: anywhere;
 }
 
 .dp-toc-item--h2 {
@@ -476,6 +476,9 @@
 .dp-updated__line {
   display: flex;
   align-items: center;
+
+  /* As wide as its text, as live's DateLine (pixel harness gate 2). */
+  width: fit-content;
   margin: 13px 0;
   color: var(--rm-color-text-minimum, #666b79);
   font-size: 13px;

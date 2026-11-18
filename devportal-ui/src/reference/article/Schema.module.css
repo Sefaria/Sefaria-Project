@@ -248,6 +248,13 @@
   margin: 5px 0 0;
 }
 
+/* Live keeps an 8px column right of a property without children (arrays excepted) (its form's input slot), so descriptions wrap
+   8px earlier there (the two "A valid Ref…" paragraphs take two lines at 1440). */
+.propRowLeaf > .propHeader,
+.propRowLeaf > .propDescription {
+  margin-right: 8px;
+}
+
 .propChildren {
   padding: 8px 0 0;
 }
@@ -263,17 +270,6 @@
   display: inline-block;
 }
 
-.unionCaret {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  width: 16px;
-  height: 16px;
-  color: #666b79;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
 .unionSelect {
   appearance: none;
   cursor: pointer;
@@ -283,7 +279,11 @@
   padding: 0 30px 0 10px;
   border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
   border-radius: 4px;
-  background: #fff;
+
+  /* Live's select caret: a 17×15 up/down chevron in rgba(0,0,0,.25), 5px from the right edge. */
+  background: #fff
+    url("data:image/svg+xml,%3Csvg width='17' height='15' viewBox='0 0 17 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.625 5L8.60711 1.25L4.58923 5' stroke='rgba(0,0,0,.25)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4.58923 10L8.60711 13.75L12.625 10' stroke='rgba(0,0,0,.25)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat calc(100% - 5px) 50%;
   color: var(--rm-color-text-default, #32343a);
   font-family: var(--font-en-system);
   font-size: 14px;
@@ -300,14 +300,44 @@
   margin: 0;
 }
 
+/* A nameless union inside an expander: the select (32px, full width) in a 10px 8px header, then the variant. */
+.namelessCard {
+  background: #f9fafb;
+}
+
+.namelessHeader {
+  display: flex;
+  padding: 10px 8px;
+}
+
+.namelessHeader > .unionWrap {
+  flex: 1 1 auto;
+}
+
+.namelessHeader > .unionWrap > .unionSelect {
+  width: 100%;
+  height: 32px;
+  margin: 0;
+}
+
+.namelessVariant {
+  margin: 10px 0 0;
+}
+
+.namelessVariant:empty {
+  margin: 0 0 10px;
+}
+
+/* …and 10px between the header or description and that select or box (a nested card starts 8px below). */
+.propChildren.unionBody,
+.propChildrenBox {
+  padding-top: 10px;
+}
+
 .expand {
   border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
   border-radius: 8px;
   background: #f9fafb;
-}
-
-.expandOpen {
-  border-color: #018ef5;
 }
 
 .expandButton {
@@ -332,8 +362,24 @@
   cursor: pointer;
 }
 
+/* Open: the border stays grey; the header button gets live's blue ring and square bottom corners. */
+.expandOpen > .expandButton {
+  border-radius: 8px 8px 0 0;
+  box-shadow:
+    0 0 0 1px #012bff,
+    0 0 0 3px rgb(1 43 255 / 25%);
+}
+
 .expandLabel {
   flex: 1 1 auto;
+}
+
+.additionalFields {
+  background: #fff;
+}
+
+.additionalFields > .expandButton {
+  cursor: default;
 }
 
 .expandIcon {
@@ -346,6 +392,7 @@
   color: #666b79;
 }
 
+/* Live: the children start 1px below the button, then the fieldset's 8px. */
 .expandChildren {
-  padding: 8px;
+  padding: 9px 0 0;
 }

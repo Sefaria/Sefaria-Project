@@ -201,10 +201,8 @@ def test_404_page_copies_live(pages):
     assert "<title>404 Not Found</title>" in html
     assert '<h1 class="dp-notfound-title" data-visual-region="notFound">Page Not Found</h1>' in html
     assert "Maybe you were looking for one of these:" in html
-    assert (
-        '<a class="dp-notfound-link" href="/docs/text-references" data-visual-mask="notFoundSuggestions">'
-        "Text References</a>" in html
-    )
+    assert '<ul class="dp-notfound-list" data-visual-mask="notFoundSuggestions">' in html
+    assert '<a class="dp-notfound-link" href="/docs/text-references">Text References</a>' in html
 
 
 # Link headers (copied from live) -------------------------------------------------------------------

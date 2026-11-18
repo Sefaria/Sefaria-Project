@@ -7,7 +7,11 @@ import {
   gateGeometry,
   gatePixels,
   gateStyles,
+  exciseRows,
   keysInside,
+  keysWithin,
+  mergeBands,
+  shiftPastBands,
   normalizeCss,
   paintRects,
   type ElementSample,
@@ -74,6 +78,31 @@ test('gate 2: a missing element fails', () => {
 test('keysInside finds elements under deviation masks', () => {
   const s = { in: sample([5, 5, 2, 2]), out: sample([50, 50, 2, 2]) };
   assert.deepEqual([...keysInside(s, [[0, 0, 10, 10]])], ['in']);
+});
+
+test('keysWithin skips only elements wholly inside (mask-regions), not their containers', () => {
+  const s = { card: sample([5, 5, 2, 2]), article: sample([0, 0, 100, 100]), out: sample([50, 50, 2, 2]) };
+  assert.deepEqual([...keysWithin(s, [[0, 0, 10, 10]])], ['card']);
+});
+
+test('excise: bands merge, rows are cut, rects below move up and containers shrink', () => {
+  const bands = mergeBands(
+    [
+      [0, 4, 10, 2],
+      [0, 5, 10, 2],
+    ],
+    10
+  );
+  assert.deepEqual(bands, [[4, 7]]);
+  const img = solid(2, 10, [0, 0, 0]);
+  for (let y = 0; y < 10; y++) img.data.set([y, y, y, 255], y * 2 * 4);
+  const out = exciseRows(img, bands);
+  assert.equal(out.height, 7);
+  assert.equal(out.data[4 * 2 * 4], 7); // row 4 of the result is row 7 of the input
+  assert.deepEqual(shiftPastBands([0, 8, 1, 1], bands), [0, 5, 1, 1]);
+  assert.equal(shiftPastBands([0, 5, 1, 1], bands), null);
+  assert.deepEqual(shiftPastBands([0, 0, 1, 10], bands), [0, 0, 1, 7]);
+  assert.deepEqual(shiftPastBands([0, 1, 1, 2], bands), [0, 1, 1, 2]);
 });
 
 test('gate 3: identical images pass', () => {

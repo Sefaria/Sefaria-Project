@@ -14,6 +14,16 @@
  * - `region-threshold`: the named region is compared with a different pixel limit.
  * - `exempt-regions`: the named regions skip gate 3 at the given widths; `alternative` names the
  *   assertion that replaces them.
+ * - `mask-regions`: the named regions' boxes (the baseline's from its metrics, the portal's measured) are
+ *   painted on both images and skip gate 3; gates 1 and 2 skip only the mapped elements lying wholly
+ *   inside them, so elements outside (and the containers around them) are still checked.
+ * - `split-region`: the region is not compared as one box; each named mapped element is compared as its
+ *   own region instead (its box on each side from the metrics), so a deviation that moves one piece
+ *   does not shift the others into failure.
+ * - `excise`: local only. The rows of the portal's matches are cut out of the portal's screenshot, and
+ *   the portal's boxes below move up by the same height, before the gates run: what live does not have
+ *   neither shows nor shifts the rest. In a viewport state the baseline loses the same number of rows at
+ *   its bottom so the sizes still match.
  */
 import type { RegionId } from './regions.ts';
 import type { Width } from './states.ts';
@@ -29,7 +39,14 @@ export type Treatment =
       local: string | null;
       /** Keep only the left N px of each live match (for marks drawn by pseudo-elements). */
       liveClipLeftPx?: number;
+      /** Keep only the left N px of each local match. */
+      localClipLeftPx?: number;
+      /** Only the first N local matches (document order). */
+      localFirst?: number;
     }
+  | { kind: 'mask-regions'; regions: readonly RegionId[] }
+  | { kind: 'split-region'; region: RegionId; elements: readonly string[] }
+  | { kind: 'excise'; local: string }
   | { kind: 'region-threshold'; region: RegionId; maxDiffRatio: number }
   | {
       kind: 'exempt-regions';
@@ -126,13 +143,32 @@ export const DEVIATIONS: readonly Deviation[] = [
         live: '.rm-PlaygroundRequest .CodeSnippet, .tippy-box:has(.Dropdown-content_opened), #path-params [class*="APISectionHeader-heading"]',
         local: '[data-visual-deviation="D-4"]',
       },
+      // Integrator's decision (D-4 extended; brief §4.3: fetch replaces the "api" SDK default, no "Metadata"
+      // relabel): the parameter card, the request card and the response card all change with the default
+      // library, so they skip gate 3 in the two Node states. Gates 1 and 2 still run on every element outside them.
+      { kind: 'mask-regions', regions: ['paramCard', 'requestCard', 'responseCard'] },
+      // The library menu itself is this deviation's (the mask above covers live's whole menu); its 3 entries
+      // against live's 4 change its height, so its region box is masked the same way rather than compared
+      // masked-against-unmasked. (Applied by the integration pass; for the Integrator's review.)
+      { kind: 'mask-regions', regions: ['popover'] },
     ],
   },
   {
     id: 'D-5',
-    difference: 'No colored dots on the first three Copy Page menu items',
+    difference:
+      "No colored dots on the first three items of ReadMe's menus (Copy Page, More Languages, response status, Node library, example values)",
+    // Brief §4.3 names the Copy Page menu; the same unscoped rule dots the first three items of every ReadMe menu.
+    // Integrator's decision (D-5 extended; brief §4.3: don't copy ReadMe's coloured-dot bug): the More Languages,
+    // response-status, Node library and example-combobox menus are covered too.
     source: 'Brief §4.3',
-    states: ['v3_copy_page_menu_open'],
+    states: [
+      'v3_copy_page_menu_open',
+      'v3_more_languages_open',
+      'v3_response_menu_open',
+      'v3_response_example_menu',
+      'v3_lang_node_library_menu',
+      'v3_param_examples_combobox_open',
+    ],
     treatments: [
       {
         kind: 'mask',
@@ -141,6 +177,17 @@ export const DEVIATIONS: readonly Deviation[] = [
         live: '.tippy-box:has(.Dropdown-content_opened) .Menu-Item',
         local: '[data-visual-deviation="D-5"]',
         liveClipLeftPx: 28,
+      },
+      {
+        kind: 'mask',
+        // The other menus (D-5 extended). Their baselines predate the extension, so their metrics hold no live
+        // rects; the dot column is masked from the portal's first three items instead (painted on both images;
+        // the items line up with live's, gate 2). A recapture records the live rects too.
+        live: '.tippy-box:has(.Dropdown-content_opened) .Menu-Item:nth-child(-n+3)',
+        local: '[data-visual-region="popover"] [role="menu"] [role="menuitem"]',
+        liveClipLeftPx: 28,
+        localClipLeftPx: 28,
+        localFirst: 3,
       },
     ],
   },
@@ -162,7 +209,13 @@ export const DEVIATIONS: readonly Deviation[] = [
     difference: 'Discord button at the end of docs pages, next to the feedback widget',
     source: 'Brief §4.7',
     states: DOCS_PAGE_END_STATES,
-    treatments: [{ kind: 'mask', live: null, local: '[data-visual-deviation="D-7"]' }],
+    treatments: [
+      // Integrator's decision (D-7 treatment): the end-of-page Discord button is masked on the portal (live has
+      // none), and the footer pieces ("Updated", prev/next, the feedback widget) are compared by their own boxes,
+      // so the button's place in the footer cannot move them into failure.
+      { kind: 'mask', live: null, local: '[data-discord-placement="docs_page_end"]' },
+      { kind: 'split-region', region: 'pageFooter', elements: ['updated', 'pagination', 'thumbs'] },
+    ],
   },
   {
     id: 'D-8',
@@ -198,7 +251,14 @@ export const DEVIATIONS: readonly Deviation[] = [
     difference: 'Homepage: the Discord button in the hero and the community band',
     source: 'Brief §4.7, I-3',
     states: ['home', 'home_full'],
-    treatments: [{ kind: 'mask', live: null, local: '[data-visual-deviation="D-10"]' }],
+    treatments: [
+      // The hero's Discord button stands where live's hero is empty: masked on both images.
+      { kind: 'mask', live: null, local: 'div[data-visual-deviation="D-10"]' },
+      // Integrator's decision (D-10): the community band is the portal's only. It is cut out of the portal's
+      // screenshot (and so out of the page height), so the newsletter band and the footer below it are compared by
+      // their own boxes rather than at page coordinates the band has pushed down.
+      { kind: 'excise', local: 'section[data-visual-deviation="D-10"]' },
+    ],
   },
   {
     id: 'D-11',

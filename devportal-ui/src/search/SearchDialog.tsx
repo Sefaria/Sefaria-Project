@@ -310,7 +310,7 @@ export default function SearchDialog({
       }}
     >
       {open && (
-        <div className={styles.panel}>
+        <div className={styles.panel} data-visual-region="searchModal">
           <div className={styles.box}>
             <Icon name="search" className={styles.inputIcon} />
             <input

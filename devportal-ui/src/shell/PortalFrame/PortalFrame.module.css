@@ -9,6 +9,18 @@
   font-family: var(--font-en-system, Roboto, 'Helvetica Neue', Arial, sans-serif);
 }
 
+/*
+ * Live scrolls an inner container whose classic 10px scrollbar always takes width from the reference layout
+ * (article 292px at 1070; columns stacked at 1065, where 1065 - 10 - 288 < 770). The portal scrolls the window, so
+ * where the browser draws no classic scrollbar (overlay scrollbars, headless), the same 10px is reserved here:
+ * `100vw - 100%` is the window scrollbar's width, and the padding makes up the difference.
+ */
+@media (width > 768px) {
+  [data-layout='reference'].main {
+    padding-right: max(0px, calc(10px - (100vw - 100%)));
+  }
+}
+
 .container {
   position: relative;
   display: flex;

@@ -47,7 +47,7 @@ export function EndpointSpecGate({ data, children, fallback }: EndpointSpecGateP
 /** The end of the endpoint article (live: Updated, prev/next, "Did this page help you?"); endpoint_footer.html. */
 export function EndpointFooter({ data, feedback }: { data: EndpointPayload; feedback?: ReactNode }) {
   return (
-    <footer className="dp-docs-footer" data-visual-region="pageFooter">
+    <footer className="dp-docs-footer">
       <UpdatedAt updatedAt={data.page.updatedAt} />
       <Pagination pager={data.pager} />
       <div className="dp-docs-footer__feedback" data-slot="feedback">

@@ -133,13 +133,14 @@ export class DevelopersTryItPage extends HelperBase {
     }).toPass({ timeout: t(15000) });
   }
 
+  /** As on live, the spinner is in the Try It button; the response card keeps what it showed until the result. */
   async isLoading(): Promise<boolean> {
-    return this.responseCard.getByRole('progressbar', { name: 'Loading…' }).isVisible();
+    return this.playground.getByRole('progressbar', { name: 'Loading…' }).isVisible();
   }
 
   /** Wait until the response card shows a result. */
   async waitForResult(): Promise<void> {
-    await expect(this.responseCard.getByRole('progressbar')).toHaveCount(0, { timeout: t(30000) });
+    await expect(this.playground.getByRole('progressbar')).toHaveCount(0, { timeout: t(30000) });
     await expect(this.statusButton.or(this.responseCard.getByRole('img').first()).first()).toBeVisible({
       timeout: t(30000),
     });

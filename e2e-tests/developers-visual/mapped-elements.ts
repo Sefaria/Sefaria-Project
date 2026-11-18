@@ -9,7 +9,8 @@
  * absent from that state's metrics file; gate 1 and 2 only compare keys present on both sides.
  *
  * Local selectors are `[data-visual="<key>"]` by convention: the portal's components carry a
- * `data-visual` attribute on the element that corresponds to the live element. Until the
+ * `data-visual` attribute on the element that corresponds to the live element. Elements inside
+ * rendered Markdown (a paragraph, inline code) are found under their container's attribute instead. Until the
  * components exist, a missing local element fails gates 1 and 2 for that key, which is the point.
  */
 
@@ -69,17 +70,17 @@ export interface MappedElement {
   research: boolean;
 }
 
-const m = (key: string, live: string, research = true): MappedElement => ({
+const m = (key: string, live: string, research = true, local = `[data-visual="${key}"]`): MappedElement => ({
   key,
   live,
-  local: `[data-visual="${key}"]`,
+  local,
   research,
 });
 
 export const MAPPED_ELEMENTS: readonly MappedElement[] = [
   // page
-  m('html', 'html'),
-  m('body', 'body'),
+  m('html', 'html', true, 'html'),
+  m('body', 'body', true, 'body'),
   // header
   m('header', 'header.rm-Header'),
   m('headerTop', '.rm-Header-top'),
@@ -113,7 +114,8 @@ export const MAPPED_ELEMENTS: readonly MappedElement[] = [
   m('urlText', '[data-testid="serverurl"]'),
   m('copyPage', '.rm-AIDropdown'),
   m('excerpt', '.rm-Markdown[class*="excerpt"]'),
-  m('excerptP', '.rm-Markdown[class*="excerpt"] p'),
+  // Elements inside rendered Markdown carry no attribute of their own: they are found under their container's hook.
+  m('excerptP', '.rm-Markdown[class*="excerpt"] p', true, '[data-visual="excerpt"] p'),
   m('sectionHeader', '[class*="APISectionHeader-heading_title"]'),
   m('logsTable', '.rm-APILogsTable table'),
   m('logsTh', '.rm-APILogsTable th'),
@@ -126,13 +128,13 @@ export const MAPPED_ELEMENTS: readonly MappedElement[] = [
   m('paramInput', '.rm-ParamContainer input.Input'),
   m('paramSelect', '.rm-ParamContainer select'),
   m('enumChip', '.rm-ParamContainer button[class*="Param-enum-section-item"]'),
-  m('inlineCode', '.rm-ParamContainer .field-description code'),
+  m('inlineCode', '.rm-ParamContainer .field-description code', true, '[data-visual="paramDesc"] code'),
   m('respPicker', '.rm-APIResponseSchemaPicker'),
   m('respToggle', '.rm-APIResponseSchemaPicker h1 > button'),
   m('statusChit', '.rm-APIResponseSchemaPicker .HTTPStatus-chit'),
   m('updated', '.UpdatedAt .DateLine'),
   m('pagination', 'nav.rm-Pagination'),
-  m('pageLink', 'nav.rm-Pagination a'),
+  m('pageLink', 'nav.rm-Pagination a', true, '[data-visual="pagination"] a'),
   m('thumbs', '[class*="PageThumbs"]:not(button)'),
   m('thumbBtn', 'button.PageThumbs-button'),
   // playground
@@ -147,8 +149,9 @@ export const MAPPED_ELEMENTS: readonly MappedElement[] = [
   m('respCard', '.rm-PlaygroundResponse'),
   m('respCode', '.rm-PlaygroundResponse .CodeMirror-line'),
   // docs pages (not in the research file)
-  m('docBody', '.rm-Article .rm-Markdown.markdown-body', false),
-  m('docP', '.rm-Article .rm-Markdown > p', false),
+  // Live's first Markdown body in the article is the headline excerpt when the page has one (every reference page).
+  m('docBody', '.rm-Article .rm-Markdown.markdown-body', false, '[data-visual="excerpt"], [data-visual="docBody"]'),
+  m('docP', '.rm-Article .rm-Markdown > p', false, '[data-visual="excerpt"] > p, [data-visual="docBody"] > p'),
   m('docH2', '.rm-Article .rm-Markdown h2', false),
   m('docCallout', '.rm-Article .callout', false),
   m('docTable', '.rm-Article .rdmd-table table', false),

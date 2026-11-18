@@ -37,6 +37,11 @@ export interface VisualState {
   fullPage?: boolean;
   regions: readonly RegionId[];
   masks?: readonly MaskId[];
+  /**
+   * Regions compared only from their top down to the first box of a dynamic mask, on each side: content of
+   * random length (the 404 suggestions) neither shows nor changes the region's size.
+   */
+  cropRegionsAtMask?: readonly { region: RegionId; mask: MaskId }[];
   recipe: Recipe;
   notes?: string;
 }
@@ -748,7 +753,10 @@ export const STATES: readonly VisualState[] = [
     path: '/docs/devportal-visual-parity-404',
     widths: ALL,
     regions: ['header', 'notFound'],
-    notes: 'The "Maybe you were looking for one of these" suggestions come from live search for the slug.',
+    // Integrator's decision (PLAN §6.1.4 dynamic content): live picks the suggestions at random, so the list is
+    // masked on both sides and the notFound region is compared down to it; the rest of the page is compared.
+    cropRegionsAtMask: [{ region: 'notFound', mask: 'notFoundSuggestions' }],
+    notes: 'The "Maybe you were looking for one of these" suggestions are chosen at random by live per load.',
     recipe: nothing,
   },
   {

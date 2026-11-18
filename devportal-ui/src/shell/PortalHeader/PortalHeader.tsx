@@ -321,10 +321,10 @@ export function PortalHeader({ activeTab, subnav = null, sectionLabel: sectionLa
           <button
             type="button"
             className={styles.subnavButton}
+            data-visual="mobileSubnav"
             aria-expanded={subnav.expanded}
             aria-controls={subnav.controls}
             onClick={subnav.onToggle}
-            data-visual="mobileSubnav"
           >
             <span className={styles.subnavLabel}>{subnav.label}</span>
             <ChevronUpDownIcon />

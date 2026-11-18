@@ -110,6 +110,73 @@ export function keysInside(samples: Record<string, ElementSample>, rects: readon
   return out;
 }
 
+/** Keys whose rect lies wholly inside any of the given rects (`mask-regions`: containers around them stay checked). */
+export function keysWithin(samples: Record<string, ElementSample>, rects: readonly Rect[]): Set<string> {
+  const out = new Set<string>();
+  for (const [key, s] of Object.entries(samples))
+    if (
+      rects.some(
+        (r) =>
+          s.rect[0] >= r[0] &&
+          s.rect[1] >= r[1] &&
+          s.rect[0] + s.rect[2] <= r[0] + r[2] &&
+          s.rect[1] + s.rect[3] <= r[1] + r[3]
+      )
+    )
+      out.add(key);
+  return out;
+}
+
+/**
+ * Row bands [top, bottom) merged and clipped to [0, height), in order. `excise` treatment: bands from the
+ * portal's boxes (their full height).
+ */
+export function mergeBands(rects: readonly Rect[], height: number): [number, number][] {
+  const bands = rects
+    .map((r) => [Math.max(0, Math.floor(r[1])), Math.min(height, Math.ceil(r[1] + r[3]))] as [number, number])
+    .filter(([a, b]) => b > a)
+    .sort((a, b) => a[0] - b[0]);
+  const out: [number, number][] = [];
+  for (const b of bands) {
+    const last = out[out.length - 1];
+    if (last && b[0] <= last[1]) last[1] = Math.max(last[1], b[1]);
+    else out.push([b[0], b[1]]);
+  }
+  return out;
+}
+
+/** The image without the given row bands (from mergeBands). */
+export function exciseRows(img: RGBAImage, bands: readonly [number, number][]): RGBAImage {
+  const removed = bands.reduce((n, [a, b]) => n + (b - a), 0);
+  const height = img.height - removed;
+  const data = new Uint8Array(img.width * height * 4);
+  const row = img.width * 4;
+  let out = 0;
+  for (let y = 0; y < img.height; y++) {
+    if (bands.some(([a, b]) => y >= a && y < b)) continue;
+    data.set(img.data.subarray(y * row, (y + 1) * row), out * row);
+    out++;
+  }
+  return { width: img.width, height, data };
+}
+
+/**
+ * A rect once the bands are removed: moved up by the bands above it, shortened by the bands it spans (a
+ * container around the excised box); null when it starts inside a band (it is part of what was cut).
+ */
+export function shiftPastBands(r: Rect, bands: readonly [number, number][]): Rect | null {
+  let dy = 0;
+  let dh = 0;
+  const bottom = r[1] + r[3];
+  for (const [a, b] of bands) {
+    // Bands are whole rows (mergeBands rounds outwards): a box starting in the band's last row is below it.
+    if (r[1] >= b - 1) dy += b - a;
+    else if (r[1] >= a) return null;
+    else if (bottom > a) dh += Math.min(bottom, b) - a;
+  }
+  return [r[0], r[1] - dy, r[2], r[3] - dh];
+}
+
 // ----------------------------------------------------------------------------- gate 3
 
 function intersects(a: Rect, b: Rect): boolean {
