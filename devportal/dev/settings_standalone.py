@@ -6,6 +6,7 @@
 See devportal/dev/README.md. Nothing here is used in a deployed environment.
 """
 
+import json
 import os
 from pathlib import Path
 
@@ -81,7 +82,7 @@ MEDIA_ROOT = str(RUN_DIR / "media")
 
 # The DEVPORTAL_* settings, with the same defaults as sefaria/settings.py (contract C1).
 DEVPORTAL_API_ORIGIN = "https://www.sefaria.org"
-DEVPORTAL_GA4 = {}
+DEVPORTAL_GA4 = json.loads(os.environ.get("DEVPORTAL_GA4") or "{}")  # e.g. {"default": "G-TEST"} for DEV-GA runs
 DEVPORTAL_DEMO_API_KEY = ""
 DEVPORTAL_MEDIA_BUCKET = ""
 DEVPORTAL_ALLOW_INDEXING = False

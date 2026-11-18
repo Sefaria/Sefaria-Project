@@ -29,5 +29,20 @@ npx playwright test --project=chrome-developers --list e2e-tests/developers/anal
 
 ## Test IDs
 
-| ID  | Spec file | What it asserts | Tags |
-| --- | --------- | --------------- | ---- |
+Local run (standalone portal, chrome-developers, see `../README.md` "Local runs"): 12 of 13 pass. A failing test is never skipped or weakened; the reason and the lane that owns the fix are in the last column.
+
+| ID           | Spec file     | What it asserts                                                                      | Tags | Local run                                                                      |
+| ------------ | ------------- | ------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------ |
+| `DEV-GA-001` | `ga4.spec.ts` | One page_view on load, with the page title and location                              |      | passes                                                                         |
+| `DEV-GA-002` | `ga4.spec.ts` | One page_view per client-side navigation, none duplicated                            |      | passes                                                                         |
+| `DEV-GA-003` | `ga4.spec.ts` | A fragment change is not a navigation                                                |      | passes                                                                         |
+| `DEV-GA-004` | `ga4.spec.ts` | Endpoint pages report the operation summary as the title                             |      | passes                                                                         |
+| `DEV-GA-005` | `ga4.spec.ts` | The homepage is "Sefaria" and the 404 page is "404 Not Found"                        |      | passes                                                                         |
+| `DEV-GA-006` | `ga4.spec.ts` | discord_cta_click carries the placement                                              |      | passes                                                                         |
+| `DEV-GA-007` | `ga4.spec.ts` | try_it_run carries the operation id, the method and the status, and no values        |      | passes                                                                         |
+| `DEV-GA-008` | `ga4.spec.ts` | copy_page_action reports each action                                                 |      | **fails**: stops at the same Copy Page deep-link step as DEV-AI-028 (W2 / W14) |
+| `DEV-GA-009` | `ga4.spec.ts` | contact_form_start is sent once, when focus first moves into the form                |      | passes                                                                         |
+| `DEV-GA-010` | `ga4.spec.ts` | Every event is a C8 event with C8 parameters only                                    |      | passes                                                                         |
+| `DEV-GA-011` | `ga4.spec.ts` | document.title equals live's title for every page in research/site/pages.json        |      | passes                                                                         |
+| `DEV-GA-012` | `ga4.spec.ts` | Every endpoint page's title is its operation summary                                 |      | passes                                                                         |
+| `DEV-GA-020` | `ga4.spec.ts` | Nothing is sent to Google when DEVPORTAL_GA4 is empty, and gtag loads when it is set |      | passes                                                                         |

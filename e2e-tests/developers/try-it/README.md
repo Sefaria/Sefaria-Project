@@ -29,9 +29,24 @@ npx playwright test --project=chrome-developers --list e2e-tests/developers/try-
 
 ## Test IDs
 
-| ID  | Spec file | What it asserts | Tags |
-| --- | --------- | --------------- | ---- |
+Local run (standalone portal, chrome-developers, see `../README.md` "Local runs"): 17 of 17 pass. A failing test is never skipped or weakened; the reason and the lane that owns the fix are in the last column.
 
-Reserved for the `@sanity` / `@pr` core journeys (PLAN §5.2.3):
-
-- `DEV-TRY-001`: Try It on `get-v3-texts` with `Genesis 1:1` shows status 200 and JSON (it calls the production API, as the brief asks)
+| ID            | Spec file        | What it asserts                                                                        | Tags            | Local run |
+| ------------- | ---------------- | -------------------------------------------------------------------------------------- | --------------- | --------- |
+| `DEV-TRY-001` | `try-it.spec.ts` | Try It on get-v3-texts with Genesis 1:1 shows status 200 and JSON                      | `@sanity` `@pr` | passes    |
+| `DEV-TRY-002` | `try-it.spec.ts` | Clicking Try It shows a loading state, then the status with a green dot                |                 | passes    |
+| `DEV-TRY-003` | `try-it.spec.ts` | The response shows the JSON with line numbers and fold markers                         |                 | passes    |
+| `DEV-TRY-004` | `try-it.spec.ts` | A reference that does not exist shows a red 404 dot and the error message              |                 | passes    |
+| `DEV-TRY-005` | `try-it.spec.ts` | The status dropdown lists the examples and "Clear Response"; clearing empties the card |                 | passes    |
+| `DEV-TRY-006` | `try-it.spec.ts` | "Headers" opens a modal with RESPONSE and REQUEST sections and a Close button          |                 | passes    |
+| `DEV-TRY-007` | `try-it.spec.ts` | The request fires even when required fields are empty                                  |                 | passes    |
+| `DEV-TRY-008` | `try-it.spec.ts` | The request URL is built from the form with each value encoded                         |                 | passes    |
+| `DEV-TRY-009` | `try-it.spec.ts` | A POST with a body sends the filled-in JSON                                            |                 | passes    |
+| `DEV-TRY-010` | `try-it.spec.ts` | A new row appears at once in Recent Requests; clicking it selects it                   |                 | passes    |
+| `DEV-TRY-011` | `try-it.spec.ts` | Recent Requests survive a reload in the same browser                                   |                 | passes    |
+| `DEV-TRY-012` | `try-it.spec.ts` | The Try It button is #612854 and turns blue on hover                                   |                 | passes    |
+| `DEV-TRY-013` | `try-it.spec.ts` | No elapsed time is shown                                                               |                 | passes    |
+| `DEV-TRY-014` | `try-it.spec.ts` | The response copy button copies the body and says "Copied!"                            |                 | passes    |
+| `DEV-TRY-015` | `try-it.spec.ts` | The result is announced to screen readers                                              |                 | passes    |
+| `DEV-TRY-016` | `try-it.spec.ts` | A request that fails without a response shows an error, not a crash                    |                 | passes    |
+| `DEV-TRY-017` | `try-it.spec.ts` | Recent Requests are empty in another browser                                           |                 | passes    |

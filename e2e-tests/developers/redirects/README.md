@@ -41,6 +41,24 @@ npx playwright test --project=chrome-developers --list e2e-tests/developers/redi
 | `DEV-RDR-008` | `url-parity.spec.ts` | Hidden pages (and their `.md`) answer at their URLs as on live (I-6)                          |                  |
 | `DEV-RDR-009` | `url-parity.spec.ts` | Extra trailing-slash and `/v1.0/...` variants answer as on live                               |                  |
 
+## The redirect table, checked directly (W14, `redirects.spec.ts`)
+
+The rows of PLAN §2.4 with their exact status codes and `Location`s, without a browser except DEV-RDR-106. W17's
+`DEV-RDR-001` (above) is the `@sanity` `@pr` journey for the same four rows; these run in the full suite only.
+Local run (standalone portal, chrome-developers): 7 of 7 pass.
+
+| ID            | What it asserts                                                                                                                                                   | Local run |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| `DEV-RDR-101` | `/docs` 301 `/docs/welcome`, `/reference` 301 `/reference/getting-started`, `/docs/getting-started` 301 `/docs/welcome`, `/v1.0/docs/welcome` 302 `/docs/welcome` | passes    |
+| `DEV-RDR-102` | `/docs/` 301 `/docs`; `/docs/welcome/` 301 `/docs/welcome`                                                                                                        | passes    |
+| `DEV-RDR-103` | `/v1.0` 302 `/`; `/v1.0/<rest>` 302 `/<rest>`                                                                                                                     | passes    |
+| `DEV-RDR-104` | A custom page with a trailing slash is served directly (200)                                                                                                      | passes    |
+| `DEV-RDR-105` | `/login` 302 to the library host's login                                                                                                                          | passes    |
+| `DEV-RDR-106` | Following `/docs` in the browser lands on the welcome page                                                                                                        | passes    |
+| `DEV-RDR-107` | An address not in the table is a 404                                                                                                                              | passes    |
+
+The `/v1.0//evil.example` open redirect is `DEV-SEC-013` (security suite).
+
 ## The URL list
 
 `live-urls.json` holds one entry per path with the status, `Location` and content type live answered, recorded once (`recordedAt`) by `build_live_urls.py` with GET requests that do not follow redirects. Each entry lists the sources it came from. Four entries were rate-limited (429) on the first pass and re-requested once; they carry a `note`.

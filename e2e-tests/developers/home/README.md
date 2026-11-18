@@ -28,9 +28,24 @@ npx playwright test --project=chrome-developers --list e2e-tests/developers/home
 
 ## Test IDs
 
-| ID  | Spec file | What it asserts | Tags |
-| --- | --------- | --------------- | ---- |
+Local run (standalone portal, chrome-developers, see `../README.md` "Local runs"): 17 of 17 pass. A failing test is never skipped or weakened; the reason and the lane that owns the fix are in the last column.
 
-Reserved for the `@sanity` / `@pr` core journeys (PLAN §5.2.3):
-
-- `DEV-HOME-001`: The homepage loads with its hero title and six tiles
+| ID             | Spec file      | What it asserts                                                            | Tags            | Local run |
+| -------------- | -------------- | -------------------------------------------------------------------------- | --------------- | --------- |
+| `DEV-HOME-001` | `home.spec.ts` | The homepage loads with its hero title and six tiles                       | `@sanity` `@pr` | passes    |
+| `DEV-HOME-002` | `home.spec.ts` | The document title is "Sefaria" and the Home tab is active                 |                 | passes    |
+| `DEV-HOME-003` | `home.spec.ts` | The hero subtitle copies live                                              |                 | passes    |
+| `DEV-HOME-004` | `home.spec.ts` | The hero code line ends on Ref("Shabbat 4b").all_segment_refs()            |                 | passes    |
+| `DEV-HOME-005` | `home.spec.ts` | The six tiles and their targets, in live's order                           |                 | passes    |
+| `DEV-HOME-006` | `home.spec.ts` | A same-site tile opens its page                                            |                 | passes    |
+| `DEV-HOME-007` | `home.spec.ts` | Each internal tile target exists                                           |                 | passes    |
+| `DEV-HOME-008` | `home.spec.ts` | The carousel has one radio control per featured project, the first checked |                 | passes    |
+| `DEV-HOME-009` | `home.spec.ts` | Selecting a radio control moves the carousel                               |                 | passes    |
+| `DEV-HOME-010` | `home.spec.ts` | Each card links to its project                                             |                 | passes    |
+| `DEV-HOME-011` | `home.spec.ts` | The carousel button leads to the gallery                                   |                 | passes    |
+| `DEV-HOME-012` | `home.spec.ts` | The newsletter band links to ActiveCampaign form 46                        |                 | passes    |
+| `DEV-HOME-013` | `home.spec.ts` | The community band invites developers to Discord                           |                 | passes    |
+| `DEV-HOME-014` | `home.spec.ts` | The hero carries the white "Join our Discord" button                       |                 | passes    |
+| `DEV-HOME-015` | `home.spec.ts` | The community band carries the navy "Join our Discord" button              |                 | passes    |
+| `DEV-HOME-016` | `home.spec.ts` | Both Discord clicks are reported with their placement                      |                 | passes    |
+| `DEV-HOME-017` | `home.spec.ts` | The homepage has no sidebar and exactly one h1                             |                 | passes    |

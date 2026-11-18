@@ -29,5 +29,16 @@ npx playwright test --project=chrome-developers --list e2e-tests/developers/form
 
 ## Test IDs
 
-| ID  | Spec file | What it asserts | Tags |
-| --- | --------- | --------------- | ---- |
+Local run (standalone portal, chrome-developers, see `../README.md` "Local runs"): 9 of 9 pass. A failing test is never skipped or weakened; the reason and the lane that owns the fix are in the last column.
+
+| ID             | Spec file         | What it asserts                                                                     | Tags | Local run |
+| -------------- | ----------------- | ----------------------------------------------------------------------------------- | ---- | --------- |
+| `DEV-FORM-001` | `contact.spec.ts` | The contact page shows its title, its text and the Formstack frame                  |      | passes    |
+| `DEV-FORM-002` | `contact.spec.ts` | The frame has an accessible title                                                   |      | passes    |
+| `DEV-FORM-003` | `contact.spec.ts` | The frame's requests are answered locally; nothing reaches Formstack                |      | passes    |
+| `DEV-FORM-004` | `contact.spec.ts` | The project-submission link points at the Powered-by-Sefaria form                   |      | passes    |
+| `DEV-FORM-005` | `contact.spec.ts` | The contact page carries "Join our Discord" below the form                          |      | passes    |
+| `DEV-FORM-006` | `contact.spec.ts` | The contact-page Discord click is reported with placement contact_page              |      | passes    |
+| `DEV-FORM-007` | `contact.spec.ts` | "Get in Touch" is the active tab on the contact page                                |      | passes    |
+| `DEV-FORM-008` | `contact.spec.ts` | The "Contact us" links in the docs lead to the contact page                         |      | passes    |
+| `DEV-FORM-009` | `contact.spec.ts` | The contact page answers with the CSP that allows only Formstack and YouTube frames |      | passes    |

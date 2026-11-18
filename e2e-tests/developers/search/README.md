@@ -28,9 +28,23 @@ npx playwright test --project=chrome-developers --list e2e-tests/developers/sear
 
 ## Test IDs
 
-| ID  | Spec file | What it asserts | Tags |
-| --- | --------- | --------------- | ---- |
+Local run (standalone portal, chrome-developers, see `../README.md` "Local runs"): 16 of 16 pass. A failing test is never skipped or weakened; the reason and the lane that owns the fix are in the last column.
 
-Reserved for the `@sanity` / `@pr` core journeys (PLAN §5.2.3):
-
-- `DEV-SRCH-001`: Cmd/Ctrl-K opens search; a query returns results in the Docs and API Reference tabs
+| ID             | Spec file        | What it asserts                                                                     | Tags            | Local run |
+| -------------- | ---------------- | ----------------------------------------------------------------------------------- | --------------- | --------- |
+| `DEV-SRCH-001` | `search.spec.ts` | Cmd/Ctrl-K opens search; a query returns results in the Docs and API Reference tabs | `@sanity` `@pr` | passes    |
+| `DEV-SRCH-002` | `search.spec.ts` | The header field opens search and focuses the query                                 |                 | passes    |
+| `DEV-SRCH-003` | `search.spec.ts` | The empty state reads "Start typing to search…" and there is no "Ask AI"            |                 | passes    |
+| `DEV-SRCH-004` | `search.spec.ts` | Tabs are All, Docs, API Reference and Pages, with counts that add up                |                 | passes    |
+| `DEV-SRCH-005` | `search.spec.ts` | A tab narrows the results to its section                                            |                 | passes    |
+| `DEV-SRCH-006` | `search.spec.ts` | Endpoint results carry their GET/POST badge; docs results none                      |                 | passes    |
+| `DEV-SRCH-007` | `search.spec.ts` | The snippet highlights the match                                                    |                 | passes    |
+| `DEV-SRCH-008` | `search.spec.ts` | Results come 15 to a page with "Back · 1 of N · Next"                               |                 | passes    |
+| `DEV-SRCH-009` | `search.spec.ts` | A single page of results has no pager                                               |                 | passes    |
+| `DEV-SRCH-010` | `search.spec.ts` | Arrow keys move the highlight and Enter opens the result                            |                 | passes    |
+| `DEV-SRCH-011` | `search.spec.ts` | Choosing a result opens that page                                                   |                 | passes    |
+| `DEV-SRCH-012` | `search.spec.ts` | Escape and the Close button close the modal                                         |                 | passes    |
+| `DEV-SRCH-013` | `search.spec.ts` | A query with no match says so                                                       |                 | passes    |
+| `DEV-SRCH-014` | `search.spec.ts` | Hidden pages are not found                                                          |                 | passes    |
+| `DEV-SRCH-015` | `search.spec.ts` | Search opens from an endpoint page too and finds custom pages                       |                 | passes    |
+| `DEV-SRCH-016` | `search.spec.ts` | Clearing the query brings back the empty state                                      |                 | passes    |
