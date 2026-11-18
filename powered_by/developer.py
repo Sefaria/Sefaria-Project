@@ -39,6 +39,10 @@ RAISED_PROJECT_LIMIT_GROUP = "Developer project limit raised"
 RAISED_MAX_PROJECTS_PER_ACCOUNT = 100
 MAX_DESCRIPTION_LENGTH = 150
 MAX_PROFILE_DESCRIPTION_LENGTH = 300
+MAX_PUBLISH_ANSWER_LENGTH = 2000
+MAX_PUBLISH_CHOICES = 20
+# "What kind of project is it?" on the publish form. project_category holds the chosen ids joined with commas.
+PUBLISH_CATEGORIES = ("learning", "ai", "visualization", "community", "extensions", "other")
 
 ENABLED_SETTING = "developer_enabled"
 PROFILE_SETTING = "developer_profile"
@@ -317,6 +321,7 @@ def serialize_project(api_project):
         "visibility": "private" if profile.request_not_to_publish else "public",
         "aiAssisted": profile.vibe_coded,
         "linkedListing": profile.submission_source != SubmissionSource.DEVELOPER_SETTINGS,
+        "poweredBy": serialize_publish_answers(profile),
         "consentWithdrawnAt": iso(profile.consent_withdrawn_at),
         "contactEmail": api_project.contact_email,
         "keys": [serialize_key(k) for k in keys],
@@ -363,6 +368,12 @@ FIELD_LABELS = {
     "organization": "The organization",
     "websiteUrl": "The website",
     "contactEmail": "The contact email",
+    "currentRole": "The current role",
+    "sourceCode": "The source code link",
+    "otherTech": "The other technologies",
+    "inspiration": "What inspired you",
+    "monthlyUsers": "The monthly users",
+    "anythingElse": "Anything else",
 }
 
 
@@ -565,6 +576,8 @@ def clean_project_fields(data):
         "aiAssisted": bool(data.get("aiAssisted")),
         # None when the request leaves it out, so an edit keeps the stored address.
         "contactEmail": _text(data, "contactEmail", CONTACT_EMAIL_MAX_LENGTH) if "contactEmail" in data else None,
+        # Only the publish form sends these; other saves leave the stored answers as they are.
+        "poweredBy": clean_publish_answers(data["poweredBy"]) if "poweredBy" in data else None,
     }
     if not fields["name"]:
         raise InputError("Give the project a name.")
@@ -583,12 +596,87 @@ def clean_project_fields(data):
     return fields
 
 
+def _choices(data, field, allowed=None):
+    value = data.get(field, [])
+    if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+        raise InputError(f"{field} must be a list of text.")
+    chosen = list(dict.fromkeys(v.strip() for v in value if v.strip()))
+    if len(chosen) > MAX_PUBLISH_CHOICES or any(len(v) > 255 for v in chosen):
+        raise InputError(f"{field} has too many or too long choices.")
+    if allowed is not None and any(v not in allowed for v in chosen):
+        raise InputError(f"{field} has a choice that isn't on the form.")
+    return chosen
+
+
+def clean_publish_answers(data):
+    """The Powered by answers from the publish form, as sent next to the project's own fields."""
+    if not isinstance(data, dict):
+        raise InputError("The publish answers must be a JSON object.")
+    answers = {
+        "showName": bool(data.get("showName")),
+        "currentRole": _text(data, "currentRole"),
+        "isDeveloper": bool(data.get("isDeveloper")),
+        "categories": _choices(data, "categories", PUBLISH_CATEGORIES),
+        "sourceCode": _text(data, "sourceCode", 200),
+        "tools": _choices(data, "tools"),
+        "otherTech": _text(data, "otherTech", MAX_PUBLISH_ANSWER_LENGTH),
+        "inspiration": _text(data, "inspiration", MAX_PUBLISH_ANSWER_LENGTH),
+        "monthlyUsers": _text(data, "monthlyUsers"),
+        "anythingElse": _text(data, "anythingElse", MAX_PUBLISH_ANSWER_LENGTH),
+        "addedLogo": bool(data.get("addedLogo")),
+        "addedDonateLink": bool(data.get("addedDonateLink")),
+    }
+    if not answers["categories"]:
+        raise InputError("Choose at least one category.")
+    if answers["sourceCode"]:
+        try:
+            _url_validator(answers["sourceCode"])
+        except ValidationError:
+            raise InputError("The source code link is not a valid web address.")
+    return answers
+
+
+def serialize_publish_answers(profile):
+    categories = [c.strip() for c in (profile.project_category or "").split(",")]
+    return {
+        "showName": profile.show_name,
+        "currentRole": profile.job_title,
+        "isDeveloper": profile.is_developer,
+        "categories": [c for c in categories if c in PUBLISH_CATEGORIES],
+        "sourceCode": profile.project_source_code or "",
+        "tools": profile.sefaria_tools_used if isinstance(profile.sefaria_tools_used, list) else [],
+        "otherTech": profile.tech_used_raw,
+        "inspiration": profile.project_why,
+        "monthlyUsers": profile.project_reach,
+        "anythingElse": profile.notes or "",
+        "addedLogo": profile.has_pbs_logo,
+        "addedDonateLink": profile.has_donate_link,
+    }
+
+
+def _apply_publish_answers(project, answers):
+    project.show_name = answers["showName"]
+    project.job_title = answers["currentRole"]
+    project.is_developer = answers["isDeveloper"]
+    project.project_category = ",".join(answers["categories"])
+    project.project_source_code = answers["sourceCode"] or None
+    project.sefaria_tools_used = answers["tools"]
+    project.tech_used_raw = answers["otherTech"]
+    project.project_why = answers["inspiration"]
+    project.project_reach = answers["monthlyUsers"]
+    project.notes = answers["anythingElse"]
+    project.has_pbs_logo = answers["addedLogo"]
+    project.has_donate_link = answers["addedDonateLink"]
+
+
 def _apply_fields(project, fields):
     project.project_name = fields["name"]
     project.project_desc = fields["description"]
     project.organization = fields["organization"]
     project.project_link = fields["websiteUrl"]
     project.vibe_coded = fields["aiAssisted"]
+    if fields["poweredBy"] is not None:
+        _apply_publish_answers(project, fields["poweredBy"])
 
 
 def _set_visibility(project, visibility):

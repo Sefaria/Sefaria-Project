@@ -34,6 +34,21 @@ PROJECT = {
     "aiAssisted": True,
 }
 
+PUBLISH_ANSWERS = {
+    "showName": True,
+    "currentRole": "Teacher",
+    "isDeveloper": True,
+    "categories": ["learning", "ai"],
+    "sourceCode": "https://github.com/example/daf-portal",
+    "tools": ["Sefaria API", "Sefaria MCP"],
+    "otherTech": "React, Postgres",
+    "inspiration": "My chavruta.",
+    "monthlyUsers": "100",
+    "anythingElse": "Thanks!",
+    "addedLogo": True,
+    "addedDonateLink": True,
+}
+
 
 def gallery_ids():
     return [p["id"] for p in json.loads(Client().get("/api/powered-by").content)["projects"]]
@@ -545,6 +560,102 @@ class ProjectTest(DeveloperApiTestCase):
             self.assertEqual(self.call("delete", "projects/" + project["id"], client=client)[0], 404)
         finally:
             purge_test_profiles(other)
+
+
+class PublishAnswersTest(DeveloperApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+        self.project = self.create_project()
+
+    def submit(self, answers, **fields):
+        body = {"project": {**PROJECT, "visibility": "public", **fields, "poweredBy": answers}}
+        return self.call("post", "projects/" + self.project["id"], body)
+
+    def row(self):
+        return ApiProject.objects.get(id=int(self.project["id"])).profile
+
+    def test_a_new_project_has_no_answers_and_its_name_is_not_shown(self):
+        row = self.row()
+        self.assertFalse(row.show_name)
+        self.assertFalse(row.has_donate_link)
+        self.assertEqual(self.project["poweredBy"]["categories"], [])
+
+    def test_submitting_stores_every_answer_on_the_powered_by_row(self):
+        status, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(status, 200, state)
+        row = self.row()
+        self.assertTrue(row.show_name)
+        self.assertEqual(row.job_title, "Teacher")
+        self.assertTrue(row.is_developer)
+        self.assertEqual(row.project_category, "learning,ai")
+        self.assertEqual(row.project_source_code, "https://github.com/example/daf-portal")
+        self.assertEqual(row.sefaria_tools_used, ["Sefaria API", "Sefaria MCP"])
+        self.assertEqual(row.tech_used_raw, "React, Postgres")
+        self.assertEqual(row.project_why, "My chavruta.")
+        self.assertEqual(row.project_reach, "100")
+        self.assertEqual(row.notes, "Thanks!")
+        self.assertTrue(row.has_pbs_logo)
+        self.assertTrue(row.has_donate_link)
+        self.assertTrue(row.vibe_coded)
+
+    def test_the_answers_come_back_in_the_state(self):
+        _, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(state["projects"][0]["poweredBy"], PUBLISH_ANSWERS)
+
+    def test_a_create_can_carry_the_answers(self):
+        project = self.create_project(visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        self.assertEqual(project["poweredBy"], PUBLISH_ANSWERS)
+
+    def test_an_edit_without_answers_keeps_the_stored_ones(self):
+        self.submit(PUBLISH_ANSWERS)
+
+        status, _ = self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "name": "Renamed"}})
+
+        self.assertEqual(status, 200)
+        row = self.row()
+        self.assertEqual(row.project_name, "Renamed")
+        self.assertEqual(row.job_title, "Teacher")
+        self.assertTrue(row.has_donate_link)
+
+    def test_a_resubmit_clears_answers_left_empty(self):
+        self.submit(PUBLISH_ANSWERS)
+
+        self.submit({"categories": ["other"]})
+
+        row = self.row()
+        self.assertFalse(row.show_name)
+        self.assertEqual(row.job_title, "")
+        self.assertIsNone(row.project_source_code)
+        self.assertEqual(row.sefaria_tools_used, [])
+        self.assertEqual(row.notes, "")
+        self.assertFalse(row.has_donate_link)
+
+    def test_bad_answers_are_refused_and_nothing_is_saved(self):
+        for answers in (
+            {**PUBLISH_ANSWERS, "categories": []},
+            {**PUBLISH_ANSWERS, "categories": ["Learning & Study Tools"]},
+            {**PUBLISH_ANSWERS, "tools": "Sefaria API"},
+            {**PUBLISH_ANSWERS, "sourceCode": "not a link"},
+            {**PUBLISH_ANSWERS, "currentRole": "x" * 256},
+            {**PUBLISH_ANSWERS, "anythingElse": "x" * 2001},
+            "not an object",
+        ):
+            status, _ = self.submit(answers)
+            self.assertEqual(status, 400, answers)
+        self.assertEqual(self.row().job_title, "")
+
+    def test_the_gallery_does_not_show_whether_the_name_may_be_shown(self):
+        project = self.create_project(visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        listings = json.loads(Client().get("/api/powered-by").content)["projects"]
+        listing = next(p for p in listings if p["id"] == ApiProject.objects.get(id=int(project["id"])).profile_id)
+
+        self.assertNotIn("show_name", listing)
+        self.assertNotIn("has_donate_link", listing)
 
 
 class KeyTest(DeveloperApiTestCase):
