@@ -448,6 +448,8 @@ gpuServer: ""
 #   module name
 #   a subdomain per corresponding language root
 #   root domain paths that should redirect into the module
+#   appRobots (optional): true when the module's app serves its own /robots.txt, so nginx
+#     does not answer it with the shared /app/robots.txt
 # Cookie domain will be set to the first domain in the root list
 domains:
   root:
@@ -472,6 +474,13 @@ domains:
         - sheets
         - collections
         - profile
+    # The developer portal (devportal/, docs/dev-portal/PLAN.md §2.2). English only: the
+    # he root gets no developers subdomain. Its robots.txt depends on DEVPORTAL_ALLOW_INDEXING.
+    - name: developers
+      subdomains:
+        en: developers
+      redirects: []
+      appRobots: true
 
 ingress:
   enabled: false
@@ -746,6 +755,21 @@ localSettings:
   DEVELOPER_SETTINGS_ENABLED: "False"
   # With DEVELOPER_SETTINGS_ENABLED on, limits the developer tab and its routes to staff.
   DEVELOPER_SETTINGS_STAFF_ONLY: "False"
+  # Developer portal (devportal/, docs/dev-portal/PLAN.md §2.15). DEVPORTAL_ALLOW_INDEXING is not set
+  # here: it is derived from nginx.disableScraping. Defaults for every DEVPORTAL_* setting live in
+  # sefaria/settings.py; an empty value below leaves that default in place.
+  # GA4 measurement IDs per portal section, e.g. {"default": "G-...", "gallery": "G-..."}. Empty loads
+  # no analytics; never put the production property on a cauldron.
+  DEVPORTAL_GA4: {}
+  # Public demo API key for Try It and code samples (H-5). Empty: Try It sends no key.
+  DEVPORTAL_DEMO_API_KEY: ""
+  # GCS bucket for editor image uploads. Empty: the settings.py default (the topics bucket).
+  DEVPORTAL_MEDIA_BUCKET: ""
+  # Seed portal content from the image's migration snapshot on migrate. Set false in prod after cutover.
+  DEVPORTAL_AUTO_SEED: true
+  # Main-site links point at the new portal gallery. False until the production DNS cutover (PLAN.md §8.2);
+  # review cauldrons set it true.
+  DEVPORTAL_CUTOVER_DONE: false
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"

@@ -1,0 +1,87 @@
+name: Developer portal visual parity
+
+# Runs the developer portal's visual-parity suite (docs/dev-portal/PLAN.md §6.1) against a
+# deployed portal. Manual or nightly only: it never runs on pull requests and must never be a
+# required check, because its baselines are a snapshot of live ReadMe.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Developers host to test, e.g. https://developers.<cauldron>.cauldron.sefaria.org"
+        required: true
+        type: string
+      project:
+        description: "Optional single width project, e.g. visual-1440 (default: all five)"
+        required: false
+        type: string
+        default: ""
+  schedule:
+    # Nightly, 03:17 UTC. Tests the URL in the repository variable DEVPORTAL_VISUAL_URL;
+    # skipped when that variable is not set.
+    - cron: "17 3 * * *"
+
+concurrency:
+  group: devportal-visual-${{ github.event_name }}-${{ inputs.url || 'nightly' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    name: "Developer portal visual parity"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Screenshots depend on the browser build and fonts. This image must match the environment
+    # recorded in e2e-tests/developers-visual/baselines/ENV.json; keep its tag equal to the
+    # @playwright/test version in package-lock.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+    env:
+      CI: "true"
+    steps:
+      - name: Resolve the URL under test
+        id: target
+        env:
+          INPUT_URL: ${{ inputs.url }}
+          NIGHTLY_URL: ${{ vars.DEVPORTAL_VISUAL_URL }}
+        run: |
+          url="${INPUT_URL:-$NIGHTLY_URL}"
+          if [ -z "$url" ]; then
+            echo "::notice::No URL given and the DEVPORTAL_VISUAL_URL variable is not set; nothing to test."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          case "$url" in
+            https://*) ;;
+            *) echo "::error::The URL must start with https://"; exit 1 ;;
+          esac
+          echo "E2E_DEVELOPERS_URL=${url%/}" >> "$GITHUB_ENV"
+          echo "run=true" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.target.outputs.run == 'true'
+      - name: Install dependencies
+        if: steps.target.outputs.run == 'true'
+        # Browsers come with the container image; --ignore-scripts skips the husky prepare hook.
+        run: npm ci --ignore-scripts
+      - name: Visual-parity suite
+        if: steps.target.outputs.run == 'true'
+        env:
+          PROJECT: ${{ inputs.project }}
+        run: |
+          if [ -n "$PROJECT" ]; then
+            npx playwright test --config=playwright.devportal-visual.config.ts --project="$PROJECT"
+          else
+            npx playwright test --config=playwright.devportal-visual.config.ts
+          fi
+      - name: Upload the report
+        if: ${{ !cancelled() && steps.target.outputs.run == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: devportal-visual-${{ github.run_id }}
+          path: |
+            playwright-report-devportal-visual/
+            e2e-tests/e2e-test-logs/devportal-visual-results/
+          retention-days: 14
+          if-no-files-found: ignore

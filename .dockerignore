@@ -4,3 +4,5 @@
 /.idea
 /.pytest_cache
 /.secrets
+/devportal-ui/node_modules
+/devportal-ui/dist

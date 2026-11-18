@@ -223,6 +223,104 @@ jobs:
         run: |
           go vet ./...
           go test -race -count=1 ./...
+  devportal-ui:
+    name: "Continuous Testing: devportal-ui"
+    # The developer portal's frontend package (Vite + React 19 + TypeScript), which has its
+    # own package.json and lockfile. Needs no sandbox.
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: devportal-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: devportal-ui/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type check
+        run: npm run typecheck
+      - name: Unit tests (Vitest)
+        run: npm test
+        env:
+          CI: "true"
+      - name: Production build
+        run: npm run build
+  devportal-pure:
+    name: "Continuous Testing: devportal pure"
+    # Tests of the developer portal that need no Django and no database: devportal/tests/pure,
+    # the cross-language goldens, the editor round-trip corpus and MCP conformance.
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: devportal-ui/package-lock.json
+      - name: Install the portal's pure Python dependencies
+        # The Markdown and sanitizer pins are read from requirements.txt so they cannot drift
+        # from production. pytest matches requirements.txt; jsonschema is test-only.
+        run: |
+          set -euo pipefail
+          pins=()
+          for pkg in markdown-it-py linkify-it-py nh3; do
+            pin="$(grep -iE "^${pkg}(\[[^]]*\])?==" requirements.txt || true)"
+            if [ -z "$pin" ]; then
+              echo "::error file=requirements.txt::${pkg} must be pinned with == in requirements.txt"
+              exit 1
+            fi
+            pins+=("$pin")
+          done
+          python -m pip install --upgrade pip
+          python -m pip install "${pins[@]}" pytest==7.4.4 jsonschema==4.26.0
+      - name: Install devportal-ui dependencies
+        working-directory: devportal-ui
+        run: npm ci
+      - name: Editor round-trip corpus (RT-2 inputs)
+        # Placeholder until W13 lands the script: skipped while devportal-ui has no such npm script.
+        run: |
+          if jq -e '.scripts["roundtrip-corpus"]' devportal-ui/package.json > /dev/null; then
+            npm --prefix devportal-ui run roundtrip-corpus
+          else
+            echo "::notice::devportal-ui has no 'roundtrip-corpus' script yet; skipping."
+          fi
+      - name: Pure pytest
+        run: python -m pytest devportal/tests/pure -q
+      - name: Golden checks (TypeScript side)
+        # Placeholder: skipped while devportal-ui has no 'golden' npm script.
+        run: |
+          if jq -e '.scripts["golden"]' devportal-ui/package.json > /dev/null; then
+            npm --prefix devportal-ui run golden
+          else
+            echo "::notice::devportal-ui has no 'golden' script yet; skipping."
+          fi
+      - name: MCP conformance (official SDK client)
+        # Placeholder: skipped while the test does not exist. The mcp SDK is a test-only dependency.
+        run: |
+          set -euo pipefail
+          test_file=devportal/tests/mcp_conformance_test.py
+          if [ ! -f "$test_file" ]; then
+            echo "::notice::${test_file} does not exist yet; skipping."
+            exit 0
+          fi
+          if [ -f devportal/requirements-test.txt ]; then
+            python -m pip install -r devportal/requirements-test.txt
+          else
+            python -m pip install mcp==1.19.0
+          fi
+          python -m pytest "$test_file" -q
   check-python-files:
     runs-on: ubuntu-latest
     outputs:
@@ -523,6 +621,8 @@ jobs:
       - jest-tests
       - auth-service-tests
       - e2e-job
+      - devportal-ui
+      - devportal-pure
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -541,6 +641,11 @@ jobs:
             if [ "${{ needs.jest-tests.result }}" != "success" ] || \
                [ "${{ needs.auth-service-tests.result }}" != "success" ]; then
               echo "Jest or auth-service tests failed"
+              exit 1
+            fi
+            if [ "${{ needs.devportal-ui.result }}" != "success" ] || \
+               [ "${{ needs.devportal-pure.result }}" != "success" ]; then
+              echo "Developer portal tests failed"
               exit 1
             fi
             if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \

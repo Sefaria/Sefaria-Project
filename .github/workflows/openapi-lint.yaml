@@ -1,0 +1,82 @@
+name: OpenAPI lint
+
+# Lints docs/openAPI.json with Spectral, using the ruleset in docs/.spectral.yaml.
+# There is deliberately no `paths:` filter: a workflow skipped by a path filter never
+# reports a status, so it could not be a required check. Instead the first step works
+# out whether the spec or the ruleset changed and the lint steps run only if one did.
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: openapi-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Bump deliberately; a new Spectral release can add or tighten rules.
+  SPECTRAL_CLI_VERSION: "6.17.0"
+
+jobs:
+  spectral:
+    name: "Lint: OpenAPI (Spectral)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Did docs/openAPI.json or docs/.spectral.yaml change?
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MG_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          # The commit to compare HEAD against. HEAD is the PR merge commit for
+          # pull_request, the queued head for merge_group and the pushed commit for push.
+          case "$EVENT_NAME" in
+            pull_request) base="$PR_BASE_SHA" ;;
+            merge_group) base="$MG_BASE_SHA" ;;
+            push) base="$PUSH_BEFORE" ;;
+            *) base="" ;;
+          esac
+          # No usable base (unknown event, or a push that created the branch): lint.
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            echo "No base commit for $EVENT_NAME; linting."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! git fetch --no-tags --depth=1 origin "$base"; then
+            echo "Could not fetch base $base; linting to be safe."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed_files="$(git diff --name-only "$base" HEAD -- docs/openAPI.json docs/.spectral.yaml)"
+          if [ -z "$changed_files" ]; then
+            echo "Neither docs/openAPI.json nor docs/.spectral.yaml changed since $base; nothing to lint."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changed since $base:"
+            echo "$changed_files"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.changed == 'true'
+        with:
+          node-version: '22'
+
+      - name: Run Spectral
+        if: steps.changes.outputs.changed == 'true'
+        run: >-
+          npx --yes "@stoplight/spectral-cli@${SPECTRAL_CLI_VERSION}"
+          lint docs/openAPI.json
+          --ruleset docs/.spectral.yaml
+          --fail-severity error

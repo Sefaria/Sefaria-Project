@@ -14,6 +14,8 @@
 #     percent-encoded, or twice in one URL; a display prefix with a 6-character body is logged unchanged
 #   - each scrubbed line contains [REDACTED] and, where the request had x=1, still contains x=1
 # Built-in mutations (staging): the same run with scrub maps removed must FAIL, so the test is proven able to fail.
+# Also renders the chart defaults (the developers module is there) and checks that /robots.txt on a module with
+# appRobots: true reaches the app, while voices and www keep nginx's shared file.
 # Also probes the nginx ERROR log (not governed by log_format) on an upstream failure; see KNOWN GAPS below.
 #
 # Run from anywhere on a host with docker, helm, python3 and PyYAML: bash helm-chart/sefaria/tests/nginx_conf_test.sh
@@ -76,8 +78,13 @@ render() { # render <env> -> $TMP/<env>.template.conf and $TMP/<env>.envsubst-li
   python3 - "$ROOT" "$env" "$TMP" <<'PY'
 import re, subprocess, sys, yaml
 root, env, tmp = sys.argv[1:4]
-release = next(d for d in yaml.safe_load_all(open(f"{root}/envs/{env}/helmrelease.yaml")) if d and d.get("kind") == "HelmRelease")
-yaml.safe_dump(release["spec"].get("values", {}), open(f"{tmp}/{env}.values.yaml", "w"))
+if env == "defaults":
+    # The chart's own values, as PR sandboxes and cauldrons get them (they carry the developers module).
+    values = {"deployEnv": "sandbox-test"}
+else:
+    release = next(d for d in yaml.safe_load_all(open(f"{root}/envs/{env}/helmrelease.yaml")) if d and d.get("kind") == "HelmRelease")
+    values = release["spec"].get("values", {})
+yaml.safe_dump(values, open(f"{tmp}/{env}.values.yaml", "w"))
 # This test covers the flag-off nginx (a forged x-sefaria-* header must not be logged), so it forces the flag off: staging
 # ships it on (it rehearses prod first); the on render's log fields are checked by auth_service_render_test.py.
 out = subprocess.run(["helm", "template", env, f"{root}/helm-chart/sefaria", "-f", f"{tmp}/{env}.values.yaml",
@@ -275,6 +282,38 @@ for env in staging preprod prod; do
   fi
   run_case "$env" "$env" "$TMP/$env.conf" || fail=1
 done
+
+# Per-module robots.txt, on the chart defaults: a module with appRobots: true (developers) must pass /robots.txt to the
+# app, so Django serves it; voices and www keep nginx's shared /app/robots.txt. The stub answers "stub" for anything
+# proxied; /app/robots.txt does not exist in this container, so a request nginx answers itself gets a 404 instead.
+note "== chart defaults: per-module robots.txt =="
+render defaults
+substitute defaults "$TMP/defaults.template.conf" "$TMP/defaults.conf"
+www="$(cat "$TMP/defaults.www-host")"
+root_domain="${www#www.}"
+for module in developers voices; do
+  # Without its own server block a host would fall through to another block and prove nothing.
+  grep -q "server_name $module\.$root_domain;" "$TMP/defaults.conf" || bad "defaults: no server block for $module.$root_domain"
+done
+start_stub; sleep 1
+if ! docker run --rm --network "$NET" -v "$TMP/defaults.conf:/nginx.conf:ro" "$NGINX_IMAGE" nginx -t -c /nginx.conf >"$TMP/t.out" 2>&1; then
+  cat "$TMP/t.out"; bad "defaults: nginx -t"
+elif ! start_nginx "$TMP/defaults.conf" "$www"; then
+  bad "defaults: nginx did not start"
+else
+  echo "ok: defaults: nginx -t"
+  for case in "developers.$root_domain:app" "voices.$root_domain:nginx" "$www:nginx"; do
+    host="${case%:*}" want="${case##*:}"
+    body="$(curl -s -H "Host: $host" "http://127.0.0.1:$PORT/robots.txt")"
+    if [ "$want" = app ] && [ "$body" = stub ]; then
+      echo "ok: defaults: $host/robots.txt reaches the app"
+    elif [ "$want" = nginx ] && [ "$body" != stub ]; then
+      echo "ok: defaults: $host/robots.txt is answered by nginx"
+    else
+      bad "defaults: $host/robots.txt should be answered by the $want (got: ${body:0:60})"
+    fi
+  done
+fi
 
 # Mutations: each must make the run fail.
 for kind in uri_all referer_all uri_passes token_all; do

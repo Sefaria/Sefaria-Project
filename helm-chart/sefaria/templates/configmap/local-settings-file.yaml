@@ -207,6 +207,21 @@ data:
     DEVELOPER_SETTINGS_ENABLED = os.getenv("DEVELOPER_SETTINGS_ENABLED", "False").lower() == "true"
     DEVELOPER_SETTINGS_STAFF_ONLY = os.getenv("DEVELOPER_SETTINGS_STAFF_ONLY", "False").lower() == "true"
 
+    # Developer portal (devportal/). sefaria/settings.py holds the defaults; a variable that is
+    # absent or empty leaves its default in place.
+    if os.getenv("DEVPORTAL_ALLOW_INDEXING"):
+        DEVPORTAL_ALLOW_INDEXING = os.getenv("DEVPORTAL_ALLOW_INDEXING").lower() == "true"
+    if os.getenv("DEVPORTAL_GA4"):
+        DEVPORTAL_GA4 = json.loads(os.getenv("DEVPORTAL_GA4"))
+    if os.getenv("DEVPORTAL_DEMO_API_KEY"):
+        DEVPORTAL_DEMO_API_KEY = os.getenv("DEVPORTAL_DEMO_API_KEY")
+    if os.getenv("DEVPORTAL_MEDIA_BUCKET"):
+        DEVPORTAL_MEDIA_BUCKET = os.getenv("DEVPORTAL_MEDIA_BUCKET")
+    if os.getenv("DEVPORTAL_AUTO_SEED"):
+        DEVPORTAL_AUTO_SEED = os.getenv("DEVPORTAL_AUTO_SEED").lower() == "true"
+    if os.getenv("DEVPORTAL_CUTOVER_DONE"):
+        DEVPORTAL_CUTOVER_DONE = os.getenv("DEVPORTAL_CUTOVER_DONE").lower() == "true"
+
     auth_str = f'{os.getenv("ELASTIC_USERNAME")}:{os.getenv("ELASTIC_PASSWORD")}@' if os.getenv("ELASTIC_USERNAME") else ''
     SEARCH_SSL_ENABLE = os.getenv("SEARCH_SSL_ENABLE").lower() == "true"
     SEARCH_URL = f'http{"s" if SEARCH_SSL_ENABLE else ""}://{auth_str}{os.getenv("SEARCH_HOST")}:{os.getenv("SEARCH_PORT")}/{os.getenv("SEARCH_PATH")}'

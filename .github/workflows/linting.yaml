@@ -97,3 +97,25 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Check formatting
         run: npx prettier --check 'static/js/**/*.{js,jsx}' 'static/css/**/*.scss' '**/*.md' --ignore-path .prettierignore
+
+  lint-devportal:
+    name: "Lint: developer portal (ESLint, Stylelint, Prettier)"
+    # devportal-ui/ is its own npm package with its own lockfile and lint configs.
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    defaults:
+      run:
+        working-directory: devportal-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: devportal-ui/package-lock.json
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: ESLint and Stylelint
+        run: npm run lint
+      - name: Check formatting
+        run: npm run format:check
