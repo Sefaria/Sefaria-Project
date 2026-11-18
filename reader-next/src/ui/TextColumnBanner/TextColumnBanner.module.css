@@ -9,3 +9,12 @@
 .close { position: absolute; inset-inline-end: calc(var(--_side) - 11px); inset-block-start: 50%; transform: translateY(-50%); }
 .close button { color: #bbb; }
 .close svg { width: 24px; height: 24px; }
+/* A phone (sefaria.org's .singlePanel .readerControlsInner, measured 2026-11-18 at 375 and 320): 15px sides, the message first and
+   taking the room, the button at its narrowest ("Go to / translations" on two lines, 118px at 375) 10px after it, the × at the
+   end; the button ran on one line under the × here */
+@media (max-width: 842px) {
+  .banner { --_side: 15px; justify-content: flex-start; padding-inline-end: 50px; }
+  .message { flex: 1 1 auto; min-width: 0; line-height: normal; }
+  .buttons button { width: min-content; white-space: normal; line-height: normal; }
+  .close { inset-inline-end: 4px; }
+}

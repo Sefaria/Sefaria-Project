@@ -117,4 +117,22 @@ test.describe("the translation suggestion on a phone", () => {
     expect(n).toBeGreaterThan(4);
     expect(await covering(page, `[...document.querySelector('[class*="displayMenu"]').querySelectorAll("button")]`)).toEqual(Array(n).fill(null));
   });
+
+  // @feature SHL-061
+  test("its button wraps beside the message and clear of the ×; it steps aside while the menu is open @mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await open(page, "/Genesis.1?lang=bi");
+    const banner = page.getByRole("region", { name: "Suggestion" });
+    const go = banner.getByRole("button", { name: "Go to translations" });
+    const x = banner.getByRole("button", { name: "Close suggestion" });
+    await expect(go).toBeVisible();
+    const g = (await go.boundingBox())!, c = (await x.boundingBox())!;
+    expect(g.x + g.width).toBeLessThanOrEqual(c.x); // not under the ×
+    expect(g.height).toBeGreaterThan(40); // on two lines, as there
+    expect(Math.round((await banner.boundingBox())!.height)).toBe(60);
+    await page.touchscreen.tap(20, 28);
+    await expect(page.locator("#mobile-nav")).toBeVisible();
+    await expect(banner).toBeHidden();
+    expect(await covering(page, `[document.querySelector("#mobile-nav input")]`)).toEqual([null]);
+  });
 });
