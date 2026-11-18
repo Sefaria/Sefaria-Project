@@ -136,3 +136,25 @@ test.describe("the translation suggestion on a phone", () => {
     expect(await covering(page, `[document.querySelector("#mobile-nav input")]`)).toEqual([null]);
   });
 });
+
+/*
+ * A footnote opens in place, inside the sentence right after its marker, as sefaria.org's .segment i.footnote (0.8em, #666, upright;
+ * measured 2026-11-18 on Genesis 1:1, 375 and 1280: the note 17.6px, its first line beside the marker). Here it opened as a smaller
+ * block under the whole verse.
+ */
+// @feature TXD-021
+test("a footnote opens in place after its marker, 0.8em #666, and closes again", async ({ page }) => {
+  await open(page, "/Genesis.1?lang=bi");
+  const marker = page.locator('[role="group"][data-ref="Genesis 1:1"] sup[data-note]').first();
+  await expect(marker).toBeVisible();
+  await marker.click();
+  const note = page.locator('[role="group"][data-ref="Genesis 1:1"] [role="note"]');
+  await expect(note).toBeVisible();
+  // in the sentence, right after the marker
+  expect(await marker.evaluate((m) => m.nextElementSibling?.getAttribute("role"))).toBe("note");
+  expect(await note.evaluate((n) => getComputedStyle(n).display)).toBe("inline");
+  expect(await note.evaluate((n) => getComputedStyle(n).color)).toBe("rgb(102, 102, 102)");
+  expect(await note.evaluate((n) => parseFloat(getComputedStyle(n).fontSize) / parseFloat(getComputedStyle(n.parentElement!).fontSize))).toBeCloseTo(0.8, 2);
+  await page.locator('[role="group"][data-ref="Genesis 1:1"] sup[data-note]').first().click();
+  await expect(note).toHaveCount(0);
+});

@@ -33,10 +33,8 @@
 .text [data-sefaria-mam="ketiv"] { color: var(--sefaria-color-text-muted); }
 .text [data-sefaria-tone="muted"] { color: var(--sefaria-color-text-muted); }
 
-/* Footnote bodies */
-.notes { display: block; margin-block: 0.4em; padding-inline-start: 0.8em; border-inline-start: 2px solid var(--sefaria-color-border); font-size: 0.7em; line-height: 1.4; color: var(--sefaria-color-text-secondary); }
-.notes .note { display: block; margin: 0 0 0.3em; }
-.noteLabel { color: var(--sefaria-color-link); font-weight: 700; margin-inline-end: 0.35em; }
+/* An open footnote, in place after its marker (s2.css .segment i.footnote): 0.8em, #666, upright, half an em either side */
+.text :global(i.footnote) { font-size: 0.8em; font-style: normal; margin-inline: 0.5em; color: var(--sefaria-color-text-dark-grey); }
 
 /* Words a search matched (SRC-058): the old reader's pale blue (s2.css .segment .queryTextHighlight) */
 .text :global(.queryTextHighlight) { background-color: #d2dcff; box-shadow: 0 0 0 2px #d2dcff; } /* a shadow, not padding: removing the highlight must not re-wrap the line */

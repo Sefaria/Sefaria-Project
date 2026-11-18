@@ -29,7 +29,7 @@ const isPlainClick = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlK
 
 /**
  * The text of one segment in one version. Takes raw API HTML and renders it safely: citations are
- * real links, footnote markers open their note below the text, and every inline construct Sefaria
+ * real links, footnote markers open their note in place after the marker, and every inline construct Sefaria
  * uses (poetry, page overlays, itags, ketiv/qere, petuchah marks) is styled.
  *
  * Replaces the old TextSegment content path (VersionContent / ContentText / addPoetrySpans / formatItag).
@@ -43,6 +43,18 @@ export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, i
     return terms?.length ? { ...p, html: highlightTerms(p.html, terms) } : p;
   }, [html, lang, vocalization, stripPunctuation, itagCommentator, refHref, terms, libHref]);
   const [open, setOpen] = useState<ReadonlySet<number>>(new Set());
+  // An open note is read in place, right after its marker, as sefaria.org's .segment i.footnote (inline, 0.8em, #666; measured
+  // 2026-11-18 on Genesis 1:1 at 375 and 1280): the note's (sanitised) HTML goes into the text after the marker.
+  const shownHtml = useMemo(() => {
+    let h = prepared.html;
+    for (const n of prepared.notes) {
+      if (!open.has(n.key)) continue;
+      h = h.replace(new RegExp(`(<sup[^>]*data-note="${n.key}"[^>]*>[\\s\\S]*?</sup>)`), (m) => `${m}<i class="footnote" role="note">${n.contentHtml ?? ""}</i>`);
+    }
+    return h;
+  }, [prepared, open]);
+  // the text is re-rendered when a note opens or closes: a marker that had the focus gets it back
+  const refocus = useRef<number | null>(null);
 
   const toggle = (key: number) =>
     setOpen((prev) => {
@@ -58,6 +70,7 @@ export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, i
     if (marker) {
       e.preventDefault();
       e.stopPropagation();
+      if (document.activeElement === marker) refocus.current = Number(marker.dataset.note);
       toggle(Number(marker.dataset.note));
       return;
     }
@@ -81,6 +94,7 @@ export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, i
     if (!marker) return;
     e.preventDefault();
     e.stopPropagation();
+    refocus.current = Number(marker.dataset.note);
     toggle(Number(marker.dataset.note));
   };
 
@@ -89,10 +103,12 @@ export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, i
   const markerRef = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     markerRef.current?.querySelectorAll<HTMLElement>("[data-note]").forEach((m) => m.setAttribute("aria-expanded", String(open.has(Number(m.dataset.note)))));
-  }, [open, prepared.html]);
+    if (refocus.current !== null) {
+      markerRef.current?.querySelector<HTMLElement>(`[data-note="${refocus.current}"]`)?.focus({ preventScroll: true });
+      refocus.current = null;
+    }
+  }, [open, shownHtml]);
 
-
-  const openNotes = prepared.notes.filter((n) => open.has(n.key));
   return (
     <>
       <span
@@ -103,19 +119,8 @@ export function SegmentText({ html, lang, dir, vocalization, stripPunctuation, i
         onClick={onClick}
         onKeyDown={onKeyDown}
         // Safe: produced by prepareSegmentHtml (sanitiser with a fixed output grammar).
-        dangerouslySetInnerHTML={{ __html: prepared.html }}
+        dangerouslySetInnerHTML={{ __html: shownHtml }}
       />
-      {openNotes.length > 0 ? (
-        <span className={styles.notes} role="note" lang={lang} dir={dir}>
-          {openNotes.map((n) => (
-            // a block span, not <p>: the segment's body is a <p> already (<p> in <p> is invalid and React warns on every open note)
-            <span key={n.key} className={styles.note}>
-              <span className={styles.noteLabel} dangerouslySetInnerHTML={{ __html: n.markerHtml }} />
-              <span dangerouslySetInnerHTML={{ __html: n.contentHtml ?? "" }} />
-            </span>
-          ))}
-        </span>
-      ) : null}
     </>
   );
 }
