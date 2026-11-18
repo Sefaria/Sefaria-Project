@@ -4,6 +4,21 @@ The atlas (`features.json`) is the source of truth for the rebuild. Whenever bui
 
 Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader has that the old client did not, so the atlas also describes what we ship.
 
+## 2026-11-18 — master merged in (to #4079): what reaches the reader
+
+- **Account settings are a React page on master** (#3774: `static/js/SettingsPage.jsx`, `templates/account_settings.html` deleted).
+  `/settings` stays Django's (an accepted exit); the **New Reader (beta)** switch moved from the template to the page's Account tab,
+  with the same rules (`readerChoiceAvailable`, `newReaderPaused`, `newReaderEnabled` props; `reader_version` sent only when changed;
+  a reload after). (ACC-003)
+- **`/api-terms`** (#3774, behind the developer settings flag per visitor, placeholder text) is Django's: listed in
+  `lib/static-page/pages.ts` and the exits allowlist, so it is not read as a text address. `/settings/developer` and `/api/developer/*`
+  were already Django's (`settings`, `api`).
+- **Hebrew phone menu Log Out is ניתוק** (#4070 changed `header.logout`). (GUI-001)
+- **Design-system preview** (#4045): `?design_system=<branch or commit>` on a non-production host reaches the Library Assistant as its
+  `design-system-preview` attribute, remembered for the session until `clear`, as on the old site. The pinned token stylesheets are
+  not loaded here: no CSS on either client uses them yet. (AI-011)
+- No reader-visible change from the rest: search reindexing, Varnish, gunicorn, deploy and auth-service infrastructure.
+
 ## 2026-11-11 — statuses checked against their notes and the code
 
 - **`done` → `partial`** where the note states a gap: BOK-010 (the book-page overlay is not built), BOK-002 (dedication not

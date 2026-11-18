@@ -348,6 +348,7 @@ def ensure_indices(active_db=None, collections=None, dry_run=False):
         ("linker_editor_history", ["created"], {}),
         # hinted by sefaria/helper/linker/tasks.py (MarkedUpTextChunkSet(..., hint="ref_1"))
         ("marked_up_text_chunks", ["ref"], {}),
+        ("developer_confirmation_throttle", ["uid"], {"unique": True}),
     ]
 
     if collections is not None:

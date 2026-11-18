@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import type { AssistantEnv } from "~/lib/config";
-import { assistantAttributes, assistantBuild, versionCookie, versionFromCookie, versionFromQuery } from "./config";
+import {
+  assistantAttributes,
+  assistantBuild,
+  designSystemCookie,
+  designSystemFromCookie,
+  designSystemFromQuery,
+  designSystemPreviewAllowed,
+  isDesignSystemRef,
+  versionCookie,
+  versionFromCookie,
+  versionFromQuery,
+} from "./config";
 
 const env: AssistantEnv = { apiBaseUrl: "https://chat.sefaria.org/api", version: null, useLocalScript: false, origin: "sefaria-prod" };
 
@@ -46,5 +57,36 @@ describe("assistantAttributes", () => {
       "interface-lang": "he",
     });
     expect(assistantAttributes({ enabled: true, userToken: "t", isModerator: true }, assistantBuild(null, env), env, { interfaceLang: "en" })["is-moderator"]).toBe("true");
+  });
+});
+
+// sefaria/utils/design_system.py (master #4045), and its tests (sefaria/utils/tests/design_system_test.py)
+describe("design-system previews", () => {
+  it("are allowed on the old server's preview hosts only, never production", () => {
+    for (const h of ["localhost:3000", "127.0.0.1", "www.reader-next.cauldron.sefaria.org", "sefariastaging.org", "www.sefariastaging.org", "www.sefariastaging-il.org"])
+      expect(designSystemPreviewAllowed(h), h).toBe(true);
+    for (const h of ["www.sefaria.org", "sefaria.org", "www.sefaria.org.il", "cauldron.sefaria.org.evil.com", "notsefariastaging.org"])
+      expect(designSystemPreviewAllowed(h), h).toBe(false);
+  });
+  it("take a branch or commit, nothing else", () => {
+    for (const r of ["main", "feature/new-blue", "v1.2.0", "a1b2c3d"]) expect(isDesignSystemRef(r), r).toBe(true);
+    for (const r of ["", "../etc", "a..b", "a b", "a<b>", "x".repeat(101), "/lead"]) expect(isDesignSystemRef(r), r).toBe(false);
+  });
+  it("read ?design_system=, remember it in a session cookie, and forget it with clear", () => {
+    expect(designSystemFromQuery("?design_system=feature/new-blue")).toEqual({ set: "feature/new-blue" });
+    expect(designSystemFromQuery("?design_system=clear")).toEqual({ clear: true });
+    expect(designSystemFromQuery("?design_system=a..b")).toBeNull();
+    expect(designSystemFromQuery("?q=1")).toBeNull();
+    const cookie = designSystemCookie("feature/new-blue").split(";")[0]!;
+    expect(designSystemFromCookie(`a=1; ${cookie}; b=2`)).toBe("feature/new-blue");
+    expect(designSystemCookie(null)).toContain("max-age=0");
+    expect(designSystemFromCookie("design_system_preview=%E0%A4%A")).toBeNull();
+  });
+  it("reach the assistant as its design-system-preview attribute, only when there is one", () => {
+    const access = { enabled: true, userToken: null, isModerator: false };
+    const build = { scriptUrl: "s", apiBaseUrl: "https://ai.example/api" };
+    const env = { origin: "sefaria-dev", apiBaseUrl: "https://ai.example/api", version: null, useLocalScript: false } as never;
+    expect(assistantAttributes(access, build, env, { interfaceLang: "en", designSystemPreview: "v1.2.0" })["design-system-preview"]).toBe("v1.2.0");
+    expect(assistantAttributes(access, build, env, { interfaceLang: "en" })).not.toHaveProperty("design-system-preview");
   });
 });

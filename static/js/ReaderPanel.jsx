@@ -21,6 +21,7 @@ import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile } from './UserProfile';
 import CalendarsPage from './CalendarsPage';
 import UserStats from './UserStats';
+import SettingsPage, { EmailConfirmedPage, EmailLinkPage } from './SettingsPage';
 import ModeratorToolsPanel from './ModeratorToolsPanel';
 import LinkerEditorPage from './LinkerEditorPage';
 import PublicCollectionsPage from './PublicCollectionsPage';
@@ -644,6 +645,14 @@ class ReaderPanel extends Component {
     this.replaceHistory = false;
     this.conditionalSetState({ linkerEditorBook: book });
   }
+  setSettingsTab(tab) {
+    this.replaceHistory = false;
+    this.conditionalSetState({ settingsTab: tab });
+  }
+  setDeveloperProjectId(projectId) {
+    this.replaceHistory = false;
+    this.conditionalSetState({ developerProjectId: projectId });
+  }
   setTab(tab, replaceHistoryIfReaderAppUpdated = false) {
     // There is a race condition such that when navigating to a new page that has a TabView component, sometimes TabView
     // mounts before ReaderApp's componentDidUpdate gets called, which results in setTab calling conditionalSetState
@@ -1168,8 +1177,23 @@ class ReaderPanel extends Component {
       menu = <TranslationsPage translationsSlug={this.state.translationsSlug} />;
     } else if (this.state.menuOpen === 'editCollection') {
       menu = <EditCollectionPage initialData={this.state.collectionData} />;
+    } else if (this.state.menuOpen === 'developerEmailConfirmed') {
+      menu = <EmailConfirmedPage />;
+    } else if (this.state.menuOpen === 'developerEmailLink') {
+      menu = <EmailLinkPage link={this.state.developerEmailLink} />;
     } else if (this.state.menuOpen === 'user_stats') {
       menu = <UserStats />;
+    } else if (this.state.menuOpen === 'settings') {
+      menu = (
+        <SettingsPage
+          tab={this.state.settingsTab}
+          projectId={this.state.developerProjectId}
+          accountSettings={this.state.accountSettings}
+          initialDeveloper={this.state.developer}
+          setTab={this.setSettingsTab.bind(this)}
+          setProjectId={this.setDeveloperProjectId.bind(this)}
+        />
+      );
     } else if (this.state.menuOpen === 'modtools') {
       menu = <ModeratorToolsPanel interfaceLang={this.props.interfaceLang} />;
     } else if (this.state.menuOpen === 'linkerEditor') {

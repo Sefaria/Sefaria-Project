@@ -18,6 +18,7 @@
     { "id": "auth-logout", "match": "^/logout(?:[/?]|$)", "reason": "Signs out and redirects back" },
     { "id": "static-legacy-react", "match": "^/(?:word-by-word|ramban-sponsorships|contest|powered-by-sefaria-contest-2020|powered-by-sefaria-contest-2021)/?(?:\\?|$)", "reason": "Django's content block is only a mount point for a legacy React page (StaticPages.jsx); not ported yet" },
     { "id": "static-newsletter", "match": "^/newsletter/?(?:\\?|$)", "reason": "The newsletter sign-up page is a 1,700-line legacy React flow (static/js/NewsletterSignUpPage): its own task" },
+    { "id": "static-api-terms", "match": "^/api-terms/?(?:\\?|$)", "reason": "/api-terms (master #3774) is behind the developer settings flag per visitor (a 404 or a login redirect where off), placeholder text: Django's" },
     { "id": "static-metrics", "match": "^/metrics/?(?:\\?|$)", "reason": "/metrics is its own Django view (charts from the database), no content answer (LEG-022)" },
     { "id": "static-standalone", "match": "^/(?:random-walk-through-torah|cloudflare_site_is_down_en|cloudflare_site_is_down_he|aramaic-translation-contest)/?(?:\\?|$)", "reason": "Whole documents of their own (no content block), and a 2019 contest page whose mailing-list form runs on jQuery" },
     { "id": "dedication", "match": "^/dedication/", "reason": "Accepted exit (owner, DECISIONS.md 2026-11-10): /dedication/<slug> stays a Django page (dedications app, ADM-056) for this launch" },

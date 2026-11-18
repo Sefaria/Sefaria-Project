@@ -41,6 +41,61 @@ export function versionFromCookie(cookieHeader: string): string | null {
 export const versionCookie = (version: string | null, secure = false): string =>
   `${version ? `${VERSION_COOKIE}=${version}` : `${VERSION_COOKIE}=; max-age=0`}; path=/; SameSite=Lax${secure ? "; Secure" : ""}`;
 
+/**
+ * A design-system preview (sefaria/utils/design_system.py, master #4045): `?design_system=<branch or commit>` on a host outside production
+ * asks the assistant to load that Sefaria/design-system version over its pinned tokens (its `design-system-preview` attribute),
+ * remembered for the browser session (the old server kept it in the Django session; here a session cookie) until
+ * `?design_system=clear`. Nothing on this client's own pages reads those tokens yet (nor on the old site's), so only the assistant shows it.
+ */
+export const DESIGN_SYSTEM_PARAM = "design_system";
+export const DESIGN_SYSTEM_COOKIE = "design_system_preview";
+/** sefaria/settings.py DESIGN_SYSTEM_PREVIEW_HOSTS: never production. Entries starting with "." match subdomains. */
+export const DESIGN_SYSTEM_PREVIEW_HOSTS = [
+  "localhost",
+  "127.0.0.1",
+  ".cauldron.sefaria.org",
+  "sefariastaging.org",
+  ".sefariastaging.org",
+  "sefariastaging-il.org",
+  ".sefariastaging-il.org",
+];
+const REF_RE = /^[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*$/;
+
+/** A branch name or commit: letters, digits, ".", "_", "-" and "/", no "..", at most 100 characters (design_system.is_preview_ref). */
+export const isDesignSystemRef = (ref: unknown): ref is string =>
+  typeof ref === "string" && ref.length <= 100 && REF_RE.test(ref) && !ref.includes("..");
+
+/** Whether previews are on for this host (design_system.preview_allowed). */
+export function designSystemPreviewAllowed(host: string): boolean {
+  const h = host.split(":")[0]!.toLowerCase();
+  return DESIGN_SYSTEM_PREVIEW_HOSTS.some((a) => h === a || (a.startsWith(".") && h.endsWith(a)));
+}
+
+/** What `?design_system=` asks for: a ref to remember, "clear", or nothing (absent or not a ref). */
+export function designSystemFromQuery(search: string): { set: string } | { clear: true } | null {
+  const raw = new URLSearchParams(search).get(DESIGN_SYSTEM_PARAM)?.trim();
+  if (!raw) return null;
+  if (raw === "clear") return { clear: true };
+  return isDesignSystemRef(raw) ? { set: raw } : null;
+}
+
+/** The ref this reader asked for earlier in the session (the cookie), if any. */
+export function designSystemFromCookie(cookieHeader: string): string | null {
+  const m = new RegExp(`(?:^|;\\s*)${DESIGN_SYSTEM_COOKIE}=([^;]*)`).exec(cookieHeader);
+  if (!m) return null;
+  let ref: string;
+  try {
+    ref = decodeURIComponent(m[1]!);
+  } catch {
+    return null;
+  }
+  return isDesignSystemRef(ref) ? ref : null;
+}
+
+/** The session cookie that remembers a ref (empty value and max-age 0 to forget it); Secure on https. */
+export const designSystemCookie = (ref: string | null, secure = false): string =>
+  `${ref ? `${DESIGN_SYSTEM_COOKIE}=${encodeURIComponent(ref)}` : `${DESIGN_SYSTEM_COOKIE}=; max-age=0`}; path=/; SameSite=Lax${secure ? "; Secure" : ""}`;
+
 export interface AssistantBuild {
   /** The script to load. */
   scriptUrl: string;
@@ -72,7 +127,7 @@ export function assistantAttributes(
   access: AssistantAccess,
   build: AssistantBuild,
   env: AssistantEnv,
-  opts: { interfaceLang: "en" | "he"; maxInputChars?: unknown; maxPrompts?: unknown; anonFreeAnswers?: unknown },
+  opts: { interfaceLang: "en" | "he"; maxInputChars?: unknown; maxPrompts?: unknown; anonFreeAnswers?: unknown; designSystemPreview?: string | null },
 ): Record<string, string> {
   const num = (v: unknown, fallback: number) => String(typeof v === "number" && v > 0 ? v : fallback);
   return {
@@ -90,5 +145,7 @@ export function assistantAttributes(
     // signed out only: the free answers remote config allows (for the widget's analytics; the chat server enforces it)
     // (any value remote config holds, as the old `chatbot_anon_free_answers ?? undefined`)
     ...(!access.userToken && opts.anonFreeAnswers !== undefined && opts.anonFreeAnswers !== null ? { "anon-free-answers": String(opts.anonFreeAnswers) } : {}),
+    // outside production only: the design-system version to preview (the old `design-system-preview={design_system_preview || undefined}`)
+    ...(opts.designSystemPreview ? { "design-system-preview": opts.designSystemPreview } : {}),
   };
 }

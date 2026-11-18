@@ -8,7 +8,17 @@ import { useSiteHost } from "~/lib/routing/library-href";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { Link } from "~/ui/Link/Link";
 import styles from "./LibraryAssistant.module.css";
-import { assistantAttributes, assistantBuild, versionCookie, versionFromCookie, versionFromQuery } from "~/lib/assistant/config";
+import {
+  assistantAttributes,
+  assistantBuild,
+  designSystemCookie,
+  designSystemFromCookie,
+  designSystemFromQuery,
+  designSystemPreviewAllowed,
+  versionCookie,
+  versionFromCookie,
+  versionFromQuery,
+} from "~/lib/assistant/config";
 import { loadAssistantScript } from "~/lib/assistant/script";
 import { PUBLIC_CONFIG } from "~/lib/config";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -44,6 +54,28 @@ function useReaderVersion(searchStr: string): string | null | undefined {
     setVersion(versionFromCookie(document.cookie));
   }, [searchStr]);
   return version;
+}
+
+/** The first address again, for the design-system preview (applied once, like the version's). */
+let firstSearchDesign: string | null = typeof window !== "undefined" ? window.location.search : null;
+
+/**
+ * The design-system version to preview (`?design_system=` now or earlier this session, remembered in a cookie), on a host outside
+ * production only; null elsewhere or when none was asked for.
+ */
+function useDesignSystemPreview(searchStr: string): string | null {
+  const [ref, setRef] = useState<string | null>(null);
+  useEffect(() => {
+    const searches = firstSearchDesign !== null ? [firstSearchDesign, searchStr] : [searchStr];
+    firstSearchDesign = null;
+    if (!designSystemPreviewAllowed(window.location.host)) return setRef(null);
+    for (const search of searches) {
+      const asked = designSystemFromQuery(search);
+      if (asked) document.cookie = designSystemCookie("set" in asked ? asked.set : null, window.location.protocol === "https:");
+    }
+    setRef(designSystemFromCookie(document.cookie));
+  }, [searchStr]);
+  return ref;
 }
 
 /** Where the assistant's sign-up prompt sends a visitor for the sign-up funnel (the old ReaderApp's CHATBOT_SIGNUP_SOURCE). */
@@ -95,6 +127,7 @@ export function LibraryAssistant({ search, pathname }: { search: string; pathnam
   const anonymous = useMemo(() => (remoteConfig ? anonymousAccess(remoteConfig) : undefined), [remoteConfig]);
   const access = viewer ? signedIn : anonymous;
   const version = useReaderVersion(search);
+  const designSystemPreview = useDesignSystemPreview(search);
   const env = PUBLIC_CONFIG.assistant;
   const build = useMemo(() => (version === undefined ? null : assistantBuild(version, env)), [version, env]);
   const show = wanted && !!access?.enabled && !!build;
@@ -114,6 +147,7 @@ export function LibraryAssistant({ search, pathname }: { search: string; pathnam
     maxInputChars: remoteConfig?.["feature.chatbot.max_input_chars"],
     maxPrompts: remoteConfig?.["feature.chatbot.max_prompts"],
     anonFreeAnswers: viewer ? undefined : remoteConfig?.[ANONYMOUS_FREE_ANSWERS_KEY],
+    designSystemPreview,
   });
   return <lc-chatbot {...attrs}>{viewer ? null : <AssistantSignupOptions next={path + search} />}</lc-chatbot>;
 }

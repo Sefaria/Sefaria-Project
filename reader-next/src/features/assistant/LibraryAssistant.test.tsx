@@ -29,6 +29,7 @@ const script = () => document.getElementById("sefaria-library-assistant") as HTM
 describe("LibraryAssistant", () => {
   beforeEach(() => {
     document.cookie = "chatbot_version=; path=/; max-age=0";
+    document.cookie = "design_system_preview=; path=/; max-age=0";
     script()?.remove();
   });
   afterEach(() => vi.restoreAllMocks());
@@ -64,6 +65,24 @@ describe("LibraryAssistant", () => {
     const later = setup({ search: "?lang=en" });
     const el = await waitFor(() => later.container.querySelector("lc-chatbot")!);
     expect(el.getAttribute("api-base-url")).toBe("https://chat-dev.sefaria.org/api");
+  });
+
+  // master #4045 (sefaria/utils/design_system.py): ?design_system=<branch or commit> outside production, kept for the session
+  it("?design_system=<ref> on a preview host gives the assistant design-system-preview, remembered until clear", async () => {
+    const first = setup({ search: "?design_system=feature/new-blue" });
+    const el = await waitFor(() => {
+      const e = first.container.querySelector("lc-chatbot");
+      if (!e?.getAttribute("design-system-preview")) throw new Error("not yet");
+      return e;
+    });
+    expect(el.getAttribute("design-system-preview")).toBe("feature/new-blue");
+    first.unmount();
+    const later = setup({ search: "?lang=en" });
+    await waitFor(() => expect(later.container.querySelector("lc-chatbot")?.getAttribute("design-system-preview")).toBe("feature/new-blue"));
+    later.unmount();
+    const cleared = setup({ search: "?design_system=clear" });
+    const after = await waitFor(() => cleared.container.querySelector("lc-chatbot")!);
+    await waitFor(() => expect(after.hasAttribute("design-system-preview")).toBe(false));
   });
 
   // sefaria.org shows it to signed-out visitors unless remote config's feature.chatbot.anonymous_enabled is off

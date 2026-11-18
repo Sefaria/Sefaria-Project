@@ -363,7 +363,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
           <A href={`${LIBRARY}/products`}><img className={mn.chevron} src="/icons/chevron-right.svg" alt="" /><InterfaceText en="More from Sefaria" he="עוד מספריא" /></A>
           <hr />
           {viewer ? (
-            <A href={`${LIBRARY}${LOGOUT_HREF}`} className={mn.logout}><img src="/icons/logout.svg" alt="" /><InterfaceText en="Logout" he="התנתקות" /></A>
+            <A href={`${LIBRARY}${LOGOUT_HREF}`} className={mn.logout}><img src="/icons/logout.svg" alt="" /><InterfaceText en="Logout" he="ניתוק" /></A>
           ) : (
             <span>
               {authLink("register", mn.first, <><img src="/icons/login.svg" alt="" /><InterfaceText en="Sign up" he="להרשמה" /></>)}

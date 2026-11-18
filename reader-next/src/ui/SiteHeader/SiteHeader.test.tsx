@@ -144,6 +144,13 @@ describe("SiteHeader", () => {
     expect(within(mobile).getByRole("link", { name: "תרומה", hidden: true })).toHaveAttribute("href", "https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=MobileNavMenu");
     expect(within(mobile).getByRole("link", { name: "English", hidden: true })).toHaveAttribute("href", "/interface/english?next=%2F");
   });
+  // sefaria.org's phone menu says ניתוק for Log Out in Hebrew (static/js/sefaria/i18n/interface/he.json header.logout, as of master #4070)
+  it("Hebrew interface, signed in: the phone menu's Log Out is ניתוק, as the account menu's", () => {
+    render(<InterfaceLangProvider lang="hebrew"><SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada Lovelace", profileUrl: "/profile/ada" }} /></InterfaceLangProvider>);
+    const mobile = document.getElementById("mobile-nav")!;
+    expect(within(mobile).getByRole("link", { name: "ניתוק", hidden: true })).toHaveAttribute("href", "https://www.sefaria.org/logout?next=/texts");
+    expect(within(mobile).queryByRole("link", { name: "התנתקות", hidden: true })).toBeNull();
+  });
   // @feature GUI-001 Mobile header bar
   it("phone bar: the menu button and the logo; the right-hand slot is empty until a library page puts its toggle there", () => {
     render(<SiteHeader next="/" search={STUB_SEARCH} />);

@@ -85,6 +85,10 @@ export const STATIC_PAGES: Readonly<Record<string, StaticPageEntry>> = {
   ai: { owner: "content" },
   metrics: { owner: "django", reason: "its own view (reader/views.py metrics: charts from the database), no content answer" },
   "fleishman-hirsch-on-torah-in-english": { owner: "content" },
+  // its own pattern, behind the developer settings flag (powered_by/developer_views.py requires_developer_settings): a 404, or for
+  // staff-only a login redirect, wherever the flag is off for this visitor. A per-visitor answer can't go through the shared content
+  // cache, and the page is placeholder text until the API terms are written.
+  "api-terms": { owner: "django", reason: "behind the developer settings flag, per visitor (a 404 or a login redirect where off); placeholder text" },
   // static_pages_by_lang: templates/static/en/ and he/
   about: { owner: "content", byLang: true },
   // the Hebrew page is plain content; the English one mounts the legacy DonatePage component: ported

@@ -231,8 +231,8 @@ class StaleCookieTest(ReaderChoiceTestCase):
 
 class AccountSettingsSwitchTest(ReaderChoiceTestCase):
     """
-    The switch on /settings/account is shown only to whom the audience includes. The page itself needs the webpack build (CI has
-    it), so this reads the context the view hands the template, and the template's guard.
+    The switch on /settings/account is shown only to whom the audience includes. The page is React (static/js/SettingsPage.jsx, which
+    has its own tests of the switch), so this reads the props the view hands it.
     """
 
     def context(self, user):
@@ -241,29 +241,21 @@ class AccountSettingsSwitchTest(ReaderChoiceTestCase):
         from django.http import HttpResponse
 
         self.client.force_login(user)
-        with mock.patch("reader.views.render_template", return_value=HttpResponse("page")) as render:
+        with mock.patch("reader.views.menu_page", return_value=HttpResponse("page")) as render:
             self.assertEqual(self.client.get("/settings/account").status_code, 200)
-        return render.call_args.args[3]
+        return render.call_args.kwargs["props"]["initialAccountSettings"]
 
     def test_staff_see_the_switch_and_members_do_not(self):
-        self.assertTrue(self.context(self.staff)["reader_choice_available"])
-        self.assertFalse(self.context(self.member)["reader_choice_available"])
+        self.assertTrue(self.context(self.staff)["readerChoiceAvailable"])
+        self.assertFalse(self.context(self.member)["readerChoiceAvailable"])
 
     def test_members_see_it_when_the_audience_is_all(self):
         self.set_audience("all")
-        self.assertTrue(self.context(self.member)["reader_choice_available"])
+        self.assertTrue(self.context(self.member)["readerChoiceAvailable"])
 
     @override_settings(READER_OPTIN=False)
     def test_nobody_sees_it_where_the_choice_is_not_offered(self):
-        self.assertFalse(self.context(self.staff)["reader_choice_available"])
-
-    def test_the_template_renders_the_switch_only_under_that_flag(self):
-        from django.conf import settings
-
-        with open(f"{settings.BASE_DIR}/templates/account_settings.html") as f:
-            html = f.read()
-        guarded = html.split("{% if reader_choice_available %}", 1)[1].split("{% endif %}", 1)[0]
-        self.assertIn('id="newReaderSetting"', guarded)
+        self.assertFalse(self.context(self.staff)["readerChoiceAvailable"])
 
 
 # The Voices host is whatever this deployment's DOMAIN_MODULES says it is (sefaria/hosts.py routes on it at import).
@@ -366,23 +358,26 @@ class KillSwitchTest(ReaderChoiceTestCase):
 
 
 class AccountSettingsKillSwitchTest(AccountSettingsSwitchTest):
-    """While the kill switch is on, the switch is replaced by a short explanation, for those who would have seen it."""
+    """
+    While the kill switch is on, the switch is replaced by a short explanation, for those who would have seen it (the page renders the
+    explanation without a toggle: static/js/tests/accountTab.test.js).
+    """
 
     def test_the_switch_is_hidden_and_explained(self):
         self.set_disabled(True)
         ctx = self.context(self.staff)
-        self.assertFalse(ctx["reader_choice_available"])
-        self.assertTrue(ctx["new_reader_paused"])
-        self.assertFalse(self.context(self.member)["new_reader_paused"])  # never offered it: nothing to explain
+        self.assertFalse(ctx["readerChoiceAvailable"])
+        self.assertTrue(ctx["newReaderPaused"])
+        self.assertFalse(self.context(self.member)["newReaderPaused"])  # never offered it: nothing to explain
 
     def test_no_explanation_while_it_is_off(self):
-        self.assertFalse(self.context(self.staff)["new_reader_paused"])
+        self.assertFalse(self.context(self.staff)["newReaderPaused"])
 
-    def test_the_template_explains_without_a_toggle(self):
-        from django.conf import settings
+    def test_the_saved_choice_is_shown(self):
+        from sefaria.model.user_profile import UserProfile
 
-        with open(f"{settings.BASE_DIR}/templates/account_settings.html") as f:
-            html = f.read()
-        paused = html.split("{% elif new_reader_paused %}", 1)[1].split("{% endif %}", 1)[0]
-        self.assertIn("switched off for now", paused)
-        self.assertNotIn("toggleOption", paused)
+        self.assertFalse(self.context(self.staff)["newReaderEnabled"])
+        profile = UserProfile(id=self.staff.id)
+        profile.settings["reader_version"] = "next"
+        profile.save()
+        self.assertTrue(self.context(self.staff)["newReaderEnabled"])

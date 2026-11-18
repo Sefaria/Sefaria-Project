@@ -37,8 +37,11 @@ async function route(url: string, d: ReturnType<typeof django>) {
 
 // @feature STA-001 @feature STA-005 @feature RTE-040
 describe("the static pages' routing", () => {
-  it("knows every page of sites/sefaria/urls.py (but /updates, the new reader's own page), the pages by language and /digitized-by-sefaria", () => {
-    expect(STATIC_PAGE_NAMES).toHaveLength(43 + 2 + 1);
+  it("knows every page of sites/sefaria/urls.py (but /updates, the new reader's own page), the pages by language, /digitized-by-sefaria and /api-terms", () => {
+    expect(STATIC_PAGE_NAMES).toHaveLength(43 + 2 + 1 + 1);
+    // /api-terms is behind the developer settings flag, per visitor: Django's, never the shared content cache
+    expect(staticPageOwner("api-terms", "en")).toBe("django");
+    expect(rendersStaticPage("api-terms")).toBe(false);
     for (const p of ["about", "ways-to-give", "digitized-by-sefaria", "terms", "linker", "metrics", "cloudflare_site_is_down_he"]) expect(STATIC_PAGE_NAMES).toContain(p);
     expect(staticPageName("/about/")).toBe("about");
     expect(staticPageName("/about/team")).toBeNull();

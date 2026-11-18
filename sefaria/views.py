@@ -34,9 +34,11 @@ from django.urls import resolve
 from django.urls.exceptions import Resolver404
 from django.utils.cache import patch_cache_control
 from django.utils.crypto import constant_time_compare
+from django.utils.decorators import method_decorator
 from django.utils.http import base36_to_int, url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
+from django.views.decorators.clickjacking import xframe_options_deny
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework.decorators import api_view
@@ -125,6 +127,7 @@ class StaticViewMixin:
         return context
 
 
+@method_decorator(xframe_options_deny, name="dispatch")
 class CustomLoginView(LoginView):
     authentication_form = SefariaLoginForm
     template_name = "base.html"
@@ -177,6 +180,7 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         return super().get_next_page()
 
 
+@method_decorator(xframe_options_deny, name="dispatch")
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
     template_name = "base.html"
@@ -364,6 +368,7 @@ def _web_register_errors(form):
     return errors
 
 
+@xframe_options_deny
 def register(request):
     if request.user.is_authenticated:
         return redirect("/")
