@@ -142,15 +142,15 @@ const SearchFilterGroup = ({
   };
   const [displayedFilters, setFilters] = useState(filters);
   const [showClearInputButton, setShowClearInputButton] = useState(false);
+  // Mirror of the search input value, kept in state so the render body never
+  // touches `document` (it does not exist during server-side rendering).
+  const [filterSearchValue, setFilterSearchValue] = useState('');
 
   useEffect(() => {
     if (!filters || !filters.length) {
       return;
     }
-    const filterValue = document.getElementById(`filter${name}`)?.value
-      ? document.getElementById(`filter${name}`)?.value
-      : '';
-    updateFilters(filterValue);
+    updateFilters(filterSearchValue);
   }, [filters]);
 
   if (!filters || !filters.length) {
@@ -164,7 +164,7 @@ const SearchFilterGroup = ({
       expandable={expandable}
       hideEmpty={hideEmpty}
       checkOnPartial={checkOnPartial}
-      filterSearchValue={document.getElementById(`filter${name}`)?.value}
+      filterSearchValue={filterSearchValue}
       key={filter.aggKey}
     />
   ));
@@ -201,6 +201,7 @@ const SearchFilterGroup = ({
   };
 
   const updateFilters = (text) => {
+    setFilterSearchValue(text || '');
     if (text && text !== '') {
       const matched = filters.filter((x) => hasWordStartingWithOrSelected(x, text));
       setFilters(!expandable && !preserveOrder ? [...matched].sort(sortFiltersBySelected) : matched);
@@ -513,4 +514,4 @@ EntitySortPanel.propTypes = {
 };
 
 export default SearchFilters;
-export { BookSearchFilters, EntitySortPanel };
+export { BookSearchFilters, EntitySortPanel, SearchFilterGroup };
