@@ -30,6 +30,7 @@ PROJECT_KEYS = {
     "consentWithdrawnAt",
     "keys",
     "contactEmail",
+    "poweredBy",
 }
 KEY_KEYS = {"id", "label", "prefix", "created", "restrictToWebsite"}
 
