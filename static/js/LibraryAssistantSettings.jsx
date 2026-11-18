@@ -52,6 +52,13 @@ const STRINGS = {
   instructionsDescription: 'Standing instructions that shape how the assistant answers you. You write these.',
   profileDescription: 'What the assistant has learned about how you learn. It writes this from your questions.',
   testingNote: 'These tools appear only on test deployments.',
+  runNowHelp: 'Runs one Profile update now, from recent questions, to test a change without waiting.',
+  dreamNowHelp: 'Runs the deeper Profile update now, over a wider set of questions, to check the full pass.',
+  updateEveryHelp: 'Updates the Profile after every message instead of on the usual schedule, to watch changes land.',
+  plainResponseHelp: 'Adds an answer without personalization to each reply, to compare it with the personalized one.',
+  checkHealthHelp:
+    'Shows when each Profile job last ran and wrote, and whether it is paused, for when updates seem to stop.',
+  backToLearning: 'Back to Learning',
 };
 
 // A page with no preview server is one whose API base is not a `*.ai-server.coolifydev.sefaria.org` preview.
@@ -62,6 +69,10 @@ export const isPreviewBase = (base) => {
     return false;
   }
 };
+
+// The Back to Learning target: only a same-site path (starts with one slash, no backslash) is kept.
+export const safeReturnPath = (raw) =>
+  typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//') && !raw.includes('\\') ? raw : '/';
 
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const MAX_RUNS = 10;
@@ -222,13 +233,13 @@ const OnOffGroup = ({ on, onSelect, disabled, labelledBy, optionAttrs }) => {
   );
 };
 
-const OnOff = ({ on, onChange, toggleName, disabled, labelledBy }) => (
+const OnOff = ({ on, onChange, toggleName, disabled, labelledBy, title }) => (
   <OnOffGroup
     on={on}
     onSelect={onChange}
     disabled={disabled}
     labelledBy={labelledBy}
-    optionAttrs={(value) => ({ 'data-toggle': on === value ? undefined : toggleName })}
+    optionAttrs={(value) => ({ 'data-toggle': on === value ? undefined : toggleName, title })}
   />
 );
 
@@ -446,38 +457,6 @@ const Personalization = ({ base, token }) => {
         </p>
       )}
 
-      <div className="laBlock laCard" id="instructions">
-        <h3 id="laInstructionsTitle" className="laCardTitle">
-          {STRINGS.instructions}
-        </h3>
-        <p className="laDescription">{STRINGS.instructionsDescription}</p>
-        <textarea
-          className="sefaria-input-control laTextarea laInstructions"
-          aria-labelledby="laInstructionsTitle"
-          rows={4}
-          value={draft}
-          placeholder={STRINGS.instructionsPlaceholder}
-          onChange={(e) => setDraft(e.target.value)}
-        />
-        <div
-          className={`laInstructionsCount${overLimit ? ' laError' : ''}`}
-          aria-live="polite"
-        >{`${draft.length} / ${MAX_TEXT}`}</div>
-        <OnOff
-          on={instructions.enabled}
-          toggleName="instructions"
-          labelledBy="laInstructionsTitle"
-          disabled={busy}
-          onChange={(enabled) => act('toggle', { target: 'instructions', enabled })}
-        />
-        <div className="laActions">
-          <button type="button" className="button small blue" disabled={overLimit || busy} onClick={saveInstructions}>
-            {STRINGS.saveInstructions}
-          </button>
-        </div>
-        <div className="laUpdated">{lastUpdated(instructions.updatedAt, 'You')}</div>
-      </div>
-
       <div className="laBlock laCard" id="profile">
         <h3 id="laProfileTitle" className="laCardTitle">
           {STRINGS.profile}
@@ -534,18 +513,64 @@ const Personalization = ({ base, token }) => {
         )}
       </div>
 
+      <div className="laBlock laCard" id="instructions">
+        <h3 id="laInstructionsTitle" className="laCardTitle">
+          {STRINGS.instructions}
+        </h3>
+        <p className="laDescription">{STRINGS.instructionsDescription}</p>
+        <textarea
+          className="sefaria-input-control laTextarea laInstructions"
+          aria-labelledby="laInstructionsTitle"
+          rows={4}
+          value={draft}
+          placeholder={STRINGS.instructionsPlaceholder}
+          onChange={(e) => setDraft(e.target.value)}
+        />
+        <div
+          className={`laInstructionsCount${overLimit ? ' laError' : ''}`}
+          aria-live="polite"
+        >{`${draft.length} / ${MAX_TEXT}`}</div>
+        <OnOff
+          on={instructions.enabled}
+          toggleName="instructions"
+          labelledBy="laInstructionsTitle"
+          disabled={busy}
+          onChange={(enabled) => act('toggle', { target: 'instructions', enabled })}
+        />
+        <div className="laActions">
+          <button type="button" className="button small blue" disabled={overLimit || busy} onClick={saveInstructions}>
+            {STRINGS.saveInstructions}
+          </button>
+        </div>
+        <div className="laUpdated">{lastUpdated(instructions.updatedAt, 'You')}</div>
+      </div>
+
       {data.labEnabled && (
         <div className="laBlock laCard laCardTools" id="testing-tools">
           <h3 className="laCardTitle">{STRINGS.testing}</h3>
           <p className="laDescription">{STRINGS.testingNote}</p>
           <div className="laActions">
-            <button type="button" className="button small" disabled={busy} onClick={() => runNow('session')}>
+            <button
+              type="button"
+              className="button small"
+              disabled={busy}
+              title={STRINGS.runNowHelp}
+              onClick={() => runNow('session')}
+            >
               {STRINGS.runNow}
             </button>
-            <button type="button" className="button small" disabled={busy} onClick={() => runNow('dream')}>
+            <button
+              type="button"
+              className="button small"
+              disabled={busy}
+              title={STRINGS.dreamNowHelp}
+              onClick={() => runNow('dream')}
+            >
               {STRINGS.dreamNow}
             </button>
           </div>
+          <p className="laDescription laHelper">{STRINGS.runNowHelp}</p>
+          <p className="laDescription laHelper">{STRINGS.dreamNowHelp}</p>
           {runResult && (
             <div className="laMessage laRunResult" role="status">
               {runResult}
@@ -560,9 +585,11 @@ const Personalization = ({ base, token }) => {
               toggleName="updateEveryMessage"
               labelledBy="laUpdateEveryLabel"
               disabled={busy}
+              title={STRINGS.updateEveryHelp}
               onChange={(updateEveryMessage) => act('set_testing', { updateEveryMessage })}
             />
           </div>
+          <p className="laDescription laHelper">{STRINGS.updateEveryHelp}</p>
           <div className="laTestRow">
             <span className="laTestLabel" id="laPlainResponseLabel">
               {STRINGS.plainResponse}
@@ -572,15 +599,24 @@ const Personalization = ({ base, token }) => {
               toggleName="showPlainResponse"
               labelledBy="laPlainResponseLabel"
               disabled={busy}
+              title={STRINGS.plainResponseHelp}
               onChange={(showPlainResponse) => act('set_testing', { showPlainResponse })}
             />
           </div>
+          <p className="laDescription laHelper">{STRINGS.plainResponseHelp}</p>
           <div className="laHealthRow">
             <strong>{STRINGS.health}</strong>
-            <button type="button" className="button small transparent" disabled={busy} onClick={checkHealth}>
+            <button
+              type="button"
+              className="button small transparent"
+              disabled={busy}
+              title={STRINGS.checkHealthHelp}
+              onClick={checkHealth}
+            >
               {STRINGS.checkHealth}
             </button>
           </div>
+          <p className="laDescription laHelper">{STRINGS.checkHealthHelp}</p>
           {isPlainObject(testing.jobState) &&
             typeof testing.jobState.hourUsed === 'number' &&
             typeof testing.jobState.hourLimit === 'number' && (
@@ -628,8 +664,12 @@ const LibraryAssistantSettings = (props) => {
   const base = chatbotApiBaseUrl(props);
   const token = props.chatbot_user_token;
   const hasAccess = !!(token && base);
+  const from = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('from');
   return (
     <div className="libraryAssistantSettings">
+      <a className="button small" href={safeReturnPath(from)}>
+        {STRINGS.backToLearning}
+      </a>
       <AssistantSwitch initial={readInitialEnabled(props.libraryAssistantEnabled)} />
       <section id="personalization" className="section laSection">
         <div className="laCard laIntro">

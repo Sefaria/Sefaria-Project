@@ -5,7 +5,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act, Simulate } from 'react-dom/test-utils';
-import LibraryAssistantSettings, { isPreviewBase, LOAD_TIMEOUT_MS } from '../LibraryAssistantSettings';
+import LibraryAssistantSettings, { isPreviewBase, LOAD_TIMEOUT_MS, safeReturnPath } from '../LibraryAssistantSettings';
 
 const BASE = 'https://la.example/api';
 const state = (over = {}) => ({
@@ -636,5 +636,67 @@ describe('LibraryAssistantSettings', () => {
     await act(async () => resolve({ ok: true, status: 200, json: () => Promise.resolve({ jobs: [] }) }));
     expect(errors).not.toHaveBeenCalled();
     errors.mockRestore();
+  });
+});
+
+describe('Library Assistant settings: card order, testing helper lines, Back to Learning', () => {
+  afterEach(() => {
+    window.history.replaceState({}, '', '/');
+  });
+
+  it('renders the Profile card before the Instructions card', async () => {
+    await render();
+    const profile = q('#profile');
+    const instructions = q('#instructions');
+    expect(profile).not.toBeNull();
+    expect(instructions).not.toBeNull();
+    expect(profile.compareDocumentPosition(instructions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('gives every testing-tools control a title and one helper line with the same text', async () => {
+    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
+    await render();
+    const box = q('#testing-tools');
+    const helpers = [...box.querySelectorAll('p.laHelper')].map((p) => p.textContent);
+    // Run now, Dream now, Update after every message, Include non-personalized response, Check job health.
+    expect(helpers).toHaveLength(5);
+    expect(new Set(helpers).size).toBe(5);
+    helpers.forEach((h) => {
+      expect(h).toMatch(/\.$/);
+      expect(h.slice(0, -1)).not.toMatch(/\. /);
+    });
+    const controls = [...box.querySelectorAll('button')];
+    expect(controls).toHaveLength(7); // 2 buttons, 2 toggles (2 options each), Check job health
+    controls.forEach((c) => {
+      expect(c.getAttribute('title')).toBeTruthy();
+      expect(helpers).toContain(c.getAttribute('title'));
+    });
+  });
+
+  it.each([
+    ['/Genesis.1', '/Genesis.1'],
+    [null, '/'],
+    ['https://x.com', '/'],
+    ['//x.com', '/'],
+    ['/\\x.com', '/'],
+    ['javascript:alert(1)', '/'],
+  ])('safeReturnPath(%p) returns %p', (raw, expected) => {
+    expect(safeReturnPath(raw)).toBe(expected);
+  });
+
+  it('Back to Learning links to the safe from parameter', async () => {
+    window.history.replaceState({}, '', '/settings/library-assistant?from=%2FGenesis.1');
+    await render();
+    expect(byText('a', 'Back to Learning').getAttribute('href')).toBe(safeReturnPath('/Genesis.1'));
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+    window.history.replaceState({}, '', '/settings/library-assistant?from=https%3A%2F%2Fx.com');
+    await render();
+    expect(byText('a', 'Back to Learning').getAttribute('href')).toBe('/');
+  });
+
+  it('Back to Learning goes to / when there is no from parameter', async () => {
+    await render();
+    expect(byText('a', 'Back to Learning').getAttribute('href')).toBe('/');
   });
 });
