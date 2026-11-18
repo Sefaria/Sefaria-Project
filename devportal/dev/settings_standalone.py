@@ -34,6 +34,9 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    # There is no ModuleMiddleware here, so it treats every request as a portal request except
+    # /api/, /static/ and /admin/ (devportal/middleware.py).
+    "devportal.middleware.DevportalMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 

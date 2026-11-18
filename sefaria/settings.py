@@ -163,6 +163,8 @@ MIDDLEWARE = [
     "sefaria.system.middleware.WebSessionRedirectMiddleware",
     "sefaria.system.middleware.LanguageCookieMiddleware",
     "sefaria.system.middleware.LanguageSettingsMiddleware",
+    # No-op unless request.active_module is the developers module (PLAN.md §2.2, Q5).
+    "devportal.middleware.DevportalMiddleware",
     "sefaria.system.middleware.ProfileMiddleware",
     "sefaria.system.middleware.CORSDebugMiddleware",
     "sefaria.system.middleware.SharedCacheMiddleware",
@@ -196,6 +198,7 @@ INSTALLED_APPS = (
     "sefaria.gauth",
     "django_topics.apps.DjangoTopicsAppConfig",
     "powered_by.apps.PoweredByAppConfig",
+    "devportal.apps.DevportalConfig",
     "dedications.apps.DedicationsAppConfig",
     "django_recaptcha",
     "django.contrib.admin",

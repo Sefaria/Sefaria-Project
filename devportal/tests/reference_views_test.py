@@ -38,7 +38,7 @@ def tree():
 
 
 def _island(response):
-    match = re.search(r'<script id="dp-data" type="application/json">(.*?)</script>', response.content.decode(), re.S)
+    match = re.search(r'<script\b[^>]*\bid="dp-data"[^>]*>(.*?)</script>', response.content.decode(), re.S)
     assert match, "no #dp-data island"
     return json.loads(match.group(1))
 

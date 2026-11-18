@@ -162,10 +162,13 @@ from sefaria.utils.calendars import (
 from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.utils.design_system import design_system_preview
 from sefaria.utils.domains_and_languages import (
+    client_domain_modules,
     current_domain_lang,
+    developers_url,
     get_cookie_domain,
     get_redirect_domain_for_language,
     needs_domain_switch,
+    powered_by_url,
 )
 from sefaria.utils.hebrew import has_hebrew, hebrew_term
 from sefaria.utils.user import delete_user_account
@@ -458,7 +461,11 @@ def base_props(request):
             "initialPath": request.get_full_path(),
             "interfaceLang": request.interfaceLang,
             "countryCode": request.country_code,
-            "domainModules": settings.DOMAIN_MODULES,
+            # Only the library and voices modules: the React app never learns about the developers
+            # module (rule Q2, PLAN.md §2.2). Links to the portal use developersURL and poweredByURL.
+            "domainModules": client_domain_modules(),
+            "developersURL": developers_url(),
+            "poweredByURL": powered_by_url(),
             "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
             "initialSettings": {
                 "language": getattr(request, "contentLang", "english"),

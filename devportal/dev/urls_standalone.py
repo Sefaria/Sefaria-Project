@@ -19,6 +19,9 @@ from django.views.decorators.http import require_GET
 
 logger = logging.getLogger("devportal")
 
+handler404 = "devportal.views.errors.page_not_found"
+handler500 = "devportal.views.errors.server_error"
+
 
 @require_GET
 def powered_by_fixture(request):

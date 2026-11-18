@@ -1,9 +1,34 @@
-"""URLconf of the developer portal, included by sefaria/urls_developers.py.
+"""URLconf of the developer portal, included by sefaria/urls_developers.py and by the standalone
+dev server (devportal/dev/urls_standalone.py).
 
-The full URL map is contract C9 (devportal/contracts/C9_urls.json). Patterns are added by the
-workstreams that own each view.
+The full URL map is contract C9 (devportal/contracts/C9_urls.json). Workstreams add their routes
+above the fallback, which must stay last: it answers every other path with the page resolver
+(home, docs and custom pages, the built-in redirects, the Redirect table, then the 404 page).
 """
+
+from django.urls import path, re_path
+
+from devportal.mcp.django_view import mcp_view
+
+from .views import api, pages
 
 app_name = "devportal"
 
-urlpatterns = []
+urlpatterns = [
+    # Site files.
+    path("robots.txt", pages.robots_txt, name="robots"),
+    path("favicon.ico", pages.site_file, {"name": "favicon.ico"}, name="favicon"),
+    path("apple-touch-icon.png", pages.site_file, {"name": "apple-touch-icon.png"}, name="apple_touch_icon"),
+    path("icon-192.png", pages.site_file, {"name": "icon-192.png"}, name="icon_192"),
+    path("icon-512.png", pages.site_file, {"name": "icon-512.png"}, name="icon_512"),
+    path("site.webmanifest", pages.web_manifest, name="web_manifest"),
+    path("login", pages.login_redirect, name="login"),
+    # The MCP server (PLAN.md §2.10): the app's only csrf_exempt view.
+    path("mcp", mcp_view, name="mcp"),
+    # Internal endpoints.
+    path("_portal/page.json", api.page_json, name="page_json"),
+    path("_portal/csrf", api.csrf_token, name="csrf"),
+    re_path(r"^_portal/", api.portal_not_found, name="portal_not_found"),
+    # Fallback: must stay last.
+    re_path(r"^.*$", pages.portal_page, name="page"),
+]

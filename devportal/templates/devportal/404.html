@@ -1,0 +1,16 @@
+{% extends "devportal/base.html" %}
+{% comment %}
+The 404 page copies live (I-14): "Page Not Found", then up to three suggestions chosen by slug
+similarity. Live's strings: pageNotFound.heading, suggestionsPrompt_one / suggestionsPrompt_other.
+{% endcomment %}
+{% block content %}<main class="dp-main" id="dp-main">
+<div class="dp-notfound">
+<h2 class="dp-notfound-title">Page Not Found</h2>
+{% if suggestions %}<div class="dp-notfound-suggestions">
+<p class="dp-notfound-prompt">{% if suggestions|length == 1 %}Maybe you were looking for this:{% else %}Maybe you were looking for one of these:{% endif %}</p>
+<ul class="dp-notfound-list">
+{% for suggestion in suggestions %}<li><a class="dp-notfound-link" href="{{ suggestion.path }}">{{ suggestion.title }}</a></li>
+{% endfor %}</ul>
+</div>{% endif %}
+</div>
+</main>{% endblock %}
