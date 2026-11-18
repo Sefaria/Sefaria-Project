@@ -13,9 +13,16 @@ Installed once per page by the shell (`src/routes/__root.tsx`), as sefaria.org's
 
 ## The Library Assistant (`<lc-chatbot>`)
 
-`src/features/assistant/LibraryAssistant.tsx`, mounted by the shell. It is shown to a signed-in reader who has the assistant on, on a
-screen wider than 842px, unless remote config hides it (`feature.client.remote_config_json` → `chatbot.hide: 1`). The script loads
-only for those readers, in the browser, once per page. Nothing is rendered on the server.
+`src/features/assistant/LibraryAssistant.tsx`, mounted by the shell. Who gets it (`src/lib/assistant/access.ts`):
+
+- **A signed-in reader** who has the assistant on, with the token Django gives them.
+- **A signed-out visitor**, without a token, unless remote config turns `feature.chatbot.anonymous_enabled` off. They get the free
+  answers remote config allows (`feature.chatbot.anonymous_free_answers`; the chat server enforces the number), then the widget's
+  login prompt, whose `signup-options` slot holds this client's Sign up and Log in links, coming back to the same page.
+
+It is shown at every width: on a phone the widget draws its own Ask button and full-screen sheet. It is not shown on the login,
+registration and password-reset pages, on the Voices host, or when remote config hides it (`feature.client.remote_config_json` →
+`chatbot.hide: 1`). The script loads only where it is shown, in the browser, once per page. Nothing is rendered on the server.
 
 **What it sends** (from its build, `lc-chatbot.umd.cjs`):
 
@@ -32,13 +39,15 @@ Links to other sites the assistant opens in a new tab itself.
 
 | Attribute                           | From                                                                                                                       |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `user-id`                           | the encrypted token from `GET /api/library-assistant` (Django: `library_assistant.is_enabled`, `build_chatbot_user_token`) |
+| `user-id`                           | the encrypted token from `GET /api/library-assistant` (Django: `library_assistant.is_enabled`, `build_chatbot_user_token`); left off for a signed-out visitor |
 | `api-base-url`                      | the build (below)                                                                                                          |
 | `origin`                            | `sefaria-<SENTRY_ENVIRONMENT>`                                                                                             |
 | `is-moderator`                      | staff readers                                                                                                              |
 | `placement`, `default-open`, `mode` | `right`, `true`, `floating`                                                                                                |
 | `max-input-chars`, `max-prompts`    | remote config `feature.chatbot.max_input_chars` / `max_prompts` (10000 / 100)                                              |
 | `interface-lang`                    | `en` / `he`                                                                                                                |
+| `anon-free-answers`                 | signed out only: remote config `feature.chatbot.anonymous_free_answers`, when it holds a value                             |
+| `design-system-preview`             | outside production only: the design-system version to preview                                                              |
 
 **Which build** (first match wins), the same rules as Django's context processor:
 
