@@ -4,6 +4,36 @@ The atlas (`features.json`) is the source of truth for the rebuild. Whenever bui
 
 Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader has that the old client did not, so the atlas also describes what we ship.
 
+## 2026-11-18 — phone parity sweep against sefaria.org
+
+Every phone surface was measured against www.sefaria.org with Playwright (375x812, 320x568, 412x915; English and Hebrew; numbers
+in each spec's header), and each difference was fixed with a test that fails without the fix. _verified_ 2026-11-18.
+
+- **The Library Assistant's sheet is above the reader's bar on a phone** (it lay under the bar; Close took no tap): the docked
+  column's sticky rule applies only at 601-842px and carries the widget's z-index. (AI-011)
+- **The reader's Menu button toggles the menu** (a second tap closed nothing), with aria-expanded. (GUI-011, SHL-062)
+- **A tapped verse goes to 134px from the top, above the sheet**, and the reader's bar gives way while the sheet is open, as
+  `TextColumn.scrollToHighlighted` and ReaderPanel's TextAndConnections; the verse stays put when the sheet closes. (CON-009, SHL-061)
+- **The translation suggestion stays under the reader's bar** (the opening scroll took it off the screen); 15px sides, the button on
+  two lines clear of its ×, under the bar's menus, and out of the way while the phone menu is open (over it, it hid the menu's
+  search box, on sefaria.org too: `rebuild-only`). (SHL-061)
+- **The reader's bar**: 15px in at both ends, a 40x56 bold fa-bars menu button; the Hebrew interface's button nudges at every width.
+  (SHL-062, GUI-001)
+- **The site header stays at the top of a library page as it scrolls** (it scrolled away with the menu). (GUI-001)
+- **The sheet**: Hebrew connected texts at 21.96px, black text, Open 13px #666; on a phone the list 45px in, no title over it, each
+  number past the text in #ccc, sub-views' header 50px with the back link 15px in; tool rows 15px after their icon, the EN tag 12px.
+  The sheet's Close is kept (sefaria.org's phone sheet has none): `rebuild-only`. (CON-001, CON-002, CON-009, CON-030)
+- **The search page's layout and type** (bar, tabs, the 76px sort row, the Roboto toggle and sort, 12px counts and versions, the
+  filter headings and spacing), on phones and desktop. (SRC-049, SRC-062, SRC-063)
+- **The book page's contents and sidebar** (16px headings, light 18px tiles with 3px round them, 24px portions 60px apart, the
+  sidebar's 22px/500 headings), on phones and desktop. (LIB-020)
+- **A footnote opens in place after its marker** (0.8em #666), not as a block under the verse. (TXD-021)
+- **The text is black** (the Hebrew side and titles were #121212), a citation in it #333, the book's title above its first section
+  30px (36.6px in Hebrew), a Hebrew parashah 29.28px.
+
+Differences left as they are: the chapter number shows under the bar at the start of a text (sefaria.org scrolls it under its bar,
+41-52px higher); a Hebrew-interface phone sheet names categories in Hebrew (sefaria.org's phone layout alone shows them in English).
+
 ## 2026-11-18 — master merged in (to #4079): what reaches the reader
 
 - **Account settings are a React page on master** (#3774: `static/js/SettingsPage.jsx`, `templates/account_settings.html` deleted).

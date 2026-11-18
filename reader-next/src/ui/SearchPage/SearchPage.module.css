@@ -143,16 +143,16 @@
      on a 22.5px line; the phone panel's sorts 16px. */
 .tab, .stripTab { padding-block: 10px; border-block-end-width: 4px; color: var(--sefaria-color-text-dark-grey); }
 .tab[data-current], .stripTab[aria-selected="true"] { color: var(--sefaria-color-text-strong); border-block-end-color: var(--sefaria-color-border-strong); }
-@media (max-width: 842px) { .stripTab:not([aria-selected="true"]) { color: #575757; } }
+@media (max-width: 842px) { .stripTab:not([aria-selected="true"]) { color: var(--sefaria-color-text-on-band); } }
 .count { display: inline-block; min-width: 24px; box-sizing: border-box; padding: 2px 4px; border-radius: 4px; background: var(--sefaria-color-chip); font-family: var(--sefaria-font-ui-en); font-size: 12px; line-height: 20px; color: var(--sefaria-color-text-dark-grey); text-align: center; }
 .tab, .stripTab { gap: 12px; }
-.toggle { position: relative; display: inline-flex; align-items: center; width: 216px; padding: 4px; box-sizing: border-box; background: #fafafa; border: 1px solid var(--sefaria-color-chip); border-radius: 9999px; }
+.toggle { position: relative; display: inline-flex; align-items: center; width: 216px; padding: 4px; box-sizing: border-box; background: var(--sefaria-color-surface-muted); border: 1px solid var(--sefaria-color-chip); border-radius: 9999px; }
 .toggle[data-block] { display: flex; width: 100%; }
-.toggleOption { width: 104px; padding: 8px 12px; border: 0; border-radius: 9999px; background: none; cursor: pointer; font-family: var(--sefaria-font-ui-en); font-size: 14px; font-weight: 400; line-height: 18px; color: #575757; white-space: nowrap; text-align: center; }
+.toggleOption { width: 104px; padding: 8px 12px; border: 0; border-radius: 9999px; background: none; cursor: pointer; font-family: var(--sefaria-font-ui-en); font-size: 14px; font-weight: 400; line-height: 18px; color: var(--sefaria-color-text-on-band); white-space: nowrap; text-align: center; }
 .toggle[data-block] .toggleOption { flex: 1 0 0; width: auto; min-width: 0; }
-.toggleOption[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 10%); color: var(--sefaria-color-text); font-weight: 600; }
+.toggleOption[aria-pressed="true"] { background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-toggle); color: var(--sefaria-color-text); font-weight: 600; }
 :lang(he) .toggleOption { font-family: var(--sefaria-font-ui-he); }
-.sortBtn { font-family: var(--sefaria-font-ui-en); color: #575757; }
+.sortBtn { font-family: var(--sefaria-font-ui-en); color: var(--sefaria-color-text-on-band); }
 :lang(he) .sortBtn { font-family: var(--sefaria-font-ui-he); }
 .version, .version a, .more { font-family: var(--sefaria-font-ui-en); font-size: 12px; line-height: 20px; color: var(--sefaria-color-text-secondary); }
 .version { margin-block-start: 0; }

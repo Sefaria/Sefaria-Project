@@ -72,5 +72,5 @@ button.open { padding: 0; border: 0; background: none; cursor: pointer; }
 @media (max-width: 842px) {
   .title, .recent { display: none; }
   .item { position: relative; }
-  .number { position: absolute; inset-block-start: 12px; inset-inline-end: -30px; width: 30px; min-width: 0; margin: 0; text-align: center; font-size: 12px; font-weight: lighter; color: #ccc; }
+  .number { position: absolute; inset-block-start: 12px; inset-inline-end: -30px; width: 30px; min-width: 0; margin: 0; text-align: center; font-size: 12px; font-weight: lighter; color: var(--sefaria-color-border-strong); }
 }
