@@ -90,6 +90,7 @@ from .linker_editor_history import LinkerEditorHistory, LinkerEditorHistorySet, 
 from .ref_data import RefData, RefDataSet
 from .webpage import WebPage, WebPageSet
 from .webpage_text import WebPageText, WebPageTextSet
+from .translation_feedback import TranslationFeedback, TranslationFeedbackSet
 from .media import Media, MediaSet
 from .guide import Guide, GuideSet
 from .topic import (

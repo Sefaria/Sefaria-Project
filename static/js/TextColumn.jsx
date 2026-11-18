@@ -8,6 +8,12 @@ import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import Component from 'react-class';
 import { ContentText } from './ContentText';
+import {
+  TranslationFeedbackModal,
+  TranslationFeedbackToast,
+  getTranslationFeedbackTarget,
+  notifyFeedbackChanged,
+} from './TranslationFeedback';
 
 class TextColumn extends Component {
   // An infinitely scrollable column of text, composed of TextRanges for each section.
@@ -15,6 +21,9 @@ class TextColumn extends Component {
     super(props);
     this.state = {
       showScrollPlaceholders: false,
+      translationFeedbackTarget: null, // set when a segment's translation is double-clicked
+      showTranslationFeedbackToast: false,
+      translationFeedbackKey: 0,
     };
     this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
     this.scrollPlaceholderHeight = 90;
@@ -133,6 +142,22 @@ class TextColumn extends Component {
     }
   }
 
+  handleTranslationFeedbackDoubleClick(event) {
+    // Translation feedback POC: desktop only, translation side only. The browser's word
+    // selection (and handleTextSelection on mouseup) has already happened; we only add a modal.
+    if (!this.props.multiPanel) { return; }
+    const target = getTranslationFeedbackTarget(event);
+    if (target) {
+      this.setState(prev => ({translationFeedbackTarget: target, translationFeedbackKey: prev.translationFeedbackKey + 1}));
+    }
+  }
+  closeTranslationFeedback() {
+    this.setState({translationFeedbackTarget: null});
+  }
+  onTranslationFeedbackSaved() {
+    notifyFeedbackChanged(this.state.translationFeedbackTarget?.ref);  // so the new suggestion shows under its segment
+    this.setState({translationFeedbackTarget: null, showTranslationFeedbackToast: true});
+  }
   handleTextSelection() {
     //Please note that because this function is triggered by an event listener on the document object, that will always be the event target
     // (should someone choose to add reference to the event itself in the future in this function) and not a more specific element.
@@ -537,10 +562,22 @@ class TextColumn extends Component {
         onMouseUp={this.handleTextSelection}
         onClick={this.handleClick}
         onMouseDown={this.handleDoubleClick}
+        onDoubleClick={this.handleTranslationFeedbackDoubleClick}
       >
         {pre}
         {content}
         {post}
+        {this.state.translationFeedbackTarget ? (
+          <TranslationFeedbackModal
+            key={this.state.translationFeedbackKey}
+            target={this.state.translationFeedbackTarget}
+            onClose={this.closeTranslationFeedback}
+            onSaved={this.onTranslationFeedbackSaved}
+          />
+        ) : null}
+        {this.state.showTranslationFeedbackToast ? (
+          <TranslationFeedbackToast onDone={() => this.setState({ showTranslationFeedbackToast: false })} />
+        ) : null}
       </div>
     );
   }

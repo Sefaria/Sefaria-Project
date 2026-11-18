@@ -10,6 +10,7 @@ import { EnglishText, HebrewText, LoadingMessage } from './Misc';
 import { VersionContent } from './ContentText';
 import { ContentText } from './ContentText';
 import { ReaderPanelContext } from './context';
+import { SegmentFeedbackMarks, fetchSegmentMarks, marksForSegment, FEEDBACK_CHANGED_EVENT } from './TranslationFeedback';
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -20,16 +21,32 @@ class TextRange extends Component {
     this.state = {
       data: null,
       isMounted: false,
+      feedbackMarks: null,  // translation feedback POC: {segment ref: {pending, changed}} for this section
     };
   }
   componentDidMount() {
     this.setState({ isMounted: true });
     this.setData();
     window.addEventListener('resize', this.conditionalPlaceSegmentNumbers);
+    window.addEventListener(FEEDBACK_CHANGED_EVENT, this.onFeedbackChanged);
   }
   componentWillUnmount() {
+    this._unmounted = true;
     this.setState({ isMounted: false });
     window.removeEventListener('resize', this.conditionalPlaceSegmentNumbers);
+    window.removeEventListener(FEEDBACK_CHANGED_EVENT, this.onFeedbackChanged);
+  }
+  loadFeedbackMarks(fresh = false) {
+    // Only the main text column shows feedback marks (not sidebar text lists).
+    const data = this.state.data;
+    if (!this.props.basetext || !data || data.error || !data.ref) { return; }
+    const ref = data.ref;
+    fetchSegmentMarks(ref, {fresh}).then(marks => {
+      if (!this._unmounted && this.state.data && this.state.data.ref === ref) { this.setState({feedbackMarks: marks}); }
+    });
+  }
+  onFeedbackChanged() {
+    this.loadFeedbackMarks(true);
   }
   shouldComponentUpdate(nextProps, nextState) {
     if (this.props.sref !== nextProps.sref) {
@@ -78,12 +95,18 @@ class TextRange extends Component {
     if (this.state.data !== nextState.data) {
       return true;
     }
+    if (this.state.feedbackMarks !== nextState.feedbackMarks) {
+      return true;
+    }
 
     return false;
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.state.data !== prevState.data) {
       this.onTextLoad();
+    }
+    if (this.state.feedbackMarks !== prevState.feedbackMarks) {
+      this.conditionalPlaceSegmentNumbers();  // suggestion boxes change segment heights
     }
     if (!Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
       this.setData();
@@ -161,6 +184,7 @@ class TextRange extends Component {
     }
 
     this.prefetchData();
+    this.loadFeedbackMarks();
 
     this.conditionalPlaceSegmentNumbers();
     this.props.onTextLoad && this.props.onTextLoad(data.ref);
@@ -340,6 +364,8 @@ class TextRange extends Component {
     if (segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)) {
       strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
+    // Translation version shown on each segment, for the translation feedback POC (TranslationFeedback.jsx).
+    const translationVersion = Array.isArray(data?.versions) && data.versions.length ? Sefaria.getPrimaryAndTranslationFromVersions(data.versions)[1] : null;
     let textSegments = segments.map((segment, i) => {
       let highlight =
         this.props.highlightedRefs && this.props.highlightedRefs.length // if highlighted refs are explicitly set
@@ -372,6 +398,8 @@ class TextRange extends Component {
         segment.he = segment.he.replace(strip_punctuation_re, '');
       }
 
+      const translationVersionTitle = (Array.isArray(data.sources) && data.sources[i]) || data.versionTitle || null;
+      const segmentEn = !this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null;
       return (
         <span className="rangeSpan" key={i + segment.ref}>
           {parashahHeader}
@@ -399,6 +427,9 @@ class TextRange extends Component {
             formatHeAsPoetry={formatHeAsPoetry}
             placeSegmentNumbers={this.conditionalPlaceSegmentNumbers}
             navigatePanel={this.props.navigatePanel}
+            translationVersionTitle={translationVersionTitle}
+            translationActualLanguage={translationVersion?.actualLanguage || null}
+            feedbackMarks={segmentEn ? marksForSegment(this.state.feedbackMarks, segment.ref, translationVersionTitle) : null}
           />
         </span>
       );
@@ -546,6 +577,10 @@ class TextSegment extends Component {
       return true;
     }
     if (this.props.en !== nextProps.en || this.props.he !== nextProps.he) {
+      return true;
+    }
+    // feedbackMarks is rebuilt on every TextRange render, so compare its contents (small: a few suggestions at most)
+    if (JSON.stringify(this.props.feedbackMarks || null) !== JSON.stringify(nextProps.feedbackMarks || null)) {
       return true;
     }
     return false;
@@ -766,6 +801,8 @@ class TextSegment extends Component {
         onClick={this.handleClick}
         onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)}
         data-ref={this.props.sref}
+        data-translation-vtitle={this.props.en ? this.props.translationVersionTitle || undefined : undefined}
+        data-translation-lang={this.props.en ? this.props.translationActualLanguage || undefined : undefined}
         aria-describedby={this.props.panelPosition != null ? 'panel-' + this.props.panelPosition : null}
         aria-label={'Click to see links to ' + this.props.sref}
       >
@@ -778,6 +815,8 @@ class TextSegment extends Component {
             imageLoadCallback={this.props.placeSegmentNumbers}
           />
         </p>
+        {this.props.feedbackMarks && shouldTranslationShow ?
+          <SegmentFeedbackMarks pending={this.props.feedbackMarks.pending} changed={this.props.feedbackMarks.changed}/> : null}
 
         <div className="clearFix"></div>
       </div>
@@ -804,6 +843,9 @@ TextSegment.propTypes = {
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
   navigatePanel: PropTypes.func,
+  translationVersionTitle: PropTypes.string,
+  translationActualLanguage: PropTypes.string,
+  feedbackMarks: PropTypes.object,
 };
 
 export { TextSegment };
