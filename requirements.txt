@@ -24,8 +24,6 @@ billiard<5.0,>=4.2.1
     # via celery
 bleach==6.1.0
     # via -r ./requirements.txt
-jsonschema==4.26.0
-    # test-only: devportal/tests/pure/contracts_test.py validates the portal contract fixtures
 tinycss2==1.5.1
     # via bleach[css]  # required by bleach.css_sanitizer (sefaria/sheets.py)
 boto3==1.16.6
@@ -205,6 +203,8 @@ jsonpickle==1.4.1
     # via
     #   -r ./requirements.txt
     #   deepdiff
+jsonschema==4.26.0
+    # test-only: devportal/tests/pure/contracts_test.py validates the portal contract fixtures
 kombu<5.6,>=5.5.2
     # via celery
 linkify-it-py==2.2.0
