@@ -6619,6 +6619,14 @@ big {
     top: 47px;
     left: -50px;
 }
+/* Touch screens: a tap leaves :hover stuck on whatever ends up under the finger (e.g. after the
+   mobile Resources panel closes), so the Text display options tooltip would pop up. Mouse only. */
+@media (hover: none) {
+  .readerOptionsTooltip.tooltip-toggle::before,
+  .readerOptionsTooltip.tooltip-toggle::after {
+    display: none;
+  }
+}
 .rightButtons .readerOptions {
   vertical-align: middle;
 }
