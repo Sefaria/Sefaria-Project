@@ -51,6 +51,9 @@ spec:
         web:
           gunicornWorkerCount: 3
           gunicornThreadCount: 8
+          # ~31k requests per worker per hour in prod: a restart about every 1.6 h
+          maxRequests: 50000
+          maxRequestsJitter: 5000
           resources:
             requests:
               memory: "14Gi"

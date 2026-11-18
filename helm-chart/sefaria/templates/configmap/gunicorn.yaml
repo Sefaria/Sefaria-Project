@@ -12,6 +12,7 @@ data:
     # - Add commandline arguments here
     # - configure logging
 
+    import gc
     import os
     import structlog
     import re
@@ -39,11 +40,25 @@ data:
         pass
     
     # Gunicorn worker restart policy (infreq restarts, protect from leaks)
-    if os.getenv("MAX_REQUESTS") and os.getenv("MAX_REQUESTS_JITTER"):
+    if os.getenv("MAX_REQUESTS"):
         max_requests = int(os.getenv("MAX_REQUESTS"))
-        max_requests_jitter = int(os.getenv("MAX_REQUESTS_JITTER"))
+        max_requests_jitter = int(os.getenv("MAX_REQUESTS_JITTER", "0"))
+
+    # Keep the objects loaded before fork (Django, the library) shared between workers.
+    # The GC writes to every object it scans, which copies their pages into each worker.
+    # The recipe from Python's gc docs: disable the GC in the master, freeze before each fork,
+    # enable it in the worker. Frozen objects are never scanned.
+    GC_FREEZE = os.getenv("GUNICORN_GC_FREEZE") == "true"
+    if GC_FREEZE:
+        gc.disable()
+
+    def pre_fork(server, worker):
+        if GC_FREEZE:
+            gc.freeze()
 
     def post_fork(server, worker):
+        if GC_FREEZE:
+            gc.enable()
         server.log.info("Worker spawned (pid: %s)", worker.pid)
         from reader.startup import init_sentry_from_settings
         init_sentry_from_settings()
