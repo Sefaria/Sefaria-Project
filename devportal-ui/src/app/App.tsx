@@ -1,17 +1,11 @@
-import type { PagePayload } from '../contracts';
+import type { DataRouter } from 'react-router';
+import { RouterProvider } from 'react-router';
 
 export interface AppProps {
-  data: PagePayload | null;
+  router: DataRouter;
 }
 
-/**
- * Phase 0 placeholder root. W2 replaces it with the router and the three-column frame (PLAN §3, Phase 1).
- */
-export function App({ data }: AppProps) {
-  const title = data !== null && data.kind !== 'redirect' ? data.title : 'Developers on Sefaria';
-  return (
-    <div className="dp-app" data-kind={data?.kind ?? 'none'}>
-      <p className="dp-app__hello">{title}</p>
-    </div>
-  );
+/** The portal's root: the router (`router.ts`), whose one route renders `PortalPage`. */
+export function App({ router }: AppProps) {
+  return <RouterProvider router={router} />;
 }

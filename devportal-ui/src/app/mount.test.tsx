@@ -62,7 +62,12 @@ describe('mount', () => {
     const container = document.getElementById('dp-root')!;
     expect(container).not.toHaveTextContent('server markup');
     expect(container.querySelector('.dp-app')).toHaveAttribute('data-kind', 'doc');
-    expect(container).toHaveTextContent("Welcome to Sefaria's Technical Documentation");
+    expect(container.querySelector('header')).toBeInTheDocument();
+    expect(container.querySelector('main article#content h1')).toHaveTextContent(
+      "Welcome to Sefaria's Technical Documentation"
+    );
+    expect(container.querySelector('[data-dp-adopted="body"]')).toHaveTextContent('What is Sefaria?');
+    expect(document.title).toBe("Welcome to Sefaria's Technical Documentation");
     expect(await axe(container)).toHaveNoViolations();
     act(() => root!.unmount());
   });

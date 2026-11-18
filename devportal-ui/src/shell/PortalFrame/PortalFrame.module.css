@@ -1,0 +1,139 @@
+/*
+ * The frame under the header, measured on live (REFERENCE_SPEC.md §1.2, §1.4, §1.6). Breakpoints from
+ * contract C5: 1065 (playground stacks), 768 (mobile: sidebar becomes the sub-nav panel), 700 (article
+ * padding), 414 (panel repositioned).
+ */
+.main {
+  display: block;
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system, Roboto, 'Helvetica Neue', Arial, sans-serif);
+}
+
+.container {
+  position: relative;
+  display: flex;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: var(--rm-hub-sidebar-width, 288px);
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: 1px 0 0 0 rgb(0 0 0 / 10%);
+}
+
+.article {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--rm-hub-content-max-width, 1280px);
+  padding: 32px;
+}
+
+.article:focus {
+  outline: none;
+}
+
+[data-layout='plain'] .article {
+  max-width: none;
+}
+
+/* Reference: article (max 800px) and the playground column (480px). */
+.columns {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.columns > .article {
+  max-width: var(--rm-hub-main-max-width, 800px);
+}
+
+.playground {
+  flex: 0 0 auto;
+  width: var(--rm-hub-playground-width, 480px);
+}
+
+/* Docs: the body and the right rail share the article. */
+.docsColumns {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.docsBody {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--rm-hub-main-max-width, 800px);
+}
+
+.docsRail {
+  position: sticky;
+  top: 32px;
+  flex: 0 0 auto;
+}
+
+@media (width <= 1065px) {
+  .columns {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .columns > .article {
+    max-width: none;
+  }
+
+  .playground {
+    width: auto;
+  }
+}
+
+@media (width <= 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .sidebar[data-open='true'] {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    z-index: 50;
+    display: block;
+    width: 293px;
+    height: auto;
+    max-height: 70vh;
+    border: 1px solid rgb(0 0 0 / 10%);
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 5px 10px 0 rgb(0 0 0 / 5%);
+  }
+
+  .docsColumns {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .docsRail {
+    position: static;
+    order: -1;
+    align-self: flex-end;
+  }
+}
+
+@media (width <= 700px) {
+  .article {
+    padding: 32px 20px;
+  }
+}
+
+@media (width <= 414px) {
+  .sidebar[data-open='true'] {
+    left: 15px;
+    width: calc(100% - 30px);
+  }
+}

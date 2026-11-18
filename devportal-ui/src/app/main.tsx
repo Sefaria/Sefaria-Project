@@ -2,6 +2,8 @@
 import '../styles/tokens.css';
 import '../styles/readme-tokens.css';
 import '../styles/article.css';
+import './fonts.css';
+import './base.css';
 import { mount } from './mount';
 
 mount(document);

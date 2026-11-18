@@ -1,0 +1,60 @@
+/* Live's 404 body (`.PageNotFound`), measured at 1440: centred in the space under the header. */
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 65px - 64px);
+  padding: 20px;
+  color: #32343a;
+  font-size: 16px;
+  text-align: center;
+}
+
+.title {
+  max-width: 390px;
+  margin: 0;
+  color: #32343a;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 34.6658px;
+}
+
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  max-width: 330px;
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 22.5px;
+}
+
+.prompt {
+  margin: 0 0 16px;
+  color: #484c58;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li + li {
+  margin-top: 8px;
+}
+
+.link {
+  display: block;
+  color: var(--rm-color-link-primary, #666);
+  text-decoration: none;
+}
+
+.link:hover {
+  color: #333;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #1976d2);
+  outline-offset: 2px;
+}
