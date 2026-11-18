@@ -88,6 +88,11 @@
 .emptyBody { margin: 0; font-size: 16px; color: var(--sefaria-color-text-secondary); }
 .emptyCta { display: inline-flex; align-items: center; justify-content: center; height: 43px; padding-inline: 16px; border-radius: 4px; background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); font-size: 16px; text-decoration: none; }
 .emptyCta:hover { opacity: 0.9; }
+/* the Library Assistant's name in the body: purple, underlined, on one line (static/css/library-assistant.scss) */
+.emptyAssistantLink { color: var(--sefaria-color-purple); text-decoration: underline; white-space: nowrap; }
+.emptyAssistantLink:hover { color: var(--sefaria-color-promo); text-decoration: underline; }
+/* room for the assistant's floating button (56px tall, 24px from the bottom; 16px on phones) plus a 24px gap */
+.emptyWithAssistant { padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
 .emptyCaption { margin: 0; font-size: 14px; line-height: 18px; color: var(--sefaria-color-text-on-chip); }
 .emptyCaption a { color: var(--sefaria-color-brand); text-decoration: underline; }
 .skeleton { position: relative; }

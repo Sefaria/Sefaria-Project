@@ -23,7 +23,6 @@ import { loadAssistantScript } from "~/lib/assistant/script";
 import { PUBLIC_CONFIG } from "~/lib/config";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
-import { useMediaQuery } from "~/lib/ui/use-media-query";
 import { setAssistantShown } from "~/features/shell/assistant-pill";
 
 declare module "react" {
@@ -96,7 +95,7 @@ function AssistantSignupOptions({ next }: { next: string }) {
 }
 
 /**
- * The Library Assistant (`<lc-chatbot>`), floating over the page on a wide screen unless remote config hides it (`chatbot.hide`) —
+ * The Library Assistant (`<lc-chatbot>`), floating over the page (on a phone, the widget's own Ask button and sheet) unless remote config hides it (`chatbot.hide`) —
  * sefaria.org's ReaderApp rule. A signed-in reader gets it when it is on for them (with their token); a signed-out visitor when remote
  * config's `feature.chatbot.anonymous_enabled` is not off (base_props' `chatbot_access_props`), without a token and with the sign-up
  * prompt's options. Not on the login, registration and password-reset pages, which a visitor reaches from the assistant itself, and
@@ -111,7 +110,6 @@ function AssistantSignupOptions({ next }: { next: string }) {
  */
 export function LibraryAssistant({ search, pathname }: { search: string; pathname?: string }) {
   const viewer = useViewer();
-  const phone = useMediaQuery("(max-width: 842px)"); // sefaria.org's MOBILE breakpoint (--bp-tablet-min: 843px)
   const lang = useInterfaceLang();
   const remoteConfig = useQuery(remoteConfigQueryOptions()).data;
   const hidden = (remoteConfig?.["feature.client.remote_config_json"] as { chatbot?: { hide?: unknown } } | undefined)?.chatbot?.hide === 1;
@@ -121,7 +119,8 @@ export function LibraryAssistant({ search, pathname }: { search: string; pathnam
   // only in the Library: the old ReaderApp's isLibraryModule — never on the Voices host, signed in or out (read, not changed, here)
   const siteHost = useSiteHost() ?? (typeof window !== "undefined" ? window.location.host : undefined);
   const library = !isVoicesHost(siteHost, PUBLIC_CONFIG.voicesOrigin);
-  const wanted = !phone && !hidden && !onAuthPage && library;
+  // on every width: on a phone the widget itself draws its Ask button and full-screen sheet (sefaria.org #3934 shows it there too)
+  const wanted = !hidden && !onAuthPage && library;
   const signedIn = useQuery({ ...assistantAccessQuery(viewer?.id ?? null), enabled: wanted && !!viewer }).data;
   // signed out: remote config decides (undefined until it has loaded)
   const anonymous = useMemo(() => (remoteConfig ? anonymousAccess(remoteConfig) : undefined), [remoteConfig]);

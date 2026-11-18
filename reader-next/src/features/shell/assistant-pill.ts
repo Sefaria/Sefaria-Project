@@ -24,5 +24,9 @@ export function useAssistantShown(): boolean {
   );
 }
 
-/** The old LibraryAssistantHeaderLink's click: ask the widget to open. */
-export const openAssistantFromHeader = () => document.dispatchEvent(new CustomEvent("chatbot:open", { detail: { source: "header" } }));
+/** Where the widget was opened from (the old header pill's "header", the phone menu item's "mobile_nav_menu"). */
+export type AssistantOpenSource = "header" | "mobile_nav_menu";
+
+/** The old LibraryAssistantHeaderLink's click (and the phone menu item's, sefaria.org Header.jsx): ask the widget to open. */
+export const openAssistantFromHeader = (source: AssistantOpenSource = "header") =>
+  document.dispatchEvent(new CustomEvent("chatbot:open", { detail: { source } }));

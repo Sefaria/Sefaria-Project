@@ -108,7 +108,19 @@ describe("LibraryAssistant", () => {
     expect(el.querySelector('[slot="signup-options"]')).toBeNull();
   });
 
-  it("nothing for a guest when remote config turns it off, on the auth pages, for a reader without it, a phone, or when remote config hides it — and no script downloaded", async () => {
+  // sefaria.org shows it on phones too (#3934): the widget draws its own Ask button and full-screen sheet there
+  it("on a phone, for a reader and for a signed-out visitor, as on a wide screen", async () => {
+    const reader = setup({ phone: true });
+    const el = await waitFor(() => reader.container.querySelector("lc-chatbot")!);
+    expect(el.getAttribute("user-id")).toBe("tok");
+    reader.unmount();
+    const guest = setup({ phone: true, viewer: null });
+    const anon = await waitFor(() => guest.container.querySelector("lc-chatbot")!);
+    expect(anon.hasAttribute("user-id")).toBe(false);
+    expect(anon.querySelector('[slot="signup-options"]')).not.toBeNull();
+  });
+
+  it("nothing for a guest when remote config turns it off, on the auth pages, for a reader without it, or when remote config hides it — and no script downloaded", async () => {
     for (const o of [
       { viewer: null, remote: { "feature.chatbot.anonymous_enabled": false } },
       { viewer: null, remote: { "feature.chatbot.anonymous_enabled": "off" } },
@@ -119,7 +131,6 @@ describe("LibraryAssistant", () => {
       { viewer: null, host: "voices.sefaria.org" },
       { host: "chiburim.sefaria.org.il" },
       { access: { enabled: false, userToken: null, isModerator: false } },
-      { phone: true },
       { remote: { "feature.client.remote_config_json": { chatbot: { hide: 1 } } } },
     ]) {
       const { container, unmount } = setup(o);

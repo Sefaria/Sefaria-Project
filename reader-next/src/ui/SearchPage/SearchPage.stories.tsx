@@ -30,6 +30,14 @@ export const Books: Story = { render: () => <EntityResults type="book" hits={BOO
 export const Authors: Story = { render: () => <EntityResults type="author" hits={AUTHORS} empty={null} /> };
 export const Topics: Story = { render: () => <EntityResults type="topic" hits={TOPICS} empty={null} /> };
 export const Empty: Story = { render: () => <NoResults tab="sources" query="zzzxqkw" /> };
+/** The Library Assistant is on the page (its element defined here as a stand-in): the body asks it, no browse button (sefaria.org #3934). */
+const defineAssistant = () => {
+  if (typeof customElements !== "undefined" && !customElements.get("lc-chatbot")) customElements.define("lc-chatbot", class extends HTMLElement {});
+};
+export const EmptyWithAssistant: Story = { render: () => (defineAssistant(), <NoResults tab="authors" query="zzzxqkw" assistant />) };
+export const EmptyWithAssistantHebrew: Story = {
+  render: () => (defineAssistant(), <InterfaceLangProvider lang="hebrew"><NoResults tab="authors" query="זזז" assistant /></InterfaceLangProvider>),
+};
 export const HebrewTabs: Story = { render: () => hebrew(() => <SearchTabs active="sources" counts={{ sources: "10,000+", books: "1" }} hrefFor={(t) => `?tab=${t}`} onTab={() => {}} />) };
 export const HebrewFilters: Story = { render: () => hebrew(() => <SearchFilters tree={TREE} applied={[]} onToggle={() => {}} />) };
 export const SortEntity: Story = { render: () => <SortMenu sort="relevance" options={ENTITY_SORTS.book} onChange={() => {}} /> };

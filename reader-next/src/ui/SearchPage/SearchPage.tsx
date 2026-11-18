@@ -14,6 +14,7 @@ import { VisuallyHidden } from "../VisuallyHidden/VisuallyHidden";
 import { categoryColor } from "../tokens/category-color";
 import styles from "./SearchPage.module.css";
 import { dirFor } from "~/lib/i18n/direction";
+import { askAboutNoResults, noResultsQuestion, useAssistantAvailability, useNoResultsLauncher } from "~/lib/assistant/no-results";
 
 const plain = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 const isHebrew = (s: string) => /[֐-׿]/.test(s);
@@ -491,18 +492,58 @@ export function AutocorrectBanner({ corrected, original, suggested, onSearchOrig
   );
 }
 
-export function NoResults({ tab, query }: { tab: SearchTab; query: string }) {
+/** The body that points to the Library Assistant (search.no_results.<tab>.body.library_assistant): {br} a line break, {assistant} its name. */
+const ASSISTANT_BODY: Record<SearchTab, [string, string]> = {
+  sources: ["Try a different search term, browse the Library or {br}ask the {assistant} for help.", "נסו מונח חיפוש אחר, עיינו בספרייה או {br}שאלו את {assistant}."],
+  books: ["Try a different search term, browse the Library or {br}ask the {assistant} for help.", "נסו מונח חיפוש אחר, עיינו בספרייה או {br}שאלו את {assistant}."],
+  authors: ["Try a different search term, browse all Authors or {br}ask the {assistant} for help.", "נסו מונח חיפוש אחר, עיינו בכל המחברים או {br}שאלו את {assistant}."],
+  topics: ["Try a different search term, browse all Topics or {br}ask the {assistant} for help.", "נסו מונח חיפוש אחר, עיינו בכל הנושאים או {br}שאלו את {assistant}."],
+};
+
+function AssistantBody({ text, question, he }: { text: string; question: string; he: boolean }) {
+  return (
+    <>
+      {text.split(/(\{br\}|\{assistant\})/).map((part, i) =>
+        part === "{br}" ? <br key={i} /> : part === "{assistant}" ? (
+          <a key={i} href="#" className={styles.emptyAssistantLink} onClick={(e) => { e.preventDefault(); askAboutNoResults(question); }}>
+            {he ? "עוזר הספרייה" : "Library Assistant"}
+          </a>
+        ) : part,
+      )}
+    </>
+  );
+}
+
+/**
+ * `assistant`: the Library Assistant is on the page (the shell renders the widget). While it is, and its script has loaded, the page
+ * offers it instead of the browse button (sefaria.org NoSearchResults, #3934): the body asks the assistant, the widget's floating
+ * button becomes "Search with Library Assistant", and the page leaves room under the text for it.
+ */
+export function NoResults({ tab, query, assistant = false }: { tab: SearchTab; query: string; assistant?: boolean }) {
   const he = useInterfaceLang() === "hebrew";
   const n = NONE[tab];
   const lib = useLibraryHref();
   // the authors' and topics' pages are the Library's (their address from a Voices page: lib/routing/library-href.ts)
   const ctaHref = tab === "authors" || tab === "topics" ? lib(n.href) : n.href;
+  const availability = useAssistantAvailability(assistant);
+  const withAssistant = availability === "available";
+  const question = noResultsQuestion(query, he ? "he" : "en");
+  useNoResultsLauncher(withAssistant, question);
   return (
-    <div className={styles.empty} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
+    <div
+      className={`${styles.empty}${withAssistant ? ` ${styles.emptyWithAssistant}` : ""}`}
+      data-assistant={availability}
+      lang={he ? "he" : "en"}
+      dir={he ? "rtl" : "ltr"}
+    >
       <img className={styles.emptyImg} src={`/img/no-results/NoResults${n.img}.svg`} alt="" aria-hidden="true" width={140} height={140} />
       <p className={styles.emptyHeading}>{he ? `${n.h[1]} ״${query}״` : `${n.h[0]} “${query}”`}</p>
-      <p className={styles.emptyBody}>{he ? n.body[1] : n.body[0]}</p>
-      <Link className={styles.emptyCta} href={ctaHref}>{he ? n.cta[1] : n.cta[0]}</Link>
+      {/* until we know whether the assistant is there, neither version of the text shows */}
+      <p className={styles.emptyBody} style={availability === "loading" ? { visibility: "hidden" } : undefined}>
+        {withAssistant ? <AssistantBody text={ASSISTANT_BODY[tab][he ? 1 : 0]} question={question} he={he} /> : he ? n.body[1] : n.body[0]}
+      </p>
+      {/* with the assistant on, its "Search with Library Assistant" button takes this one's place */}
+      {availability === "unavailable" ? <Link className={styles.emptyCta} href={ctaHref}>{he ? n.cta[1] : n.cta[0]}</Link> : null}
       <p className={styles.emptyCaption}>
         {he ? <>נתקלתם בבעיה? אפשר <a href="https://sefaria.formstack.com/forms/hebrew_bugs">לדווח על תקלה</a> או <a href="mailto:hello@sefaria.org">ליצור איתנו קשר</a>.</> : <>Something seems wrong? <a href="https://sefaria.formstack.com/forms/bug_report">Report a bug</a> or <a href="mailto:hello@sefaria.org">contact us</a>.</>}
       </p>

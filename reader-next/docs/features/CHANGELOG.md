@@ -17,6 +17,14 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
 - **Design-system preview** (#4045): `?design_system=<branch or commit>` on a non-production host reaches the Library Assistant as its
   `design-system-preview` attribute, remembered for the session until `clear`, as on the old site. The pinned token stylesheets are
   not loaded here: no CSS on either client uses them yet. (AI-011)
+- **Library Assistant on phones and its entry points, as master's legacy client (#3832, #3934)**: the widget now shows at every width
+  (on a phone it draws its own Ask button and full-screen sheet), for readers and signed-out visitors alike; the phone menu has
+  "✦ Library Assistant" between Topics and Learning Schedules (`chatbot:open`, source `mobile_nav_menu`), and the widget hides while
+  that menu is open; the search no-results page, with the widget loaded, drops its browse button, points to the assistant in its
+  body and turns the widget's button into "Search with Library Assistant" (`chatbot:launcher`, source `search_no_results`, one
+  question for the link and the button), waiting up to 3s for the widget's script before falling back to the browse button.
+  Not here, as not on master either: the anonymous Stop and sheet behaviour live in the widget (ai-chatbot); PR #3791's further
+  copy changes are not merged. (AI-003, AI-011, GUI-001, SRC-064)
 - No reader-visible change from the rest: search reindexing, Varnish, gunicorn, deploy and auth-service infrastructure.
 
 ## 2026-11-11 — statuses checked against their notes and the code

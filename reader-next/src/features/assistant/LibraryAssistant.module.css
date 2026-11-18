@@ -3,3 +3,5 @@
 /* They show only inside the widget: until its script defines the element, or if it never loads, they would be plain page content
    (static/css/library-assistant.scss, the same rule) */
 :global(lc-chatbot:not(:defined)) > .signupOptions { display: none; }
+/* The widget's floating button would sit on top of the open phone menu (static/css/library-assistant.scss, the same rule) */
+:global(:root:has(#mobile-nav:not([hidden])) lc-chatbot) { visibility: hidden; }

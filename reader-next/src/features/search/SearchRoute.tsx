@@ -19,6 +19,7 @@ import { AutocorrectBanner, EntityResults, ExactToggle, MobileFilterButton, Mobi
 import { toRouterLocation } from "../shared/RouterLink";
 import { searchFlow, tabLabel } from "~/lib/analytics";
 import { resultClickHandlers, useSearchFlowAnalytics } from "./use-search-analytics";
+import { useAssistantShown } from "../shell/assistant-pill";
 
 const ENTITY_TABS: Partial<Record<SearchTab, EntityType>> = { books: "book", authors: "author", topics: "topic" };
 
@@ -48,6 +49,8 @@ const ENTITY_TABS: Partial<Record<SearchTab, EntityType>> = { books: "book", aut
  * @feature SRC-112 Auto-switch away from an empty tab
  */
 export function SearchRoute() {
+  // the Library Assistant is on the page: the no-results page offers it (sefaria.org NoSearchResults, #3934)
+  const assistantShown = useAssistantShown();
   const raw = useSearch({ strict: false }) as Record<string, unknown>;
   const params = useMemo(() => parseSearchParams(raw), [raw]);
   const router = useRouter();
@@ -207,10 +210,10 @@ export function SearchRoute() {
   if (!hasQuery) body = null;
   else if (entityType) {
     const list = entities.data?.pages.flatMap((p) => p.hits);
-    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} itemProps={(h, i) => resultClickHandlers(h.title_en || h.title_he, i + 1)} empty={<NoResults tab={params.tab} query={searchedQ} />} />;
+    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} itemProps={(h, i) => resultClickHandlers(h.title_en || h.title_he, i + 1)} empty={<NoResults tab={params.tab} query={searchedQ} assistant={assistantShown} />} />;
   } else if (sources.isError && !hits) body = <SearchError onRetry={() => void sources.refetch()} />;
   else if (!hits) body = null; // the skeleton below stands in while the first query runs
-  else if (!hits.length) body = <NoResults tab="sources" query={searchedQ} />;
+  else if (!hits.length) body = <NoResults tab="sources" query={searchedQ} assistant={assistantShown} />;
   else
     body = (
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 20 }} aria-label="Search results">

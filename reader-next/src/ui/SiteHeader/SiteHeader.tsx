@@ -30,7 +30,7 @@ export interface SiteHeaderProps {
   optIn?: HeaderOptInActions | null;
   /** While the Library Assistant is on the page: the "✦ Library Assistant" pill before the search box opens it (the old
    *  LibraryAssistantHeaderLink, sefaria.org #3934). Absent: no pill. */
-  onOpenAssistant?: () => void;
+  onOpenAssistant?: (source?: "header" | "mobile_nav_menu") => void;
 }
 
 /** The Library Assistant's ✦ (the old LibraryAssistantStar: the widget's own path, 1.125em). */
@@ -250,7 +250,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
         </nav>
         <div className={styles.right}>
           {onOpenAssistant ? (
-            <a href="#" role="button" className={styles.assistantPill} data-testid="assistant-pill" onClick={(e) => { e.preventDefault(); onOpenAssistant(); }}>
+            <a href="#" role="button" className={styles.assistantPill} data-testid="assistant-pill" onClick={(e) => { e.preventDefault(); onOpenAssistant("header"); }}>
               <AssistantStar />
               <span className={styles.assistantLabel}>{t("Library Assistant", "עוזר הספרייה")}</span>
               <span className={styles.assistantShort}>{t("Ask", "שאלו")}</span>
@@ -328,6 +328,19 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
         </div>
         <Link href={lib("/texts")} onClick={fullLoadWhereNotOurs}><img src="/icons/book.svg" alt="" /><InterfaceText en="Texts" he="מקורות" /></Link>
         <Link href={lib("/topics")} onClick={fullLoadWhereNotOurs}><img src="/icons/topic.svg" alt="" /><InterfaceText en="Topics" he="נושאים" /></Link>
+        {/* the Library Assistant, while it is on the page: purple, its ✦ as the icon (sefaria.org Header.jsx MobileNavMenu, #3934) */}
+        {onOpenAssistant ? (
+          <a
+            href="#"
+            role="button"
+            className={mn.assistantItem}
+            data-testid="assistant-menu-item"
+            onClick={(e) => { e.preventDefault(); setMobileOpen(false); onOpenAssistant("mobile_nav_menu"); }}
+          >
+            <span className={mn.assistantStar}><AssistantStar /></span>
+            <InterfaceText en="Library Assistant" he="עוזר הספרייה" />
+          </a>
+        ) : null}
         <A href="/calendars"><img src="/icons/calendar.svg" alt="" /><InterfaceText en="Learning Schedules" he="לוח לימוד יומי" /></A>
         <A href={donateHref("MobileNavMenu", he)} className={mn.blue} target="_blank"><img src="/icons/heart.png" alt="" /><InterfaceText en="Donate" he="תרומה" /></A>
         <div className={mn.accountLinks}>

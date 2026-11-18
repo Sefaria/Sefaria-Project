@@ -224,5 +224,29 @@ describe("SiteHeader Library Assistant pill", () => {
     expect(pill).toHaveTextContent("Library Assistant");
     await userEvent.click(pill);
     expect(opened).toHaveBeenCalledTimes(1);
+    expect(opened).toHaveBeenCalledWith("header");
+  });
+
+  // sefaria.org Header.jsx MobileNavMenu (#3934): "✦ Library Assistant" between Topics and Learning Schedules, closes the menu
+  it("the phone menu has its item only while the assistant is on the page; it closes the menu and opens it from mobile_nav_menu", async () => {
+    const { rerender } = render(<SiteHeader next="/" search={STUB_SEARCH} />);
+    expect(screen.queryByTestId("assistant-menu-item")).toBeNull();
+    const opened = vi.fn();
+    rerender(<SiteHeader next="/" search={STUB_SEARCH} onOpenAssistant={opened} />);
+    await userEvent.click(screen.getByRole("button", { name: "Menu" }));
+    const menu = document.getElementById("mobile-nav")!;
+    const item = within(menu).getByTestId("assistant-menu-item");
+    expect(item).toHaveAttribute("role", "button");
+    expect(item).toHaveTextContent("Library Assistant");
+    const rows = [...menu.querySelectorAll(":scope > a")].map((a) => a.textContent);
+    expect(rows.slice(0, 4)).toEqual(["Texts", "Topics", "Library Assistant", "Learning Schedules"]);
+    await userEvent.click(item);
+    expect(opened).toHaveBeenCalledWith("mobile_nav_menu");
+    expect(menu).not.toBeVisible();
+  });
+
+  it("the phone menu's item in Hebrew is עוזר הספרייה", () => {
+    render(<InterfaceLangProvider lang="hebrew"><SiteHeader next="/" search={STUB_SEARCH} onOpenAssistant={() => {}} /></InterfaceLangProvider>);
+    expect(within(document.getElementById("mobile-nav")!).getByTestId("assistant-menu-item")).toHaveTextContent("עוזר הספרייה");
   });
 });

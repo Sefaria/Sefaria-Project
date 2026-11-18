@@ -9,6 +9,10 @@
 .menu a > img, .languageToggle img { position: relative; top: 3px; width: 16px; height: 16px; margin-inline-end: 15px; }
 .menu a.blue { background-color: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
 .menu a.blue img { filter: invert(1); }
+/* the Library Assistant item is purple, its ✦ the icon (static/css/library-assistant.scss .libraryAssistantMenuItem) */
+.menu a.assistantItem { color: var(--sefaria-color-purple); }
+.assistantStar { display: inline-block; width: 16px; height: 16px; margin-inline-end: 15px; vertical-align: middle; line-height: 0; }
+.assistantStar svg { width: 16px; height: 16px; }
 .accountLinks { border-top: 1px solid var(--sefaria-color-border-strong); border-bottom: 1px solid var(--sefaria-color-border-strong); background-color: var(--sefaria-color-surface-subtle); }
 .accountLinks hr { border: none; border-bottom: 1px solid var(--sefaria-color-border-light); }
 .languageToggle a { display: inline; padding: 0; border: none; }
