@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
 import { t } from '../globals';
-import { MOBILE_HAMBURGER, MOBILE_PAGE_URLS, SEARCH_DROPDOWN } from '../constants';
+import { EXTERNAL_URLS, MOBILE_HAMBURGER, MOBILE_PAGE_URLS, SEARCH_DROPDOWN } from '../constants';
 
 /**
  * Page object for the mobile hamburger menu rendered by Sefaria's
@@ -528,7 +528,8 @@ export class MobileHamburgerPage extends HelperBase {
   }
 
   async clickDevelopersAndCloseExternalTab(): Promise<void> {
-    await this.openInPopupAndAssert(this.developersLink, /developers\.sefaria\.org/);
+    // The configured developers host (production or a sandbox's developers.<domain>).
+    await this.openInPopupAndAssert(this.developersLink, EXTERNAL_URLS.DEVELOPERS);
   }
 
   // ---------------------------------------------------------------------------

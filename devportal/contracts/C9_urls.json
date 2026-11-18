@@ -522,5 +522,10 @@
         "status": 404
       }
     ]
-  }
+  },
+  "integrator_notes": [
+    "/reference/ answers 301 to /reference (live; W17 crawl).",
+    "/v1.0/<x>.md answers 302 to /<x> without the .md (live; overrides the generic /v1.0/<rest> rule for .md paths).",
+    "Hidden api_config pages (/reference/authentication, /reference/intro-getting-started, /reference/my-requests) answer 200 as on live (I-6)."
+  ]
 }

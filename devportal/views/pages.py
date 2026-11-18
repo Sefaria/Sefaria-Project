@@ -52,10 +52,14 @@ BUILTIN_REDIRECTS = (
     (re.compile(r"^/docs/$"), 301, "/docs"),
     (re.compile(r"^/docs/getting-started$"), 301, "/docs/welcome"),
     (re.compile(r"^/reference$"), 301, "/reference/getting-started"),
+    (re.compile(r"^/reference/$"), 301, "/reference"),
     (re.compile(r"^/(?P<section>docs|reference)/(?P<slug>[^/]+)/$"), 301, "/{section}/{slug}"),
     (re.compile(r"^/v1\.0$"), 302, "/"),
+    (re.compile(r"^/v1\.0/(?P<rest>.+)\.md$"), 302, "/{rest}"),  # live drops `.md` here (URL-parity crawl)
     (re.compile(r"^/v1\.0/(?P<rest>.*)$"), 302, "/{rest}"),
 )
+# Kinds rendered as a Markdown page. The hidden `ReadMeConfig` stubs (`api_config`) answer 200 as on live (I-6).
+RENDERED_KINDS = (PageKind.PAGE, PageKind.API_CONFIG)
 # A custom page's trailing slash is served directly, as on live.
 PAGE_PATH = re.compile(r"^/(?P<section>docs|reference|page)/(?P<slug>[^/]+)(?P<slash>/?)$")
 
@@ -322,7 +326,7 @@ def resolve(path, origin):
             child = _first_visible_child(page)
             if child is not None:
                 return redirect_payload(path, 302, child.url_path)
-        elif page is not None and page.kind == PageKind.PAGE and page.published_revision is not None:
+        elif page is not None and page.kind in RENDERED_KINDS and page.published_revision is not None:
             return doc_payload(origin, site, page, path)
 
     return _table_redirect(path) or notfound_payload(origin, site, path)

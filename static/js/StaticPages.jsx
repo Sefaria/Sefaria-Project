@@ -1963,9 +1963,9 @@ const PoweredByPage = () => (
       enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in the Sefaria Developer Portal!"
       heTitle="Powered by Sefaria"
       heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in the Sefaria Developer Portal!"
-      enActionURL="https://developers.sefaria.org/"
+      enActionURL={`${Sefaria.developersURL}/`}
       enActionText="Create Something New"
-      heActionURL="https://developers.sefaria.org/"
+      heActionURL={`${Sefaria.developersURL}/`}
       heActionText="Create Something New"
       newTab={true}
       module={Sefaria.LIBRARY_MODULE}
@@ -3285,11 +3285,11 @@ const DevBox = () => {
         <InterfaceText>
           <HebrewText>
             נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם!{' '}
-            <a href="https://powered-by.sefaria.org">גלו את הפרויקטים</a>
+            <a href={Sefaria.poweredByURL}>גלו את הפרויקטים</a>
           </HebrewText>
           <EnglishText>
             Check out the products our software developer friends from around the world have been building for you!{' '}
-            <a href="https://powered-by.sefaria.org">Explore</a>
+            <a href={Sefaria.poweredByURL}>Explore</a>
           </EnglishText>
         </InterfaceText>
       </div>

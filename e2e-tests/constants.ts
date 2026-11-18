@@ -99,6 +99,12 @@ const DEVELOPERS_URL =
     ? localBase(process.env.SANDBOX_URL?.replace('127.0.0.1', 'localhost'), 'developers')
     : `https://developers.${SANDBOX_DOMAIN}`)
 
+// The developers host as the main site links to it (`Sefaria.developersURL`, which has no trailing
+// slash), and a pattern for a page on it. The main site's links follow its DOMAIN_MODULES, so on a
+// sandbox they go to the sandbox's developers host, not production's (PLAN.md Phase 8).
+const DEVELOPERS_ORIGIN = new URL(DEVELOPERS_URL).origin
+const DEVELOPERS_URL_PATTERN = new RegExp(`^${DEVELOPERS_ORIGIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(/|$)`)
+
 export const MODULE_URLS = EXPLICIT_LIBRARY_URL ? {
   EN : {
     LIBRARY: EXPLICIT_LIBRARY_URL,
@@ -281,7 +287,7 @@ export const TOPIC_SELECTORS = {
 export const EXTERNAL_URLS = {
   DONATE: /donate\.sefaria\.org/,
   HELP: /help\.sefaria\.org/,
-  DEVELOPERS: /developers\.sefaria\.org/
+  DEVELOPERS: DEVELOPERS_URL_PATTERN
 } as const;
 
 // ==============================================================================
@@ -316,7 +322,7 @@ export const MOBILE_HAMBURGER = {
     LEARNING_SCHEDULES: '/calendars',
     ABOUT: '/mobile-about-menu',
     MORE_FROM_SEFARIA: '/products',
-    DEVELOPERS: 'https://developers.sefaria.org',
+    DEVELOPERS: DEVELOPERS_ORIGIN,
     INTERFACE_EN: '/interface/english',
     INTERFACE_HE: '/interface/hebrew',
   },
