@@ -383,6 +383,20 @@ SEARCH_INDEX_NAME_TOPIC = "topic"
 SEARCH_INDEX_NAME_BOOK = "book"
 SEARCH_INDEX_NAME_CATEGORY = "category"
 
+# Developer portal (developers.sefaria.org, the `devportal` app). Defaulted here, before
+# local_settings is imported, for the same reason as the index names above; local_settings.py
+# (or the Helm chart's local-settings ConfigMap) overrides them. The list, with each value's
+# meaning, is contract C1: devportal/contracts/C1_names.md and devportal/contracts/settings.json.
+DEVPORTAL_API_ORIGIN = "https://www.sefaria.org"  # Try It, code samples, the MCP execute-request lock
+DEVPORTAL_GA4 = {}  # e.g. {"default": "G-...", "gallery": "G-..."}; empty loads no analytics
+DEVPORTAL_DEMO_API_KEY = ""  # empty: Try It and code samples send no key
+DEVPORTAL_MEDIA_BUCKET = ""  # empty: SITE_SETTINGS["TOPICS_BUCKET"]
+DEVPORTAL_ALLOW_INDEXING = False  # robots.txt allows crawling only when true (production)
+DEVPORTAL_ALLOW_README_IMAGES = True  # adds https://files.readme.io to img-src until images are mirrored
+DEVPORTAL_AUTO_SEED = True  # post_migrate imports the vendored content snapshot when it changed
+DEVPORTAL_CUTOVER_DONE = False  # true once developers.sefaria.org is served from here
+DEVPORTAL_VITE_DEV_SERVER = ""  # e.g. "http://localhost:5173" to load the Vite dev client
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):

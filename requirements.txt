@@ -205,14 +205,26 @@ jsonpickle==1.4.1
     #   deepdiff
 kombu<5.6,>=5.5.2
     # via celery
+linkify-it-py==2.2.0
+    # via -r ./requirements.txt
 lxml==5.3.0
     # via -r ./requirements.txt
 mailchimp==2.0.9
     # via -r ./requirements.txt
+markdown-it-py==4.3.0
+    # via -r ./requirements.txt
 matplotlib-inline==0.1.7
     # via ipython
+mcp==1.19.0
+    # via -r ./requirements.txt
+    # test-only: devportal/tests/mcp_conformance_test.py drives the portal's MCP server with the
+    # official SDK client; the runtime server does not import it (docs/dev-portal/PLAN.md §2.10)
+mdurl==0.1.2
+    # via markdown-it-py
 multiprocess==0.70.17
     # via pathos
+nh3==0.3.8
+    # via -r ./requirements.txt
 oauthlib==3.2.2
     # via requests-oauthlib
 p929==0.6.2

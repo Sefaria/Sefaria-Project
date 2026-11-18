@@ -180,5 +180,7 @@ scripts/debug_cache/
 /.features-gen/
 /playwright-report-bdd/
 
-# Developer portal rebuild: agent working directory (sc-48158)
-.devportal-run/
+# Developer portal (devportal/, devportal-ui/)
+/.devportal-run/
+/devportal-ui/dist/
+/devportal-ui/node_modules/

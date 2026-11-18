@@ -12,3 +12,5 @@ package-lock.json
 
 # Captured research artifacts for the developer portal rebuild (kept byte-exact)
 docs/dev-portal/research/
+# Vendored developer-docs snapshot (kept byte-exact)
+devportal/migration_source/
