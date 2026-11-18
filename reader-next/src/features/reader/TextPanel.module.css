@@ -11,6 +11,9 @@
   .panel > :global([data-direction]) > div { display: block; }
   .text { display: block; }
   .panel[data-has-aside="true"] .text { padding-block-end: 54vh; }
+  /* while the sheet is open the reader's bar gives way to the text, as sefaria.org's ReaderPanel leaves ReaderControls out in its
+     phone mode TextAndConnections; choosing the verse again, Back, or the sheet's Close brings it back */
+  .panel[data-has-aside="true"] .text > :global(header) { display: none; }
   .aside {
     position: fixed; inset-inline: 0; bottom: 0; height: 54vh; z-index: var(--sefaria-z-sheet);
     background: var(--sefaria-color-surface, #fff); border-block-start: 1px solid var(--sefaria-color-border);

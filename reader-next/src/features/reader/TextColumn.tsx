@@ -21,6 +21,9 @@ import { TextSection, type TextSectionProps } from "~/ui/TextSection/TextSection
 import styles from "./TextColumn.module.css";
 import { INITIAL_POSITION_SCRIPT, useReadingScroll } from "./use-reading-scroll";
 
+/** Where a phone puts a verse chosen with the sheet open: sefaria.org's, from the top of the screen (see the effect below). */
+const PHONE_SELECTED_TOP = 134;
+
 export interface TextColumnProps {
   /** Sections the route loaded (already in the library cache). */
   initial: TextPassage[];
@@ -323,6 +326,32 @@ export function TextColumn(props: TextColumnProps) {
     if (selected) engine.setFocus(selected);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- focuses when the selection changes; `engine` is a new object each render, its methods are stable
   }, [selected]);
+
+  // On a phone (the page scrolls), a verse chosen with the sheet open, or opening it, goes to 134px from the top of the screen, above
+  // the sheet, as sefaria.org's TextColumn.scrollToHighlighted puts it there (its single-panel highlight threshold; measured the same
+  // at 320x568, 375x812 and 412x915, 2026-11-18). Otherwise a verse tapped low on the screen opened a sheet over itself. Back and
+  // forward keep their saved place instead (the restore below).
+  // Closing the sheet brings the reader's bar back above the text (TextPanel.module.css): the verse stays where the reader sees it,
+  // as on sefaria.org, where the bar is drawn over the page, rather than moving down by the bar's height.
+  const sheetWasOpen = useRef(connectionsOnScreen);
+  useLayoutEffect(() => {
+    const wasOpen = sheetWasOpen.current;
+    sheetWasOpen.current = connectionsOnScreen;
+    if (!selected || props.restore) return;
+    const sc = scrollerRef.current;
+    if (!sc) return;
+    const o = getComputedStyle(sc).overflowY;
+    if (o === "auto" || o === "scroll") return; // a column that scrolls itself: desktop, where the page does not move
+    if (connectionsOnScreen) {
+      atStart.current = false;
+      engine.restorePosition({ ref: selected, offset: PHONE_SELECTED_TOP });
+    } else if (wasOpen) {
+      const el = contentRef.current?.querySelector<HTMLElement>(`[role="group"][data-ref="${CSS.escape(selected)}"]`);
+      const bar = sc.closest("[data-panel-id]")?.querySelector<HTMLElement>(":scope header");
+      if (el && bar) engine.restorePosition({ ref: selected, offset: el.getBoundingClientRect().top - bar.offsetHeight });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- placed when the choice or the sheet changes; `engine` is a new object each render, its methods are stable
+  }, [selected, connectionsOnScreen]);
 
   // Has the reader scrolled, pressed a key or touched the page since the column started or was last put back? A label switch is
   // corrected only then (below): labels settling as the column starts or comes back (Back to a Hebrew text) are the engine's to keep, and
