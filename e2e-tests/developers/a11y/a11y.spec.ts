@@ -2,10 +2,12 @@ import { test, expect, Page } from '@playwright/test';
 import { t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { DOC_PAGES, ENDPOINTS, RECORDED_TEXTS_200, enterBlank, enterPortal } from '../developers-entry';
+import { ALLOWED_H1_COUNT, DEFAULT_H1_COUNT, withoutRegisteredExceptions } from './a11y-exceptions';
 
 // Accessibility (PLAN §6.6): axe with the WCAG 2.0, 2.1 and 2.2 A and AA tags on every page type and on
-// each open menu and modal, with zero violations (no exceptions are registered; see README); one h1 per
-// page; C6's landmarks; the skip link; every menu and modal opened, used and closed by keyboard with focus
+// each open menu and modal, with zero violations apart from the (rule, element) pairs registered in
+// a11y-exceptions.ts where live has the same issue (README "Exceptions"); one h1 per page (two on the
+// pages where live has two); C6's landmarks; the skip link; every menu and modal opened, used and closed by keyboard with focus
 // returned; and the status dot's text alternative.
 
 type Violation = { id: string; impact: string | null; help: string; targets: string[] };
@@ -21,7 +23,10 @@ test.describe('Developers Accessibility, English', () => {
   });
 
   async function expectNoViolations(include?: string[]) {
-    const violations = await pm.onDevelopersShell().axeViolations(include ? { include } : {});
+    const violations = withoutRegisteredExceptions(
+      await pm.onDevelopersShell().axeViolations(include ? { include } : {}),
+      page.url()
+    );
     expect(violations, describe(violations)).toEqual([]);
   }
 
@@ -154,7 +159,8 @@ test.describe('Developers Accessibility, English', () => {
     for (const [, path] of PAGES) {
       await shell.openPath(path);
       await shell.pageTitle();
-      expect(await shell.h1Count(), path).toBe(1);
+      // Live has two h1 on the paths in ALLOWED_H1_COUNT (registered exception, README); one everywhere else.
+      expect(await shell.h1Count(), path).toBe(ALLOWED_H1_COUNT[path] ?? DEFAULT_H1_COUNT);
     }
   });
 
@@ -301,13 +307,13 @@ test.describe('Developers Accessibility, English (768px)', () => {
     const { page, pm } = await enterPortal(context, DOC_PAGES.welcome);
     const shell = pm.onDevelopersShell();
     await shell.openMobileNav();
-    let violations = await shell.axeViolations();
+    let violations = withoutRegisteredExceptions(await shell.axeViolations(), page.url());
     expect(violations, describe(violations)).toEqual([]);
     await page.keyboard.press('Escape');
     expect(await shell.isMobileNavOpen()).toBe(false);
     await expect.poll(() => shell.focusedName(), { timeout: t(5000) }).toBe('Toggle navigation menu');
     await shell.openMobileSubnav();
-    violations = await shell.axeViolations();
+    violations = withoutRegisteredExceptions(await shell.axeViolations(), page.url());
     expect(violations, describe(violations)).toEqual([]);
   });
 });

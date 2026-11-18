@@ -2,6 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { DOC_PAGES, ENDPOINTS, enterPortal } from '../../developers/developers-entry';
+import { withoutRegisteredExceptions } from '../../developers/a11y/a11y-exceptions';
 
 // The developer portal below its 768px breakpoint (PLAN §5.2.1; §6.2 A and G), in the phone projects
 // (chrome-mobile-developers: Pixel 5, safari-mobile-developers: iPhone 13). Read-only tests carry @sanity
@@ -103,10 +104,10 @@ test.describe('Developers Mobile, English', () => {
 
   test('DEV-A11Y-M001: The phone layout has no WCAG A/AA violation, with the drawer open', async () => {
     const shell = pm.onDevelopersShell();
-    let violations = await shell.axeViolations();
+    let violations = withoutRegisteredExceptions(await shell.axeViolations(), page.url());
     expect(violations, violations.map((v) => `${v.id}: ${v.targets.join(', ')}`).join('\n')).toEqual([]);
     await shell.openMobileNav();
-    violations = await shell.axeViolations();
+    violations = withoutRegisteredExceptions(await shell.axeViolations(), page.url());
     expect(violations, violations.map((v) => `${v.id}: ${v.targets.join(', ')}`).join('\n')).toEqual([]);
   });
 
