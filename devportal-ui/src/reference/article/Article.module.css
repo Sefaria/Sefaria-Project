@@ -458,6 +458,13 @@
   align-items: baseline;
 }
 
+/* Live's `.Param-header:only-child`: a header with no description under it (find-refs' `body`, `title`) is a 30px
+   line, so its name sits level with the input beside it, and above the input when they stack (≤531px). */
+.paramHeader:only-child {
+  min-height: 30px;
+  line-height: 29px;
+}
+
 .paramName {
   max-width: 100%;
   margin: 0 5px 0 0;
@@ -749,7 +756,9 @@
     0 0 0 2px rgb(1 43 255 / 25%);
 }
 
+/* Live's open button is 30px and the 1px rule is the children's top border: 31px in all. */
 .expandOpen > .expandButton {
+  min-height: 31px;
   border-bottom: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
   border-radius: 8px 8px 0 0;
 }

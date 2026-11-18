@@ -414,7 +414,8 @@ export class LiveAdapter implements VisualAdapter {
   async selectParamOption(param: string, value: string): Promise<void> {
     const sel = this.visible(`select[id$="_${param}"]`);
     await sel.scrollIntoViewIfNeeded();
-    await sel.selectOption(value);
+    // Integrator's decision: by value, never by label (live's placeholder option shows an example value as its label).
+    await sel.selectOption({ value });
     await this.settle();
     await this.parkPointer();
   }

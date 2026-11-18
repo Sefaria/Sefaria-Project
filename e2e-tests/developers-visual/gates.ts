@@ -169,10 +169,11 @@ export function shiftPastBands(r: Rect, bands: readonly [number, number][]): Rec
   let dh = 0;
   const bottom = r[1] + r[3];
   for (const [a, b] of bands) {
-    // Bands are whole rows (mergeBands rounds outwards): a box starting in the band's last row is below it.
+    // Bands are whole rows (mergeBands rounds outwards): a box starting in the band's last row is below it, and one
+    // ending in the band's first row (the feedback widget above the D-7 button, 0.91px into its row) is above it.
     if (r[1] >= b - 1) dy += b - a;
     else if (r[1] >= a) return null;
-    else if (bottom > a) dh += Math.min(bottom, b) - a;
+    else if (bottom > a + 1) dh += Math.min(bottom, b) - a;
   }
   return [r[0], r[1] - dy, r[2], r[3] - dh];
 }

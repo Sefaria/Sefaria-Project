@@ -467,8 +467,10 @@ export function Playground({ discordButton }: PlaygroundProps) {
     <div id="ReferencePlayground" className={`${styles.playground} dp-rm-playground`} data-visual="playground">
       <LanguagePicker />
       <section className={`${styles.section} ${styles.sticky}`}>
-        <RequestCard />
-        <ResponseCard />
+        <div className={styles.cards}>
+          <RequestCard />
+          <ResponseCard />
+        </div>
         <RequestPanelDiscord>{discordButton}</RequestPanelDiscord>
       </section>
     </div>

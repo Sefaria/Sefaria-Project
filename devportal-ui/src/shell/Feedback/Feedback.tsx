@@ -100,60 +100,63 @@ export function Feedback({ path, fetchImpl }: FeedbackProps) {
       <div className={styles.thumbs} data-visual="thumbs">
         <div className={styles.pill}>
           <span className={styles.prompt}>{FEEDBACK_STRINGS.prompt}</span>
-          <span className={styles.anchor}>
-            <button
-              type="button"
-              ref={yesRef}
-              className={styles.thumb}
-              data-selected={choice === 'yes' ? 'true' : undefined}
-              aria-label={FEEDBACK_STRINGS.yesLabel}
-              aria-haspopup="dialog"
-              aria-expanded={open && choice === 'yes'}
-              aria-controls={open && choice === 'yes' ? popoverId : undefined}
-              onClick={() => choose('yes')}
-              data-visual="thumbBtn"
-            >
-              <ThumbsUp className={`${styles.thumbIcon} ${styles.up}`} aria-hidden="true" strokeWidth={1.5} />
-              {FEEDBACK_STRINGS.yes}
-            </button>
-            {open && choice === 'yes' && (
-              <Popover
-                id={popoverId}
-                commentId={commentId}
-                comment={comment}
-                setComment={setComment}
-                status={status}
-                onVote={() => void vote()}
-                textareaRef={textareaRef}
-              />
-            )}
-          </span>
-          <span className={styles.anchor}>
-            <button
-              type="button"
-              ref={noRef}
-              className={styles.thumb}
-              data-selected={choice === 'no' ? 'true' : undefined}
-              aria-label={FEEDBACK_STRINGS.noLabel}
-              aria-haspopup="dialog"
-              aria-expanded={open && choice === 'no'}
-              aria-controls={open && choice === 'no' ? popoverId : undefined}
-              onClick={() => choose('no')}
-            >
-              <ThumbsDown className={`${styles.thumbIcon} ${styles.down}`} aria-hidden="true" strokeWidth={1.5} />
-              {FEEDBACK_STRINGS.no}
-            </button>
-            {open && choice === 'no' && (
-              <Popover
-                id={popoverId}
-                commentId={commentId}
-                comment={comment}
-                setComment={setComment}
-                status={status}
-                onVote={() => void vote()}
-                textareaRef={textareaRef}
-              />
-            )}
+          {/* Live's `.PageThumbs-cta`: the two buttons stay together when the pill wraps. */}
+          <span className={styles.cta}>
+            <span className={styles.anchor}>
+              <button
+                type="button"
+                ref={yesRef}
+                className={styles.thumb}
+                data-selected={choice === 'yes' ? 'true' : undefined}
+                aria-label={FEEDBACK_STRINGS.yesLabel}
+                aria-haspopup="dialog"
+                aria-expanded={open && choice === 'yes'}
+                aria-controls={open && choice === 'yes' ? popoverId : undefined}
+                onClick={() => choose('yes')}
+                data-visual="thumbBtn"
+              >
+                <ThumbsUp className={`${styles.thumbIcon} ${styles.up}`} aria-hidden="true" strokeWidth={1.5} />
+                {FEEDBACK_STRINGS.yes}
+              </button>
+              {open && choice === 'yes' && (
+                <Popover
+                  id={popoverId}
+                  commentId={commentId}
+                  comment={comment}
+                  setComment={setComment}
+                  status={status}
+                  onVote={() => void vote()}
+                  textareaRef={textareaRef}
+                />
+              )}
+            </span>
+            <span className={styles.anchor}>
+              <button
+                type="button"
+                ref={noRef}
+                className={styles.thumb}
+                data-selected={choice === 'no' ? 'true' : undefined}
+                aria-label={FEEDBACK_STRINGS.noLabel}
+                aria-haspopup="dialog"
+                aria-expanded={open && choice === 'no'}
+                aria-controls={open && choice === 'no' ? popoverId : undefined}
+                onClick={() => choose('no')}
+              >
+                <ThumbsDown className={`${styles.thumbIcon} ${styles.down}`} aria-hidden="true" strokeWidth={1.5} />
+                {FEEDBACK_STRINGS.no}
+              </button>
+              {open && choice === 'no' && (
+                <Popover
+                  id={popoverId}
+                  commentId={commentId}
+                  comment={comment}
+                  setComment={setComment}
+                  status={status}
+                  onVote={() => void vote()}
+                  textareaRef={textareaRef}
+                />
+              )}
+            </span>
           </span>
         </div>
       </div>

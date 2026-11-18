@@ -180,6 +180,13 @@ export class LocalAdapter implements VisualAdapter {
     await this.page.evaluate(() => {
       document.documentElement.style.setProperty('scrollbar-color', 'transparent transparent', 'important');
       document.body.style.setProperty('scrollbar-color', 'auto');
+      // --hide-scrollbars gives live's horizontal scrollbars no height: a Markdown code block whose longest line
+      // overflows (/docs/linker-v3's first block at 390) is 164px tall in every baseline, while the portal, with
+      // scrollbars shown, adds a 10px horizontal bar and moves everything below it. The block's horizontal overflow
+      // is clipped here as live's capture clipped it (no scrollbar); its vertical scrollbar is left as it is.
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync('.dp-markdown pre > code { overflow-x: hidden !important; }');
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
     });
     await this.settle();
     await this.parkPointer();
@@ -379,7 +386,8 @@ export class LocalAdapter implements VisualAdapter {
   async selectParamOption(param: string, value: string): Promise<void> {
     const sel = this.visible(`select[id$="_${param}"]`);
     await sel.scrollIntoViewIfNeeded();
-    await sel.selectOption(value);
+    // Integrator's decision: by value, never by label (live's placeholder option shows an example value as its label).
+    await sel.selectOption({ value });
     await this.settle();
     await this.parkPointer();
   }

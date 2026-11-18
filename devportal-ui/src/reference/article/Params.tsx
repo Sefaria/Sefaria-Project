@@ -126,9 +126,9 @@ function SelectInput({ field }: { field: FormField }) {
         value={showPlaceholder ? PLACEHOLDER : value}
         onChange={(event) => setValue(field.key, event.target.value === PLACEHOLDER ? '' : event.target.value)}
       >
-        {/* As live: a hidden first option shows the example while nothing is chosen. */}
+        {/* As live: a hidden, disabled first option shows the example while nothing is chosen. */}
         {field.placeholder !== '' ? (
-          <option value={PLACEHOLDER} hidden>
+          <option value={PLACEHOLDER} hidden disabled>
             {field.placeholder}
           </option>
         ) : null}

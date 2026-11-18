@@ -42,6 +42,12 @@ export interface VisualState {
    * random length (the 404 suggestions) neither shows nor changes the region's size.
    */
   cropRegionsAtMask?: readonly { region: RegionId; mask: MaskId }[];
+  /**
+   * Regions compared on each side's own box with that side's own masks only (as `split-region` pieces): content
+   * above or below them that differs in size moves them, and the other side's masks would land on their content.
+   * Their content is centred: where the two boxes differ in width, the wider is narrowed about its centre.
+   */
+  ownBoxRegions?: readonly RegionId[];
   recipe: Recipe;
   notes?: string;
 }
@@ -756,6 +762,9 @@ export const STATES: readonly VisualState[] = [
     // Integrator's decision (PLAN §6.1.4 dynamic content): live's suggestions come from ReadMe's search engine (deterministic per path; ours use slug similarity, I-14), so the list is
     // masked on both sides and the notFound region is compared down to it; the rest of the page is compared.
     cropRegionsAtMask: [{ region: 'notFound', mask: 'notFoundSuggestions' }],
+    // Integrator's decision: the list's height differs by engine and moves the title (the page centres the block), so
+    // the title (and the prompt above the list) is compared by its own box, each side painted with its own masks.
+    ownBoxRegions: ['notFound'],
     notes:
       'The "Maybe you were looking for one of these" suggestions are chosen by ReadMe\'s search engine; ours by slug similarity (I-14).',
     recipe: nothing,

@@ -149,7 +149,10 @@ export const MASKS: Record<MaskId, MaskDef> = {
     id: 'thirdPartyFrames',
     reason: 'Third-party frames (YouTube via Embedly, the contact form) load content we do not control',
     live: 'iframe',
-    local: 'iframe',
+    // Integrator's decision (D-12): the portal's own HTML-block frames (same origin, /_portal/htmlblock/<rev>/<n>) are
+    // not third-party; masking them left the htmlBlock region with nothing to compare, so they stay unmasked and
+    // D-12's 2% region limit applies to their content. Live renders HTML blocks inline (no frame to exclude).
+    local: 'iframe:not([src*="/_portal/htmlblock/"])',
   },
   notFoundSuggestions: {
     id: 'notFoundSuggestions',

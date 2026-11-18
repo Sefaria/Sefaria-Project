@@ -73,9 +73,12 @@
   align-items: flex-start;
 }
 
+/* Live's content column is at most 800px wide and the table of contents follows it: at 1440 without a scrollbar
+   (docs_linker_v3_full) live's column is 800px with 40px free at the right, not 808px. */
 .dp-docs__content {
   flex: 1 1 auto;
   min-width: 0;
+  max-width: var(--rm-hub-main-max-width, 800px);
   padding-top: 32px;
 }
 

@@ -170,7 +170,12 @@ async function runJob(browser: Browser, job: Job, out: string): Promise<JobRepor
       const elementsOut = Object.fromEntries(
         Object.entries(elements).map(([k, v]) => [
           k,
-          { rect: fullPage ? v.docRect : v.rect, docRect: v.docRect, style: v.style },
+          {
+            rect: fullPage ? v.docRect : v.rect,
+            docRect: v.docRect,
+            style: v.style,
+            ...(v.visible === false ? { visible: false } : {}),
+          },
         ])
       );
       const metrics: MetricsFile = {

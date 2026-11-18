@@ -68,6 +68,11 @@ export interface MappedElement {
   local: string;
   /** True when the key comes from computed-get-v3-texts.json. */
   research: boolean;
+  /**
+   * The region the element lives in on live, when that region can be closed (live's sidebar is a closed dropdown
+   * below 769px: present in the DOM, scaled to 0.88 and transparent). See `hiddenOnLive`.
+   */
+  within?: 'sidebar';
 }
 
 const m = (key: string, live: string, research = true, local = `[data-visual="${key}"]`): MappedElement => ({
@@ -76,6 +81,30 @@ const m = (key: string, live: string, research = true, local = `[data-visual="${
   local,
   research,
 });
+const inSidebar = (e: MappedElement): MappedElement => ({ ...e, within: 'sidebar' });
+
+/**
+ * Integrator's decision (PLAN §6.1.4, gates 1 and 2): a mapped element that is not visible on live is skipped by
+ * gates 1 and 2 on both sides. The visibility test is the one regions and masks are measured with
+ * (`measureAll` in capture/metrics.ts): a non-empty box, `visibility` not `hidden`, and no ancestor at
+ * `opacity: 0`. An element is hidden on live when
+ * - its metrics entry says `visible: false` (recorded by captures made after this rule), or
+ * - it lies `within` a region that every capture measures (`sidebar`, capture/capture-live.ts) and the baseline
+ *   has no box for that region: the region failed the test, and everything in it with it (live's closed mobile
+ *   sidebar dropdown: `filter`, `sb*`, `badge*Sb`, `poweredBy`, `collapseBtn`).
+ */
+export function hiddenOnLive(
+  elements: Record<string, { visible?: boolean }>,
+  regions: Record<string, unknown>
+): Set<string> {
+  const out = new Set<string>();
+  for (const e of MAPPED_ELEMENTS) {
+    const sample = elements[e.key];
+    if (!sample) continue;
+    if (sample.visible === false || (e.within && !regions[e.within])) out.add(e.key);
+  }
+  return out;
+}
 
 export const MAPPED_ELEMENTS: readonly MappedElement[] = [
   // page
@@ -96,16 +125,16 @@ export const MAPPED_ELEMENTS: readonly MappedElement[] = [
   // layout
   m('main', 'main#Explorer, main.rm-Guides, main'),
   // sidebar
-  m('sidebar', 'nav.rm-Sidebar[aria-label="Secondary navigation"]'),
-  m('filter', 'nav.rm-Sidebar input[aria-label="Filter pages"]'),
-  m('sbHeading', 'nav.rm-Sidebar .rm-Sidebar-heading'),
-  m('sbGroup', 'nav.rm-Sidebar a.rm-Sidebar-link.Sidebar-link_parent'),
-  m('sbLink', 'nav.rm-Sidebar a.rm-Sidebar-link.subpage:not(.active)'),
-  m('sbActive', 'nav.rm-Sidebar a.rm-Sidebar-link.active'),
-  m('badgeGetSb', 'nav.rm-Sidebar .rm-APIMethod.APIMethod_get'),
-  m('badgePostSb', 'nav.rm-Sidebar .rm-APIMethod.APIMethod_post'),
-  m('poweredBy', 'nav.rm-Sidebar #readmeLogo'),
-  m('collapseBtn', 'button[aria-label="Hide sidebar navigation"]'),
+  inSidebar(m('sidebar', 'nav.rm-Sidebar[aria-label="Secondary navigation"]')),
+  inSidebar(m('filter', 'nav.rm-Sidebar input[aria-label="Filter pages"]')),
+  inSidebar(m('sbHeading', 'nav.rm-Sidebar .rm-Sidebar-heading')),
+  inSidebar(m('sbGroup', 'nav.rm-Sidebar a.rm-Sidebar-link.Sidebar-link_parent')),
+  inSidebar(m('sbLink', 'nav.rm-Sidebar a.rm-Sidebar-link.subpage:not(.active)')),
+  inSidebar(m('sbActive', 'nav.rm-Sidebar a.rm-Sidebar-link.active')),
+  inSidebar(m('badgeGetSb', 'nav.rm-Sidebar .rm-APIMethod.APIMethod_get')),
+  inSidebar(m('badgePostSb', 'nav.rm-Sidebar .rm-APIMethod.APIMethod_post')),
+  inSidebar(m('poweredBy', 'nav.rm-Sidebar #readmeLogo')),
+  inSidebar(m('collapseBtn', 'button[aria-label="Hide sidebar navigation"]')),
   // article
   m('articleWrap', '[class*="SuperHubReference-article-wrapper"]'),
   m('article', 'article#content, article.rm-Article'),

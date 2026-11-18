@@ -27,16 +27,22 @@
   display: flex;
   flex-direction: column;
   box-sizing: content-box;
-
-  /* Live caps the sticky column at the viewport height and its response card shrinks to fill what the request card
-     leaves (727px under get-v3-texts' 161px request at 900px, 691px under find-refs' 197px one). Ours also holds the
-     Discord prompt (D-3: 16px + 44px), so the cap is 60px taller and the prompt keeps its place under the cards. */
-  max-height: calc(100vh + 60px);
   padding: 20px 0;
 }
 
+/* Live caps the sticky column at the viewport height and its response card shrinks to fill what the request card
+   leaves (727px under get-v3-texts' 161px request at 900px, 691px under find-refs' 197px one). The cap is the two
+   cards': the Discord prompt (D-3) keeps its place under them and the cards are sized as live's whether it is there
+   or not. */
+.cards {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100vh;
+}
+
 /* Only the response card gives way to the cap. */
-.sticky > :not(.responseCard) {
+.cards > :not(.responseCard) {
   flex-shrink: 0;
 }
 
@@ -761,6 +767,9 @@
 
   .sticky {
     position: static;
+  }
+
+  .cards {
     max-height: none;
   }
 }

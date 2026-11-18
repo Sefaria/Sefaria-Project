@@ -24,6 +24,9 @@
  *   the portal's boxes below move up by the same height, before the gates run: what live does not have
  *   neither shows nor shifts the rest. In a viewport state the baseline loses the same number of rows at
  *   its bottom so the sizes still match.
+ *   With `from: 'layout'` the matches are instead taken out of the portal's layout (`display: none`, by an
+ *   injected style rule, before the recipe runs), for a box inside a column or a sticky panel, where cutting
+ *   whole rows would also cut the column beside it and could not move what a sticky panel pushed up.
  */
 import type { RegionId } from './regions.ts';
 import type { Width } from './states.ts';
@@ -46,7 +49,7 @@ export type Treatment =
     }
   | { kind: 'mask-regions'; regions: readonly RegionId[] }
   | { kind: 'split-region'; region: RegionId; elements: readonly string[] }
-  | { kind: 'excise'; local: string }
+  | { kind: 'excise'; local: string; from?: 'rows' | 'layout' }
   | { kind: 'region-threshold'; region: RegionId; maxDiffRatio: number }
   | {
       kind: 'exempt-regions';
@@ -63,32 +66,6 @@ export interface Deviation {
   states: readonly string[] | '*';
   treatments: readonly Treatment[];
 }
-
-const REFERENCE_STATES_WITH_REQUEST_PANEL = [
-  'v3_default',
-  'v3_default_full',
-  'v3_schema_expanded',
-  'v3_schema_child_attributes',
-  'v3_lang_node',
-  'v3_lang_node_library_menu',
-  'v3_more_languages_open',
-  'v3_tryit_before_genesis',
-  'v3_tryit_loading',
-  'v3_tryit_success',
-  'v3_tryit_button_hover',
-  'v3_response_menu_open',
-  'v3_response_example_menu',
-  'v3_tryit_error',
-  'v3_recent_request_row_selected',
-  'v3_sidebar_collapsed',
-  'find_refs_default',
-  'find_refs_body_text_expanded',
-  'find_refs_filled',
-  'find_refs_tryit_result',
-  'calendars_default',
-  'calendars_enum_selected',
-  'v1_texts_deprecated_default',
-];
 
 const RECENT_REQUESTS_STATES = [
   'v3_default',
@@ -128,8 +105,15 @@ export const DEVIATIONS: readonly Deviation[] = [
     id: 'D-3',
     difference: '"Questions about this endpoint?" with a Discord button in the request panel',
     source: 'Brief §4.7',
-    states: REFERENCE_STATES_WITH_REQUEST_PANEL,
-    treatments: [{ kind: 'mask', live: null, local: '[data-visual-deviation="D-3"]' }],
+    // Every state: the block is in the request panel of every reference page and matches nothing elsewhere.
+    states: '*',
+    treatments: [
+      // Integrator's decision (D-3 treatment, like D-7/D-10): the block is the portal's only. Masked, it still took
+      // its height in the sticky request panel, so at the end of a page the panel stood 60px higher than live's
+      // (v3_footer_feedback) and below 769px everything after the panel moved down. It is taken out of the portal's
+      // layout instead, so the playground and the page footer are compared at live's offsets.
+      { kind: 'excise', local: '[data-visual-deviation="D-3"]', from: 'layout' },
+    ],
   },
   {
     id: 'D-4',

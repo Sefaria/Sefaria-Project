@@ -13,6 +13,11 @@ export interface ElementMetrics {
   /** Document coordinates (what a full-page screenshot shows). */
   docRect: Rect;
   style: Record<string, string>;
+  /**
+   * False when the element fails the visibility test of `measureAll` (an ancestor at opacity 0; `visibility: hidden`
+   * is already excluded above). Absent when visible, and in metrics files captured before it was recorded.
+   */
+  visible?: false;
 }
 
 export interface MetricsFile {
@@ -42,7 +47,7 @@ export async function measureElements(
   const props = [...STYLE_PROPS];
   const raw = await page.evaluate(
     ({ selectors, props }) => {
-      const out: Record<string, { r: number[]; d: number[]; s: Record<string, string> }> = {};
+      const out: Record<string, { r: number[]; d: number[]; s: Record<string, string>; v: boolean }> = {};
       // Scroll offset of an element: the window's plus every scrolled ancestor's (ReadMe scrolls
       // an inner container, not the window).
       const offset = (e: Element) => {
@@ -76,7 +81,13 @@ export async function measureElements(
         const s: Record<string, string> = {};
         for (const p of props) s[p] = cs.getPropertyValue(p.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase()));
         const [ox, oy] = offset(el);
-        out[key] = { r: [b.x, b.y, b.width, b.height], d: [b.x + ox, b.y + oy], s };
+        let v = true;
+        for (let a: Element | null = el; a; a = a.parentElement)
+          if (getComputedStyle(a).opacity === '0') {
+            v = false;
+            break;
+          }
+        out[key] = { r: [b.x, b.y, b.width, b.height], d: [b.x + ox, b.y + oy], s, v };
       }
       return { out };
     },
@@ -89,6 +100,7 @@ export async function measureElements(
       rect: [x, y, w, h],
       docRect: [round(v.d[0]), round(v.d[1]), w, h],
       style: v.s,
+      ...(v.v ? {} : { visible: false as const }),
     };
   }
   return result;

@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
 import { STATES, type Width } from './states.ts';
 import { REGIONS, MASKS, DEFAULT_MASKS, MASK_COLOR, type RegionId } from './regions.ts';
-import { GATE1_PROPS, MAPPED_ELEMENTS } from './mapped-elements.ts';
+import { GATE1_PROPS, MAPPED_ELEMENTS, hiddenOnLive } from './mapped-elements.ts';
 import { deviationsFor } from './deviations.ts';
 import { LocalAdapter } from './adapters/local.ts';
 import { measureAll, measureElements, unionRect, type MetricsFile, type Rect } from './capture/metrics.ts';
@@ -71,6 +71,21 @@ for (const state of STATES) {
     // ---- drive the portal through the same recipe
     const adapter = await LocalAdapter.create(context, page, baseURL!);
     await adapter.goto(state.path);
+    // `excise` from the layout (D-3): what live does not have is taken out of the portal's layout before the recipe
+    // runs, by a style rule (React re-renders cannot bring it back). A constructed stylesheet, as the portal's CSP
+    // (style-src 'self') blocks a <style> element.
+    const layoutExcise = deviationsFor(state.id).flatMap((d) =>
+      d.treatments.flatMap((t) => (t.kind === 'excise' && t.from === 'layout' ? [t.local] : []))
+    );
+    if (layoutExcise.length)
+      await page.evaluate(
+        (rule) => {
+          const sheet = new CSSStyleSheet();
+          sheet.replaceSync(rule);
+          document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+        },
+        `${layoutExcise.join(', ')} { display: none !important; }`
+      );
     await state.recipe(adapter);
 
     const fullPage = !!state.fullPage;
@@ -81,7 +96,7 @@ for (const state of STATES) {
       // above them would sit higher than on live. Scrolled back by their height, the portal frames live's scroll
       // offset; the boxes then lie at or below the viewport's bottom and are cut from what is left of them there.
       const exciseSelectors = deviationsFor(state.id).flatMap((d) =>
-        d.treatments.flatMap((t) => (t.kind === 'excise' ? [t.local] : []))
+        d.treatments.flatMap((t) => (t.kind === 'excise' && t.from !== 'layout' ? [t.local] : []))
       );
       let height = 0;
       for (const selector of exciseSelectors)
@@ -142,7 +157,8 @@ for (const state of STATES) {
             if (l) localRegionMasks.push(l);
           }
         } else if (t.kind === 'split-region') splits.push({ region: t.region, elements: t.elements });
-        else if (t.kind === 'excise') exciseRects.push(...(await measureAll(page, t.local, fullPage)));
+        else if (t.kind === 'excise' && t.from !== 'layout')
+          exciseRects.push(...(await measureAll(page, t.local, fullPage)));
       }
 
     const png = await page.screenshot({
@@ -194,6 +210,14 @@ for (const state of STATES) {
       ...keysWithin(localElements, regionMaskRects),
     ])
       skip.add(k);
+    // Mapped elements not visible on live (mapped-elements.ts `hiddenOnLive`: live's closed mobile sidebar dropdown)
+    // are skipped by gates 1 and 2 on both sides.
+    const hidden = hiddenOnLive(baseMetrics.elements, baseMetrics.regions);
+    for (const k of hidden) skip.add(k);
+    // Dynamic content (PLAN §6.1.4): mapped elements wholly under a dynamic mask of the baseline ("Updated N ago",
+    // `updated`) are masked in gate 3 and, by the Integrator's decision, exempt from gate 2 as well: the text's width
+    // depends on the date. Gate 1 still compares their styles; the rest of the page footer is still compared.
+    const dynamic = keysWithin(baseMetrics.elements, baseMaskRects);
 
     // ---- gate 1: computed styles
     const styleFailures = gateStyles(baseMetrics.elements, localElements, GATE1_PROPS, skip);
@@ -202,7 +226,7 @@ for (const state of STATES) {
       baseMetrics.elements,
       localElements,
       DEFAULT_LIMITS.geometryTolerancePx,
-      skip
+      new Set([...skip, ...dynamic])
     );
     // ---- gate 3: pixels
     // `cropRegionsAtMask`: the region ends where the first box of its dynamic mask starts, on each side.
@@ -221,7 +245,6 @@ for (const state of STATES) {
       if (split) {
         // `split-region`: each mapped element is a region of its own, boxed on each side by its metrics. A piece
         // that is wholly dynamic content ("Updated N ago", masked on both sides) has nothing left to compare.
-        const dynamic = keysWithin(baseMetrics.elements, baseMaskRects);
         for (const key of split.elements)
           if (baseMetrics.elements[key] && !skip.has(key) && !dynamic.has(key))
             ownBoxRegions.push({
@@ -239,7 +262,18 @@ for (const state of STATES) {
           baseline = cropAt(baseline, baseMetrics.masks[c.mask] ?? []);
           actual = cropAt(actual, localMasksById[c.mask] ?? []);
         }
-      regions.push({ id, baseline, actual, maxDiffRatio: regionLimits[id] });
+      // `ownBoxRegions` (not_found): compared on each side's own box with that side's masks only, like a split piece.
+      // Its content is centred, so where the two boxes differ in width (live's box is widened by its wider list) the
+      // wider is narrowed to the other's width about its centre.
+      if (state.ownBoxRegions?.includes(id)) {
+        if (baseline && actual && Math.abs(baseline[2] - actual[2]) > 0.5) {
+          const w = Math.min(baseline[2], actual[2]);
+          const narrow = (r: Rect): Rect => [r[0] + (r[2] - w) / 2, r[1], w, r[3]];
+          baseline = narrow(baseline);
+          actual = narrow(actual);
+        }
+        ownBoxRegions.push({ id, baseline, actual, maxDiffRatio: regionLimits[id] });
+      } else regions.push({ id, baseline, actual, maxDiffRatio: regionLimits[id] });
     }
     const pixels = gatePixels(baseImg, localImg, regions, { masks: allMasks, exemptViewport: exempt.has('viewport') });
     if (ownBoxRegions.length) {

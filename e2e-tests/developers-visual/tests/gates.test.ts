@@ -103,6 +103,8 @@ test('excise: bands merge, rows are cut, rects below move up and containers shri
   assert.equal(shiftPastBands([0, 5, 1, 1], bands), null);
   assert.deepEqual(shiftPastBands([0, 0, 1, 10], bands), [0, 0, 1, 7]);
   assert.deepEqual(shiftPastBands([0, 1, 1, 2], bands), [0, 1, 1, 2]);
+  // Ending inside the band's first row: above it, not shortened.
+  assert.deepEqual(shiftPastBands([0, 1, 1, 3.9], bands), [0, 1, 1, 3.9]);
 });
 
 test('gate 3: identical images pass', () => {

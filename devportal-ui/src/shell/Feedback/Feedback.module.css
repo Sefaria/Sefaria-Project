@@ -17,23 +17,34 @@
   padding: 40px 20px;
 }
 
+/* Live's `.PageThumbs-helpful`: a wrapping flex row (column gap 10px, 5px 10px padding), 44px tall on one line; where
+   its box is narrower than the prompt and the buttons (the reference footer at 390), the buttons wrap under the
+   prompt, centred (65px). */
 .pill {
   display: flex;
+  flex-wrap: wrap;
+  column-gap: 10px;
   align-items: center;
+  justify-content: center;
   box-sizing: border-box;
-  height: 44px;
-  padding: 0 10px;
+  min-height: 44px;
+  padding: 5px 10px;
   border: 1px solid rgb(0 0 0 / 10%);
   border-radius: 8px;
   background: #fff;
 }
 
 .prompt {
-  margin-right: 10px;
+  margin: 0;
   color: var(--rm-color-text-minimum, #666b79);
   font-size: 14px;
   line-height: 21px;
   white-space: nowrap;
+}
+
+.cta {
+  display: flex;
+  justify-content: space-evenly;
 }
 
 .anchor {
