@@ -1,0 +1,740 @@
+/* The playground column, live's #ReferencePlayground (REFERENCE_SPEC.md §1.5; computed-get-v3-texts.json). */
+.playground {
+  position: relative;
+  display: flex;
+  flex: 0 0 480px;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 480px;
+  max-width: 480px;
+
+  /* As tall as the article column, so the request and response cards can stay sticky while it scrolls. */
+  min-height: 100%;
+  padding: 22px 32px 16px 16px;
+  font-family: var(--font-en-system);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--rm-color-text-default, #32343a);
+}
+
+.section {
+  display: block;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  height: 40px;
+}
+
+.languageHeading {
+  margin: 0;
+  color: #484c58;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3333;
+  text-transform: uppercase;
+}
+
+.languages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.languageButton {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+
+  /* Measured on live: 73.4px at 1440, 76.6px at 1280, 77px and wrapping four to a row at 390. */
+  min-width: 73px;
+  max-width: 77px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: #484c58;
+  font-family: var(--font-en-system);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: normal;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.languageButton:hover {
+  background: rgb(0 0 0 / 3%);
+}
+
+.languageActive {
+  border-color: rgb(0 0 0 / 10%);
+}
+
+.languageIcon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 0 0 5px;
+}
+
+.moreButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 40px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: #666b79;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+  cursor: pointer;
+}
+
+/* Live keeps ReadMe's focus border on the clicked language button. */
+.languageButton:focus {
+  border-color: #012bff;
+  outline: none;
+}
+
+.moreButton:hover,
+.moreButton[aria-expanded='true'] {
+  border-color: rgb(0 0 0 / 20%);
+  background: rgb(2 34 198 / 6%);
+  color: #012bff;
+}
+
+.moreIcon {
+  width: 17px;
+  height: 17px;
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+}
+
+.menuIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Request card (live's rm-PlaygroundRequest) */
+.requestCard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+  background: #2b2c31;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 30%),
+    inset 0 -1px 2px rgb(0 0 0 / 10%);
+}
+
+.requestHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 10px 10px 10px 5px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.requestHeaderLeft {
+  display: flex;
+  min-width: 0;
+}
+
+.headerButton,
+.requestTitle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 24px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: #fff;
+  font-family: var(--font-en-system);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 17.33px;
+  white-space: nowrap;
+}
+
+.headerButton {
+  cursor: pointer;
+}
+
+.headerButton:hover {
+  border-color: rgb(255 255 255 / 10%);
+}
+
+.chevron {
+  width: 15px;
+  height: 15px;
+  margin: 0 -4px 0 0;
+}
+
+.requestCode {
+  border-bottom: 1px solid rgb(255 255 255 / 5%);
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 10%);
+}
+
+.requestFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.requestFooterLeft {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.requestCopy {
+  width: 32px;
+  height: 32px;
+  color: #aeb2bd;
+}
+
+.requestCopy:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.requestCopy svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tryIt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--rm-project-color-primary, #612854);
+  box-shadow: inset 0 0 0 1px rgb(5 28 142 / 20%);
+  color: #fff;
+  font-family: var(--font-en-system);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  cursor: pointer;
+}
+
+.tryIt:hover,
+.tryIt:focus-visible {
+  background: #012bff;
+}
+
+.tryIt:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #1a73e8);
+  outline-offset: 2px;
+}
+
+.tryIt:disabled {
+  cursor: progress;
+  opacity: 0.8;
+}
+
+/* Response card (live's rm-PlaygroundResponse) */
+.responseCard {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  margin: 12px 0 0;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.responseHeader {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 40px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px 8px 0 0;
+  background: rgb(0 0 0 / 2.4%);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.responseTitle {
+  flex: 1 0 auto;
+  color: #484c58;
+  text-transform: uppercase;
+}
+
+.responseActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
+  color: #484c58;
+  font-family: var(--font-en-system);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 19.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.statusButton:hover {
+  background: rgb(0 0 0 / 3%);
+}
+
+.statusDot {
+  display: flex;
+  align-items: center;
+  padding: 5px 3px;
+}
+
+.statusDot > span {
+  width: 10px;
+  height: 10px;
+}
+
+.statusText {
+  white-space: nowrap;
+}
+
+.statusCode {
+  display: inline;
+}
+
+.responseMenu {
+  min-width: 220px;
+}
+
+.menuStatus {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* In the example menu the status code is set in the monospace face, as live's. */
+.menuStatus .statusCode {
+  font-family: var(--rm-font-family-mono);
+  font-size: 15px;
+}
+
+.menuDivider {
+  height: 1px;
+  margin: 4px 0;
+  background: rgb(0 0 0 / 5%);
+}
+
+.clearItem {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 32px;
+  margin: 0 6px;
+  padding: 6px 8px 6px 30px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #e95f6a;
+  font: 500 14px/20px var(--font-en-system);
+  text-align: left;
+  cursor: pointer;
+}
+
+.clearItem:hover,
+.clearItem:focus-visible {
+  background: rgb(0 0 0 / 5%);
+  outline: none;
+}
+
+.headersButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 24px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
+  color: #484c58;
+  font-family: var(--font-en-system);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 19.5px;
+  cursor: pointer;
+}
+
+.headersIcon {
+  width: 13px;
+  height: 13px;
+}
+
+.responseCopy {
+  width: 24px;
+  height: 24px;
+  color: #666b79;
+}
+
+.responseBody {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* The viewer grows with its content up to the viewport height less 173px for the card (live: 727px at 900px). */
+.responseCardViewer .responseBody {
+  max-height: calc(100vh - 215px);
+}
+
+.responseCardViewer .responseBody > pre {
+  flex: 1 1 auto;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 30px 30px 40px;
+  text-align: center;
+}
+
+.emptyPrompt {
+  color: #484c58;
+  font-size: 15px;
+  line-height: 22.5px;
+}
+
+.emptyTryIt {
+  padding: 2px 4px;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 4px;
+  background: #f9fafb;
+  color: #32343a;
+  font-family: var(--font-en-system);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.emptyExamples {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.emptyGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emptyMedia {
+  color: #666b79;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.emptyButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.emptyExample {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 6px;
+  background: #fff;
+  color: #484c58;
+  font: 500 13px/19.5px var(--font-en-system);
+  cursor: pointer;
+}
+
+.loading {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgb(0 0 0 / 10%);
+  border-top-color: #484c58;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorMessage {
+  padding: 20px;
+  color: #484c58;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.errorMessage p {
+  margin: 0 0 8px;
+}
+
+.errorDetail {
+  color: #666b79;
+  font-family: var(--rm-font-family-mono);
+  font-size: 12px;
+}
+
+.liveRegion {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Headers dialog */
+.dialog {
+  box-sizing: border-box;
+  width: min(680px, calc(100vw - 40px));
+  max-height: calc(100vh - 40px);
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 7.5%),
+    0 2px 8px rgb(0 0 0 / 7.5%),
+    0 6px 24px rgb(0 0 0 / 7.5%),
+    0 9px 48px rgb(0 0 0 / 7.5%);
+  color: #32343a;
+  font-family: var(--font-en-system);
+}
+
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 50%);
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgb(0 0 0 / 10%);
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 30.8px;
+}
+
+.dialogX {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #484c58;
+  cursor: pointer;
+}
+
+.dialogXIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.dialogBody {
+  overflow: auto;
+  padding: 10px 20px 20px;
+}
+
+.dialogSection {
+  margin: 14px 0 10px;
+  color: #484c58;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.headerList {
+  margin: 0;
+  padding: 10px 0;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px;
+  padding: 3px 12px;
+}
+
+.headerRow dt {
+  font-size: 15px;
+  line-height: 21px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.headerRow dd {
+  margin: 0;
+  font-family: var(--rm-font-family-mono);
+  font-size: 12px;
+  line-height: 21px;
+  overflow-wrap: anywhere;
+}
+
+.dialogFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid rgb(0 0 0 / 10%);
+}
+
+.dialogClose {
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #32343a;
+  font: 500 15px/22.5px var(--font-en-system);
+  cursor: pointer;
+}
+
+.dialogClose:hover {
+  background: rgb(0 0 0 / 5%);
+}
+
+/* "Questions about this endpoint?" (D-3) */
+.questions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0 0;
+}
+
+.questionsText {
+  margin: 0;
+  color: #484c58;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.discordLink {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--action-primary, #18345d);
+  color: var(--text-inverse, #fff);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  text-decoration: none;
+}
+
+@media (width <= 1299px) {
+  .playground {
+    padding-left: 0;
+  }
+}
+
+@media (width <= 1065px) {
+  .playground {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    padding: 0 20px 16px;
+  }
+
+  .sticky {
+    position: static;
+  }
+}

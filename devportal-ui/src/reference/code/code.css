@@ -1,0 +1,108 @@
+/*
+ * Token colors for read-only code (PLAN §2.12): CodeMirror 5's material-palenight (request samples) and neo
+ * (responses) themes, with the overrides live's ReadMe bundle applies (sample text #bebcd7, attributes #d7b2f0,
+ * response text #484c58). Our runMode renderer (code/highlight.ts) emits `dp-cm-*` classes instead of
+ * CodeMirror's `cm-*`, so these rules are our own CSS and no CodeMirror stylesheet is loaded.
+ */
+.dp-cm-palenight {
+  color: #bebcd7;
+}
+
+.dp-cm-palenight .dp-cm-keyword {
+  color: #c792ea;
+}
+
+.dp-cm-palenight .dp-cm-operator {
+  color: #89ddff;
+}
+
+.dp-cm-palenight .dp-cm-variable-2 {
+  color: #eff;
+}
+
+.dp-cm-palenight .dp-cm-variable-3,
+.dp-cm-palenight .dp-cm-type,
+.dp-cm-palenight .dp-cm-qualifier {
+  color: #decb6b;
+}
+
+.dp-cm-palenight .dp-cm-builtin,
+.dp-cm-palenight .dp-cm-meta {
+  color: #ffcb6b;
+}
+
+.dp-cm-palenight .dp-cm-atom {
+  color: #f78c6c;
+}
+
+.dp-cm-palenight .dp-cm-number,
+.dp-cm-palenight .dp-cm-tag {
+  color: #ff5370;
+}
+
+.dp-cm-palenight .dp-cm-def {
+  color: #82aaff;
+}
+
+.dp-cm-palenight .dp-cm-string {
+  color: #c3e88d;
+}
+
+.dp-cm-palenight .dp-cm-string-2,
+.dp-cm-palenight .dp-cm-variable {
+  color: #f07178;
+}
+
+.dp-cm-palenight .dp-cm-comment {
+  color: #676e95;
+}
+
+.dp-cm-palenight .dp-cm-attribute {
+  color: #d7b2f0;
+}
+
+.dp-cm-palenight .dp-cm-property {
+  color: #c792ea;
+}
+
+.dp-cm-palenight .dp-cm-error {
+  color: #fff;
+  background-color: #ff5370;
+}
+
+.dp-cm-neo {
+  color: #484c58;
+}
+
+.dp-cm-neo .dp-cm-comment {
+  color: #75787b;
+}
+
+.dp-cm-neo .dp-cm-keyword,
+.dp-cm-neo .dp-cm-property {
+  color: #1d75b3;
+}
+
+.dp-cm-neo .dp-cm-atom,
+.dp-cm-neo .dp-cm-number {
+  color: #75438a;
+}
+
+.dp-cm-neo .dp-cm-node,
+.dp-cm-neo .dp-cm-tag {
+  color: #9c3328;
+}
+
+.dp-cm-neo .dp-cm-string {
+  color: #b35e14;
+}
+
+/* A JSON key is "string property": the property color wins, as in CodeMirror (later rule). */
+.dp-cm-neo .dp-cm-string.dp-cm-property {
+  color: #1d75b3;
+}
+
+.dp-cm-neo .dp-cm-variable,
+.dp-cm-neo .dp-cm-qualifier {
+  color: #047d65;
+}

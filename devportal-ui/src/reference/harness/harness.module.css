@@ -1,0 +1,65 @@
+/* Harness only: stand-ins for the parts of the shell that are not built yet (sidebar, Copy Page), with live's sizes. */
+
+.sidebar {
+  flex: 0 0 288px;
+  align-self: flex-start;
+  height: 100vh;
+  box-shadow: 1px 0 0 0 rgb(0 0 0 / 10%);
+}
+
+.copyPage {
+  display: flex;
+}
+
+.copyLeft,
+.copyRight {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 32px;
+  border: 1px solid rgb(0 0 0 / 10%);
+  background: #fff;
+  color: #484c58;
+  font: 500 14px/21px var(--font-en-system);
+}
+
+.copyLeft {
+  width: 115px;
+  padding: 0 12px;
+  border-radius: 6px 0 0 6px;
+}
+
+.copyRight {
+  justify-content: center;
+  width: 32px;
+  padding: 0;
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.copyIcon {
+  width: 16px;
+  height: 16px;
+  margin-left: -4px;
+}
+
+.copyChevron {
+  width: 16px;
+  height: 16px;
+}
+
+@media (width <= 768px) {
+  .header {
+    height: 103px;
+  }
+
+  .sidebar {
+    display: none;
+  }
+}
+
+/* Stand-in for W2's page footer ("Updated", prev/next, feedback): live's height under the responses. */
+.footer {
+  height: 265.69px;
+}

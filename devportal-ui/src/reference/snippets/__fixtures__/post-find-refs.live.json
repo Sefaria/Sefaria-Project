@@ -1,0 +1,319 @@
+{
+  "operationId": "post-find-refs",
+  "capturedAt": "2026-11-18T12:01:49.264Z",
+  "source": "https://developers.sefaria.org (live), selecting each language and library, GET only",
+  "explorerVersion": "5.968.3",
+  "moreLanguages": [
+    "Agent Prompt",
+    "C",
+    "C#",
+    "C++",
+    "Clojure",
+    "Crystal",
+    "Go",
+    "HTTP",
+    "Java",
+    "JavaScript",
+    "JSON",
+    "Kotlin",
+    "Objective-C",
+    "OCaml",
+    "PowerShell",
+    "R",
+    "Rust",
+    "Swift"
+  ],
+  "samples": [
+    {
+      "language": "Shell",
+      "more": false,
+      "headerLabel": "cURL Request",
+      "defaultLibrary": "cURL",
+      "code": "curl --request POST \\\n     --url https://www.sefaria.org/api/find-refs \\\n     --header 'accept: application/json' \\\n     --header 'content-type: application/json' \\\n     --data '{\"text\":{}}'",
+      "libraries": [
+        {
+          "library": "cURL",
+          "headerLabel": "cURL Request",
+          "code": "curl --request POST \\\n     --url https://www.sefaria.org/api/find-refs \\\n     --header 'accept: application/json' \\\n     --header 'content-type: application/json' \\\n     --data '{\"text\":{}}'"
+        },
+        {
+          "library": "HTTPie",
+          "headerLabel": "HTTPie Request",
+          "code": "echo '{\"text\":{}}' |  \\\n  http POST https://www.sefaria.org/api/find-refs \\\n  accept:application/json \\\n  content-type:application/json"
+        }
+      ]
+    },
+    {
+      "language": "Node",
+      "more": false,
+      "headerLabel": "API Request",
+      "defaultLibrary": "API",
+      "code": "import sefaria from '@api/sefaria';\n\nsefaria.postFindRefs({text: {}})\n  .then(({ data }) => console.log(data))\n  .catch(err => console.error(err));",
+      "libraries": [
+        {
+          "library": "Axios",
+          "headerLabel": "Axios Request",
+          "code": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://www.sefaria.org/api/find-refs',\n  headers: {accept: 'application/json', 'content-type': 'application/json'},\n  data: {text: {}}\n};\n\naxios\n  .request(options)\n  .then(res => console.log(res.data))\n  .catch(err => console.error(err));"
+        },
+        {
+          "library": "fetch",
+          "headerLabel": "fetch Request",
+          "code": "const url = 'https://www.sefaria.org/api/find-refs';\nconst options = {\n  method: 'POST',\n  headers: {accept: 'application/json', 'content-type': 'application/json'},\n  body: JSON.stringify({text: {}})\n};\n\nfetch(url, options)\n  .then(res => res.json())\n  .then(json => console.log(json))\n  .catch(err => console.error(err));"
+        },
+        {
+          "library": "http",
+          "headerLabel": "http Request",
+          "code": "const http = require('https');\n\nconst options = {\n  method: 'POST',\n  hostname: 'www.sefaria.org',\n  port: null,\n  path: '/api/find-refs',\n  headers: {\n    accept: 'application/json',\n    'content-type': 'application/json'\n  }\n};\n\nconst req = http.request(options, function (res) {\n  const chunks = [];\n\n  res.on('data', function (chunk) {\n    chunks.push(chunk);\n  });\n\n  res.on('end', function () {\n    const body = Buffer.concat(chunks);\n    console.log(body.toString());\n  });\n});\n\nreq.write(JSON.stringify({text: {}}));\nreq.end();"
+        },
+        {
+          "library": "API",
+          "headerLabel": "API Request",
+          "code": "import sefaria from '@api/sefaria';\n\nsefaria.postFindRefs({text: {}})\n  .then(({ data }) => console.log(data))\n  .catch(err => console.error(err));"
+        }
+      ]
+    },
+    {
+      "language": "Ruby",
+      "more": false,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "require 'uri'\nrequire 'net/http'\n\nurl = URI(\"https://www.sefaria.org/api/find-refs\")\n\nhttp = Net::HTTP.new(url.host, url.port)\nhttp.use_ssl = true\n\nrequest = Net::HTTP::Post.new(url)\nrequest[\"accept\"] = 'application/json'\nrequest[\"content-type\"] = 'application/json'\nrequest.body = \"{\\\"text\\\":{}}\"\n\nresponse = http.request(request)\nputs response.read_body",
+      "libraries": []
+    },
+    {
+      "language": "PHP",
+      "more": false,
+      "headerLabel": "Guzzle Request",
+      "defaultLibrary": "Guzzle",
+      "code": "<?php\nrequire_once('vendor/autoload.php');\n\n$client = new \\GuzzleHttp\\Client();\n\n$response = $client->request('POST', 'https://www.sefaria.org/api/find-refs', [\n  'body' => '{\"text\":{}}',\n  'headers' => [\n    'accept' => 'application/json',\n    'content-type' => 'application/json',\n  ],\n]);\n\necho $response->getBody();",
+      "libraries": [
+        {
+          "library": "cURL",
+          "headerLabel": "cURL Request",
+          "code": "<?php\n\n$curl = curl_init();\n\ncurl_setopt_array($curl, [\n  CURLOPT_URL => \"https://www.sefaria.org/api/find-refs\",\n  CURLOPT_RETURNTRANSFER => true,\n  CURLOPT_ENCODING => \"\",\n  CURLOPT_MAXREDIRS => 10,\n  CURLOPT_TIMEOUT => 30,\n  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,\n  CURLOPT_CUSTOMREQUEST => \"POST\",\n  CURLOPT_POSTFIELDS => json_encode([\n    'text' => [\n        \n    ]\n  ]),\n  CURLOPT_HTTPHEADER => [\n    \"accept: application/json\",\n    \"content-type: application/json\"\n  ],\n]);\n\n$response = curl_exec($curl);\n$err = curl_error($curl);\n\ncurl_close($curl);\n\nif ($err) {\n  echo \"cURL Error #:\" . $err;\n} else {\n  echo $response;\n}"
+        },
+        {
+          "library": "Guzzle",
+          "headerLabel": "Guzzle Request",
+          "code": "<?php\nrequire_once('vendor/autoload.php');\n\n$client = new \\GuzzleHttp\\Client();\n\n$response = $client->request('POST', 'https://www.sefaria.org/api/find-refs', [\n  'body' => '{\"text\":{}}',\n  'headers' => [\n    'accept' => 'application/json',\n    'content-type' => 'application/json',\n  ],\n]);\n\necho $response->getBody();"
+        }
+      ]
+    },
+    {
+      "language": "Python",
+      "more": false,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "import requests\n\nurl = \"https://www.sefaria.org/api/find-refs\"\n\npayload = { \"text\": {} }\nheaders = {\n    \"accept\": \"application/json\",\n    \"content-type\": \"application/json\"\n}\n\nresponse = requests.post(url, json=payload, headers=headers)\n\nprint(response.text)",
+      "libraries": []
+    },
+    {
+      "language": "Agent Prompt",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "Write code that makes the HTTP request described below. Use my preferred programming language and HTTP client library — if I haven't told you what those are, ask me before writing any code.\n\nMethod: POST\nURL: https://www.sefaria.org/api/find-refs\n\nHeaders:\n  accept: application/json\n  content-type: application/json\n\nBody (application/json):\n{\"text\":{}}\n\nThe request the code makes must match the method, URL, headers, and body exactly as described above.",
+      "libraries": []
+    },
+    {
+      "language": "C",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "CURL *hnd = curl_easy_init();\n\ncurl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_easy_setopt(hnd, CURLOPT_WRITEDATA, stdout);\ncurl_easy_setopt(hnd, CURLOPT_URL, \"https://www.sefaria.org/api/find-refs\");\n\nstruct curl_slist *headers = NULL;\nheaders = curl_slist_append(headers, \"accept: application/json\");\nheaders = curl_slist_append(headers, \"content-type: application/json\");\ncurl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);\n\ncurl_easy_setopt(hnd, CURLOPT_POSTFIELDS, \"{\\\"text\\\":{}}\");\n\nCURLcode ret = curl_easy_perform(hnd);",
+      "libraries": []
+    },
+    {
+      "language": "C#",
+      "more": true,
+      "headerLabel": "RestSharp Request",
+      "defaultLibrary": "RestSharp",
+      "code": "using RestSharp;\n\n\nvar options = new RestClientOptions(\"https://www.sefaria.org/api/find-refs\");\nvar client = new RestClient(options);\nvar request = new RestRequest(\"\");\nrequest.AddHeader(\"accept\", \"application/json\");\nrequest.AddJsonBody(\"{\\\"text\\\":{}}\", false);\nvar response = await client.PostAsync(request);\n\nConsole.WriteLine(\"{0}\", response.Content);\n",
+      "libraries": [
+        {
+          "library": "HttpClient",
+          "headerLabel": "HttpClient Request",
+          "code": "using System.Net.Http.Headers;\nvar client = new HttpClient();\nvar request = new HttpRequestMessage\n{\n    Method = HttpMethod.Post,\n    RequestUri = new Uri(\"https://www.sefaria.org/api/find-refs\"),\n    Headers =\n    {\n        { \"accept\", \"application/json\" },\n    },\n    Content = new StringContent(\"{\\\"text\\\":{}}\")\n    {\n        Headers =\n        {\n            ContentType = new MediaTypeHeaderValue(\"application/json\")\n        }\n    }\n};\nusing (var response = await client.SendAsync(request))\n{\n    response.EnsureSuccessStatusCode();\n    var body = await response.Content.ReadAsStringAsync();\n    Console.WriteLine(body);\n}"
+        },
+        {
+          "library": "RestSharp",
+          "headerLabel": "RestSharp Request",
+          "code": "using RestSharp;\n\n\nvar options = new RestClientOptions(\"https://www.sefaria.org/api/find-refs\");\nvar client = new RestClient(options);\nvar request = new RestRequest(\"\");\nrequest.AddHeader(\"accept\", \"application/json\");\nrequest.AddJsonBody(\"{\\\"text\\\":{}}\", false);\nvar response = await client.PostAsync(request);\n\nConsole.WriteLine(\"{0}\", response.Content);\n"
+        }
+      ]
+    },
+    {
+      "language": "C++",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "CURL *hnd = curl_easy_init();\n\ncurl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, \"POST\");\ncurl_easy_setopt(hnd, CURLOPT_WRITEDATA, stdout);\ncurl_easy_setopt(hnd, CURLOPT_URL, \"https://www.sefaria.org/api/find-refs\");\n\nstruct curl_slist *headers = NULL;\nheaders = curl_slist_append(headers, \"accept: application/json\");\nheaders = curl_slist_append(headers, \"content-type: application/json\");\ncurl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);\n\ncurl_easy_setopt(hnd, CURLOPT_POSTFIELDS, \"{\\\"text\\\":{}}\");\n\nCURLcode ret = curl_easy_perform(hnd);",
+      "libraries": []
+    },
+    {
+      "language": "Clojure",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "(require '[clj-http.client :as client])\n\n(client/post \"https://www.sefaria.org/api/find-refs\" {:content-type :json\n                                                      :form-params {:text {}}\n                                                      :accept :json})",
+      "libraries": []
+    },
+    {
+      "language": "Crystal",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "require \"http/client\"\n\nurl = \"https://www.sefaria.org/api/find-refs\"\nheaders = HTTP::Headers{\n  \"accept\" => \"application/json\"\n  \"content-type\" => \"application/json\"\n}\nreqBody = \"{\\\"text\\\":{}}\"\n\nresponse = HTTP::Client.post url, headers: headers, body: reqBody\nputs response.body",
+      "libraries": []
+    },
+    {
+      "language": "Go",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"net/http\"\n\t\"io\"\n)\n\nfunc main() {\n\n\turl := \"https://www.sefaria.org/api/find-refs\"\n\n\tpayload := strings.NewReader(\"{\\\"text\\\":{}}\")\n\n\treq, _ := http.NewRequest(\"POST\", url, payload)\n\n\treq.Header.Add(\"accept\", \"application/json\")\n\treq.Header.Add(\"content-type\", \"application/json\")\n\n\tres, _ := http.DefaultClient.Do(req)\n\n\tdefer res.Body.Close()\n\tbody, _ := io.ReadAll(res.Body)\n\n\tfmt.Println(string(body))\n\n}",
+      "libraries": []
+    },
+    {
+      "language": "HTTP",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "POST /api/find-refs HTTP/1.1\nAccept: application/json\nContent-Type: application/json\nHost: www.sefaria.org\nContent-Length: 11\n\n{\"text\":{}}",
+      "libraries": []
+    },
+    {
+      "language": "Java",
+      "more": true,
+      "headerLabel": "OkHttp Request",
+      "defaultLibrary": "OkHttp",
+      "code": "OkHttpClient client = new OkHttpClient();\n\nMediaType mediaType = MediaType.parse(\"application/json\");\nRequestBody body = RequestBody.create(mediaType, \"{\\\"text\\\":{}}\");\nRequest request = new Request.Builder()\n  .url(\"https://www.sefaria.org/api/find-refs\")\n  .post(body)\n  .addHeader(\"accept\", \"application/json\")\n  .addHeader(\"content-type\", \"application/json\")\n  .build();\n\nResponse response = client.newCall(request).execute();",
+      "libraries": [
+        {
+          "library": "AsyncHttp",
+          "headerLabel": "AsyncHttp Request",
+          "code": "AsyncHttpClient client = new DefaultAsyncHttpClient();\nclient.prepare(\"POST\", \"https://www.sefaria.org/api/find-refs\")\n  .setHeader(\"accept\", \"application/json\")\n  .setHeader(\"content-type\", \"application/json\")\n  .setBody(\"{\\\"text\\\":{}}\")\n  .execute()\n  .toCompletableFuture()\n  .thenAccept(System.out::println)\n  .join();\n\nclient.close();"
+        },
+        {
+          "library": "java.net.http",
+          "headerLabel": "java.net.http Request",
+          "code": "HttpRequest request = HttpRequest.newBuilder()\n    .uri(URI.create(\"https://www.sefaria.org/api/find-refs\"))\n    .header(\"accept\", \"application/json\")\n    .header(\"content-type\", \"application/json\")\n    .method(\"POST\", HttpRequest.BodyPublishers.ofString(\"{\\\"text\\\":{}}\"))\n    .build();\nHttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());\nSystem.out.println(response.body());"
+        },
+        {
+          "library": "OkHttp",
+          "headerLabel": "OkHttp Request",
+          "code": "OkHttpClient client = new OkHttpClient();\n\nMediaType mediaType = MediaType.parse(\"application/json\");\nRequestBody body = RequestBody.create(mediaType, \"{\\\"text\\\":{}}\");\nRequest request = new Request.Builder()\n  .url(\"https://www.sefaria.org/api/find-refs\")\n  .post(body)\n  .addHeader(\"accept\", \"application/json\")\n  .addHeader(\"content-type\", \"application/json\")\n  .build();\n\nResponse response = client.newCall(request).execute();"
+        },
+        {
+          "library": "Unirest",
+          "headerLabel": "Unirest Request",
+          "code": "HttpResponse<String> response = Unirest.post(\"https://www.sefaria.org/api/find-refs\")\n  .header(\"accept\", \"application/json\")\n  .header(\"content-type\", \"application/json\")\n  .body(\"{\\\"text\\\":{}}\")\n  .asString();"
+        }
+      ]
+    },
+    {
+      "language": "JavaScript",
+      "more": true,
+      "headerLabel": "fetch Request",
+      "defaultLibrary": "fetch",
+      "code": "const options = {\n  method: 'POST',\n  headers: {accept: 'application/json', 'content-type': 'application/json'},\n  body: JSON.stringify({text: {}})\n};\n\nfetch('https://www.sefaria.org/api/find-refs', options)\n  .then(res => res.json())\n  .then(res => console.log(res))\n  .catch(err => console.error(err));",
+      "libraries": [
+        {
+          "library": "Axios",
+          "headerLabel": "Axios Request",
+          "code": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://www.sefaria.org/api/find-refs',\n  headers: {accept: 'application/json', 'content-type': 'application/json'},\n  data: {text: {}}\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+        },
+        {
+          "library": "fetch",
+          "headerLabel": "fetch Request",
+          "code": "const options = {\n  method: 'POST',\n  headers: {accept: 'application/json', 'content-type': 'application/json'},\n  body: JSON.stringify({text: {}})\n};\n\nfetch('https://www.sefaria.org/api/find-refs', options)\n  .then(res => res.json())\n  .then(res => console.log(res))\n  .catch(err => console.error(err));"
+        },
+        {
+          "library": "jQuery",
+          "headerLabel": "jQuery Request",
+          "code": "const settings = {\n  async: true,\n  crossDomain: true,\n  url: 'https://www.sefaria.org/api/find-refs',\n  method: 'POST',\n  headers: {\n    accept: 'application/json',\n    'content-type': 'application/json'\n  },\n  processData: false,\n  data: '{\"text\":{}}'\n};\n\n$.ajax(settings).done(res => {\n  console.log(res);\n});"
+        },
+        {
+          "library": "XMLHttpRequest",
+          "headerLabel": "XMLHttpRequest Request",
+          "code": "const data = JSON.stringify({\n  text: {}\n});\n\nconst xhr = new XMLHttpRequest();\nxhr.withCredentials = true;\n\nxhr.addEventListener('readystatechange', function () {\n  if (this.readyState === this.DONE) {\n    console.log(this.responseText);\n  }\n});\n\nxhr.open('POST', 'https://www.sefaria.org/api/find-refs');\nxhr.setRequestHeader('accept', 'application/json');\nxhr.setRequestHeader('content-type', 'application/json');\n\nxhr.send(data);"
+        }
+      ]
+    },
+    {
+      "language": "JSON",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "{\n  \"text\": {}\n}",
+      "libraries": []
+    },
+    {
+      "language": "Kotlin",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "val client = OkHttpClient()\n\nval mediaType = MediaType.parse(\"application/json\")\nval body = RequestBody.create(mediaType, \"{\\\"text\\\":{}}\")\nval request = Request.Builder()\n  .url(\"https://www.sefaria.org/api/find-refs\")\n  .post(body)\n  .addHeader(\"accept\", \"application/json\")\n  .addHeader(\"content-type\", \"application/json\")\n  .build()\n\nval response = client.newCall(request).execute()",
+      "libraries": []
+    },
+    {
+      "language": "Objective-C",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "#import <Foundation/Foundation.h>\n\nNSDictionary *headers = @{ @\"accept\": @\"application/json\",\n                           @\"content-type\": @\"application/json\" };\nNSDictionary *parameters = @{ @\"text\": @{  } };\n\nNSData *postData = [NSJSONSerialization dataWithJSONObject:parameters options:0 error:nil];\n\nNSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@\"https://www.sefaria.org/api/find-refs\"]\n                                                       cachePolicy:NSURLRequestUseProtocolCachePolicy\n                                                   timeoutInterval:10.0];\n[request setHTTPMethod:@\"POST\"];\n[request setAllHTTPHeaderFields:headers];\n[request setHTTPBody:postData];\n\nNSURLSession *session = [NSURLSession sharedSession];\nNSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request\n                                            completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {\n                                                if (error) {\n                                                    NSLog(@\"%@\", error);\n                                                } else {\n                                                    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;\n                                                    NSLog(@\"%@\", httpResponse);\n                                                }\n                                            }];\n[dataTask resume];",
+      "libraries": []
+    },
+    {
+      "language": "OCaml",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "open Cohttp_lwt_unix\nopen Cohttp\nopen Lwt\n\nlet uri = Uri.of_string \"https://www.sefaria.org/api/find-refs\" in\nlet headers = Header.add_list (Header.init ()) [\n  (\"accept\", \"application/json\");\n  (\"content-type\", \"application/json\");\n] in\nlet body = Cohttp_lwt_body.of_string \"{\\\"text\\\":{}}\" in\n\nClient.call ~headers ~body `POST uri\n>>= fun (res, body_stream) ->\n  (* Do stuff with the result *)",
+      "libraries": []
+    },
+    {
+      "language": "PowerShell",
+      "more": true,
+      "headerLabel": "Invoke-WebRequest Request",
+      "defaultLibrary": "Invoke-WebRequest",
+      "code": "$headers=@{}\n$headers.Add(\"accept\", \"application/json\")\n$headers.Add(\"content-type\", \"application/json\")\n$response = Invoke-WebRequest -Uri 'https://www.sefaria.org/api/find-refs' -Method POST -Headers $headers -ContentType 'application/json' -Body '{\"text\":{}}'",
+      "libraries": [
+        {
+          "library": "Invoke-RestMethod",
+          "headerLabel": "Invoke-RestMethod Request",
+          "code": "$headers=@{}\n$headers.Add(\"accept\", \"application/json\")\n$headers.Add(\"content-type\", \"application/json\")\n$response = Invoke-RestMethod -Uri 'https://www.sefaria.org/api/find-refs' -Method POST -Headers $headers -ContentType 'application/json' -Body '{\"text\":{}}'"
+        },
+        {
+          "library": "Invoke-WebRequest",
+          "headerLabel": "Invoke-WebRequest Request",
+          "code": "$headers=@{}\n$headers.Add(\"accept\", \"application/json\")\n$headers.Add(\"content-type\", \"application/json\")\n$response = Invoke-WebRequest -Uri 'https://www.sefaria.org/api/find-refs' -Method POST -Headers $headers -ContentType 'application/json' -Body '{\"text\":{}}'"
+        }
+      ]
+    },
+    {
+      "language": "R",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "library(httr)\n\nurl <- \"https://www.sefaria.org/api/find-refs\"\n\npayload <- \"{\\\"text\\\":{}}\"\n\nencode <- \"json\"\n\nresponse <- VERB(\"POST\", url, body = payload, content_type(\"application/json\"), accept(\"application/json\"), encode = encode)\n\ncontent(response, \"text\")",
+      "libraries": []
+    },
+    {
+      "language": "Rust",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "use serde_json::json;\nuse reqwest;\n\n#[tokio::main]\npub async fn main() {\n    let url = \"https://www.sefaria.org/api/find-refs\";\n\n    let payload = json!({\"text\": json!({})});\n\n    let client = reqwest::Client::new();\n    let response = client.post(url)\n        .header(\"accept\", \"application/json\")\n        .header(\"content-type\", \"application/json\")\n        .json(&payload)\n        .send()\n        .await;\n\n    let results = response.unwrap()\n        .json::<serde_json::Value>()\n        .await\n        .unwrap();\n\n    println!(\"{}\", results);\n}\n",
+      "libraries": []
+    },
+    {
+      "language": "Swift",
+      "more": true,
+      "headerLabel": "RequestExamples",
+      "defaultLibrary": null,
+      "code": "import Foundation\n\nlet parameters = [\"text\": []] as [String : Any?]\n\nlet postData = try JSONSerialization.data(withJSONObject: parameters, options: [])\n\nlet url = URL(string: \"https://www.sefaria.org/api/find-refs\")!\nvar request = URLRequest(url: url)\nrequest.httpMethod = \"POST\"\nrequest.timeoutInterval = 10\nrequest.allHTTPHeaderFields = [\n  \"accept\": \"application/json\",\n  \"content-type\": \"application/json\"\n]\nrequest.httpBody = postData\n\nlet (data, _) = try await URLSession.shared.data(for: request)\nprint(String(decoding: data, as: UTF8.self))",
+      "libraries": []
+    }
+  ]
+}

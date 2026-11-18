@@ -16,19 +16,23 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@readme/httpsnippet": "11.4.1",
     "codemirror": "^5.65.20",
     "lucide-react": "^1.55.0",
+    "markdown-it": "14.1.0",
     "minisearch": "7.2.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router": "^7.18.4",
-    "recharts": "^3.10.1"
+    "recharts": "^3.10.1",
+    "url": "0.11.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
+    "@types/markdown-it": "14.1.2",
     "@types/node": "^26.6.5",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

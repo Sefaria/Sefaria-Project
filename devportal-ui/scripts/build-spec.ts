@@ -1,14 +1,13 @@
-// build-spec.ts (PLAN §2.7, §2.8). Phase 0 stub; W3 owns it from Phase 2.
+// build-spec.ts (PLAN §2.7, §2.8). W3.
 //
-// Runs before `vite build`. Writes public/spec/index.json (contract C3, operation-index.schema.json) and,
-// once implemented, one public/spec/<operationId>.json per operation (operation-spec.schema.json). Vite
-// copies public/ into dist/, so Django serves them at /static/bundles/devportal/spec/. public/spec/ is
-// generated and git-ignored.
-//
-// The stub writes a valid index with no operations, so the build pipeline and the file location are real.
+// Runs before `vite build`. Writes public/spec/index.json (contract C3, operation-index.schema.json) and one
+// public/spec/<operationId>.json per operation (operation-spec.schema.json), dereferenced. Vite copies public/
+// into dist/, so Django serves them at /static/bundles/devportal/spec/. public/spec/ is generated and
+// git-ignored. The transformation itself lives in src/reference/spec/buildSpec.ts, which Vitest tests.
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { buildSpec } from '../src/reference/spec/buildSpec.ts';
 
 const PACKAGE = resolve(import.meta.dirname, '..');
 // In the repo and in the Docker stage alike, the spec sits at ../docs/openAPI.json (PLAN §2.8).
@@ -19,10 +18,14 @@ if (!existsSync(SPEC)) {
   console.error(`build-spec: ${SPEC} not found`);
   process.exit(1);
 }
-const specSha = createHash('sha256').update(readFileSync(SPEC)).digest('hex');
+const bytes = readFileSync(SPEC);
+const specSha = createHash('sha256').update(bytes).digest('hex');
+const { index, operations } = buildSpec(bytes.toString('utf8'), specSha);
+
+rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
-writeFileSync(
-  resolve(OUT, 'index.json'),
-  `${JSON.stringify({ contractVersion: 1, specSha, operations: [] }, null, 2)}\n`
-);
-console.log(`build-spec: stub wrote public/spec/index.json (spec ${specSha.slice(0, 12)}, 0 operations)`);
+for (const op of operations) {
+  writeFileSync(resolve(OUT, `${op.operationId}.json`), `${JSON.stringify(op)}\n`);
+}
+writeFileSync(resolve(OUT, 'index.json'), `${JSON.stringify(index, null, 2)}\n`);
+console.log(`build-spec: wrote public/spec/ (spec ${specSha.slice(0, 12)}, ${operations.length} operations)`);

@@ -1,0 +1,351 @@
+/* Responses: live's APIResponseSchemaPicker accordion and the response schema cards. */
+.responses {
+  margin: 0;
+}
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 2.4%);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.panel + .panel {
+  margin-top: -1px;
+}
+
+.toggleHeading {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  background: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.only .toggleHeading {
+  border-radius: 8px;
+}
+
+.first .toggleHeading {
+  border-radius: 8px 8px 0 0;
+}
+
+.middle .toggleHeading {
+  border-radius: 0;
+}
+
+.last .toggleHeading {
+  border-radius: 0 0 8px 8px;
+}
+
+.panelOpen .toggleHeading {
+  border-radius: 8px 8px 0 0;
+}
+
+.middle.panelOpen .toggleHeading,
+.last.panelOpen .toggleHeading {
+  border-radius: 0;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: var(--font-en-system);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  text-align: left;
+  cursor: pointer;
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #1a73e8);
+  outline-offset: 2px;
+}
+
+.toggleContent {
+  display: block;
+  min-width: 0;
+}
+
+.statusLabel {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  color: #484c58;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusCode {
+  display: flex;
+  align-items: center;
+  margin: 0 5px 0 0;
+  padding: 5px 3px;
+}
+
+.responseDescription {
+  font-size: 15px;
+  line-height: normal;
+  color: var(--rm-color-text-default, #32343a);
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #666b79;
+}
+
+.chevronIcon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.15s;
+}
+
+.panelOpen .chevronIcon {
+  transform: rotate(90deg);
+}
+
+.panelContent {
+  padding: 0 10px 10px;
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-top: 0;
+  background: #fff;
+}
+
+.last .panelContent,
+.only .panelContent {
+  border-radius: 0 0 8px 8px;
+}
+
+.body {
+  display: block;
+}
+
+.bodyHeader {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 50px;
+  padding: 10px 0 0;
+  color: #484c58;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+/* Schema cards */
+.card {
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.nestedCard {
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 8px;
+  background: #fff;
+}
+
+.typeRow {
+  padding: 10px;
+  color: #666b79;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.nestedCard > .typeRow {
+  padding: 10px 8px;
+}
+
+.descriptionRow {
+  margin: 5px 0 0;
+  padding: 10px;
+  border-top: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+}
+
+.nestedCard > .descriptionRow {
+  margin: 0;
+  padding: 10px 8px;
+}
+
+.propsBlock {
+  padding: 10px;
+  border-top: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+}
+
+.nestedCard > .propsBlock {
+  padding: 10px 8px;
+}
+
+.propRow {
+  display: flex;
+  flex-direction: column;
+  margin: -10px -8px 0;
+  padding: 10px 8px;
+}
+
+.propRow + .propRow {
+  margin: 0 -8px;
+  border-top: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+}
+
+.propRow:last-child {
+  margin-bottom: -10px;
+}
+
+.propHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+/* A property with neither description nor children: live keeps the row as tall as one with a type select. */
+.propHeaderAlone {
+  align-content: center;
+  min-height: 30px;
+}
+
+.propName {
+  margin: 0 5px 0 0;
+  color: var(--rm-color-text-default, #32343a);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 21px;
+}
+
+.propType {
+  color: #666b79;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.propRequired {
+  margin: 0 0 0 5px;
+  color: #ad273c;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.propDescription {
+  margin: 5px 0 0;
+}
+
+.propChildren {
+  padding: 8px 0 0;
+}
+
+.unionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.unionWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.unionCaret {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  color: #666b79;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.unionSelect {
+  appearance: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  height: 29px;
+  margin: 0 5px 0 4px;
+  padding: 0 30px 0 10px;
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 4px;
+  background: #fff;
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.unionBody > .unionWrap {
+  align-self: stretch;
+}
+
+.unionBody > .unionWrap > .unionSelect {
+  width: 100%;
+  margin: 0;
+}
+
+.expand {
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.expandOpen {
+  border-color: #018ef5;
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 30px;
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: normal;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.expandLabel {
+  flex: 1 1 auto;
+}
+
+.expandIcon {
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  margin: 0 0 0 5px;
+  padding: 4px;
+  border-radius: 4px;
+  color: #666b79;
+}
+
+.expandChildren {
+  padding: 8px;
+}

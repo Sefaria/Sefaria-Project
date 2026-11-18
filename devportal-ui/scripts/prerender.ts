@@ -13,6 +13,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer } from 'vite';
+import { prerenderEndpoints } from './prerender-endpoints.ts';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const DIST = resolve(ROOT, 'dist');
@@ -89,6 +90,8 @@ try {
   } else {
     writeFileSync(resolve(OUT, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
     console.log(`prerender: wrote ${Object.keys(manifest).length - 2} kinds to dist/prerender/`);
+    // The 61 endpoint articles (W3) merge into the manifest written above.
+    await prerenderEndpoints(DIST, css);
   }
 } finally {
   await server.close();
