@@ -73,15 +73,19 @@ for (const [label, path] of [
       );
     });
 
-    test(`DEV-AI-${id(4)}: "Connect to Cursor" and "Connect to VS Code" are deep links to this host's /mcp`, async () => {
+    test(`DEV-AI-${id(4)}: "Connect to Cursor" and "Connect to VS Code" are deep links to this host's /mcp`, async ({
+      context,
+    }) => {
       const copy = pm.onDevelopersCopyPage();
       const mcp = `${new URL(page.url()).origin}/mcp`;
       const cursor = await copy.connectTo('Cursor');
       expect(cursor).toMatch(/^cursor:/);
       expect(decodeDeepLink(cursor)).toContain(mcp);
-      // Following the Cursor link leaves the page waiting on an external app; start VS Code from a fresh load.
-      await pm.onDevelopersShell().openPath(path);
-      const vscode = await copy.connectTo('VS Code');
+      // Headless Chromium stops delivering pointer and key input to a tab that navigated to a scheme no app
+      // handles (cursor:, vscode:), even after a reload of that tab (a plain page doing the same shows it too).
+      // Start VS Code in a fresh tab.
+      ({ page, pm } = await enterPortal(context, path));
+      const vscode = await pm.onDevelopersCopyPage().connectTo('VS Code');
       expect(vscode).toMatch(/^vscode(-insiders)?:/);
       expect(decodeDeepLink(vscode)).toContain(mcp);
     });

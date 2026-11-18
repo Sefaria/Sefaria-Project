@@ -111,25 +111,32 @@ test.describe('Developers Analytics, English', () => {
     expect(JSON.stringify(ga.events)).not.toContain('Genesis');
   });
 
-  test('DEV-GA-008: copy_page_action reports each action', async () => {
-    const shell = pm.onDevelopersShell();
-    const ga = await shell.captureAnalytics();
-    await shell.openPath(DOC_PAGES.welcome);
-    const copy = pm.onDevelopersCopyPage();
+  test('DEV-GA-008: copy_page_action reports each action', async ({ context }) => {
+    // Headless Chromium stops delivering pointer and key input to a tab that navigated to a scheme no app
+    // handles (cursor:, vscode:), even after a reload of that tab, so each deep link ends a tab and the test
+    // continues in a fresh one, capturing its hits too.
+    const captures: { events: { name: string; params: Record<string, string> }[] }[] = [];
+    const freshTab = async (fresh: boolean) => {
+      if (fresh) ({ page, pm } = await enterBlank(context));
+      captures.push(await pm.onDevelopersShell().captureAnalytics());
+      await pm.onDevelopersShell().openPath(DOC_PAGES.welcome);
+      return pm.onDevelopersCopyPage();
+    };
+    let copy = await freshTab(false);
     await copy.copyMarkdown();
     await copy.copyMcpConfig();
     await copy.copyMcpCommand();
     await copy.connectTo('Cursor');
-    // Following a deep link leaves the page waiting on an external app; continue from a fresh load.
-    await shell.openPath(DOC_PAGES.welcome);
+    copy = await freshTab(true);
     await copy.connectTo('VS Code');
-    await shell.openPath(DOC_PAGES.welcome);
+    copy = await freshTab(true);
     await copy.openInAssistant('ChatGPT');
     await copy.openInAssistant('Claude');
     const tab = await copy.viewAsMarkdown();
     await tab.close();
+    const events = () => captures.flatMap((capture) => capture.events);
     await expect
-      .poll(() => named(ga.events, 'copy_page_action').map((e) => e.params.action), { timeout: t(10000) })
+      .poll(() => named(events(), 'copy_page_action').map((e) => e.params.action), { timeout: t(10000) })
       .toEqual([
         'copy_markdown',
         'copy_mcp_config',

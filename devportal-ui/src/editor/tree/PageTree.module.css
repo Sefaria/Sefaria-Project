@@ -46,10 +46,12 @@
 }
 
 .handle {
+  min-width: 24px;
+  min-height: 24px;
   padding: 0 0.125rem;
   border: 0;
   background: none;
-  color: var(--dp-color-text-muted, #9ca3af);
+  color: #4b5563;
   cursor: grab;
 }
 
@@ -75,13 +77,16 @@
   text-transform: uppercase;
 }
 
+/* Row actions and handles: #4b5563 keeps 4.5:1 on the hover and selected row backgrounds, 24px targets
+   (DEV-EDIT-038). */
 .action {
   flex: none;
+  min-height: 24px;
   opacity: 0;
   padding: 0 0.25rem;
   border: 0;
   background: none;
-  color: var(--dp-color-text-muted, #6b7280);
+  color: #4b5563;
   font: inherit;
   font-size: 0.75rem;
   cursor: pointer;

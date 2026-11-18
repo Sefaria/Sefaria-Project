@@ -86,6 +86,17 @@
   font: inherit;
 }
 
+/* WCAG 2.2 target size (24px) for the block forms' controls (DEV-EDIT-038). */
+.field input,
+.field select,
+.blockToolbar button {
+  min-height: 24px;
+}
+
+.field input[type='checkbox'] {
+  min-width: 24px;
+}
+
 .fieldWide {
   display: flex;
   flex: 1 1 100%;

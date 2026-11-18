@@ -5,10 +5,13 @@ import {
   KeyboardSensor,
   PointerSensor,
   closestCenter,
+  pointerWithin,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
   type DragMoveEvent,
+  type KeyboardSensorProps,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -32,6 +35,76 @@ export interface PageTreeProps {
   onMove(id: number, projection: Projection): void;
   onDelete(id: number): void;
 }
+
+/**
+ * dnd-kit's keyboard sensor starts listening for arrow keys a task after the row is picked up, so a key pressed
+ * at once was lost and the row dropped where it was (DEV-EDIT-045). Keys pressed in that gap are held and
+ * replayed in order once it listens, one task apart so each move is rendered before the next key (a drop then
+ * lands where the arrows took the row).
+ */
+class PromptKeyboardSensor extends KeyboardSensor {
+  constructor(props: KeyboardSensorProps) {
+    const target = props.event.target instanceof Node ? props.event.target : null;
+    const doc = target?.ownerDocument ?? document;
+    const held: KeyboardEvent[] = [];
+    const replayed = new WeakSet<Event>();
+    const hold = (event: KeyboardEvent) => {
+      if (event === props.event || replayed.has(event)) return;
+      held.push(event);
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    doc.addEventListener('keydown', hold, true);
+    super(props);
+    const replay = () => {
+      const event = held.shift();
+      if (!event) {
+        doc.removeEventListener('keydown', hold, true);
+        return;
+      }
+      const copy = new KeyboardEvent('keydown', {
+        key: event.key,
+        code: event.code,
+        shiftKey: event.shiftKey,
+        ctrlKey: event.ctrlKey,
+        altKey: event.altKey,
+        metaKey: event.metaKey,
+        bubbles: true,
+        cancelable: true,
+      });
+      replayed.add(copy);
+      (event.target ?? doc).dispatchEvent(copy);
+      setTimeout(replay);
+    };
+    // Queued after the sensor's own setTimeout, so its keydown listener is in place.
+    setTimeout(replay);
+  }
+}
+
+/**
+ * Rows differ in height (long titles and badges wrap), which `closestCenter` alone gets wrong: a tall row moved
+ * up by the keyboard stays nearest to its own slot, so the move never happens (DEV-EDIT-045). A pointer drag
+ * drops on the row under the pointer; a keyboard step (`sortableKeyboardCoordinates`) lines the dragged row's top
+ * (moving up) or bottom (moving down) up with the target row, so the row whose top or bottom edge is nearest wins.
+ */
+const treeCollision: CollisionDetection = (args) => {
+  if (args.pointerCoordinates) {
+    const within = pointerWithin(args);
+    return within.length ? within : closestCenter(args);
+  }
+  const { collisionRect, droppableRects, droppableContainers } = args;
+  return droppableContainers
+    .flatMap((container) => {
+      const rect = droppableRects.get(container.id);
+      if (!rect) return [];
+      const value = Math.min(
+        Math.abs(rect.top - collisionRect.top),
+        Math.abs(rect.top + rect.height - (collisionRect.top + collisionRect.height))
+      );
+      return [{ id: container.id, data: { droppableContainer: container, value } }];
+    })
+    .sort((a, b) => a.data.value - b.data.value);
+};
 
 const CAN_HAVE_CHILDREN = new Set(['category', 'page']);
 const DELETABLE = new Set(['category', 'page', 'link']);
@@ -57,7 +130,7 @@ function Row({
         setNodeRef(el);
         // dnd-kit positions the dragged row with a transform (the editor's CSP allows style attributes).
         if (el) {
-          el.style.transform = CSS.Transform.toString(transform) ?? '';
+          el.style.transform = CSS.Translate.toString(transform) ?? '';
           el.style.transition = transition ?? '';
           el.style.paddingLeft = `${item.depth * INDENT}px`;
         }
@@ -107,7 +180,7 @@ export function PageTree({ tree, selectedId, onSelect, onCreate, onMove, onDelet
   const [offset, setOffset] = useState(0);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(PromptKeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
   const isCustom = tree.section === 'page';
   const titleOf = (id: string | number) => flat.find((f) => f.id === Number(id))?.node.title ?? 'the page';
@@ -133,7 +206,7 @@ export function PageTree({ tree, selectedId, onSelect, onCreate, onMove, onDelet
       </div>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={treeCollision}
         onDragMove={(event: DragMoveEvent) => setOffset(event.delta.x)}
         onDragEnd={onDragEnd}
         onDragCancel={() => setOffset(0)}

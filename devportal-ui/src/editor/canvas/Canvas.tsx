@@ -1,6 +1,7 @@
 // The editing canvas: TipTap with the C4 schema inside `.dp-markdown`, so article.css styles it as the public page
 // (PLAN §2.11 "Edit shows TipTap with article.css"), a formatting toolbar and the "/" menu.
 import type { Editor, JSONContent } from '@tiptap/core';
+import { Selection } from '@tiptap/pm/state';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { LOAD_META, dirtyKey } from '../markdown/dirty';
@@ -91,6 +92,20 @@ export function Canvas({ content, label, onReady, onChange }: CanvasProps) {
         class: styles.prose ?? '',
       },
       handleKeyDown: (view, event) => {
+        // Ctrl/Cmd+Home and +End go to the document's start and end through the editor's own selection. Left to
+        // the browser, the caret move is undone when it comes within ProseMirror's post-focus selection restore
+        // (20 ms after focus), so a quick Ctrl+End after focusing typed at the start instead (DEV-EDIT-024/026/027).
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          !event.shiftKey &&
+          !event.altKey &&
+          (event.key === 'End' || event.key === 'Home')
+        ) {
+          const { doc, tr } = view.state;
+          const target = event.key === 'End' ? Selection.atEnd(doc) : Selection.atStart(doc);
+          view.dispatch(tr.setSelection(target).scrollIntoView());
+          return true;
+        }
         const current = menuRef.current;
         if (!current) return false;
         const count = current.items.length;

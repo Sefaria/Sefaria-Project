@@ -316,6 +316,18 @@ const JSON_MODE = { name: 'javascript', json: true };
 function ResponseCard() {
   const { response, examples, setResponse, announcement } = useEndpoint();
   const [headersOpen, setHeadersOpen] = useState(false);
+  const headersButton = useRef<HTMLButtonElement | null>(null);
+  const headersWereOpen = useRef(false);
+  // The dialog is unmounted on close, so the browser cannot restore focus itself: once it is gone (the page is
+  // no longer inert), return focus to the Headers button.
+  useEffect(() => {
+    if (headersOpen) headersWereOpen.current = true;
+    else if (headersWereOpen.current) {
+      headersWereOpen.current = false;
+      headersButton.current?.focus();
+    }
+  }, [headersOpen]);
+  const closeHeaders = () => setHeadersOpen(false);
   let header: ReactNode;
   let body: ReactNode;
   let copyText: string | null = null;
@@ -405,6 +417,7 @@ function ResponseCard() {
           {response.kind === 'result' && response.result.ok ? (
             <button
               type="button"
+              ref={headersButton}
               className={styles.headersButton}
               aria-haspopup="dialog"
               onClick={() => setHeadersOpen(true)}
@@ -420,9 +433,7 @@ function ResponseCard() {
       <div className={styles.liveRegion} aria-live="polite">
         {announcement}
       </div>
-      {headersOpen && response.kind === 'result' ? (
-        <HeadersDialog view={response} onClose={() => setHeadersOpen(false)} />
-      ) : null}
+      {headersOpen && response.kind === 'result' ? <HeadersDialog view={response} onClose={closeHeaders} /> : null}
     </section>
   );
 }
