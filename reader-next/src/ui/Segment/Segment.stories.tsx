@@ -124,7 +124,7 @@ export const SideBySideTranslationLikeSource: Story = {
   play: async ({ canvasElement }) => {
     const row = seg(canvasElement, "both");
     await expect(colorOf(row, "translation")).toBe(colorOf(row, "primary"));
-    await expect(colorOf(row, "translation")).toBe(computed(canvasElement, "var(--sefaria-color-text)"));
+    await expect(colorOf(row, "translation")).toBe(computed(canvasElement, "var(--sefaria-color-text-strong)"));
   },
 };
 

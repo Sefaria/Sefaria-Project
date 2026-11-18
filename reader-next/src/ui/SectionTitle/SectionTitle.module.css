@@ -10,3 +10,8 @@
 .parashah { margin: var(--sefaria-space-8) 0 var(--sefaria-space-4); font-family: var(--sefaria-font-text-en); text-align: center; font-size: var(--sefaria-text-serif-h3); letter-spacing: 1px; font-weight: 400; }
 .title + .parashah { margin-block-start: var(--sefaria-space-2); }
 .parashah[data-aliyah="true"] { font-size: 18px; text-transform: uppercase; }
+/* sefaria.org .textRange.basetext .title and the parashah under it are black; a Hebrew parashah is the Hebrew text face at 122% of
+   24px (29.28px; measured 2026-11-18, Genesis 1 in Hebrew) */
+.title, .parashah { color: var(--sefaria-color-text-strong); }
+.parashah[lang="he"] { font-family: var(--sefaria-font-text-he); font-size: calc(24px * var(--sefaria-reader-body-he-ratio)); }
+.parashah[lang="he"][data-aliyah="true"] { font-size: calc(18px * var(--sefaria-reader-body-he-ratio)); }

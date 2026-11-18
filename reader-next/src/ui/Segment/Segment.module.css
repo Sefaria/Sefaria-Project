@@ -133,3 +133,11 @@
   [data-language="bilingual"]:is([data-bilayout="heLeft"], [data-bilayout="heRight"]) .segment:is([data-sides="both"], [data-sides="translation"]) { margin-block-end: 20px; }
   [data-language="bilingual"]:is([data-bilayout="heLeft"], [data-bilayout="heRight"]) .segment[data-sides="primary"]:has(> .body > .primary[dir="ltr"]) :is(.number, .dot) { direction: ltr; --_start: var(--_left); --_end: var(--_right); }
 }
+/* The source text and the verse numbers are black, as sefaria.org's .segment (#000; the Hebrew side was #121212 here, measured
+   2026-11-18 on Genesis 1 in Hebrew and bilingual, 375 and 1280); a translation that has the source's colour has it too */
+.primary, .number { color: var(--sefaria-color-text-strong); }
+[data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation, [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text-strong); }
+@container panel (width < 500.5px) {
+  [data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation { color: var(--sefaria-color-text-dark-grey); }
+  [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text-strong); }
+}

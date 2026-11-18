@@ -18,3 +18,6 @@
   .buttons button { width: min-content; white-space: normal; line-height: normal; }
   .close { inset-inline-end: 4px; }
 }
+/* the message's lines centred and the button's label regular weight, as there (measured 2026-11-18 on Genesis 1, 375 and 1280) */
+.message { text-align: center; }
+.buttons button { font-weight: 400; }

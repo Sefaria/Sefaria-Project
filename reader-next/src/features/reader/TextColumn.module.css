@@ -19,3 +19,7 @@
   .scroller { overflow: visible; flex: none; }
   .frame { display: block; flex: none; }
 }
+/* The book's title above its first section, as sefaria.org's .bookMetaDataBox .title (measured 2026-11-18 on Genesis 1 at 1280 and
+   375): 30px black on a 1.3 line, the Hebrew face at 122% (36.6px) */
+.bookTitle { font-size: 30px; line-height: 1.3; letter-spacing: 0; color: var(--sefaria-color-text-strong); }
+.bookTitle[lang="he"] { font-size: calc(30px * var(--sefaria-reader-body-he-ratio)); }

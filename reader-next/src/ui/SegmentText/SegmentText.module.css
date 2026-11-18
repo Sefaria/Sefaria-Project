@@ -53,3 +53,5 @@
 
 /* Print (legacy s2-print.css .segment sup): footnote markers and itags are not printed */
 @media print { .text sup { display: none; } }
+/* a citation inside the text is #333 (s2.css .segment a.refLink; measured on Rashi on Genesis 1:1) */
+.text a:global(.ref-link) { color: var(--sefaria-color-text-list); }
