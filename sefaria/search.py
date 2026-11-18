@@ -4,6 +4,7 @@ search.py - full-text search for Sefaria using ElasticSearch
 Writes to MongoDB Collection: index_queue
 """
 
+import html
 import logging
 import os
 import re
@@ -2517,6 +2518,29 @@ def index_from_queue():
             _process_index_queue_item(item)
 
 
+def _parse_queue_ref(item):
+    """Parse the ref stored on an index queue record.
+
+    Text refs reach the queue as the normal form of a parsed Ref, and from
+    add_recent_to_queue, which copies the `ref` field of activity rows verbatim.
+    Activity rows written by legacy imports can still carry HTML entities inside a
+    section title ("Otzar Midrashim, Keri &amp; K'tiv, ..."). No library title holds
+    the entity text, so that ref never parses, while the same ref with the
+    character itself does. Retry such a ref unescaped.
+
+    Raises InputError when the ref stays unparseable: parsing depends only on the
+    loaded library, so the next run fails in exactly the same way.
+    """
+    ref = item.get("ref")
+    try:
+        return Ref(ref)
+    except InputError:
+        unescaped = html.unescape(ref) if isinstance(ref, str) else ref
+        if unescaped == ref:
+            raise
+        return Ref(unescaped)
+
+
 def _process_index_queue_item(item):
     try:
         # Resolved per item, not once up front: a run can outlive a weekly alias swap,
@@ -2527,9 +2551,22 @@ def _process_index_queue_item(item):
                 return  # failure already logged; keep the record for the next run
         else:
             index_name = get_new_and_current_index_names("text").get("current")
+            try:
+                oref = _parse_queue_ref(item)
+            except InputError as e:
+                # Parsing reads only the loaded library, so a record that fails here
+                # fails on every later run. Drop it: keeping it retries a permanent
+                # failure without bound and logs an error each run, while the weekly
+                # full reindex derives refs from the library and still covers the text.
+                logger.error(
+                    f"Dropping index queue record whose ref cannot be parsed "
+                    f"({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {type(e).__name__}: {e}"
+                )
+                db.index_queue.delete_one({"_id": item["_id"], "generation": item.get("generation")})
+                return
             TextIndexer.index_ref(
                 index_name,
-                Ref(item.get("ref")),
+                oref,
                 item.get("version"),
                 item.get("lang"),
                 item.get("languageFamilyName"),
