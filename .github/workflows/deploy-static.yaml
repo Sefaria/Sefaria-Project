@@ -233,6 +233,9 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
+        with:
+          # Pinned: "latest" asks the GitHub API at run time; an empty answer failed this job (2026-11-18).
+          version: v4.44.3
       - name: Resolve app version
         id: app
         run: |
@@ -273,7 +276,18 @@ jobs:
           echo "${APP_VERSION}" > promotions/${ENV_NAME}
 
           git add "$ENV_FILE" helm-chart/promotions/${ENV_NAME} promotions/${ENV_NAME}
-          git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
+          # A settings-only change (only envs/<env>/helmrelease.yaml, e.g. turning a flag on) releases no new app or
+          # chart, so there is nothing to commit and the release tag already exists. Deploy it anyway: tag the commit
+          # that carries the change, with a suffix that keeps the tag unique (static-env-deploy.yml only requires
+          # "<env>/<digit>..."). Without this the job failed and the change never reached the environment.
+          if git diff --cached --quiet; then
+            echo "No version change: deploying the settings change in $(git rev-parse --short HEAD) as it is."
+          else
+            git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
+          fi
+          if git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null; then
+            RELEASE_TAG="${RELEASE_TAG}.cfg.$(git rev-parse --short=10 HEAD)"
+          fi
           git tag -a "${RELEASE_TAG}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
           git push origin "${GITHUB_REF_NAME}" --follow-tags
 
