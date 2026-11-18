@@ -151,6 +151,9 @@ class ReaderApp extends Component {
       // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
       // legitimately has no attributable source.
       authSource: null,
+      // A logged-in user's "Hide Ask button" choice; null when logged out. Updated when they flip it,
+      // so a remounted <lc-chatbot> gets the current value, not the one from page load.
+      chatbotHideLauncher: props.chatbot_hide_launcher ?? null,
     };
   }
   setEditorSaveState = (nextState) => {
@@ -1394,10 +1397,11 @@ class ReaderApp extends Component {
   // The Library Assistant's "Hide Ask button" switch: save a logged-in user's choice to their
   // account, so every device starts with it (passed back as <lc-chatbot hide-launcher>).
   // Logged out, the assistant keeps it in that browser on its own.
-  handleChatbotLauncherVisibility(event) {
+  handleChatbotLauncherVisibility = (event) => {
     if (!Sefaria._uid || typeof event?.detail?.hidden !== 'boolean') return;
+    this.setState({ chatbotHideLauncher: event.detail.hidden });
     Sefaria.editProfileAPI({ settings: { library_assistant_floating_button_hidden: event.detail.hidden } });
-  }
+  };
   handleSettingsUpdatedEvent(event) {
     const detail = event?.detail;
     if (!detail) return;
@@ -2864,7 +2868,10 @@ class ReaderApp extends Component {
                       interface-lang={Sefaria._getShortInterfaceLang()}
                       anon-free-answers={this.props.chatbot_anon_free_answers ?? undefined}
                       // A logged-in user's saved "Hide Ask button" choice; absent when logged out
-                      hide-launcher={this.props.chatbot_hide_launcher == null ? undefined : String(this.props.chatbot_hide_launcher)}
+                      hide-launcher={
+                        this.state.chatbotHideLauncher == null ? undefined : String(this.state.chatbotHideLauncher)
+                      }
+                      design-system-preview={this.props.design_system_preview || undefined}
                     >
                       {!Sefaria._uid && (
                         // Shown in the assistant's login prompt (its signup-options slot). They stay in

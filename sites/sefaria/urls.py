@@ -101,7 +101,7 @@ site_urlpatterns += [
     ),
     re_path(
         r"^powered-by/?$",
-        lambda x: HttpResponsePermanentRedirect("https://developers.sefaria.org/docs/powered-by-sefaria"),
+        lambda x: HttpResponsePermanentRedirect("https://powered-by.sefaria.org"),
     ),
     re_path(r"^wiki/?$", lambda x: HttpResponseRedirect("https://developers.sefaria.org/docs/welcome")),
     re_path(r"^developers/?$", lambda x: HttpResponseRedirect("https://developers.sefaria.org")),
