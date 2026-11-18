@@ -40,7 +40,7 @@ import { toRouterLocation } from "../shared/RouterLink";
 // on /Genesis.1.3-5?with=all). Split it with the route manifest, where the router loads a page's chunks before it hydrates.
 import { ConnectionsPane } from "./ConnectionsPane";
 import styles from "./TextPanel.module.css";
-import { setMobileMenuOpen } from "../shell/mobile-menu";
+import { setMobileMenuOpen, useMobileMenuOpen } from "../shell/mobile-menu";
 import { SignUpModal } from "~/ui/SignUpModal/SignUpModal";
 import { VisuallyHidden } from "~/ui/VisuallyHidden/VisuallyHidden";
 import { shownVersions as panelVersionsShown, type ReaderRouteData } from "./reader-route";
@@ -88,6 +88,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const location = useLocation();
   const qc = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
+  // the phone's navigation menu: this bar's Menu button opens it and, tapped again, closes it (sefaria.org's reader bar; SHL-062)
+  const phoneMenuOpen = useMobileMenuOpen();
   // "Record session" in the display menu (docs/READER_STATE_API.md, "Recording and replay"); closes the menu so the dock is in view
   const sessionEntry = useRecordSessionEntry();
   const [saveAsked, setSaveAsked] = useState(false);
@@ -726,7 +728,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         start={
           <>
             <span className={styles.notPhone}><CloseTextButton label={alone ? (he ? "חזרה לספריה" : "Back to the library") : he ? "סגירת הטקסט" : "Close this text"} onClick={() => void closePanel()} /></span>
-            <span className={styles.onlyPhone}><IconButton icon="menu" label={he ? "תפריט" : "Menu"} onClick={() => setMobileMenuOpen(true)} /></span>
+            <span className={styles.onlyPhone}><IconButton icon="menu" label={he ? "תפריט" : "Menu"} aria-expanded={phoneMenuOpen} aria-controls="mobile-nav" onClick={() => setMobileMenuOpen(!phoneMenuOpen)} /></span>
           </>
         }
         end={

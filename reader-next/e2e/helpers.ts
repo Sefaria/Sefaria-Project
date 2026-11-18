@@ -53,3 +53,32 @@ export const sectionRefs = (page: Page) =>
   page.locator("[data-language] section[data-ref]").evaluateAll((els) => els.map((e) => e.getAttribute("data-ref")));
 
 export const focused = (page: Page) => page.locator('[data-focused="true"]').getAttribute("data-ref");
+
+/**
+ * Whether a tap at the centre of each element reaches it: the element (or something inside it, through shadow roots) is what
+ * the point hits, not a bar or sheet painted over it. Returns, per element, null when reachable or what covers it. A box at the
+ * right place is not enough on a phone: a sticky bar or a stacking context can sit on top of a button and swallow the tap.
+ */
+export const covering = (page: Page, js: string) =>
+  page.evaluate((code) => {
+    const els = new Function(`return ${code}`)() as Element[];
+    const deepAt = (x: number, y: number) => {
+      let e = document.elementFromPoint(x, y);
+      while (e?.shadowRoot) {
+        const inner = e.shadowRoot.elementFromPoint(x, y);
+        if (!inner || inner === e) break;
+        e = inner;
+      }
+      return e;
+    };
+    const within = (a: Element, b: Element | null) => {
+      for (let n: Node | null = b; n; n = n.parentNode ?? (n as unknown as ShadowRoot).host ?? null) if (n === a) return true;
+      return false;
+    };
+    return els.map((el) => {
+      const b = el.getBoundingClientRect();
+      const at = deepAt(b.x + b.width / 2, b.y + b.height / 2);
+      if (within(el, at)) return null;
+      return at ? `${at.tagName.toLowerCase()}${at.getAttribute("aria-label") ? `[${at.getAttribute("aria-label")}]` : ""}` : "nothing";
+    });
+  }, js);

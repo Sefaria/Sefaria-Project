@@ -14,17 +14,22 @@
 @media (max-width: 842px) {
   .app { display: block; height: auto; }
   .main { overflow-y: visible; }
-  /* the page scrolls the window here: a docked widget (601-842px; a phone gets the widget's own full-screen sheet) stays in view
-     beside it as a column the height of the screen, as the old #main kept it, under the header's 60px */
   .body { align-items: flex-start; }
-  /* above the cookie notice while it spans the bottom (--bottom-bar-height), as the old #main ended above it */
-  .body > :global(lc-chatbot) {
-    position: sticky; top: 0; height: calc(100dvh - var(--bottom-bar-height, 0px)); max-height: calc(100dvh - var(--bottom-bar-height, 0px));
-    --lc-docked-top-offset: 60px;
-  }
   .app[data-reading="true"] .header { display: none; }
   /* ...unless the panel's menu button opened the navigation menu */
   .app[data-reading="true"][data-menu="open"] .header { display: block; position: sticky; top: 0; z-index: 70; background: var(--sefaria-color-surface); }
+}
+/* 601-842px the page scrolls the window, and the widget can dock: a docked widget stays in view beside the page as a column the
+   height of the screen, as the old #main kept it, under the header's 60px, and above the cookie notice while it spans the bottom
+   (--bottom-bar-height), as the old #main ended above it. Sticky makes the element its own stacking context, which would trap the
+   widget's z-index (its container is fixed at 10000) under the page's sticky bars: the element carries that z-index itself, so the
+   floating window and its Ask button stay above the page as on sefaria.org. A phone (600px and less) always gets the widget's own
+   full-screen sheet and leaves the element static, as sefaria.org does. */
+@media (min-width: 601px) and (max-width: 842px) {
+  .body > :global(lc-chatbot) {
+    position: sticky; top: 0; z-index: 10000; height: calc(100dvh - var(--bottom-bar-height, 0px)); max-height: calc(100dvh - var(--bottom-bar-height, 0px));
+    --lc-docked-top-offset: 60px;
+  }
 }
 /* Phone: while the cookie notice spans the bottom of the screen, the page's end stays above it (--bottom-bar-height, set by
    src/ui/CookieNotice/bottom-bar.ts; the old #readerAppWrap rule of static/css/cookies-notification.scss, master #3948) */
