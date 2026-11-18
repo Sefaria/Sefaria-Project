@@ -6,10 +6,11 @@
 
 ## 1. What this directory does
 
-Playwright end-to-end test suite for Sefaria. Two web modules and one embedded product are under test:
+Playwright end-to-end test suite for Sefaria. Three web modules and one embedded product are under test:
 
 - **Library** — `www.<sandbox-domain>` (English) / `www.<sandbox-domain-il>` (Hebrew)
 - **Voices** — `voices.<sandbox-domain>` (English) / `chiburim.<sandbox-domain-il>` (Hebrew)
+- **Developers** — the developer portal, `developers.<sandbox-domain>` (English only; `MODULE_URLS.EN.DEVELOPERS` = `MODULE_URLS.HE.DEVELOPERS`). Override with `E2E_DEVELOPERS_URL`; a local `SANDBOX_URL` gives `http://developers.localhost:<port>`. Its `*-developers` projects are registered only when that host is known to be reachable (`E2E_DEVELOPERS_URL` set, or `SANDBOX_URL` is localhost or a public hostname). Suites with `DEV-*` IDs, page objects in `pages/developers/` (`pm.onDevelopersShell()` … `pm.onDevelopersEditor()`). See [developers/README.md](developers/README.md).
 - **Library Assistant** — `<lc-chatbot>` custom element embedded on the Library module. See [assistant/README.md](assistant/README.md) for the full LA-specific guide.
 - **Resource Panel** — `ConnectionsPanel` reader sidebar, RP-001 → RP-212. See [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md).
 - **Voices Topics** — `/topics/<slug>` and `/topics` landing on the Voices module, TOV-001 → TOV-019 (non-skipped). See [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md).
@@ -221,6 +222,9 @@ Conventions:
 | Search (autocomplete / results / dropdown, SRCH-NNN)                                                                                | `Full testing by Feature/Search/`                                    | `chrome/firefox/safari-search`                                         | `www.<sandbox>`        |
 | User Menu (profile / account / language / switcher / logout, UMN-NNN)                                                               | `Full testing by Feature/User Menu/`                                 | `chrome/firefox/safari-user-menu`                                      | `www.<sandbox>`        |
 | Cross-Module integration (auth persistence XMOD-L, redirects XMOD-R)                                                                | `Full testing by Feature/Cross-Module/`                              | `chrome/firefox/safari-cross-module`                                   | `www.<sandbox>`        |
+| Developer portal (`developers.` host; DEV-* IDs). Navigate to absolute `MODULE_URLS.EN.DEVELOPERS` URLs                             | `developers/<area>/`                                                 | `chrome/firefox/safari-developers` (only when the host is known)       | `developers.<sandbox>` |
+| Developer portal below its 768 px breakpoint                                                                                        | `mobile web/developers/` _(mobile config)_                           | `chrome-mobile-developers`, `safari-mobile-developers`                 | `developers.<sandbox>` |
+| Developer portal visual parity with live, never `@pr` (config `playwright.devportal-visual.config.ts`)                              | `developers-visual/` _(separate config)_                             | `visual-1440` … `visual-390`                                           | `developers.<sandbox>` |
 | Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow)                                                                | `mobile web/` _(separate config — `playwright.mobileweb.config.ts`)_ | `chrome-mobile-library` (Pixel 5), `safari-mobile-library` (iPhone 13) | `www.<sandbox>`        |
 | End-to-end smoke / release gate (**TAG-scoped** — every `@sanity` test, any folder)                                                 | by tag; `Sanity/` is **docs only**                                   | `chrome-sanity`, `firefox-sanity`, `safari-sanity`                     | `www.<sandbox>`        |
 | Product's behavior specs (Gherkin `.feature` + step definitions, run by playwright-bdd) — **`features/` is locked, see its README** | `feature-specs/` _(separate config — `playwright.bdd.config.ts`)_    | `chrome-bdd`, `chrome-bdd-mobile` (`npm run test:bdd`)                 | `www.<sandbox>`        |
@@ -238,6 +242,7 @@ Rule of thumb:
 - Does it traverse both modules (login on A, verify on B; cross-module redirects)? → `Full testing by Feature/Cross-Module/`.
 - Is it release-gate smoke? → keep it in its feature folder and tag it `{ tag: '@sanity' }` (membership is by tag, not folder — see [Sanity/README.md](Sanity/README.md)).
 - Does it validate platform-level invariants (redirects, static routes)? → `Misc/`.
+- Is it on the developer portal (`developers.` host)? → `developers/<area>/` (or `mobile web/developers/`). Navigate to absolute `MODULE_URLS.EN.DEVELOPERS` URLs: the tag-scoped `*-sanity` and `chrome-pr` projects run the portal's `@sanity` / `@pr` tests under the Library baseURL.
 
 ---
 

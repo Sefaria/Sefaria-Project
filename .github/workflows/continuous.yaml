@@ -503,6 +503,7 @@ jobs:
           echo "SANDBOX_URL=https://$host" >> $GITHUB_ENV
           echo "E2E_LIBRARY_URL=https://$host" >> $GITHUB_ENV
           echo "E2E_VOICES_URL=https://sheets.$host" >> $GITHUB_ENV
+          echo "E2E_DEVELOPERS_URL=https://developers.$host" >> $GITHUB_ENV
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

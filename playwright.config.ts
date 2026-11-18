@@ -22,16 +22,56 @@ const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, ''
 // don't use www./voices. hosts). Same override as e2e-tests/constants.ts.
 const LIBRARY_OVERRIDE = process.env.E2E_LIBRARY_URL
 const VOICES_OVERRIDE = process.env.E2E_VOICES_URL ?? LIBRARY_OVERRIDE
+// The developer portal (third module, English only). Resolution order, the same as
+// e2e-tests/constants.ts: E2E_DEVELOPERS_URL; for a local SANDBOX_URL, the developers.
+// sub-host of it (127.0.0.1 becomes localhost: Chromium resolves *.localhost only);
+// otherwise https://developers.<SANDBOX_DOMAIN>.
+const IS_LOCAL_SANDBOX = /^(https?:\/\/)?(localhost|127\.0\.0\.1)/.test(process.env.SANDBOX_URL ?? '')
+const localDevelopersBase = (raw: string) => {
+  const local = raw.replace('127.0.0.1', 'localhost')
+  const u = new URL(/^https?:\/\//.test(local) ? local : `http://${local}`)
+  return `${u.protocol}//developers.${u.host}`
+}
+const DEVELOPERS_URL =
+  process.env.E2E_DEVELOPERS_URL ??
+  (IS_LOCAL_SANDBOX ? localDevelopersBase(process.env.SANDBOX_URL!) : `https://developers.${SANDBOX_DOMAIN}`)
+
 const MODULE_URLS = {
   EN: {
     LIBRARY: LIBRARY_OVERRIDE ?? `https://www.${SANDBOX_DOMAIN}`,
-    VOICES: VOICES_OVERRIDE ?? `https://voices.${SANDBOX_DOMAIN}`
+    VOICES: VOICES_OVERRIDE ?? `https://voices.${SANDBOX_DOMAIN}`,
+    DEVELOPERS: DEVELOPERS_URL
   },
   HE: {
     LIBRARY: LIBRARY_OVERRIDE ?? `https://www.${SANDBOX_DOMAIN_IL}`,
-    VOICES: VOICES_OVERRIDE ?? `https://chiburim.${SANDBOX_DOMAIN_IL}`
+    VOICES: VOICES_OVERRIDE ?? `https://chiburim.${SANDBOX_DOMAIN_IL}`,
+    DEVELOPERS: DEVELOPERS_URL
   }
 } as const;
+
+// DC-3 (docs/dev-portal/PLAN.md §1.1): the *-developers projects exist only when a
+// developers host is known to be reachable: E2E_DEVELOPERS_URL is set, or SANDBOX_URL is
+// localhost or a public hostname. The merge-queue run (integration-testing.yaml) points
+// SANDBOX_URL at an in-cluster service name (http://nginx-integration-<sha>.<namespace>),
+// where no developers host resolves, so there the projects are simply absent.
+const sandboxHostname = (() => {
+  const raw = process.env.SANDBOX_URL ?? ''
+  try {
+    return new URL(/^https?:\/\//.test(raw) ? raw : `http://${raw}`).hostname
+  } catch {
+    return ''
+  }
+})()
+const DEVELOPERS_HOST_KNOWN =
+  !!process.env.E2E_DEVELOPERS_URL || IS_LOCAL_SANDBOX || /\.(org|com|net|il)$/i.test(sandboxHostname)
+
+// Portal suites never run in the existing projects. The tag-scoped projects (*-sanity,
+// chrome-pr) scan the whole tree, so they skip e2e-tests/developers/ unless the developers
+// host is known (then its @sanity / @pr tests belong to them, PLAN §5.2.3), and they always
+// skip the visual-parity suite, which runs only under playwright.devportal-visual.config.ts.
+const DEVELOPERS_TAG_IGNORE = DEVELOPERS_HOST_KNOWN
+  ? ['**/e2e-tests/developers-visual/**']
+  : ['**/e2e-tests/developers/**', '**/e2e-tests/developers-visual/**']
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -178,7 +218,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', ...DEVELOPERS_TAG_IGNORE],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -193,7 +233,7 @@ export default defineConfig({
       name: 'chrome-pr',
       testDir: './e2e-tests',
       grep: /@pr\b/,
-      testIgnore: ['**/mobile web/**', '**/feature-specs/**'],
+      testIgnore: ['**/mobile web/**', '**/feature-specs/**', ...DEVELOPERS_TAG_IGNORE],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -321,7 +361,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', ...DEVELOPERS_TAG_IGNORE],
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -426,7 +466,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', ...DEVELOPERS_TAG_IGNORE],
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -496,6 +536,39 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+
+    // Developer portal (developers.<domain>) suites, DEV-* IDs. Registered only when the
+    // developers host is known (DEVELOPERS_HOST_KNOWN above, DC-3). Tests navigate to
+    // absolute MODULE_URLS.EN.DEVELOPERS URLs, because the tag-scoped projects run their
+    // @sanity / @pr members under the Library baseURL. See e2e-tests/developers/README.md.
+    ...(DEVELOPERS_HOST_KNOWN
+      ? [
+          {
+            name: 'chrome-developers',
+            testDir: './e2e-tests/developers',
+            use: {
+              ...devices['Desktop Chrome'],
+              baseURL: MODULE_URLS.EN.DEVELOPERS,
+            },
+          },
+          {
+            name: 'firefox-developers',
+            testDir: './e2e-tests/developers',
+            use: {
+              ...devices['Desktop Firefox'],
+              baseURL: MODULE_URLS.EN.DEVELOPERS,
+            },
+          },
+          {
+            name: 'safari-developers',
+            testDir: './e2e-tests/developers',
+            use: {
+              ...devices['Desktop Safari'],
+              baseURL: MODULE_URLS.EN.DEVELOPERS,
+            },
+          },
+        ]
+      : []),
 
 
 

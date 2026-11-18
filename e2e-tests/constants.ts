@@ -87,35 +87,53 @@ const localBase = (raw: string | undefined, voicesHost?: string) => {
 const EXPLICIT_LIBRARY_URL = process.env.E2E_LIBRARY_URL
 const EXPLICIT_VOICES_URL = process.env.E2E_VOICES_URL
 
+// The developer portal (developers.<domain>) is the third module. It is English only, so
+// EN and HE carry the same value. Resolution order: E2E_DEVELOPERS_URL; for a local
+// SANDBOX_URL, the developers. sub-host of the local base (127.0.0.1 becomes localhost,
+// because Chromium only resolves *.localhost); otherwise https://developers.<SANDBOX_DOMAIN>.
+// It does not follow E2E_LIBRARY_URL: a per-PR sandbox serves the portal on its own host.
+// Keep this in sync with ../playwright.config.ts and ../playwright.mobileweb.config.ts.
+const DEVELOPERS_URL =
+  process.env.E2E_DEVELOPERS_URL ??
+  (isLocalSandbox
+    ? localBase(process.env.SANDBOX_URL?.replace('127.0.0.1', 'localhost'), 'developers')
+    : `https://developers.${SANDBOX_DOMAIN}`)
+
 export const MODULE_URLS = EXPLICIT_LIBRARY_URL ? {
   EN : {
     LIBRARY: EXPLICIT_LIBRARY_URL,
-    VOICES:  EXPLICIT_VOICES_URL ?? EXPLICIT_LIBRARY_URL
+    VOICES:  EXPLICIT_VOICES_URL ?? EXPLICIT_LIBRARY_URL,
+    DEVELOPERS: DEVELOPERS_URL
   },
   // No Hebrew-domain sandbox exists per PR; Hebrew runs use the interfaceLang cookie.
   HE : {
     LIBRARY: EXPLICIT_LIBRARY_URL,
-    VOICES:  EXPLICIT_VOICES_URL ?? EXPLICIT_LIBRARY_URL
+    VOICES:  EXPLICIT_VOICES_URL ?? EXPLICIT_LIBRARY_URL,
+    DEVELOPERS: DEVELOPERS_URL
   }
 } as const : isLocalSandbox ? {
   EN : {
     LIBRARY: localBase(process.env.SANDBOX_URL),
-    VOICES:  localBase(process.env.SANDBOX_URL, 'voices')
+    VOICES:  localBase(process.env.SANDBOX_URL, 'voices'),
+    DEVELOPERS: DEVELOPERS_URL
   },
   HE : {
     LIBRARY: localBase(process.env.SANDBOX_URL_IL),
     // Locally there is no chiburim. host (it isn't in ALLOWED_HOSTS): Hebrew
     // Voices is the voices. host with the interfaceLang=hebrew cookie.
-    VOICES:  localBase(process.env.SANDBOX_URL_IL, 'voices')
+    VOICES:  localBase(process.env.SANDBOX_URL_IL, 'voices'),
+    DEVELOPERS: DEVELOPERS_URL
   }
 } as const : {
   EN : {
     LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
-    VOICES:  `https://voices.${SANDBOX_DOMAIN}`
+    VOICES:  `https://voices.${SANDBOX_DOMAIN}`,
+    DEVELOPERS: DEVELOPERS_URL
   },
   HE : {
     LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
-    VOICES:  `https://chiburim.${SANDBOX_DOMAIN_IL}`
+    VOICES:  `https://chiburim.${SANDBOX_DOMAIN_IL}`,
+    DEVELOPERS: DEVELOPERS_URL
   }
 } as const;
 
@@ -586,7 +604,7 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
 } as const;
 
 // Type definitions
-export type ModuleType = 'library' | 'voices';
+export type ModuleType = 'library' | 'voices' | 'developers';
 export type TabOrderItem = { readonly selector: string; readonly description: string };
 export type SearchDropdownSection = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS[number] | typeof SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_SECTIONS[number];
 export type SearchDropdownIcon = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS[number] | typeof SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_ICONS[number];

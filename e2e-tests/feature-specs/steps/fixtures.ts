@@ -11,8 +11,8 @@ import { BROWSER_SETTINGS, LANGUAGES } from '../../globals';
 import { MODULE_URLS } from '../../constants';
 import { PageManager } from '../../pages/pageManager';
 
-export type Who = 'logged out' | 'logged in';
-export type Module = 'Library' | 'Voices';
+export type Who = 'logged out' | 'logged in' | 'staff';
+export type Module = 'Library' | 'Voices' | 'Developers';
 
 /**
  * The person a story talks about ("I", "the visitor"). Given-steps describe the visitor
@@ -31,7 +31,8 @@ export class Visitor {
 
   urlFor(module: Module, path = '/'): string {
     const site = this.lang === LANGUAGES.HE ? MODULE_URLS.HE : MODULE_URLS.EN;
-    const base = module === 'Voices' ? site.VOICES : site.LIBRARY;
+    // The developer portal is English only: EN and HE carry the same DEVELOPERS URL.
+    const base = { Library: site.LIBRARY, Voices: site.VOICES, Developers: site.DEVELOPERS }[module];
     return new URL(path, base.endsWith('/') ? base : base + '/').toString();
   }
 
@@ -58,6 +59,11 @@ export class Visitor {
     if (this.who === 'logged in') {
       const profile = this.lang === LANGUAGES.HE ? BROWSER_SETTINGS.heUser : BROWSER_SETTINGS.enUser;
       this._page = await goToPageWithUser(this.context, url, profile);
+    } else if (this.who === 'staff') {
+      // Staff = the admin test account (is_staff), e.g. for the developer portal's editor,
+      // which is English only. BDD steps never write: editor saves and publishes are
+      // intercepted. Note UMN-007 logs this account out every run (CLAUDE.md §2.21).
+      this._page = await goToPageWithUser(this.context, url, BROWSER_SETTINGS.enAdmin);
     } else {
       this._page = await goToPageWithLang(this.context, url, this.lang);
     }

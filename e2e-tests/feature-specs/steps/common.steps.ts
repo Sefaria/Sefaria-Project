@@ -14,6 +14,10 @@ Given('I am logged in', async ({ visitor }) => {
   visitor.who = 'logged in';
 });
 
+Given('I am logged in as staff', async ({ visitor }) => {
+  visitor.who = 'staff';
+});
+
 Given('the interface language is {word}', async ({ visitor }, language: string) => {
   const lang = { english: LANGUAGES.EN, hebrew: LANGUAGES.HE }[language.toLowerCase()];
   if (!lang) throw new Error(`Unknown interface language "${language}" (use English or Hebrew)`);
@@ -23,8 +27,8 @@ Given('the interface language is {word}', async ({ visitor }, language: string) 
 // ---- Going places -----------------------------------------------------------------------
 
 When('I open the {word} page {string}', async ({ visitor }, module: string, path: string) => {
-  if (module !== 'Library' && module !== 'Voices') {
-    throw new Error(`Unknown module "${module}" (use Library or Voices)`);
+  if (module !== 'Library' && module !== 'Voices' && module !== 'Developers') {
+    throw new Error(`Unknown module "${module}" (use Library, Voices or Developers)`);
   }
   await visitor.goto(visitor.urlFor(module as Module, path));
 });
