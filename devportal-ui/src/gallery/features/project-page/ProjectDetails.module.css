@@ -1,0 +1,89 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5xlarge);
+  max-width: 760px;
+}
+
+.heading {
+  margin-bottom: var(--spacing-large);
+  font-family: var(--font-en-content);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.quote,
+.quote blockquote {
+  margin: 0;
+}
+
+.quote blockquote {
+  color: var(--text-primary);
+  font-family: var(--font-en-content);
+  font-size: 19px;
+  font-style: normal;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.quote figcaption {
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.list {
+  border-top: 1px solid var(--border-default);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-small);
+  padding: var(--spacing-large) 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.dt {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-small);
+}
+
+.suffix {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+@media (width >= 600px) {
+  .quote blockquote {
+    font-size: 22px;
+  }
+
+  .row {
+    grid-template-columns: 200px 1fr;
+    gap: var(--spacing-large);
+  }
+}
+
+.quote blockquote p {
+  white-space: pre-line;
+}
+
+.quote blockquote p + p {
+  margin-top: 1em;
+}

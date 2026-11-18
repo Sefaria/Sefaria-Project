@@ -1,0 +1,53 @@
+.dialog {
+  padding: 0;
+  border: 0;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog::backdrop {
+  background: var(--scrim);
+}
+
+/* modal: full screen on mobile, centred from 640px */
+.modal {
+  inset: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  border-radius: 0;
+}
+
+@media (width >= 640px) {
+  .modal {
+    inset: 0;
+    width: calc(100% - var(--spacing-5xlarge));
+    max-width: 760px;
+    height: auto;
+    max-height: calc(100vh - var(--spacing-6xlarge));
+    margin: auto;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xlarge);
+  }
+}
+
+/* sheet: anchored to the bottom edge at every width */
+.sheet {
+  inset: auto 0 0;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 90vh;
+  max-height: 90dvh;
+  margin: 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-large);
+}

@@ -1,0 +1,104 @@
+.page {
+  background: var(--surface-subtle);
+  padding: var(--spacing-3xlarge) 0 var(--spacing-6xlarge);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-large);
+}
+
+.title {
+  font-family: var(--font-en-content);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.title:focus {
+  outline: none;
+}
+
+.title:focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 4px;
+}
+
+.notice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-small);
+  align-self: flex-start;
+  margin-bottom: var(--spacing-large);
+  padding: var(--spacing-small) var(--spacing-medium);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-page);
+  font-size: 14px;
+}
+
+.notice svg {
+  flex: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(560px, 100%), 1fr));
+  gap: var(--spacing-2xlarge);
+}
+
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-large);
+  padding: var(--spacing-2xlarge);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-page);
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.totalLabel {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.totalValue {
+  font-family: var(--font-en-content);
+  font-size: 40px;
+  line-height: 1;
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-small);
+}
+
+.notes li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-small);
+}
+
+.noteNumber {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--module-primary);
+  color: var(--text-inverse);
+  font-size: 12px;
+  font-weight: 600;
+}

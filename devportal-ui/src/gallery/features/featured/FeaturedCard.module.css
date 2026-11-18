@@ -1,0 +1,170 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background: var(--surface-page);
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
+}
+
+.card:hover {
+  border-color: var(--border-card-hover);
+  box-shadow: var(--shadow-small);
+}
+
+.card:has(.title:focus-visible) {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 2px;
+}
+
+.art {
+  position: relative;
+  flex: none;
+  height: 120px;
+  overflow: hidden;
+  background: var(--art-color);
+  color: var(--text-inverse);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tile {
+  position: absolute;
+  bottom: 20px;
+  left: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 16%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 32%);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--spacing-xlarge);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-small);
+}
+
+.category {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.heading {
+  font-family: var(--font-en-content);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* The button is not positioned, so its ::after covers the whole card. */
+.title {
+  text-decoration: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: left;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--target-min);
+  min-height: var(--target-min);
+  margin-block: -7px;
+}
+
+.title::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-xl);
+}
+
+.title:focus-visible {
+  outline: none;
+}
+
+.description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* A tag shape: notched left end, no hole. The resources are the only part that ellipsizes. */
+.madeWith {
+  display: flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--spacing-small);
+  max-width: 100%;
+  height: 30px;
+  margin-top: auto;
+  padding: 0 12px 0 18px;
+  background: var(--surface-subtle);
+  box-shadow: inset 0 0 0 1px var(--border-default);
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%);
+  font-size: 14px;
+
+  /* clip-path makes a stacking context above the title's stretched link: let clicks fall through. */
+  pointer-events: none;
+}
+
+.madeWithLabel {
+  flex: none;
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.madeWithValue {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (width >= 640px) {
+  .art {
+    height: 128px;
+  }
+
+  .body {
+    padding: var(--spacing-2xlarge);
+  }
+
+  .heading {
+    font-size: 28px;
+  }
+}

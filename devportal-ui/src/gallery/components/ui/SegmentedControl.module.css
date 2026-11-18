@@ -1,0 +1,48 @@
+.group {
+  display: inline-flex;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-small);
+  min-width: var(--target-min);
+  height: var(--target-min);
+  padding: 0 var(--spacing-medium);
+  background: var(--surface-page);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.button:hover {
+  background: var(--surface-hover);
+}
+
+.button:focus-visible {
+  outline-offset: -4px;
+}
+
+.button.pressed,
+.button.pressed:hover {
+  background: var(--module-primary);
+  color: var(--text-inverse);
+}
+
+.text {
+  display: none;
+}
+
+@media (width >= 1024px) {
+  .text {
+    display: inline;
+  }
+
+  .button {
+    padding: 0 var(--spacing-large);
+  }
+}

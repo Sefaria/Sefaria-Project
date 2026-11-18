@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ title }}</title>
-{% if meta.description %}<meta name="description" content="{{ meta.description }}">
+{% block head %}{% if meta.description %}<meta name="description" content="{{ meta.description }}">
 {% endif %}<meta name="robots" content="{{ meta.robots }}">
 <link rel="canonical" href="{{ meta.canonicalUrl }}">
 {% if meta.markdownUrl %}<link rel="alternate" type="text/markdown" href="{{ meta.markdownUrl }}">
 {% endif %}<meta property="og:title" content="{{ title }}">
 <meta property="og:site_name" content="Sefaria">
-<link rel="icon" href="/favicon.ico?v=e9b1b3beada0" sizes="32x32" type="image/x-icon">
+{% endblock %}<link rel="icon" href="/favicon.ico?v=e9b1b3beada0" sizes="32x32" type="image/x-icon">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=e9b1b3beada0">
 <link rel="manifest" href="/site.webmanifest?v=e9b1b3beada0">
 {% devportal_entry %}
