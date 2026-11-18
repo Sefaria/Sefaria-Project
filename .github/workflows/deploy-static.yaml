@@ -285,10 +285,14 @@ jobs:
           else
             git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
           fi
-          if git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null; then
+          tag_commit() { git rev-parse -q --verify "refs/tags/$1^{commit}" 2>/dev/null; }
+          if [[ -n "$(tag_commit "${RELEASE_TAG}")" && "$(tag_commit "${RELEASE_TAG}")" != "$(git rev-parse HEAD)" ]]; then
             RELEASE_TAG="${RELEASE_TAG}.cfg.$(git rev-parse --short=10 HEAD)"
           fi
-          git tag -a "${RELEASE_TAG}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
+          # A re-run finds its own tag from the earlier attempt already on HEAD: reuse it rather than fail.
+          if [[ "$(tag_commit "${RELEASE_TAG}")" != "$(git rev-parse HEAD)" ]]; then
+            git tag -a "${RELEASE_TAG}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
+          fi
           git push origin "${GITHUB_REF_NAME}" --follow-tags
 
           echo "release_tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
