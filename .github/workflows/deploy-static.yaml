@@ -14,6 +14,8 @@ jobs:
     outputs:
       app_changed: ${{ steps.changes.outputs.app_changed }}
       chart_changed: ${{ steps.changes.outputs.chart_changed }}
+      env_changed: ${{ steps.changes.outputs.env_changed }}
+      deploy_needed: ${{ steps.changes.outputs.deploy_needed }}
       env: ${{ steps.env.outputs.env }}
       env_file: ${{ steps.env.outputs.env_file }}
     steps:
@@ -47,6 +49,8 @@ jobs:
           echo "env=$env" >> $GITHUB_OUTPUT
           echo "env_file=$env_file" >> $GITHUB_OUTPUT
       - id: changes
+        env:
+          ENV_FILE: ${{ steps.env.outputs.env_file }}
         run: |
           changed=$(git diff --name-only HEAD~1)
           echo "Changed files:"
@@ -54,17 +58,28 @@ jobs:
 
           app_changed=false
           chart_changed=false
+          env_changed=false
 
           while IFS= read -r file; do
+            [[ -z "$file" ]] && continue
             if [[ "$file" == helm-chart/* ]]; then
               chart_changed=true
+            elif [[ "$file" == "$ENV_FILE" ]]; then
+              env_changed=true
             elif [[ "$file" != envs/* && "$file" != docs/* ]]; then
               app_changed=true
             fi
           done <<< "$changed"
 
+          deploy_needed=false
+          if [[ "$app_changed" == true || "$chart_changed" == true || "$env_changed" == true ]]; then
+            deploy_needed=true
+          fi
+
           echo "app_changed=$app_changed" >> $GITHUB_OUTPUT
           echo "chart_changed=$chart_changed" >> $GITHUB_OUTPUT
+          echo "env_changed=$env_changed" >> $GITHUB_OUTPUT
+          echo "deploy_needed=$deploy_needed" >> $GITHUB_OUTPUT
 
   release-chart:
     needs: detect
@@ -213,7 +228,7 @@ jobs:
 
   update-deployment-state:
     needs: [detect, release-chart, release-app]
-    if: always() && !failure() && !cancelled()
+    if: always() && !failure() && !cancelled() && needs.detect.outputs.deploy_needed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -222,6 +237,7 @@ jobs:
     env:
       ENV_NAME: ${{ needs.detect.outputs.env }}
       ENV_FILE: ${{ needs.detect.outputs.env_file }}
+      ENV_CHANGED: ${{ needs.detect.outputs.env_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -234,7 +250,7 @@ jobs:
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
         with:
-          # Pinned: "latest" asks the GitHub API at run time; an empty answer failed this job (2026-11-18).
+          # Pinned to prevent failures due to the GitHub "latest" lookup.
           version: v4.44.3
       - name: Resolve app version
         id: app
@@ -276,12 +292,15 @@ jobs:
           echo "${APP_VERSION}" > promotions/${ENV_NAME}
 
           git add "$ENV_FILE" helm-chart/promotions/${ENV_NAME} promotions/${ENV_NAME}
-          # A settings-only change (only envs/<env>/helmrelease.yaml, e.g. turning a flag on) releases no new app or
-          # chart, so there is nothing to commit and the release tag already exists. Deploy it anyway: tag the commit
-          # that carries the change, with a suffix that keeps the tag unique (static-env-deploy.yml only requires
-          # "<env>/<digit>..."). Without this the job failed and the change never reached the environment.
+          # A change to only the env file (e.g. turning a flag on) releases no new app or chart, so there is nothing to
+          # commit and the release tag already exists. Tag the commit that carries the change, with a suffix that keeps
+          # the tag unique (static-env-deploy.yml only requires "<env>/<digit>...").
           if git diff --cached --quiet; then
-            echo "No version change: deploying the settings change in $(git rev-parse --short HEAD) as it is."
+            if [[ "$ENV_CHANGED" != "true" ]]; then
+              echo "::error::No new app or chart version and ${ENV_FILE} did not change: nothing to deploy."
+              exit 1
+            fi
+            echo "No version change: deploying the ${ENV_FILE} change in $(git rev-parse --short HEAD) as it is."
           else
             git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
           fi
@@ -299,7 +318,7 @@ jobs:
 
   trigger-deploy:
     needs: [detect, update-deployment-state]
-    if: always() && !failure() && !cancelled()
+    if: always() && !failure() && !cancelled() && needs.detect.outputs.deploy_needed == 'true'
     uses: ./.github/workflows/trigger-infra-deploy.yml
     with:
       tag: ${{ needs.update-deployment-state.outputs.release_tag }}
