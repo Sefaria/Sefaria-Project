@@ -1,0 +1,102 @@
+{% comment %}
+  The docs page layout, rendered on the server (PLAN.md §2.5; SITE_ATLAS §4). W2's base template
+  includes it inside the portal's <main> (PortalMain, contract C6) for payloads of kind "doc":
+
+      {% include "devportal/page_doc.html" with payload=payload %}
+
+  `payload` is the C3 doc payload (page-payload.schema.json, kind "doc"): the same dict the view
+  writes with json_script, so this markup and devportal-ui/src/docs/DocPage.tsx render the same DOM
+  and React's takeover moves nothing. The body is the revision's rendered_html (already sanitized);
+  React adopts its nodes (DocBody, takeServerBody). Classes are global dp- classes from
+  devportal-ui/src/docs/docs.css and src/styles/article.css.
+
+  Server-only differences, none of which moves anything: the sidebar carries dp-sidebar--static (CSS opens
+  the current page's branch) and no group toggle buttons; "Updated" prints the date, which the client
+  replaces with "N ago"; the Copy Page, feedback and Discord slots are empty until their components mount.
+  The sidebar tree is the C3 tree: a category plus at most three levels (Page.MAX_DEPTH), unrolled here.
+{% endcomment %}{% with page=payload.page tree=payload.nav.tree active=payload.path %}
+<div class="dp-docs dp-docs--{% if payload.section == "page" %}custom{% else %}standard{% endif %}" data-layout="{{ payload.layout }}">
+  {% if tree %}
+  <div class="dp-docs__sidebar" data-slot="sidebar">
+    <nav class="dp-sidebar dp-sidebar--static" aria-label="Secondary navigation">
+      <div class="dp-sidebar-tree">
+        {% for category in tree.categories %}
+        <section class="dp-sidebar-section" aria-labelledby="dp-sidebar-heading-{{ category.id }}">
+          <h2 class="dp-sidebar-heading" id="dp-sidebar-heading-{{ category.id }}">{{ category.title }}</h2>
+          <ul class="dp-sidebar-list">
+            {% for item in category.items %}
+            <li class="dp-sidebar-item">
+              <div class="dp-sidebar-row{% if item.children %} dp-sidebar-row--parent{% endif %}{% if item.deprecated %} dp-sidebar-row--deprecated{% endif %}">
+                <a class="dp-sidebar-link{% if item.href == active %} dp-active{% endif %}" href="{{ item.href }}"{% if item.href == active %} aria-current="page"{% endif %}{% if item.kind == "link" and item.newTab %} target="_blank" rel="noopener noreferrer"{% endif %}><span class="dp-sidebar-link__text">{{ item.title }}</span>{% if item.kind == "link" %}<svg class="dp-sidebar-external" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="16" height="16"><path d="M5 4h7v7M12 4 4 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>{% endif %}</a>
+                {% if item.deprecated %}<button type="button" class="dp-sidebar-deprecated" aria-label="Deprecated Doc" title="Deprecated"></button>{% endif %}
+              </div>
+              {% if item.children %}
+              <ul class="dp-sidebar-list dp-sidebar-list--sub">
+                {% for child in item.children %}
+                <li class="dp-sidebar-item">
+                  <div class="dp-sidebar-row{% if child.children %} dp-sidebar-row--parent{% endif %}{% if child.deprecated %} dp-sidebar-row--deprecated{% endif %}">
+                    <a class="dp-sidebar-link{% if child.href == active %} dp-active{% endif %} dp-sidebar-link--sub" href="{{ child.href }}"{% if child.href == active %} aria-current="page"{% endif %}{% if child.kind == "link" and child.newTab %} target="_blank" rel="noopener noreferrer"{% endif %}><span class="dp-sidebar-link__text">{{ child.title }}</span>{% if child.kind == "link" %}<svg class="dp-sidebar-external" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="16" height="16"><path d="M5 4h7v7M12 4 4 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>{% endif %}</a>
+                    {% if child.deprecated %}<button type="button" class="dp-sidebar-deprecated" aria-label="Deprecated Doc" title="Deprecated"></button>{% endif %}
+                  </div>
+                  {% if child.children %}
+                  <ul class="dp-sidebar-list dp-sidebar-list--sub">
+                    {% for leaf in child.children %}
+                    <li class="dp-sidebar-item">
+                      <div class="dp-sidebar-row{% if leaf.deprecated %} dp-sidebar-row--deprecated{% endif %}">
+                        <a class="dp-sidebar-link{% if leaf.href == active %} dp-active{% endif %} dp-sidebar-link--sub" href="{{ leaf.href }}"{% if leaf.href == active %} aria-current="page"{% endif %}{% if leaf.kind == "link" and leaf.newTab %} target="_blank" rel="noopener noreferrer"{% endif %}><span class="dp-sidebar-link__text">{{ leaf.title }}</span>{% if leaf.kind == "link" %}<svg class="dp-sidebar-external" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="16" height="16"><path d="M5 4h7v7M12 4 4 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>{% endif %}</a>
+                        {% if leaf.deprecated %}<button type="button" class="dp-sidebar-deprecated" aria-label="Deprecated Doc" title="Deprecated"></button>{% endif %}
+                      </div>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endfor %}
+      </div>
+    </nav>
+  </div>
+  {% endif %}
+  <article id="content" class="dp-article dp-docs__article">
+    <header class="dp-docs-header">
+      <h1 class="dp-docs-header__title">{{ page.title }}</h1>
+      {% if page.excerpt %}<div class="dp-docs-header__excerpt"><p>{{ page.excerpt }}</p></div>{% endif %}
+    </header>
+    <div class="dp-docs__grid">
+      <div class="dp-docs__content">
+        <div class="dp-markdown" id="dp-article-body">{{ page.bodyHtml|safe }}</div>
+        <footer class="dp-docs-footer">
+          {% if page.updatedAt and payload.section != "page" %}<div class="dp-updated"><p class="dp-updated__line"><span class="dp-updated__icon" aria-hidden="true"></span>Updated <time datetime="{{ page.updatedAt }}">{{ page.updatedAt|slice:":10" }}</time></p></div>{% endif %}
+          {% if payload.pager.prev or payload.pager.next %}
+          <nav class="dp-pagination" aria-label="Pagination Controls">
+            {% if payload.pager.prev %}<a class="dp-pagination__link dp-pagination__link--prev" href="{{ payload.pager.prev.path }}" aria-label="Previous Page: {{ payload.pager.prev.title }}"><span class="dp-pagination__icon" aria-hidden="true"></span><span class="dp-pagination__text">{{ payload.pager.prev.title }}</span></a>{% endif %}
+            {% if payload.pager.next %}<a class="dp-pagination__link dp-pagination__link--next" href="{{ payload.pager.next.path }}" aria-label="Next Page: {{ payload.pager.next.title }}"><span class="dp-pagination__text">{{ payload.pager.next.title }}</span><span class="dp-pagination__icon" aria-hidden="true"></span></a>{% endif %}
+          </nav>
+          {% endif %}
+          <div class="dp-docs-footer__feedback" data-slot="feedback"></div>
+          <div class="dp-docs-footer__discord" data-slot="discord" data-discord-placement="docs_page_end"></div>
+        </footer>
+      </div>
+      {% if payload.section != "page" %}
+      <div class="dp-docs__rail">
+        <div class="dp-docs__copy-page" data-slot="copy-page"></div>
+        {% if page.toc %}
+        <nav class="dp-toc" aria-label="Table of Contents">
+          <ul class="dp-toc-list">
+            {% for entry in page.toc %}<li class="dp-toc-item dp-toc-item--h{% if entry.level <= 1 %}1{% elif entry.level == 2 %}2{% else %}3{% endif %}">{% if entry.id %}<a class="dp-toc-link" href="#{{ entry.id }}">{{ entry.text }}</a>{% endif %}</li>
+            {% endfor %}
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </article>
+</div>
+{% endwith %}

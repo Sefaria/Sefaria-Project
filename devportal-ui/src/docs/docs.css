@@ -1,0 +1,469 @@
+/*
+ * docs.css: the docs page layout around the article body (SITE_ATLAS §4): columns, page header, the
+ * sidebar tree, the table of contents and the page footer. Global (dp- classes, contract C5) because
+ * page_doc.html renders the same markup on the server before React adopts it (PLAN §2.5); CSS Module
+ * names could not be shared with the template. The body itself is article.css.
+ *
+ * Values measured on live (/docs/linker-v3 at 1440, 1280, 1024, 768 and 390, 2026-11-18).
+ */
+
+/* ------------------------------------------------------------------ columns */
+
+.dp-docs {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.dp-docs__sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 var(--rm-hub-sidebar-width, 288px);
+  width: var(--rm-hub-sidebar-width, 288px);
+  max-height: 100vh;
+  overflow-y: auto;
+  box-shadow: 1px 0 0 rgb(0 0 0 / 10%);
+}
+
+.dp-docs__article {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 32px;
+  color: var(--rm-color-text-default, #32343a);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.dp-docs-header {
+  padding-bottom: 32px;
+  border-bottom: 1px solid rgb(0 0 0 / 10%);
+}
+
+.dp-docs-header__title {
+  max-width: var(--rm-hub-main-max-width, 800px);
+  margin: 0;
+  font-size: 31px;
+  font-weight: 600;
+  line-height: 1.2857;
+}
+
+.dp-docs-header__excerpt {
+  max-width: var(--rm-hub-main-max-width, 800px);
+  margin-top: 12px;
+}
+
+.dp-docs-header__excerpt p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5556;
+}
+
+.dp-docs__grid {
+  display: flex;
+  align-items: flex-start;
+}
+
+.dp-docs__content {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 32px;
+}
+
+.dp-docs__rail {
+  position: sticky;
+  top: 0;
+  flex: 0 0 280px;
+  width: 280px;
+  padding: 30px 20px 30px 40px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dp-docs__copy-page {
+  margin: 0 0 16px 23px;
+  padding-top: 8px;
+}
+
+.dp-docs__copy-page:empty {
+  display: none;
+}
+
+@media (width <= 1025px) {
+  .dp-docs__rail {
+    display: none;
+  }
+}
+
+@media (width <= 768px) {
+  .dp-docs__sidebar {
+    display: none;
+  }
+}
+
+@media (width <= 700px) {
+  .dp-docs__article {
+    padding: 32px 20px;
+  }
+}
+
+/* Custom pages (/page/<slug>, e.g. the contact page): one centred 800px column, a plain 32px title, no
+   header rule, sidebar or rail (measured on /page/contact-us at 1440 and 390). */
+.dp-docs--custom {
+  display: block;
+}
+
+.dp-docs--custom .dp-docs__article {
+  max-width: calc(var(--rm-hub-main-max-width, 800px) + 64px);
+  margin: 0 auto;
+  padding: 40px 32px 0;
+}
+
+.dp-docs--custom .dp-docs-header {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.dp-docs--custom .dp-docs-header__title {
+  margin-bottom: 0.67em;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.dp-docs--custom .dp-docs__content {
+  padding-top: 0;
+}
+
+/* ------------------------------------------------------------------ sidebar tree */
+
+.dp-sidebar-tree {
+  padding: 28px 15px 20px;
+}
+
+.dp-sidebar-section + .dp-sidebar-section {
+  margin-top: 20px;
+}
+
+.dp-sidebar-heading {
+  margin: 8px 0;
+  padding-left: 10px;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3333;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.dp-sidebar-list {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dp-sidebar-list--sub {
+  margin: 0 0 0 10px;
+}
+
+.dp-sidebar-list[hidden] {
+  display: none;
+}
+
+.dp-sidebar-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+}
+
+.dp-sidebar-link {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 6px 5px 6px 10px;
+  border-radius: 8px;
+  color: var(--rm-color-text-muted, #484c58);
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 1.4286;
+  text-decoration: none;
+}
+
+.dp-sidebar-link:hover {
+  background: rgb(0 0 0 / 5%);
+}
+
+.dp-sidebar-link.dp-active {
+  background: rgb(102 102 102 / 9%);
+  color: var(--rm-color-link-primary, #666);
+}
+
+.dp-sidebar-link:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.dp-sidebar-link__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dp-sidebar-external {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  color: var(--rm-color-text-minimum-icon, rgb(102 107 121 / 60%));
+}
+
+.dp-sidebar-toggle,
+.dp-sidebar-deprecated {
+  position: absolute;
+  top: 8px;
+  right: 5px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--rm-color-text-muted, #484c58);
+  cursor: pointer;
+}
+
+.dp-sidebar-row--parent .dp-sidebar-link,
+.dp-sidebar-row--deprecated .dp-sidebar-link {
+  padding-right: 29px;
+}
+
+.dp-sidebar-toggle::before,
+.dp-sidebar-deprecated::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-color: currentcolor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m6 4 4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform 0.15s ease;
+}
+
+.dp-sidebar-toggle[aria-expanded='true']::before {
+  transform: rotate(90deg);
+}
+
+.dp-sidebar-deprecated::before {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.25' fill='none' stroke='black' stroke-width='1.5'/%3E%3Cpath d='M8 7.5v3.5M8 5v.5' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.dp-sidebar-toggle:focus-visible,
+.dp-sidebar-deprecated:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.dp-sidebar-row--parent .dp-sidebar-deprecated {
+  right: 25px;
+}
+
+.dp-sidebar-row--parent.dp-sidebar-row--deprecated .dp-sidebar-link {
+  padding-right: 49px;
+}
+
+/* Server markup (page_doc.html), before React adopts the page: groups on the current page's branch are
+   open, every other group is closed. The server renders no toggle buttons (they need JavaScript); they are
+   absolutely positioned, so React adding them moves nothing. */
+.dp-sidebar--static .dp-sidebar-item:not(:has([aria-current='page'])) > .dp-sidebar-list--sub {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ table of contents */
+
+.dp-toc {
+  --dp-toc-track: rgb(0 0 0 / 7.5%);
+  --dp-toc-active: var(--rm-project-color-primary, #612854);
+
+  position: sticky;
+  top: 0;
+  height: fit-content;
+  margin: 12px 0 0 23px;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dp-toc::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 0.154em;
+  height: 100%;
+  border-radius: 0.154em;
+  background-color: var(--dp-toc-track);
+}
+
+.dp-toc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dp-toc-item--h2 {
+  padding-left: 12px;
+}
+
+.dp-toc-item--h3 {
+  padding-left: 24px;
+}
+
+.dp-toc-link {
+  position: relative;
+  display: block;
+  padding-left: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dp-toc-link:hover,
+.dp-toc-link:focus-visible,
+.dp-toc-link.dp-active {
+  color: var(--rm-color-text-default, #32343a);
+}
+
+.dp-toc-link:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: -2px;
+}
+
+.dp-toc-link.dp-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0.154em;
+  border-radius: 0.154em;
+  background-color: var(--dp-toc-active);
+}
+
+.dp-toc-item--h2 .dp-toc-link.dp-active::before {
+  left: -12px;
+}
+
+.dp-toc-item--h3 .dp-toc-link.dp-active::before {
+  left: -24px;
+}
+
+/* ------------------------------------------------------------------ page footer */
+
+.dp-updated {
+  padding-top: 20px;
+}
+
+.dp-updated__line {
+  display: flex;
+  align-items: center;
+  margin: 13px 0;
+  color: var(--rm-color-text-minimum, #666b79);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.dp-updated__icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  background-color: currentcolor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.25' fill='none' stroke='black' stroke-width='1.5'/%3E%3Cpath d='M8 4.5V8l2.5 1.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.dp-pagination {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.dp-pagination__link {
+  display: flex;
+  align-items: center;
+  color: var(--rm-color-link-primary, #666);
+  text-decoration: none;
+}
+
+.dp-pagination__link--prev {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.dp-pagination__link--next {
+  grid-column: 2;
+  justify-self: end;
+  text-align: right;
+}
+
+.dp-pagination__link:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.dp-pagination__text {
+  color: var(--rm-color-text-muted, #484c58);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.dp-pagination__link--prev .dp-pagination__text {
+  padding-left: 10px;
+}
+
+.dp-pagination__link--next .dp-pagination__text {
+  padding-right: 10px;
+}
+
+.dp-pagination__link:hover .dp-pagination__text {
+  color: var(--rm-color-text-default, #32343a);
+}
+
+.dp-pagination__icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  background-color: rgb(102 107 121 / 60%);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M13 8H3m4-4L3 8l4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.dp-pagination__link--next .dp-pagination__icon {
+  transform: scaleX(-1);
+}
+
+.dp-docs-footer__feedback {
+  display: flex;
+  justify-content: center;
+}
+
+.dp-docs-footer__discord {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+
+.dp-docs-footer__feedback:empty,
+.dp-docs-footer__discord:empty {
+  display: none;
+}

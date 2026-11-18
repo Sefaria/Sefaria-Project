@@ -140,6 +140,11 @@ def test_public_templates_have_no_inline_style():
     for template in templates:
         if template.name.startswith("editor"):
             continue
+        if template.name == "htmlblock_frame.html":
+            # PLAN.md §2.6: an HTML block renders in a sandboxed frame (no allow-scripts) whose own CSP allows
+            # 'unsafe-inline' styles, because the block's <style> is its content. It is checked by
+            # htmlblock_frame_test.py instead; the public page CSP above never applies to it.
+            continue
         text = template.read_text(encoding="utf-8")
         assert "<style" not in text.lower(), template.name
         assert not re.search(r"\sstyle\s*=", text, re.I), template.name
