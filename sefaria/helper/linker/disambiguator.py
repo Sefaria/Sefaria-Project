@@ -32,6 +32,7 @@ from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
 from sefaria.model.schema import AddressType
 from sefaria.model.text import Ref
 from sefaria.settings import SEARCH_URL
+from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
@@ -1562,7 +1563,14 @@ def disambiguate_non_segment_ref(
             return None
 
         non_segment_oref = Ref(non_segment_ref_str)
-        segment_refs = non_segment_oref.all_segment_refs()
+        try:
+            segment_refs = non_segment_oref.all_segment_refs()
+        except InputError:
+            # A ref to a complex text (for example "Sefer Mitzvot Gadol") has no expandable state and
+            # no default child, so all_segment_refs() refuses it. That is an unsupported ref, not an
+            # unexpected failure: skip it the same way an empty segment list is skipped.
+            logger.warning(f"Could not list segments for non-segment ref: {non_segment_ref_str}")
+            return None
 
         if not segment_refs:
             logger.warning(f"No segment refs found for: {non_segment_ref_str}")
