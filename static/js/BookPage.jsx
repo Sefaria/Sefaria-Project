@@ -189,23 +189,25 @@ class BookPage extends Component {
     }
 
     const hideReadButton = !this.state.indexDetails || !this.state.lastPlaceLoaded || this.props.compare;
-    const readButton = hideReadButton ? null : Sefaria.lastPlaceForText(title) ? (
-      <a
-        className="button small readButton"
-        href={'/' + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}
-        onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
-      >
-        <InterfaceText>book_page.continue_reading</InterfaceText>
-      </a>
-    ) : (
-      <a
-        className="button small readButton"
-        href={'/' + Sefaria.normRef(this.state.indexDetails['firstSectionRef'])}
-        onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
-      >
-        <InterfaceText>book_page.start_reading</InterfaceText>
-      </a>
-    );
+    const readButton =
+      !hideReadButton &&
+      (Sefaria.lastPlaceForText(title) ? (
+        <a
+          className="button small readButton"
+          href={'/' + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
+        >
+          <InterfaceText>book_page.continue_reading</InterfaceText>
+        </a>
+      ) : (
+        <a
+          className="button small readButton"
+          href={'/' + Sefaria.normRef(this.state.indexDetails['firstSectionRef'])}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
+        >
+          <InterfaceText>book_page.start_reading</InterfaceText>
+        </a>
+      ));
 
     const tabs = [{ id: 'contents', title: { en: 'Contents', he: Sefaria._('common.contents') } }];
     if (this.isBookToc()) {
