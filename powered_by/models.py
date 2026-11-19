@@ -28,6 +28,15 @@ class Status(models.TextChoices):
     UNKNOWN = "unknown", "Unknown"
 
 
+class Purpose(models.TextChoices):
+    PERSONAL = "personal", "Personal"
+    SCHOOL = "school", "School"
+    RESEARCH = "research", "Research"
+    COMMUNITY = "community", "Community"
+    COMMERCIAL = "commercial", "Commercial"
+    OTHER = "other", "Other"
+
+
 class Tier(models.TextChoices):
     DEVELOPER = "developer", "Developer"
 
@@ -78,6 +87,7 @@ class Project(models.Model):
         "salesforce_id",
         "notes",
         "anything_else",
+        "purpose",
         "request_not_to_publish",
     )
 
@@ -218,6 +228,13 @@ class Project(models.Model):
         null=True,
         blank=True,
         help_text='The submitter\'s answer to "Anything else" on the publish form.',
+    )
+    purpose = models.CharField(
+        max_length=32,
+        choices=Purpose.choices,
+        null=True,
+        blank=True,
+        help_text='The owner\'s answer to "What are you building?" in developer settings.',
     )
     consent_withdrawn_at = models.DateTimeField(
         null=True,

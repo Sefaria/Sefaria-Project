@@ -570,6 +570,66 @@ class ProjectTest(DeveloperApiTestCase):
             purge_test_profiles(other)
 
 
+class PurposeTest(DeveloperApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+
+    def row(self, project):
+        return ApiProject.objects.get(id=int(project["id"])).profile
+
+    def edit(self, project, **fields):
+        return self.call("post", "projects/" + project["id"], {"project": {**PROJECT, **fields}})
+
+    def test_a_create_saves_the_purpose_and_the_state_returns_it(self):
+        project = self.create_project(purpose="school")
+
+        self.assertEqual(self.row(project).purpose, "school")
+        self.assertEqual(project["purpose"], "school")
+        _, state = self.call("get", "state")
+        self.assertEqual(state["projects"][0]["purpose"], "school")
+
+    def test_a_create_without_a_purpose_leaves_it_unset(self):
+        project = self.create_project()
+
+        self.assertIsNone(self.row(project).purpose)
+        self.assertIsNone(project["purpose"])
+
+    def test_an_edit_changes_the_purpose(self):
+        project = self.create_project(purpose="school")
+
+        status, state = self.edit(project, purpose="research")
+
+        self.assertEqual(status, 200, state)
+        self.assertEqual(self.row(project).purpose, "research")
+        self.assertEqual(state["projects"][0]["purpose"], "research")
+
+    def test_an_edit_without_a_purpose_keeps_the_stored_one(self):
+        project = self.create_project(purpose="community")
+
+        for fields in ({}, {"purpose": ""}, {"purpose": None}):
+            status, _ = self.edit(project, name="Renamed", **fields)
+            self.assertEqual(status, 200, fields)
+            self.assertEqual(self.row(project).purpose, "community", fields)
+
+    def test_a_publish_submit_keeps_the_purpose(self):
+        project = self.create_project(purpose="commercial")
+
+        status, _ = self.edit(project, visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        self.assertEqual(status, 200)
+        self.assertEqual(self.row(project).purpose, "commercial")
+
+    def test_a_purpose_not_on_the_form_is_refused(self):
+        for purpose in ("hobby", "Personal", ["personal"], 1):
+            status, _ = self.call("post", "projects", {"project": {**PROJECT, "purpose": purpose}})
+            self.assertEqual(status, 400, purpose)
+        project = self.create_project(purpose="personal")
+        status, _ = self.edit(project, purpose="hobby")
+        self.assertEqual(status, 400)
+        self.assertEqual(self.row(project).purpose, "personal")
+
+
 class PublishAnswersTest(DeveloperApiTestCase):
     def setUp(self):
         super().setUp()
@@ -682,6 +742,7 @@ class PublishAnswersTest(DeveloperApiTestCase):
         self.assertNotIn("show_name", listing)
         self.assertNotIn("has_donate_link", listing)
         self.assertNotIn("anything_else", listing)
+        self.assertNotIn("purpose", listing)
 
 
 class KeyTest(DeveloperApiTestCase):

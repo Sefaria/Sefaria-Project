@@ -30,7 +30,7 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project, SubmissionSource
+from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project, Purpose, SubmissionSource
 
 MAX_KEYS_PER_PROJECT = 5
 MAX_PROJECTS_PER_ACCOUNT = 10
@@ -318,6 +318,7 @@ def serialize_project(api_project):
         "description": profile.project_desc,
         "organization": profile.organization,
         "websiteUrl": profile.project_link,
+        "purpose": profile.purpose,
         "visibility": "private" if profile.request_not_to_publish else "public",
         "aiAssisted": profile.vibe_coded,
         "linkedListing": profile.submission_source != SubmissionSource.DEVELOPER_SETTINGS,
@@ -573,6 +574,8 @@ def clean_project_fields(data):
         "organization": _text(data, "organization"),
         "websiteUrl": _text(data, "websiteUrl", 200),
         "visibility": data.get("visibility"),
+        # None when the request leaves it out or empty, so an edit keeps the stored answer.
+        "purpose": data.get("purpose") or None,
         "aiAssisted": bool(data.get("aiAssisted")),
         # None when the request leaves it out, so an edit keeps the stored address.
         "contactEmail": _text(data, "contactEmail", CONTACT_EMAIL_MAX_LENGTH) if "contactEmail" in data else None,
@@ -583,6 +586,8 @@ def clean_project_fields(data):
         raise InputError("Give the project a name.")
     if fields["visibility"] not in ("public", "private"):
         raise InputError("Choose whether the project is public or private.")
+    if fields["purpose"] is not None and fields["purpose"] not in Purpose.values:
+        raise InputError("Choose what you are building from the list.")
     if fields["websiteUrl"]:
         try:
             _url_validator(fields["websiteUrl"])
@@ -675,6 +680,8 @@ def _apply_fields(project, fields):
     project.organization = fields["organization"]
     project.project_link = fields["websiteUrl"]
     project.vibe_coded = fields["aiAssisted"]
+    if fields["purpose"] is not None:
+        project.purpose = fields["purpose"]
     if fields["poweredBy"] is not None:
         _apply_publish_answers(project, fields["poweredBy"])
 
