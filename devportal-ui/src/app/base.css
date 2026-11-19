@@ -13,16 +13,15 @@ html:root {
   --font-en-system: roboto, heebo, 'Helvetica Neue', arial, sans-serif;
 }
 
-/* Live's page scroller keeps its scrollbar's room on a page shorter than the window (the 404 page). Only there:
-   a stable gutter also takes the scrollbar out of 100vw, which the homepage's carousel is sized with. */
-
 /* The skip link's target ("Jump to Content", #content) takes focus (tabindex="-1") so keyboard and screen-reader
    users land in the content (HDR-012). It is a container, not a control: no focus ring, so nothing shows. */
 #content:focus {
   outline: none;
 }
 
-/* Live's page scroller keeps a stable scrollbar gutter, so short pages are laid out as wide as long ones. */
+/* Live's page scroller keeps a stable scrollbar gutter, so short pages are laid out as wide as long ones. Only on
+   the 404 and docs pages: a stable gutter also takes the scrollbar out of 100vw, which the homepage's carousel is
+   sized with. */
 html:has(.dp-notfound),
 html:has(.dp-docs) {
   scrollbar-gutter: stable;
