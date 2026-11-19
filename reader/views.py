@@ -2912,7 +2912,7 @@ def links_api(request, link_id_or_ref=None):
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"}, callback)
         # The Ref instantiation is also used to validate the Ref and let an error bubble up.
-        oref = Ref(link_id_or_ref)
+        oref = Ref.instantiate_ref_with_legacy_parse_fallback(link_id_or_ref, fallback_to_partial_match=False)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
         if with_text and oref.is_book_level():
@@ -2920,7 +2920,7 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": error_msg, "ref": oref.normal()}, callback, 400)
         categories = _get_requested_categories(request)
         return jsonResponse(
-            get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories),
+            get_links(oref.normal(), with_text=with_text, with_sheet_links=with_sheet_links, categories=categories),
             callback,
         )
 
@@ -3100,6 +3100,7 @@ def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
     """
+    tref = Ref.instantiate_ref_with_legacy_parse_fallback(tref, fallback_to_partial_match=False).normal()
     if bool(int(request.GET.get("private", False))) and request.user.is_authenticated:
         oref = Ref(tref)
         response = {

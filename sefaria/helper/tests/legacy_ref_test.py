@@ -197,3 +197,8 @@ class TestLegacyRefsRandomIndex:
         err = get_partial_ref_error(tref_no_legacy_parser)
         with pytest.raises(NoLegacyRefParserError):
             legacy_ref_parser_handler[Ref(err.matched_part).index.title]
+
+    def test_partial_match_without_fallback(self, tref_no_legacy_parser):
+        assert Ref.instantiate_ref_with_legacy_parse_fallback(tref_no_legacy_parser).normal() == "Genesis"
+        with pytest.raises(PartialRefInputError):
+            Ref.instantiate_ref_with_legacy_parse_fallback(tref_no_legacy_parser, fallback_to_partial_match=False)
