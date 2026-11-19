@@ -77,6 +77,7 @@ class Project(models.Model):
         "submitter",
         "salesforce_id",
         "notes",
+        "anything_else",
         "request_not_to_publish",
     )
 
@@ -177,7 +178,11 @@ class Project(models.Model):
         help_text="Editorial publish gate, controls visibility on the public site.",
     )
     featured = models.BooleanField(default=False, help_text="Pinned / featured position in the gallery.")
-    notes = models.TextField(null=True, blank=True, help_text="Staff notes, anything else.")
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Staff-only notes. Never shown to the project's owner.",
+    )
 
     # --- Developer settings -------------------------------------------------
     # New columns carry database defaults: every dev cauldron shares this table, and
@@ -208,6 +213,11 @@ class Project(models.Model):
         default=False,
         db_default=False,
         help_text="The submitter says the project links to a donation page for Sefaria.",
+    )
+    anything_else = models.TextField(
+        null=True,
+        blank=True,
+        help_text='The submitter\'s answer to "Anything else" on the publish form.',
     )
     consent_withdrawn_at = models.DateTimeField(
         null=True,
@@ -261,7 +271,7 @@ class Project(models.Model):
         Return a JSON-safe dict of fields (datetimes as ISO strings).
 
         Public fields are always included. PII / internal fields
-        (`PRIVATE_FIELDS`: creator_email, submitter, salesforce_id, notes) are
+        (`PRIVATE_FIELDS`: creator_email, submitter, salesforce_id, notes, ...) are
         included only when `authenticated` is True, which the view sets from
         `request.user.is_staff`.
         """

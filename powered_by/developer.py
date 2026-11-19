@@ -648,7 +648,7 @@ def serialize_publish_answers(profile):
         "otherTech": profile.tech_used_raw,
         "inspiration": profile.project_why,
         "monthlyUsers": profile.project_reach,
-        "anythingElse": profile.notes or "",
+        "anythingElse": profile.anything_else or "",
         "addedLogo": profile.has_pbs_logo,
         "addedDonateLink": profile.has_donate_link,
     }
@@ -664,7 +664,7 @@ def _apply_publish_answers(project, answers):
     project.tech_used_raw = answers["otherTech"]
     project.project_why = answers["inspiration"]
     project.project_reach = answers["monthlyUsers"]
-    project.notes = answers["anythingElse"]
+    project.anything_else = answers["anythingElse"]
     project.has_pbs_logo = answers["addedLogo"]
     project.has_donate_link = answers["addedDonateLink"]
 

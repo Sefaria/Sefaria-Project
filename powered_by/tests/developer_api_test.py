@@ -603,7 +603,7 @@ class PublishAnswersTest(DeveloperApiTestCase):
         self.assertEqual(row.tech_used_raw, "React, Postgres")
         self.assertEqual(row.project_why, "My chavruta.")
         self.assertEqual(row.project_reach, "100")
-        self.assertEqual(row.notes, "Thanks!")
+        self.assertEqual(row.anything_else, "Thanks!")
         self.assertTrue(row.has_pbs_logo)
         self.assertTrue(row.has_donate_link)
         self.assertTrue(row.vibe_coded)
@@ -639,8 +639,25 @@ class PublishAnswersTest(DeveloperApiTestCase):
         self.assertEqual(row.job_title, "")
         self.assertIsNone(row.project_source_code)
         self.assertEqual(row.sefaria_tools_used, [])
-        self.assertEqual(row.notes, "")
+        self.assertEqual(row.anything_else, "")
         self.assertFalse(row.has_donate_link)
+
+    def test_the_answers_leave_staff_notes_alone_and_never_show_them(self):
+        row = self.row()
+        row.notes = "Staff only: follow up about the logo."
+        row.save()
+
+        _, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(self.row().notes, "Staff only: follow up about the logo.")
+        self.assertEqual(state["projects"][0]["poweredBy"]["anythingElse"], "Thanks!")
+        self.assertNotIn("Staff only", json.dumps(state))
+        _, state = self.call("get", "state")
+        self.assertNotIn("Staff only", json.dumps(state))
+
+        self.submit({"categories": ["other"]})
+
+        self.assertEqual(self.row().notes, "Staff only: follow up about the logo.")
 
     def test_bad_answers_are_refused_and_nothing_is_saved(self):
         for answers in (
@@ -664,6 +681,7 @@ class PublishAnswersTest(DeveloperApiTestCase):
 
         self.assertNotIn("show_name", listing)
         self.assertNotIn("has_donate_link", listing)
+        self.assertNotIn("anything_else", listing)
 
 
 class KeyTest(DeveloperApiTestCase):

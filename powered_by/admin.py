@@ -87,7 +87,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "is_buggy",
     )
     search_fields = ("project_name", "creator", "creator_email", "submitter")
-    readonly_fields = ("created_at", "updated_at", "live_api_project")
+    readonly_fields = ("created_at", "updated_at", "live_api_project", "anything_else")
     date_hierarchy = "created_at"
 
     def get_queryset(self, request):
@@ -159,6 +159,7 @@ class ProjectAdmin(admin.ModelAdmin):
                     "image_url",
                     "has_pbs_logo",
                     "has_donate_link",
+                    "anything_else",
                 ),
             },
         ),
