@@ -5087,7 +5087,7 @@ def profile_sync_api(request):
                     )
                 # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
                 for hist in reversed(field_data):
-                    if "ref" not in hist:
+                    if "ref" not in hist or not hist["ref"]:
                         logger.warning(f"Ref not in hist. History item: {hist}. User ID: {request.user.id}")
                         continue
                     try:

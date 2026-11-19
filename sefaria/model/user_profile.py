@@ -268,6 +268,10 @@ class UserHistory(abst.AbstractMongoRecord):
 
     @staticmethod
     def save_history_item(uid, hist, action=None, time_stamp=None):
+        if not isinstance(hist.get("ref"), str) or not hist["ref"].strip():
+            # Ref() accepts a falsy tref and returns a Ref with no index, so the
+            # he_normal() call below would raise AttributeError instead of InputError.
+            raise InputError("Cannot save a history item without a ref")
         if time_stamp is None:
             time_stamp = epoch_time()
         hist["uid"] = uid
