@@ -43,6 +43,13 @@ const openHome = (developer = {}) => {
 };
 
 const SITE = 'https://daftracker.org';
+const SITE_LINK = 'daftracker.org (opens in a new tab)';
+
+// Phones get a second copy of the website link that CSS hides on desktop; jsdom applies no CSS, so skip it.
+const desktopSiteLink = (container) =>
+  within(container)
+    .getAllByRole('link', { name: SITE_LINK })
+    .find((a) => !a.classList.contains('devE-phoneOnly'));
 
 beforeEach(() => {
   loadSettings();
@@ -178,7 +185,7 @@ describe('a new project', () => {
     await click(button('Skip for now'));
     const section = projectSection('Daf Tracker');
     expect(section.className).toContain('is-new');
-    expect(within(section).getByRole('link', { name: 'daftracker.org (opens in a new tab)' })).toBeTruthy();
+    expect(desktopSiteLink(section)).toBeTruthy();
   });
 
   it('cancels back to the projects without saving', async () => {
@@ -583,7 +590,7 @@ describe('Limit to website', () => {
 describe('the project website', () => {
   it('links to the website, or offers to add one', () => {
     openHome({ projects: [project(1, { websiteUrl: SITE }), project(2)] });
-    const link = within(projectSection('Project 1')).getByRole('link', { name: 'daftracker.org (opens in a new tab)' });
+    const link = desktopSiteLink(projectSection('Project 1'));
     expect(link.getAttribute('href')).toBe(SITE);
     expect(link.getAttribute('target')).toBe('_blank');
     expect(within(projectSection('Project 2')).getByRole('button', { name: 'Add website' })).toBeTruthy();
@@ -599,7 +606,7 @@ describe('the project website', () => {
     expect(server.calls()).toEqual(['POST projects/p1']);
     expect(server.sent('POST', 'projects/p1')[0].project.websiteUrl).toBe(SITE);
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(screen.getByRole('link', { name: 'daftracker.org (opens in a new tab)' })).toBeTruthy();
+    expect(desktopSiteLink(document.body)).toBeTruthy();
   });
 });
 
