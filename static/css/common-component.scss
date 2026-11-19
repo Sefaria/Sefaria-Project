@@ -12,6 +12,15 @@
 $sef-error: #c03522;
 $sef-text-primary: #121212;
 $sef-text-muted: #707070;
+$sef-text-secondary: #575757; // text-secondary (gray-700)
+$sef-border-strong: #4f6f9a; // border-strong (navy-600)
+$sef-action-primary: #18345d; // action-primary (navy-700)
+$sef-action-hover: #132b4c; // action-primary-hover (navy-800)
+$sef-focus: #1976d2; // functional-focus-blue
+$sef-border-focus: #ccc; // border-focus (gray-300): the Figma fields' border
+$sef-gray-250: #e6e6e6; // disabled field fill
+$sef-gray-400: #999; // disabled field border, text-disabled
+$sef-surface-hover: #eee; // surface-hover
 $sef-surface: #fff;
 $sef-border-default: #e6e6e6;
 $sef-surface-disabled: #f5f5f5;
@@ -40,6 +49,14 @@ $stroke-strong: 1.5px;
     align-items: baseline;
     justify-content: space-between;
     gap: $sp-2;
+  }
+
+  &-labelGroup {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: $sp-1;
+    min-width: 0;
   }
 
   &-label {
@@ -111,6 +128,15 @@ $stroke-strong: 1.5px;
     border-color: $sef-error;
   }
 
+  // Read-only: the disabled look, but focusable and selectable, in full-strength text
+  &--readonly .sefaria-input-control,
+  &--readonly .sefaria-input-control:hover {
+    background: $sef-surface-disabled;
+    border-color: $sef-border-default;
+    color: $sef-text-primary;
+    cursor: default;
+  }
+
   // Password reveal toggle
   &-reveal {
     position: absolute;
@@ -133,6 +159,50 @@ $stroke-strong: 1.5px;
       height: 20px;
       display: block;
     }
+  }
+
+  // Multi-line variant: same control, grows to its rows and can be resized taller
+  &-control--multiline {
+    height: auto;
+    min-height: 96px;
+    padding: $sp-3 $sp-4;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  // A small addon inside the field's bottom-right corner (a character count)
+  &-field.has-addon .sefaria-input-control {
+    padding-inline-end: 64px;
+  }
+
+  &-field.has-addon .sefaria-input-control--multiline {
+    padding-inline-end: $sp-4;
+    padding-bottom: 28px;
+  }
+
+  &-fieldAddon {
+    position: absolute;
+    inset-inline-end: $sp-3;
+    bottom: $sp-2;
+    pointer-events: none;
+    font-size: 12px; // en-system-caption
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+    color: $sef-text-muted; // text-muted
+  }
+
+  &-field.has-addon:not(:has(textarea)) .sefaria-input-fieldAddon {
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  // Helper text under the field
+  &-hint {
+    margin: 0;
+    font-size: $font-size-error;
+    line-height: 1.5;
+    color: $sef-text-secondary; // text-secondary
   }
 
   // Inline error message

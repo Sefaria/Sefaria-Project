@@ -274,20 +274,22 @@ def annotate_user_collections(sheets, user_id):
     return sheets
 
 
-def annotate_displayed_collections(sheets):
+def annotate_displayed_collections(sheets, field="name", key="displayedCollectionName"):
     """
-    Adds `displayedCollectionName` field to each sheet in `sheets` that has `displayedCollection`.
+    Adds `field` of its displayed collection, as `key`, to each sheet in `sheets` that has `displayedCollection`.
+    The collections are read in one query.
     """
     slugs = list({sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)})
     if len(slugs) == 0:
         return sheets
-    displayed_collections = CollectionSet({"slug": {"$in": slugs}})
+    displayed_collections = {
+        collection.slug: collection
+        for collection in CollectionSet({"slug": {"$in": slugs}}, proj={"slug": 1, field: 1})
+    }
     for sheet in sheets:
-        if not sheet.get("displayedCollection", None):
-            continue
-        for collection in displayed_collections:
-            if sheet["displayedCollection"] == collection.slug:
-                sheet["displayedCollectionName"] = collection.name
+        collection = displayed_collections.get(sheet.get("displayedCollection", None))
+        if collection:
+            sheet[key] = getattr(collection, field, None)
 
     return sheets
 
@@ -991,12 +993,14 @@ def calculate_combined_score(sheets, ref, title_weight=0.3, ref_weight=0.3, crea
         return sheets
 
 
-def get_sheets_for_ref(tref, uid=None, in_collection=None):
+def get_sheets_for_ref(tref, uid=None, in_collection=None, sheet_ids=None, slim=False):
     """
     Returns a list of sheets that include ref,
     formating as need for the Client Sidebar.
     If `uid` is present return user sheets, otherwise return public sheets.
     If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
+    If `sheet_ids` is present, only return sheets with these ids.
+    If `slim`, return only what's needed to count sheets per ref: id, owner and anchor refs.
     """
     oref = model.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
@@ -1007,7 +1011,11 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
         query["status"] = "public"
     if in_collection:
         query["id"] = {"$in": list(CollectionSet({"slug": {"$in": in_collection}}).sheet_ids())}
+    if sheet_ids is not None:
+        query["id"] = {"$in": list(sheet_ids)}
 
+    if slim:
+        return _slim_sheets_for_ref(oref, segment_refs, query)
     projection = {
         "id": 1,
         "title": 1,
@@ -1053,6 +1061,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
         except:
             user_profiles[profile]["profile_pic_url_small"] = ""
 
+    sheets = annotate_displayed_collections(sheets, field="toc", key="collectionTOC")
     results = []
     for sheet in sheets:
         anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(
@@ -1079,9 +1088,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
             sheet["viaOwnerName"] = viaOwnerData["name"]
             sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
-        if "displayedCollection" in sheet:
-            collection = Collection().load({"slug": sheet["displayedCollection"]})
-            sheet["collectionTOC"] = getattr(collection, "toc", None)
         topics = add_langs_to_topics(sheet.get("topics", []))
         for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
             sheet_data = {
@@ -1116,6 +1122,27 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
                 "combined_score": sheet.get("combined_score", 0),
             }
             results.append(sheet_data)
+    return results
+
+
+def _slim_sheets_for_ref(oref, segment_refs, query):
+    # Not just a count: the client counts per selected segment(s) from one response for the whole section.
+    # It needs the anchor refs to split sheets by segment, the id to count a sheet on several selected segments once,
+    # and the owner to not count the user's own public sheets twice (they also come from the private request).
+    results = []
+    for sheet in db.sheets.find(query, {"id": 1, "owner": 1, "includedRefs": 1, "expandedRefs": 1}):
+        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(
+            segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", [])
+        )
+        for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
+            results.append(
+                {
+                    "id": str(sheet["id"]),
+                    "owner": sheet["owner"],
+                    "anchorRef": anchor_ref.normal(),
+                    "anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
+                }
+            )
     return results
 
 

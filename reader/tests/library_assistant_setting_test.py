@@ -5,7 +5,7 @@ from unittest import mock
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
-from reader.conftest import create_test_user, make_profile_missing_la_setting, purge_test_profiles
+from reader.conftest import create_test_user, make_profile_missing_la_setting, page_props, purge_test_profiles
 from reader.models import UserExperimentSettings, _set_user_experiments
 from reader.views import chatbot_access_props
 from sefaria.helper import library_assistant
@@ -174,43 +174,44 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
 
 class AccountSettingsPageTest(LibraryAssistantUserTestCase):
     """
-    The account page no longer carries the toggle; it moved to the Library Assistant tab.
+    The toggle is available to every logged-in user, and the settings page renders the
+    effective value into its props.
     """
 
     url = "/settings/account"
 
-    def get_page(self):
+    def account_props(self):
         self.client.force_login(self.user)
-        return self.client.get(self.url).content.decode("utf-8")
+        html = self.client.get(self.url).content.decode("utf-8")
+        return page_props(html)["initialAccountSettings"]
 
-    def test_toggle_is_no_longer_on_the_account_page(self):
-        html = self.get_page()
+    def test_toggle_value_is_in_the_page_props(self):
+        self.assertIn("libraryAssistantEnabled", self.account_props())
 
-        self.assertNotIn('id="libraryAssistantSetting"', html)
-        self.assertNotIn("library_assistant", html)
+    def test_never_enrolled_user_sees_off(self):
+        make_profile_missing_la_setting(self.user)
 
-    def test_tab_bar_marks_account_settings_as_current(self):
-        html = self.get_page()
+        self.assertIs(self.account_props()["libraryAssistantEnabled"], False)
 
-        self.assertIn('<a href="/settings/account" aria-current="page">', html)
-        self.assertIn('<a href="/settings/library-assistant">', html)
+    def test_legacy_enrolled_user_sees_on(self):
+        self.enroll_in_experiments(True)
+        make_profile_missing_la_setting(self.user)
+
+        self.assertIs(self.account_props()["libraryAssistantEnabled"], True)
+
+    def test_setting_beats_legacy_enrollment_in_the_rendered_value(self):
+        self.enroll_in_experiments(True)
+        library_assistant.set_enabled(self.user, False)
+
+        self.assertIs(self.account_props()["libraryAssistantEnabled"], False)
 
 
 class LibraryAssistantSettingsPageTest(LibraryAssistantUserTestCase):
     """
-    The Library Assistant tab mounts the React panel and hands it the *effective* on/off value.
+    The Library Assistant tab is a tab of the React settings page; the assistant starts closed on it.
     """
 
     url = "/settings/library-assistant"
-
-    def get_page(self):
-        self.client.force_login(self.user)
-        return self.client.get(self.url).content.decode("utf-8")
-
-    def assertMountShows(self, html, on):
-        found = re.search(r'id="libraryAssistantSettings"\s+data-library-assistant-enabled="(true|false)"', html)
-        self.assertIsNotNone(found, "Library Assistant mount point not found on the page")
-        self.assertEqual(found.group(1) == "true", on)
 
     def test_requires_login(self):
         response = self.client.get(self.url)
@@ -218,34 +219,13 @@ class LibraryAssistantSettingsPageTest(LibraryAssistantUserTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("login", response["Location"])
 
-    def test_mounts_the_react_component(self):
-        html = self.get_page()
+    def test_opens_the_library_assistant_tab(self):
+        self.client.force_login(self.user)
+        props = page_props(self.client.get(self.url).content.decode("utf-8"))
 
-        self.assertIn("DJANGO_VARS.reactComponentName = 'LibraryAssistantSettings'", html)
-        self.assertIn("DJANGO_VARS.containerId = 'libraryAssistantSettings'", html)
-
-    def test_tab_bar_marks_library_assistant_as_current(self):
-        html = self.get_page()
-
-        self.assertIn('<a href="/settings/library-assistant" aria-current="page">', html)
-        self.assertIn('<a href="/settings/account">', html)
-
-    def test_never_enrolled_user_sees_off(self):
-        make_profile_missing_la_setting(self.user)
-
-        self.assertMountShows(self.get_page(), on=False)
-
-    def test_legacy_enrolled_user_sees_on(self):
-        self.enroll_in_experiments(True)
-        make_profile_missing_la_setting(self.user)
-
-        self.assertMountShows(self.get_page(), on=True)
-
-    def test_setting_beats_legacy_enrollment_in_the_rendered_value(self):
-        self.enroll_in_experiments(True)
-        library_assistant.set_enabled(self.user, False)
-
-        self.assertMountShows(self.get_page(), on=False)
+        self.assertEqual(props["initialSettingsTab"], "library-assistant")
+        self.assertIs(props["chatbotStartClosed"], True)
+        self.assertIn("libraryAssistantEnabled", props["initialAccountSettings"])
 
 
 class ChatbotVersionPropTest(LibraryAssistantUserTestCase):

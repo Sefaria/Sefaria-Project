@@ -47,14 +47,27 @@ class WebPage(abst.AbstractMongoRecord):
         "whitelisted",
     ]
 
+    def __init__(self, attrs=None, site_data_by_domain=None):
+        """
+        :param site_data_by_domain: for a WebPageSet, a dict shared by its pages (via record_kwargs), so each domain's site data is looked up once
+        """
+        # set before super().__init__, which calls _set_derived_attributes
+        self._site_data_by_domain = {} if site_data_by_domain is None else site_data_by_domain
+        super().__init__(attrs)
+
     def load(self, url_or_query):
         query = {"url": normalize_webpage_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
         return super().load(query)
 
+    def _get_site_data(self, domain):
+        if domain not in self._site_data_by_domain:
+            self._site_data_by_domain[domain] = get_site_data_for_domain(domain)
+        return self._site_data_by_domain[domain]
+
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
             self.domain = webpage_domain_for_url(self.url)
-            self._site_data = get_site_data_for_domain(self.domain)
+            self._site_data = self._get_site_data(self.domain)
             self.site_name = self._site_data["name"] if self._site_data else self.domain
             self.favicon = (
                 f"https://www.google.com/s2/favicons?domain={self._site_data['domains'][0]}"
@@ -352,8 +365,8 @@ def _get_webpages_for_segment_refs(oref, segment_refs):
             "authors": 1,
             "articleSource": 1,
         },
-        hint="expandedRefs_1",
         sort=None,
+        record_kwargs={"site_data_by_domain": {}},
     )
     try:
         results = results.array()

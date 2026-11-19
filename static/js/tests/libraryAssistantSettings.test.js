@@ -1,11 +1,24 @@
 /* Testing done using Jest */
-// The Library Assistant tab of Settings: its own on/off, and Personalization (Instructions, Profile,
-// testing tools) read and written over HTTP with the user's token. No React testing library here:
-// react-dom/test-utils only.
+// The Library Assistant tab of Settings: its own on/off, and Personalized answers (Profile, Instructions,
+// testing tools) read and written over HTTP with the user's token. Every change saves on its own.
+// No React testing library here: react-dom/test-utils only.
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act, Simulate } from 'react-dom/test-utils';
-import LibraryAssistantSettings, { isPreviewBase, LOAD_TIMEOUT_MS, safeReturnPath } from '../LibraryAssistantSettings';
+import LibraryAssistantSettings, {
+  describeRun,
+  INSTRUCTIONS_SAVE_MS,
+  isPreviewBase,
+  LOAD_TIMEOUT_MS,
+  parseSections,
+} from '../LibraryAssistantSettings';
+
+jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: { interfaceLang: 'english', _: (k) => k } }));
+jest.mock('../Misc', () => ({
+  __esModule: true,
+  InterfaceText: ({ text, children }) => (text ? text.en : (children ?? null)),
+}));
+jest.mock('../SettingsPage.jsx', () => ({ __esModule: true, useDialogKeys: () => {} }));
 
 const BASE = 'https://la.example/api';
 const state = (over = {}) => ({
@@ -19,49 +32,93 @@ const reply = (body, status = 200) => Promise.resolve({ ok: status < 400, status
 
 // A jQuery-like request: the component chains .fail on what $.post returns.
 const jqXHR = () => {
-  const req = { fail: jest.fn((fn) => ((req.failFn = fn), req)), done: jest.fn(() => req) };
+  const req = { fail: jest.fn((fn) => ((req.failFn = fn), req)) };
   return req;
 };
-const lastRequest = () => global.$.post.mock.results[global.$.post.mock.results.length - 1].value;
 
 let container;
 const flush = () => act(() => new Promise((r) => setTimeout(r, 0)));
-const render = async (props = {}, enabled = 'true') => {
+const mount = async (props = {}) => {
   container = document.createElement('div');
-  container.id = 'libraryAssistantSettings';
-  container.setAttribute('data-library-assistant-enabled', enabled);
   document.body.appendChild(container);
   await act(async () => {
     ReactDOM.render(
-      <LibraryAssistantSettings chatbot_user_token="tok" chatbot_api_base_url={BASE} {...props} />,
+      <LibraryAssistantSettings
+        chatbot_user_token="tok"
+        chatbot_api_base_url={BASE}
+        libraryAssistantEnabled={true}
+        {...props}
+      />,
       container
     );
   });
+};
+const render = async (props) => {
+  await mount(props);
   await flush();
+};
+const unmount = () => {
+  ReactDOM.unmountComponentAtNode(container);
+  container.remove();
 };
 const q = (sel) => container.querySelector(sel);
 const byText = (sel, text) => [...container.querySelectorAll(sel)].find((e) => e.textContent.includes(text));
 const sent = (i) => JSON.parse(global.fetch.mock.calls[i][1].body);
+const actions = () => global.fetch.mock.calls.map((c) => JSON.parse(c[1].body).action);
+const type = (el, value) =>
+  act(async () => {
+    Simulate.change(el, { target: { value } });
+  });
+const check = (el, checked) =>
+  act(async () => {
+    Simulate.change(el, { target: { checked } });
+  });
 
 beforeEach(() => {
   global.fetch = jest.fn(() => reply(state()));
   global.$ = { post: jest.fn(() => jqXHR()) };
 });
 afterEach(() => {
-  ReactDOM.unmountComponentAtNode(container);
-  container.remove();
+  jest.useRealTimers();
+  if (container && container.isConnected) unmount();
+});
+
+describe('helpers', () => {
+  it('describes a run in plain words, then the codes', () => {
+    expect(describeRun({ status: 'no_change', reason: 'no_new_prompts' })).toBe(
+      'No change to the Profile. No new questions since the last update. Instructions never change the Profile. (no_change: no_new_prompts)'
+    );
+    expect(describeRun({ status: 'odd' })).toBe('odd');
+  });
+
+  it('knows a preview deployment by its host', () => {
+    expect(isPreviewBase('https://9298.ai-server.coolifydev.sefaria.org/api')).toBe(true);
+    expect(isPreviewBase('https://chat.sefaria.org/api')).toBe(false);
+    expect(isPreviewBase('not a url')).toBe(false);
+  });
+
+  it('parses Profile headings and paragraphs', () => {
+    expect(parseSections('# How you learn\nShort answers.\n\n# Studying\nGenesis')).toEqual([
+      { heading: 'How you learn', body: 'Short answers.' },
+      { heading: 'Studying', body: 'Genesis' },
+    ]);
+  });
 });
 
 describe('LibraryAssistantSettings', () => {
-  it('with no token shows the turn-on line and makes no call', async () => {
-    await render({ chatbot_user_token: null });
-    expect(q('#personalization').textContent).toContain('Turn the Library Assistant on to use personalization.');
-    expect(global.fetch).not.toHaveBeenCalled();
+  it('shows the page title and nothing in the save status before a change', async () => {
+    await render();
+    expect(q('h1').textContent).toBe('Library Assistant Settings');
+    expect(q('.laSaveStatus').textContent).toBe('');
   });
 
-  it('with no API base shows the turn-on line and makes no call', async () => {
+  it('with no token or no API base explains it and makes no call', async () => {
+    await render({ chatbot_user_token: null });
+    expect(q('#personalization').textContent).toContain(
+      'Your personalized answers settings will show here the next time you open this page.'
+    );
+    unmount();
     await render({ chatbot_api_base_url: null });
-    expect(q('#personalization').textContent).toContain('Turn the Library Assistant on to use personalization.');
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
@@ -71,7 +128,6 @@ describe('LibraryAssistantSettings', () => {
     expect(global.fetch.mock.calls[0][0]).toBe(`${BASE}/v2/personalization/settings`);
     expect(sent(0)).toEqual({ userId: 'tok', action: 'get' });
     expect(global.fetch.mock.calls[0][1].headers).toEqual({ 'Content-Type': 'application/json' });
-    expect(q('#about-personalization')).not.toBeNull();
   });
 
   it('prefers the preview deployment when chatbot_version is set', async () => {
@@ -81,622 +137,266 @@ describe('LibraryAssistantSettings', () => {
     );
   });
 
-  it('shows the empty Profile text and "Never" for Instructions', async () => {
+  it('shows the empty Profile text and "Never updated" for Instructions', async () => {
     await render();
-    expect(q('#personalization').textContent).toContain(
-      'LA will remember things about you as you move forward in your Sefaria career.'
+    expect(q('#profile').textContent).toContain(
+      'As you use the Library Assistant, it will start to remember things about you and record them here.'
     );
-    expect(q('#profile .laProfileHeading')).toBeNull();
-    expect(q('#personalization').textContent).toContain('Last updated: Never');
+    expect(q('#instructions').textContent).toContain('Never updated');
   });
 
-  it('renders Profile headings and paragraphs as text', async () => {
+  it('renders the Profile as text, never as HTML', async () => {
     global.fetch.mockImplementation(() =>
-      reply(
-        state({ profile: { ...state().profile, text: '# Background\nReads Rashi.\n\n# Focus\nBerakhot <b>1</b>' } })
-      )
+      reply(state({ profile: { ...state().profile, text: '# How you learn\n<b>Short</b> answers.' } }))
     );
     await render();
-    const headings = [...container.querySelectorAll('.laProfileHeading')].map((h) => h.textContent);
-    expect(headings).toEqual(['Background', 'Focus']);
-    expect(container.querySelectorAll('.laProfileBody')).toHaveLength(2);
-    expect(container.querySelector('.laProfileBody b')).toBeNull();
+    expect(q('.laProfileHeading').textContent).toBe('How you learn');
+    expect(q('.laProfileBody').textContent).toBe('<b>Short</b> answers.');
+    expect(q('.laProfileBody b')).toBeNull();
   });
 
-  it('counts characters and disables Save at 301', async () => {
+  it('puts the Profile card before the Instructions card', async () => {
     await render();
-    const area = q('textarea.laInstructions');
-    expect(area.getAttribute('placeholder')).toBe('Tell LA the way you like to work');
-    await act(async () => Simulate.change(area, { target: { value: 'a'.repeat(300) } }));
-    expect(q('.laInstructionsCount').textContent).toBe('300 / 300');
-    expect(byText('button', 'Save instructions').disabled).toBe(false);
-    await act(async () => Simulate.change(area, { target: { value: 'a'.repeat(301) } }));
-    expect(q('.laInstructionsCount').textContent).toBe('301 / 300');
-    expect(byText('button', 'Save instructions').disabled).toBe(true);
+    const cards = [...container.querySelectorAll('section.laCard')].map((s) => s.id).filter(Boolean);
+    expect(cards.indexOf('profile')).toBeLessThan(cards.indexOf('instructions'));
   });
 
-  it('saves Instructions with set_instructions', async () => {
+  it('saves Instructions on its own once typing stops, and says so in the header', async () => {
+    let finish;
     await render();
-    await act(async () => Simulate.change(q('textarea.laInstructions'), { target: { value: 'Be brief' } }));
-    global.fetch.mockImplementationOnce(() =>
-      reply(state({ instructions: { text: 'Be brief', enabled: true, updatedAt: '2026-11-01T10:00:00Z' } }))
+    global.fetch.mockImplementation(
+      () => new Promise((resolve) => (finish = () => resolve({ ok: true, status: 200, json: () => state() })))
     );
-    await act(async () => Simulate.click(byText('button', 'Save instructions')));
+    jest.useFakeTimers();
+    await type(q('#laInstructionsText'), 'Answer in English.');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      jest.advanceTimersByTime(INSTRUCTIONS_SAVE_MS);
+    });
+    expect(sent(1)).toEqual({ userId: 'tok', action: 'set_instructions', text: 'Answer in English.' });
+    expect(q('.laSaveStatus').textContent).toBe('Saving changes…');
+    jest.useRealTimers();
+    await act(async () => {
+      finish();
+    });
     await flush();
-    expect(sent(1)).toEqual({ userId: 'tok', action: 'set_instructions', text: 'Be brief' });
-    expect(q('#personalization').textContent).toContain('by You');
+    expect(q('.laSaveStatus').textContent).toBe('Changes saved');
   });
 
-  it('toggles call toggle with the right target', async () => {
+  it('says Changes not saved when a save fails', async () => {
     await render();
-    await act(async () => Simulate.click(q('[data-toggle="instructions"]')));
+    global.fetch.mockImplementation(() => reply({}, 500));
+    await check(q('#laProfile'), false);
     await flush();
-    expect(sent(1)).toEqual({ userId: 'tok', action: 'toggle', target: 'instructions', enabled: false });
-    await act(async () => Simulate.click(q('[data-toggle="profile"]')));
-    await flush();
-    expect(sent(2)).toEqual({ userId: 'tok', action: 'toggle', target: 'profile', enabled: false });
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+    expect(q('.laSaveStatus').className).toContain('laSaveStatusFail');
   });
 
-  it('Clear needs the confirm', async () => {
+  it('saves Instructions on leaving the field, and not twice', async () => {
     await render();
-    await act(async () => Simulate.click(byText('button', 'Clear profile')));
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(q('#personalization').textContent).toContain('This cannot be undone');
-    await act(async () => Simulate.click(byText('button', 'Cancel')));
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    await act(async () => Simulate.click(byText('button', 'Clear profile')));
-    await act(async () => Simulate.click(byText('button', 'Yes, clear')));
+    await type(q('#laInstructionsText'), 'Short answers.');
+    await act(async () => Simulate.blur(q('#laInstructionsText')));
+    await act(() => new Promise((r) => setTimeout(r, INSTRUCTIONS_SAVE_MS + 50)));
     await flush();
-    expect(sent(1)).toEqual({ userId: 'tok', action: 'clear_profile' });
+    expect(actions().filter((a) => a === 'set_instructions')).toHaveLength(1);
+  });
+
+  it('counts characters and does not save over 300', async () => {
+    await render();
+    await type(q('#laInstructionsText'), 'x'.repeat(301));
+    expect(q('#instructions .laCount').textContent).toBe('301 / 300');
+    expect(q('#instructions').textContent).toContain('Keep it to 300 characters.');
+    await act(async () => Simulate.blur(q('#laInstructionsText')));
+    await flush();
+    expect(actions()).not.toContain('set_instructions');
+  });
+
+  it('switches call toggle with the right target', async () => {
+    await render();
+    await check(q('#laProfile'), false);
+    await flush();
+    await check(q('#laInstructions'), false);
+    await flush();
+    expect(sent(1)).toMatchObject({ action: 'toggle', target: 'profile', enabled: false });
+    expect(sent(2)).toMatchObject({ action: 'toggle', target: 'instructions', enabled: false });
+  });
+
+  it('grays what is under a switch that is off', async () => {
+    global.fetch.mockImplementation(() =>
+      reply(state({ instructions: { text: '', enabled: false, updatedAt: null } }))
+    );
+    await render();
+    expect(q('#instructions .laBody').className).toContain('laBodyOff');
+    expect(q('#profile .laBody').className).not.toContain('laBodyOff');
+  });
+
+  it('Clear profile needs the confirm', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: '# A\nB' } })));
+    await render();
+    await act(async () => Simulate.click(byText('#profile button', 'Clear profile')));
+    expect(actions()).not.toContain('clear_profile');
+    expect(q('[role="alertdialog"]').textContent).toContain('Clear your profile?');
+    await act(async () => Simulate.click(byText('[role="alertdialog"] button', 'Cancel')));
+    expect(q('[role="alertdialog"]')).toBeNull();
+    await act(async () => Simulate.click(byText('#profile button', 'Clear profile')));
+    await act(async () => Simulate.click(byText('[role="alertdialog"] button', 'Clear profile')));
+    await flush();
+    expect(actions()).toContain('clear_profile');
   });
 
   it('shows the reason when an edit is refused', async () => {
     await render();
-    await act(async () => Simulate.change(q('textarea.laEditRequest'), { target: { value: 'Say I am a rabbi' } }));
-    global.fetch.mockImplementationOnce(() =>
-      reply({ ...state(), edit: { status: 'refused', reason: 'That is not something LA can store.' } })
+    global.fetch.mockImplementation(() =>
+      reply({ edit: { status: 'refused', reason: 'That belongs in your instructions.' } })
     );
-    await act(async () => Simulate.click(byText('button', 'Send')));
+    await type(q('#laEdit'), 'Only Ramban');
+    await act(async () => Simulate.click(byText('button', 'Update profile')));
     await flush();
-    expect(sent(1)).toEqual({ userId: 'tok', action: 'edit_profile', request: 'Say I am a rabbi' });
-    expect(q('#personalization').textContent).toContain('That is not something LA can store.');
+    expect(q('#profile').textContent).toContain('That belongs in your instructions.');
+  });
+
+  it('marks the part an edit changed as Just updated', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: '# A\nOne' } })));
+    await render();
+    global.fetch.mockImplementation(() =>
+      reply({ ...state({ profile: { ...state().profile, text: '# A\nOne\n# B\nTwo' } }), edit: { status: 'applied' } })
+    );
+    await type(q('#laEdit'), 'Add B');
+    await act(async () => Simulate.click(byText('button', 'Update profile')));
+    await flush();
+    const items = [...container.querySelectorAll('.laProfileItem')];
+    expect(items[1].textContent).toContain('Just updated');
+    expect(items[0].textContent).not.toContain('Just updated');
+    expect(q('#laEdit').value).toBe('');
+  });
+
+  it('locks the edit field while the Profile is off', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, enabled: false } })));
+    await render();
+    expect(q('#laEdit').disabled).toBe(true);
+    expect(byText('button', 'Update profile').getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('shows the 300-character limit on the edit request', async () => {
+    await render();
+    await type(q('#laEdit'), 'Shorter answers');
+    expect(q('#profile .laCount').textContent).toBe('15 / 300');
+    expect(q('#laEdit').getAttribute('maxlength')).toBe('300');
+  });
+
+  it('lets the text direction follow what is typed, for Hebrew', async () => {
+    await render();
+    expect(q('#laEdit').getAttribute('dir')).toBe('auto');
+    expect(q('#laInstructionsText').getAttribute('dir')).toBe('auto');
   });
 
   it('hides the testing tools unless labEnabled', async () => {
     await render();
-    expect(byText('button', 'Run now')).toBeUndefined();
-    ReactDOM.unmountComponentAtNode(container);
-    container.remove();
+    expect(q('#testing-tools')).toBeNull();
+    unmount();
     global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
     await render();
-    expect(byText('button', 'Run now')).toBeDefined();
-    expect(byText('button', 'Dream now')).toBeDefined();
-    expect(q('#personalization').textContent).toContain('Include non-personalized response');
+    expect(q('#testing-tools')).not.toBeNull();
   });
 
-  it.each([
-    [
-      404,
-      'Personalization is not available here. Open the test link you were sent; this page is not connected to the personalization test server.',
-    ],
-    [401, 'Reload the page to sign in again.'],
-    [429, 'Too many changes. Try again in a while.'],
-    [500, 'Could not reach the Library Assistant. Try again.'],
-  ])('maps status %i to its message', async (status, message) => {
-    global.fetch.mockImplementation(() => reply({}, status));
+  it('gives every testing tool its helper line', async () => {
+    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
     await render();
-    expect(q('#personalization').textContent).toContain(message);
-  });
-
-  it('shows date and time on Last updated for Profile and Instructions', async () => {
-    const at = '2026-11-16T12:00:00Z';
-    global.fetch.mockImplementation(() =>
-      reply(
-        state({
-          instructions: { text: 'x', enabled: true, updatedAt: at },
-          profile: { text: '', sections: [], enabled: true, updatedAt: at, updatedBy: 'la', revision: 1 },
-        })
-      )
-    );
-    await render();
-    const time = '\\d{1,2}:\\d{2}[\\s\\u202f]?[AP]M';
-    const row = (who) => new RegExp(`^Last updated: Nov 16, 2026, ${time} by ${who}$`);
-    const texts = [...container.querySelectorAll('.laUpdated')].map((e) => e.textContent);
-    expect(texts).toHaveLength(2);
-    const profile = texts.find((t) => / by LA$/.test(t));
-    const instructions = texts.find((t) => / by You$/.test(t));
-    expect(profile).toMatch(row('LA'));
-    expect(instructions).toMatch(row('You'));
-  });
-
-  describe('isPreviewBase', () => {
-    it.each([
-      ['https://9298.ai-server.coolifydev.sefaria.org/api', true],
-      ['https://9298.ai-server.coolifydev.sefaria.org', true],
-      ['https://9298.ai-server.coolifydev.sefaria.org/', true],
-      ['https://9298.AI-Server.coolifydev.sefaria.org/api/', true],
-      ['https://chat.example.org/api', false],
-      ['https://x.ai-server.coolifydev.sefaria.org/api', false],
-      ['not a url', false],
-      ['', false],
-      [null, false],
-    ])('%s -> %s', (base, expected) => {
-      expect(isPreviewBase(base)).toBe(expected);
-    });
-  });
-
-  describe('testing tools job info', () => {
-    const lab = (testing) =>
-      global.fetch.mockImplementation(() =>
-        reply(state({ labEnabled: true, testing: { showPlainResponse: false, updateEveryMessage: false, ...testing } }))
-      );
-    it('shows job state and recent runs when present', async () => {
-      lab({
-        jobState: { hourUsed: 3, hourLimit: 10, lockHeld: false, parked: true },
-        recentRuns: [
-          { startedAt: '2026-11-16T09:02:00Z', trigger: 'manual', window: 'session', status: 'ok', reason: null },
-          { startedAt: '2026-11-16T09:02:00Z', trigger: 'cron', window: 'dream', status: 'skipped', reason: 'locked' },
-        ],
-      });
-      await render();
-      const t = q('#testing-tools').textContent;
-      expect(t).toContain('Profile updates this hour: 3 of 10');
-      expect(t).toContain('Job running: no');
-      expect(t).toContain('Paused after repeated failures: yes');
-      expect(t).toContain('manual');
-      expect(t).toContain('skipped');
-      expect(t).toContain('locked');
-      expect(container.querySelectorAll('.laRunsRow')).toHaveLength(2);
-    });
-    it('does not render job state for an array or missing fields', async () => {
-      lab({ jobState: [1, 2] });
-      await render();
-      expect(q('.laJobState')).toBeNull();
-      ReactDOM.unmountComponentAtNode(container);
-      container.remove();
-      lab({ jobState: { lockHeld: true } });
-      await render();
-      expect(q('.laJobState')).toBeNull();
-    });
-    it('skips non-object runs without throwing', async () => {
-      lab({
-        recentRuns: [
-          null,
-          'junk',
-          7,
-          { startedAt: '2026-11-16T09:02:00Z', trigger: 'cron', window: 'dream', status: 'ok', reason: '' },
-        ],
-      });
-      await render();
-      expect(container.querySelectorAll('.laRunsRow')).toHaveLength(1);
-    });
-    it('caps recent runs at 10 rows', async () => {
-      const run = (i) => ({
-        startedAt: `2026-11-16T09:${String(i).padStart(2, '0')}:00Z`,
-        trigger: 'cron',
-        window: 'w',
-        status: 'ok',
-      });
-      lab({ recentRuns: Array.from({ length: 12 }, (_, i) => run(i)) });
-      await render();
-      expect(container.querySelectorAll('.laRunsRow')).toHaveLength(10);
-    });
-    it('shows neither when absent', async () => {
-      lab({});
-      await render();
-      const t = q('#testing-tools').textContent;
-      expect(t).not.toContain('Profile updates this hour');
-      expect(q('.laRunsRow')).toBeNull();
-    });
-  });
-
-  it('explains a 404 on a page with no preview server', async () => {
-    global.fetch.mockImplementation(() => reply({}, 404));
-    await render();
-    expect(q('#personalization').textContent).toContain(
-      'Open the test link you were sent; this page is not connected to the personalization test server.'
-    );
-  });
-
-  it('keeps the short 404 message when a preview server is in use', async () => {
-    global.fetch.mockImplementation(() => reply({}, 404));
-    await render({ chatbot_version: 9298 });
-    const t = q('#personalization').textContent;
-    expect(t).toContain('Personalization is not available here.');
-    expect(t).not.toContain('test link');
-  });
-
-  it.each([['Run now'], ['Dream now']])(
-    'shows the hourly limit in the result area when %s is refused with 429',
-    async (label) => {
-      global.fetch.mockImplementation((url, init) => {
-        const { action } = JSON.parse(init.body);
-        return action === 'run_now' ? reply({ error: 'quota' }, 429) : reply(state({ labEnabled: true }));
-      });
-      await render();
-      await act(async () => Simulate.click(byText('button', label)));
-      await flush();
-      expect(q('.laRunResult').textContent).toBe('Hourly limit reached. Try again later.');
-      expect(q('.laError')).toBeNull();
+    for (const id of ['laRunNow', 'laDreamNow', 'laEvery', 'laPlain', 'laHealth']) {
+      expect(q(`#${id}-hint`)).not.toBeNull();
     }
-  );
-
-  it.each([
-    [
-      { status: 'no_change', reason: 'no_new_prompts' },
-      'No change to the Profile. No new questions since the last update. Instructions never change the Profile. (no_change: no_new_prompts)',
-    ],
-    [{ status: 'applied', reason: null }, 'Profile updated. (applied)'],
-    [{ status: 'something_new', reason: 'odd_code' }, 'something_new: odd_code'],
-  ])('says the Run now result %j in plain words, with its codes', async (run, text) => {
-    global.fetch.mockImplementation((url, init) => {
-      const { action } = JSON.parse(init.body);
-      return reply(action === 'run_now' ? { ...state({ labEnabled: true }), run } : state({ labEnabled: true }));
-    });
-    await render();
-    await act(async () => Simulate.click(byText('button', 'Run now')));
-    await flush();
-    expect(q('.laRunResult').textContent).toBe(text);
   });
 
-  it('a first read that never answers ends in the error with Try again, not an endless Loading', async () => {
-    jest.useFakeTimers();
-    try {
-      global.fetch.mockImplementation(
-        (url, init) =>
-          new Promise((resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))))
-      );
-      container = document.createElement('div');
-      document.body.appendChild(container);
-      await act(async () => {
-        ReactDOM.render(<LibraryAssistantSettings chatbot_user_token="tok" chatbot_api_base_url={BASE} />, container);
-      });
-      expect(q('#personalization').textContent).toContain('Loading…');
-      await act(async () => {
-        jest.advanceTimersByTime(LOAD_TIMEOUT_MS - 1);
-      });
-      expect(q('#personalization').textContent).toContain('Loading…');
-      await act(async () => {
-        jest.advanceTimersByTime(1);
-        await Promise.resolve();
-      });
-    } finally {
-      jest.useRealTimers();
-    }
-    await flush();
-    expect(q('#personalization').textContent).toContain('Could not reach the Library Assistant. Try again.');
-    expect(q('#personalization').textContent).not.toContain('Loading…');
-
-    global.fetch.mockImplementation(() => reply(state()));
-    await act(async () => Simulate.click(byText('button', 'Try again')));
-    await flush();
-    expect(q('#profile')).not.toBeNull();
-    expect(q('.laError')).toBeNull();
-  });
-
-  it('only the first read has a time limit', async () => {
+  it('shows a Run now result in plain words, and the hourly limit on a 429', async () => {
     global.fetch.mockImplementation((url, init) => {
       const { action } = JSON.parse(init.body);
       return reply(
         action === 'run_now'
-          ? { ...state({ labEnabled: true }), run: { status: 'applied' } }
+          ? { ...state({ labEnabled: true }), run: { status: 'no_change', reason: 'nothing_to_write' } }
           : state({ labEnabled: true })
       );
     });
     await render();
     await act(async () => Simulate.click(byText('button', 'Run now')));
     await flush();
-    expect(global.fetch.mock.calls[0][1].signal).toBeDefined();
-    expect(global.fetch.mock.calls[1][1].signal).toBeUndefined();
+    expect(q('.laRunResult').textContent).toBe(
+      'No change to the Profile. Nothing new to add. (no_change: nothing_to_write)'
+    );
+    global.fetch.mockImplementation(() => reply({}, 429));
+    await act(async () => Simulate.click(byText('button', 'Dream now')));
+    await flush();
+    expect(q('.laRunResult').textContent).toBe('Hourly limit reached. Try again later.');
   });
 
-  it('shows the network-failure message', async () => {
-    global.fetch.mockImplementation(() => Promise.reject(new Error('down')));
+  it('explains a 404 on a page with no preview server, and keeps it short with one', async () => {
+    global.fetch.mockImplementation(() => reply({}, 404));
     await render();
+    expect(q('#personalization').textContent).toContain('Open the test link you were sent');
+    unmount();
+    await render({ chatbot_version: 9298 });
+    expect(q('#personalization').textContent).toContain('Personalization is not available here.');
+    expect(q('#personalization').textContent).not.toContain('Open the test link you were sent');
+  });
+
+  it('a first read that never answers ends in the error with Try again', async () => {
+    jest.useFakeTimers();
+    global.fetch.mockImplementation(
+      (url, init) =>
+        new Promise((resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))))
+    );
+    await mount();
+    expect(q('#personalization').textContent).toContain('Loading…');
+    await act(async () => {
+      jest.advanceTimersByTime(LOAD_TIMEOUT_MS);
+    });
+    jest.useRealTimers();
+    await flush();
     expect(q('#personalization').textContent).toContain('Could not reach the Library Assistant. Try again.');
+    global.fetch.mockImplementation(() => reply(state()));
+    await act(async () => Simulate.click(byText('button', 'Try again')));
+    await flush();
+    expect(q('#profile')).not.toBeNull();
   });
 
-  it('posts the Library Assistant setting only when changed, then reloads', async () => {
+  it('turning the assistant off posts the setting, with no reload', async () => {
     await render();
-    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
-    expect(global.$.post).not.toHaveBeenCalled();
-    await act(async () => Simulate.click(q('[data-la-value="false"]')));
-    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
+    await check(q('#laAssistant'), false);
     expect(global.$.post).toHaveBeenCalledTimes(1);
     const [url, data] = global.$.post.mock.calls[0];
     expect(url).toBe('/api/profile');
     expect(JSON.parse(data.json)).toEqual({ settings: { library_assistant: false } });
+    expect(q('.laSaveStatus').textContent).toBe('Saving changes…');
+    const [, , done] = global.$.post.mock.calls[0];
+    await act(async () => done({}));
+    expect(q('.laSaveStatus').textContent).toBe('Changes saved');
+    expect(q('#laAssistant').checked).toBe(false);
   });
 
-  const key = (el, k) => act(async () => Simulate.keyDown(el, { key: k }));
-  const radios = (group) => [...group.querySelectorAll('[role="radio"]')];
-
-  it('keeps one tab stop per radio group', async () => {
-    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
+  it('a failed assistant save says so and puts the switch back', async () => {
     await render();
-    const groups = [...container.querySelectorAll('[role="radiogroup"]')];
-    expect(groups.length).toBe(5);
-    groups.forEach((g) => expect(radios(g).filter((r) => r.tabIndex === 0).length).toBe(1));
-    const first = radios(groups[0]);
-    expect(first[0].getAttribute('aria-checked')).toBe('true');
-    expect(first[0].tabIndex).toBe(0);
-    expect(first[1].tabIndex).toBe(-1);
+    await check(q('#laAssistant'), false);
+    await act(async () => global.$.post.mock.results[0].value.failFn());
+    expect(q('#libraryAssistantSetting').textContent).toContain('Could not save the setting. Try again.');
+    expect(q('#laAssistant').checked).toBe(true);
   });
 
-  it('arrow keys move and select inside the page switch', async () => {
-    await render();
-    const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
-    await key(on, 'ArrowRight');
-    expect(off.getAttribute('aria-checked')).toBe('true');
-    expect(off.tabIndex).toBe(0);
-    expect(on.tabIndex).toBe(-1);
-    expect(document.activeElement).toBe(off);
-    await key(off, 'ArrowUp');
-    expect(on.getAttribute('aria-checked')).toBe('true');
-    await key(on, 'ArrowDown');
-    expect(off.getAttribute('aria-checked')).toBe('true');
-    await key(off, 'ArrowLeft');
-    expect(on.getAttribute('aria-checked')).toBe('true');
-    await key(off, 'Enter'); // Enter on a focused, unselected option selects it
-    expect(off.getAttribute('aria-checked')).toBe('true');
-    expect(on.getAttribute('aria-checked')).toBe('false');
-  });
-
-  it('arrow keys wrap at the ends of a radio group', async () => {
-    await render();
-    const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
-    await key(on, 'ArrowLeft'); // before "On" wraps to "Off"
-    expect(off.getAttribute('aria-checked')).toBe('true');
-    expect(document.activeElement).toBe(off);
-    await key(off, 'ArrowRight'); // after "Off" wraps to "On"
-    expect(on.getAttribute('aria-checked')).toBe('true');
-    expect(document.activeElement).toBe(on);
-    await key(on, 'ArrowUp');
-    expect(off.getAttribute('aria-checked')).toBe('true');
-    await key(off, 'ArrowDown');
-    expect(on.getAttribute('aria-checked')).toBe('true');
-  });
-
-  it('arrow keys on a Personalization group call the right handler; Space selects', async () => {
-    await render();
-    const [on, off] = radios(q('#instructions [role="radiogroup"]'));
-    await key(on, 'ArrowRight');
-    await flush();
-    expect(sent(1)).toEqual({ userId: 'tok', action: 'toggle', target: 'instructions', enabled: false });
-    await key(off, ' ');
-    await flush();
-    expect(global.fetch).toHaveBeenCalledTimes(3);
-    expect(sent(2)).toEqual({ userId: 'tok', action: 'toggle', target: 'instructions', enabled: false });
-  });
-
-  it('flips Left and Right in RTL', async () => {
-    document.documentElement.setAttribute('dir', 'rtl');
-    try {
-      await render();
-      const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
-      await key(on, 'ArrowRight'); // toward the start in RTL: wraps from "On" to "Off"
-      expect(off.getAttribute('aria-checked')).toBe('true');
-      await key(off, 'ArrowRight'); // back to "On"
-      expect(on.getAttribute('aria-checked')).toBe('true');
-      await key(on, 'ArrowLeft'); // toward the end in RTL: "Off"
-      expect(off.getAttribute('aria-checked')).toBe('true');
-      await key(off, 'ArrowLeft');
-      expect(on.getAttribute('aria-checked')).toBe('true');
-    } finally {
-      document.documentElement.removeAttribute('dir');
-    }
-  });
-
-  it('flips Left and Right when only the computed direction is rtl (body.interface-hebrew)', async () => {
-    expect(document.documentElement.getAttribute('dir')).toBeNull();
-    await render();
-    const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
-    const computed = jest.spyOn(window, 'getComputedStyle').mockReturnValue({ direction: 'rtl' });
-    try {
-      await key(on, 'ArrowRight'); // RTL: toward the start, wraps to "Off"
-      expect(off.getAttribute('aria-checked')).toBe('true');
-      await key(off, 'ArrowLeft'); // RTL: toward the end, wraps to "On"
-      expect(on.getAttribute('aria-checked')).toBe('true');
-      await key(on, 'ArrowLeft'); // RTL: toward the end, "Off"
-      expect(off.getAttribute('aria-checked')).toBe('true');
-      expect(computed).toHaveBeenCalled();
-    } finally {
-      computed.mockRestore();
-    }
-  });
-
-  it('the page switch is aria-disabled and ignores input while its Save is in flight', async () => {
-    await render();
-    const [on, off] = radios(q('#libraryAssistantSetting [role="radiogroup"]'));
-    await act(async () => Simulate.click(off));
-    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
-    expect(on.getAttribute('aria-disabled')).toBe('true');
-    expect(off.getAttribute('aria-disabled')).toBe('true');
-    expect(on.disabled).toBe(false);
-    await act(async () => Simulate.click(on));
-    await key(off, 'ArrowRight');
-    expect(off.getAttribute('aria-checked')).toBe('true');
-    // a failed save frees the group again
-    await act(async () => lastRequest().failFn());
-    expect(on.getAttribute('aria-disabled')).toBeNull();
-    await act(async () => Simulate.click(on));
-    expect(on.getAttribute('aria-checked')).toBe('true');
-  });
-
-  it('gives every radiogroup and textarea an accessible name', async () => {
-    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
-    await render();
-    const nameOf = (el) =>
-      el
-        .getAttribute('aria-labelledby')
-        .split(' ')
-        .map((id) => document.getElementById(id).textContent)
-        .join(' ');
-    const named = [...container.querySelectorAll('[role="radiogroup"], textarea')];
-    expect(named.length).toBe(7);
-    named.forEach((el) => expect(nameOf(el).trim()).not.toBe(''));
-    expect(nameOf(q('textarea.laInstructions'))).toBe('Instructions');
-    expect(nameOf(q('textarea.laEditRequest'))).toBe('Tell LA what to change');
-  });
-
-  it('an initial load that returns 200 {} shows the generic error and keeps the tab mounted', async () => {
-    global.fetch.mockImplementation(() => reply({}));
-    await render();
-    expect(q('#personalization .laError').textContent).toBe('Could not reach the Library Assistant. Try again.');
-    expect(q('#libraryAssistantSetting')).not.toBeNull();
-    expect(q('textarea.laInstructions')).toBeNull();
-    expect(q('.libraryAssistantSettings')).not.toBeNull();
-  });
-
-  it('a 200 for set_instructions without instructions shows the generic error and clears busy', async () => {
-    await render();
-    await act(async () => Simulate.change(q('textarea.laInstructions'), { target: { value: 'Be brief' } }));
-    global.fetch.mockImplementationOnce(() => reply({}));
-    await act(async () => Simulate.click(byText('button', 'Save instructions')));
-    await flush();
-    expect(q('.laError').textContent).toBe('Could not reach the Library Assistant. Try again.');
-    expect(q('textarea.laInstructions').value).toBe('Be brief');
-    expect(q('[aria-disabled="true"][role="radio"]')).toBeNull();
-  });
-
-  it('a 200 for edit_profile without profile shows the generic error, not Processing', async () => {
-    await render();
-    await act(async () => Simulate.change(q('textarea.laEditRequest'), { target: { value: 'Add a note' } }));
-    global.fetch.mockImplementationOnce(() => reply({}));
-    await act(async () => Simulate.click(byText('button', 'Send')));
-    await flush();
-    expect(q('.laError').textContent).toBe('Could not reach the Library Assistant. Try again.');
-    expect(container.textContent).not.toContain('Processing…');
-    expect(q('.laEditResult')).toBeNull();
-  });
-
-  it('a double click on the page Save posts once', async () => {
-    await render();
-    await act(async () => Simulate.click(q('[data-la-value="false"]')));
-    const save = byText('button', 'Save assistant setting');
-    await act(async () => {
-      Simulate.click(save);
-      Simulate.click(save);
-    });
-    expect(global.$.post).toHaveBeenCalledTimes(1);
-    expect(save.getAttribute('aria-disabled')).toBe('true');
-  });
-
-  it('shows an error and allows a retry when the $.post request fails', async () => {
-    await render();
-    await act(async () => Simulate.click(q('[data-la-value="false"]')));
-    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
-    await act(async () => lastRequest().failFn());
-    expect(q('#libraryAssistantSetting .laError').textContent).toBe('Could not save the setting. Try again.');
-    expect(byText('button', 'Save assistant setting').getAttribute('aria-disabled')).toBeNull();
-    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
-    expect(global.$.post).toHaveBeenCalledTimes(2);
-  });
-
-  it('shows the server error from a 200 body with an error field', async () => {
-    await render();
-    await act(async () => Simulate.click(q('[data-la-value="false"]')));
-    await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
-    await act(async () => global.$.post.mock.calls[0][2]({ error: 'Nope' }));
-    expect(q('#libraryAssistantSetting .laError').textContent).toBe('Nope');
-  });
-
-  it('reloads the page after a successful save', async () => {
-    const original = window.location;
-    delete window.location;
-    window.location = { reload: jest.fn() };
-    try {
-      await render();
-      await act(async () => Simulate.click(q('[data-la-value="false"]')));
-      await act(async () => Simulate.click(byText('button', 'Save assistant setting')));
-      await act(async () => global.$.post.mock.calls[0][2]({ status: 'ok' }));
-      expect(window.location.reload).toHaveBeenCalledTimes(1);
-    } finally {
-      window.location = original;
-    }
-  });
-
-  it('shows the too_long message on a 400', async () => {
-    await render();
-    await act(async () => Simulate.change(q('textarea.laInstructions'), { target: { value: 'Be brief' } }));
-    global.fetch.mockImplementationOnce(() => reply({ error: 'too_long', max: 300 }, 400));
-    await act(async () => Simulate.click(byText('button', 'Save instructions')));
-    await flush();
-    expect(q('.laError').textContent).toBe('Keep it to 300 characters.');
+  it('with the assistant off: the note on top, the area grayed and inert, its switches off', async () => {
+    await render({ libraryAssistantEnabled: false });
+    expect(q('.laOffNote').textContent).toBe('Turn on the Library Assistant to activate personalized answers.');
+    expect(q('#personalization').className).toContain('laGroupOff');
+    expect(q('#personalization').getAttribute('inert')).toBe('true');
+    expect(q('#laProfile').checked).toBe(false);
+    expect(q('#laProfile').disabled).toBe(true);
   });
 
   it('does not update state after unmount', async () => {
-    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
-    await render();
-    const errors = jest.spyOn(console, 'error').mockImplementation(() => {});
-    let resolve;
-    global.fetch.mockImplementationOnce(() => new Promise((r) => (resolve = r)));
-    await act(async () => Simulate.click(byText('button', 'Check job health')));
-    ReactDOM.unmountComponentAtNode(container);
-    await act(async () => resolve({ ok: true, status: 200, json: () => Promise.resolve({ jobs: [] }) }));
-    expect(errors).not.toHaveBeenCalled();
-    errors.mockRestore();
-  });
-});
-
-describe('Library Assistant settings: card order, testing helper lines, Back to Learning', () => {
-  afterEach(() => {
-    window.history.replaceState({}, '', '/');
-  });
-
-  it('renders the Profile card before the Instructions card', async () => {
-    await render();
-    const profile = q('#profile');
-    const instructions = q('#instructions');
-    expect(profile).not.toBeNull();
-    expect(instructions).not.toBeNull();
-    expect(profile.compareDocumentPosition(instructions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  });
-
-  it('gives every testing-tools control a title and one helper line with the same text', async () => {
-    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
-    await render();
-    const box = q('#testing-tools');
-    const helpers = [...box.querySelectorAll('p.laHelper')].map((p) => p.textContent);
-    // Run now, Dream now, Update after every message, Include non-personalized response, Check job health.
-    expect(helpers).toHaveLength(5);
-    expect(new Set(helpers).size).toBe(5);
-    helpers.forEach((h) => {
-      expect(h).toMatch(/\.$/);
-      expect(h.slice(0, -1)).not.toMatch(/\. /);
-    });
-    const controls = [...box.querySelectorAll('button')];
-    expect(controls).toHaveLength(7); // 2 buttons, 2 toggles (2 options each), Check job health
-    controls.forEach((c) => {
-      expect(c.getAttribute('title')).toBeTruthy();
-      expect(helpers).toContain(c.getAttribute('title'));
-    });
-  });
-
-  it.each([
-    ['/Genesis.1', '/Genesis.1'],
-    [null, '/'],
-    ['https://x.com', '/'],
-    ['//x.com', '/'],
-    ['/\\x.com', '/'],
-    ['javascript:alert(1)', '/'],
-  ])('safeReturnPath(%p) returns %p', (raw, expected) => {
-    expect(safeReturnPath(raw)).toBe(expected);
-  });
-
-  it('Back to Learning links to the safe from parameter', async () => {
-    window.history.replaceState({}, '', '/settings/library-assistant?from=%2FGenesis.1');
-    await render();
-    expect(byText('a', 'Back to Learning').getAttribute('href')).toBe(safeReturnPath('/Genesis.1'));
-    ReactDOM.unmountComponentAtNode(container);
-    container.remove();
-    window.history.replaceState({}, '', '/settings/library-assistant?from=https%3A%2F%2Fx.com');
-    await render();
-    expect(byText('a', 'Back to Learning').getAttribute('href')).toBe('/');
-  });
-
-  it('Back to Learning goes to / when there is no from parameter', async () => {
-    await render();
-    expect(byText('a', 'Back to Learning').getAttribute('href')).toBe('/');
+    let finish;
+    global.fetch.mockImplementation(() => new Promise((resolve) => (finish = resolve)));
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    await mount();
+    unmount();
+    await act(async () => finish({ ok: true, status: 200, json: () => state() }));
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });
