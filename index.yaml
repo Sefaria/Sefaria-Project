@@ -78,6 +78,21 @@ entries:
     version: 0.95.1-sc-48158-rebuild-self-hosted-readme-for-010499c.1
   - apiVersion: v2
     appVersion: v7.16.4
+    created: "2026-11-19T11:26:58.540487649Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 8f7b49a2b21430d77cc9acfc7e151ce6dc8b792d2dd569caaa7a8bfe3d288963
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.95.1-la-hide-ask-button.1.tgz
+    version: 0.95.1-la-hide-ask-button.1
+  - apiVersion: v2
+    appVersion: v7.16.4
     created: "2026-11-19T11:09:02.826213117Z"
     description: Chart to deploy complete Sefaria environment
     digest: befb85cd1eb54ed4a8503acaac493d3a1838f281d9aa61150341724b74af3b4f
@@ -25560,4 +25575,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-19T11:09:02.821523928Z"
+generated: "2026-11-19T11:26:58.53514613Z"
