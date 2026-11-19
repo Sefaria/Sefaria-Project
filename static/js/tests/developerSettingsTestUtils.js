@@ -182,6 +182,7 @@ export const key = (n, extra = {}) => ({
 export const project = (n, extra = {}) => ({
   id: 'p' + n,
   name: 'Project ' + n,
+  purpose: 'personal',
   description: 'What project ' + n + ' does',
   organization: '',
   websiteUrl: '',
@@ -262,7 +263,6 @@ export const fakeServer = (initial = {}) => {
       (body) => {
         seq += 1;
         const created = { ...project(0), ...body.project, id: 'new' + seq, keys: [] };
-        delete created.purpose;
         state.projects.unshift(created);
         return { projectId: created.id };
       },
@@ -273,7 +273,7 @@ export const fakeServer = (initial = {}) => {
       (body, id) => {
         const p = projectById(id);
         const { purpose, ...fields } = body.project;
-        Object.assign(p, fields);
+        Object.assign(p, fields, purpose ? { purpose } : {}); // like the server: an empty purpose keeps the saved one
         if (!p.websiteUrl) {
           p.keys.forEach((k) => {
             k.restrictToWebsite = false;

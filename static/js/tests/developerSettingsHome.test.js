@@ -633,7 +633,7 @@ describe('editing a project', () => {
       {
         project: {
           name: 'Daf Tracker',
-          purpose: '',
+          purpose: 'personal',
           description: 'What project 1 does',
           organization: '',
           websiteUrl: 'https://daftracker.org',
@@ -953,6 +953,33 @@ describe('publishing a project', () => {
     ]);
     await click(screen.getByRole('option', { name: 'Project 1' }));
     expect(button('Submit for review')).toBeTruthy();
+  });
+
+  it('submits a project picked from "Publish a project" with its saved "What are you building?"', async () => {
+    // Daniel's Cauldron run, 2026-11-19: the form used to ask again, and throw the answer away.
+    openHome({
+      projects: [project(1, { websiteUrl: SITE, purpose: 'research' })],
+      profile: { ...READY.profile, description: 'I teach Talmud' },
+    });
+    await click(screen.getAllByRole('button', { name: 'Publish a project' })[0]);
+    await choose('Which project do you want to publish?', 'Project 1');
+    await click(field('Learning & Study Tools'));
+    await click(button('Submit for review'));
+    expect(server.sent('POST', 'projects/p1')[0].project).toEqual(expect.objectContaining({ purpose: 'research' }));
+  });
+
+  it('opens the project details and asks "What are you building?" when the project has no answer yet', async () => {
+    openHome({
+      projects: [project(1, { websiteUrl: SITE, purpose: null })],
+      profile: { ...READY.profile, description: 'I teach Talmud' },
+    });
+    await click(button('Publish project'));
+    await click(field('Learning & Study Tools'));
+    await click(button('Submit for review'));
+    expect(server.requests).toEqual([]);
+    await choose('What are you building?', 'Research');
+    await click(button('Submit for review'));
+    expect(server.sent('POST', 'projects/p1')[0].project).toEqual(expect.objectContaining({ purpose: 'research' }));
   });
 
   it('offers no new project in the choice at the project limit', async () => {

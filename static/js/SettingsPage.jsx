@@ -1420,8 +1420,8 @@ const eSiteError = (value, required) =>
   !(value || '').trim() ? (required ? 'auth.required_field' : null) : parseWebsite(value).valid ? null : E_SITE_INVALID;
 const E_PROJECT_RULES = {
   name: (f) => requiredFieldValidate(f.name),
-  /* Not saved by the server yet, so a project being edited has none: only a new project must choose one. */
-  purpose: (f) => (f.isNew ? requiredFieldValidate(f.purpose) : null),
+  /* Required for every project (Penina, 2026-11-19); saved as the project's purpose since 5ed3be4d6. */
+  purpose: (f) => requiredFieldValidate(f.purpose),
   description: (f) => requiredFieldValidate(f.description),
   websiteUrl: (f) => eSiteError(f.websiteUrl, false),
 };
@@ -1441,7 +1441,6 @@ const useEProjectForm = (initial, withKey, initialLabel) => {
       description: '',
       organization: '',
       websiteUrl: '',
-      isNew: !initial.name,
       ...initial,
     };
     return { ...start, websiteUrl: toDomain(start.websiteUrl) }; // a saved https://www.example.com shows as example.com
@@ -1915,6 +1914,7 @@ const EEditProject = ({ project, onBack, backLabel, onSave, onDelete, dots, inSe
   }, []);
   const form = useEProjectForm({
     name: project.name || '',
+    purpose: project.purpose || '',
     description: project.description || '',
     organization: project.organization || '',
     websiteUrl: project.websiteUrl || '',
@@ -2421,6 +2421,7 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
   const p = project || {};
   const form = useEProjectForm({
     name: p.name || '',
+    purpose: p.purpose || '',
     description: p.description || '',
     organization: p.organization || '',
     websiteUrl: p.websiteUrl || '',
@@ -2432,6 +2433,7 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
   const picked = !!project || creating;
   const emptyProject = () => {
     form.set('name', '');
+    form.set('purpose', '');
     form.set('description', '');
     form.set('organization', '');
     form.set('websiteUrl', '');
@@ -2462,13 +2464,16 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
       return;
     }
     form.set('name', p.name || '');
+    form.set('purpose', p.purpose || '');
     form.set('description', p.description || '');
     form.set('organization', p.organization || '');
     form.set('websiteUrl', toDomain(p.websiteUrl || ''));
     if (ePbAnswers(project).cats.length) {
       setAnswers(ePbAnswers(project)); // a project submitted before brings its own answers; otherwise keep what's typed
     }
-    setEditProject(creating || (!!project && (!(p.websiteUrl || '').trim() || !(p.description || '').trim())));
+    setEditProject(
+      creating || (!!project && (!(p.websiteUrl || '').trim() || !(p.description || '').trim() || !p.purpose))
+    );
   }, [projectId]);
   const [person, setPerson] = useState({
     ...emptyProfile(),
@@ -2499,7 +2504,7 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
   const [editYou, setEditYou] = useState(!person.role);
   const [editProject, setEditProject] = useState(
     (!project && !(projects || []).length && !!canAddNew) ||
-      (!!project && (!(p.websiteUrl || '').trim() || !(p.description || '').trim()))
+      (!!project && (!(p.websiteUrl || '').trim() || !(p.description || '').trim() || !p.purpose))
   );
   const [errors, setErrors] = useState({});
   const [banner, setBanner] = useState(null);
