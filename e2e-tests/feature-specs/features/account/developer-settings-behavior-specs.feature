@@ -39,6 +39,11 @@ Feature: Developer Settings
         Examples:
           | account          | count | steps                                                                 |
           | an email account | 4     | confirm_email, about_you, project, create_key (developer.welcome.steps.*) |
+
+        # Amended 2026-11-19 (sc-48553): Google sign-in can't be automated, so this row is @manual. Approved by Penina Levy
+        @manual
+        Examples:
+          | account          | count | steps                                                                 |
           | a Google account | 3     | about_you, project, create_key                                        |
 
       Scenario: DS-SETUP-2 Email accounts confirm their email first
@@ -56,6 +61,8 @@ Feature: Developer Settings
         When the visitor opens Developer Settings and clicks "Get started"
         Then the page reads "Check your email"
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-4 Confirming moves setup on by itself
         Given an email account on "Check your email"
         When the visitor opens the confirmation link from the email
@@ -65,6 +72,8 @@ Feature: Developer Settings
         And the step counter reads step 2 of 4
 
       # Also on phones
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-5 About you needs only the role
         Given the visitor is on "About you"
         When the visitor saves without choosing an answer to "What best describes you?"
@@ -72,6 +81,8 @@ Feature: Developer Settings
         When the visitor chooses "Somewhat technical" [developer.about_you.role.option_02] and saves
         Then setup continues on "Your project" [developer.project_form.header]
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-6 About you asks for a name only when the account has none
         Given an account with no name
         When the visitor reaches "About you"
@@ -80,12 +91,16 @@ Feature: Developer Settings
         Then no name field is shown, and the page shows the name and email it is signed in as
         And the email, with its parentheses, stays together: when it doesn't fit on the line, it moves to the next line whole
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-7 The newsletter box starts unticked
         Given the visitor is on "About you"
         Then the developer newsletter checkbox [developer.about_you.community.newsletter.label] is unticked
         And "Join our Discord" [developer.about_you.community.discord.join_discord_link] opens the Discord sign-up form in a new tab
 
       # Also on phones
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-8 Your project: required fields
         Given the visitor is on "Your project"
         When the visitor continues with every field empty
@@ -93,26 +108,35 @@ Feature: Developer Settings
         And "Organization/Company" and "Website" do not
         And the page scrolls to the first field with an error
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-9 What are you building? offers six options
         When the visitor opens "What are you building?" [developer.project_form.purpose.label]
         Then the options are developer.project_form.purpose.option_01 to option_06, in that order
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-10 Short description stops at 150 characters
         When the visitor types 160 characters into "Short description"
         Then only the first 150 are kept
         And the counter under the box reads 150/150
 
-      @mobile
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @mobile @manual
       Scenario: DS-SETUP-11 On phones 150 characters fit without scrolling
         When the visitor types a 150-character description in ordinary words
         Then the whole description is visible in the box without scrolling
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-12 Skip for now on Your project
         Given the visitor is on "Your project"
         When the visitor clicks "Skip for now" [developer.common.skip.button]
         Then the profile is saved and the visitor lands on the Developer Settings home with no projects
 
       # Also on phones
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-13 Creating the first key
         Given the visitor saved "Your project" with the name "Verse a Day"
         Then the page reads "Create an API key for Verse a Day" [developer.key_form.intro]
@@ -122,6 +146,8 @@ Feature: Developer Settings
         And the visitor lands on the home page with the new key's row scrolled into view
         And the row shows in its final look from the start: no highlight, flash or color change
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-14 Limiting the first key with no website asks for one
         Given the project has no website
         When the visitor turns on "Limit this key" on the key step
@@ -129,6 +155,8 @@ Feature: Developer Settings
         And the hint under the website field reads only "Includes www and any subdomain, like app.example.com." [developer.project_form.website.hint]
 
       # Also on phones
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-15 After confirming, the welcome screen keeps the confirm step, marked done
         Given an email account that confirmed its email and has no developer profile
         When the visitor opens Developer Settings
@@ -140,6 +168,8 @@ Feature: Developer Settings
         Given a Google or Apple account
         Then the welcome screen lists 3 steps and has no confirm step
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-16 The limit hint is one paragraph
         Given the visitor is on the key step
         Then under "Limit this key" one paragraph reads [developer.key_form.restrict.help]:
@@ -148,12 +178,15 @@ Feature: Developer Settings
           """
         And "on" and "off" are bold
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-SETUP-17 A label's help icon comes before "Optional"
         Given the visitor is on "About you"
         Then the "Additional email address" label reads, in order: the label, the (?) help icon, then "Optional"
 
       # Also on phones
-      @he
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @he @manual
       Scenario: DS-SETUP-18 A long step title never runs under the back arrow
         Given the visitor saved "Your project" with the name "Claude test project"
         Then the key step's title "Create an API key for Claude test project" and its step number "4" do not overlap the back arrow
@@ -379,6 +412,8 @@ Feature: Developer Settings
         Then Verse a Day shows "Submitted for review" [developer.home.project_menu.submitted.note] instead of "Publish project"
         And on desktop it is a note, not a button: gray text with a green check, and hovering it changes nothing
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-PUB-7 The Powered by link with no profile yet
         Given a signed-in visitor with no developer profile
         When the visitor opens /settings/developer?share
@@ -416,12 +451,15 @@ Feature: Developer Settings
         And staff notes on the project are never shown to the developer
 
   Rule: Email confirmation links and changing the account email
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-EMAIL-1 The confirmation email
         When an email account asks for a confirmation link
         Then one email arrives at the account's address
         And it has a button and the link written out, and says the link works for 3 days
 
-      @he
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @he @manual
       Scenario: DS-EMAIL-2 Hebrew email
         Given the interface language is Hebrew
         When the visitor asks for a confirmation link
@@ -432,6 +470,8 @@ Feature: Developer Settings
         Then "Resend link" stays disabled for 60 seconds, showing [developer.common.resend_wait.button]
         And after 60 seconds it can be clicked and sends a new link
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario Outline: DS-EMAIL-4 Link pages
         Given <situation>
         When the visitor opens the link
@@ -445,12 +485,16 @@ Feature: Developer Settings
           | a link for an address no longer on the account    | [developer.link_pages.expired.header]                    | [developer.link_pages.expired.send_new.button], to Developer Settings |
           | a link for an address another account now uses    | [developer.link_pages.expired.header]                    | [developer.link_pages.expired.send_new.button], to Developer Settings |
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-EMAIL-5 A new link from an expired one
         Given an expired link
         When the visitor clicks "Send a new link"
         Then the page reads "Check your email" with [developer.link_pages.resent.body]
         And a new email arrives at the account's address
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-EMAIL-6 Changing the account email after setup
         Given a developer with projects and keys
         When the developer changes the account email in Account Settings and opens Developer Settings without reloading
@@ -459,6 +503,8 @@ Feature: Developer Settings
         And "New project", "Create a project" and "Add key" are unavailable, saying [developer.common.confirm_email_first]
         And editing, deleting and limiting keys still work
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-EMAIL-7 Confirming the new address from the banner
         Given the banner is showing
         When the developer clicks "Send confirmation link"
@@ -468,6 +514,8 @@ Feature: Developer Settings
         When the developer opens the link from the new address's inbox
         Then back in Developer Settings the banner is gone and the create buttons work
 
+      # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
+      @manual
       Scenario: DS-EMAIL-8 The old address stops working
         Given the developer changed the account email
         Then logging in with the old address fails
@@ -489,6 +537,11 @@ Feature: Developer Settings
           | signs in                        |
           | logs in with email              |
           | creates a new account with email |
+
+        # Amended 2026-11-19 (sc-48553): Google and Apple sign-in can't be automated, so these rows are @manual. Approved by Penina Levy
+        @manual
+        Examples:
+          | signs in                        |
           | continues with Google           |
           | continues with Apple            |
 
