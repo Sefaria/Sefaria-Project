@@ -13,6 +13,13 @@ from sefaria.system.exceptions import InputError
 
 logger = structlog.get_logger(__name__)
 
+# The GPU NER server runs one sync gunicorn worker per replica, so a stalled request stops all
+# recognition for that replica. Without a timeout the call blocks until find_refs_api's 60s soft time
+# limit kills the task mid-flight. Worst observed latency is ~0.3s for 400 inputs, so these bounds
+# only trip when the server is not answering.
+NER_CONNECT_TIMEOUT_SECONDS = 5
+NER_READ_TIMEOUT_SECONDS = 20
+
 
 def get_linker_normalizer(lang: str) -> NormalizerComposer:
     """
@@ -80,12 +87,29 @@ class LinkerEntityRecognizer:
         return self._parse_recognize_response(normalized_input, data)
 
     def _recognize_entities_api_request(self, input_str: str):
-        resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities", json={"text": input_str, "lang": self._lang})
-        return self._parse_api_response(resp, "recognize-entities")
+        return self._post_to_ner_server("recognize-entities", {"text": input_str, "lang": self._lang})
 
     def _bulk_recognize_entities_api_request(self, inputs: list[str]):
-        resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities", json={"texts": inputs, "lang": self._lang})
-        return self._parse_api_response(resp, "bulk-recognize-entities")
+        return self._post_to_ner_server("bulk-recognize-entities", {"texts": inputs, "lang": self._lang})
+
+    @staticmethod
+    def _post_to_ner_server(endpoint: str, payload: dict) -> dict:
+        """
+        POST `payload` to `endpoint` on the GPU NER server and return the parsed response.
+        The request is bounded so a stalled NER server fails the task in seconds instead of blocking
+        the worker until find_refs_api's soft time limit kills it.
+        """
+        url = f"{GPU_SERVER_URL}/{endpoint}"
+        try:
+            resp = requests.post(url, json=payload, timeout=(NER_CONNECT_TIMEOUT_SECONDS, NER_READ_TIMEOUT_SECONDS))
+        except requests.exceptions.Timeout as e:
+            raise InputError(
+                f"Linker NER server did not answer {url} within "
+                f"{NER_CONNECT_TIMEOUT_SECONDS}s connect / {NER_READ_TIMEOUT_SECONDS}s read: {e}"
+            ) from e
+        except requests.exceptions.RequestException as e:
+            raise InputError(f"Linker NER server request to {url} failed: {e}") from e
+        return LinkerEntityRecognizer._parse_api_response(resp, endpoint)
 
     @staticmethod
     def _parse_api_response(resp: requests.Response, endpoint: str) -> dict:
