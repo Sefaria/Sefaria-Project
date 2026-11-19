@@ -136,3 +136,21 @@ def two_books_history():
 def test_last_place_for_one_book(two_books_history):
     items = UserHistory.get_user_history(uid=SYNC_UID, book="Exodus", last_place=True, secondary=False, serialized=True)
     assert [item["ref"] for item in items] == ["Exodus 2:1"]
+
+
+@pytest.mark.parametrize("ref", [None, "", "   "])
+def test_save_history_item_without_a_ref_raises_input_error(ref):
+    """
+    The reader posts a history item with ref: null when the segment is still loading.
+    Invalid input must raise InputError, which the sync endpoint skips, instead of
+    reaching Ref().he_normal() and returning 500 for the whole request.
+    """
+    with pytest.raises(InputError):
+        UserHistory.save_history_item(
+            0,
+            {
+                "ref": ref,
+                "versions": {"he": "blah", "en": "blah"},
+                "time_stamp": 1,
+            },
+        )

@@ -166,7 +166,8 @@ class ConnectionsPanel extends Component {
       return;
     }
     const ref = element.getAttribute('data-ref');
-    if (this._savedHistorySegments.has(ref)) {
+    // A text range that is still loading renders without data-ref, so it has no history to save.
+    if (!ref || this._savedHistorySegments.has(ref)) {
       return;
     }
     const parsedRef = Sefaria.parseRef(ref);
