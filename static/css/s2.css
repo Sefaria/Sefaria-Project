@@ -17759,7 +17759,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .settingsShell { display: block; max-width: none; }
   .readerNavMenu.settingsPage .content .contentInner { padding: 24px 16px 60px; }
   /* Phones: two equal tabs with short labels, each half the row (Penina, 2026-11-12). */
-  .settingsNav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-bottom: 1px solid var(--lighter-grey); /* border-default */ margin-bottom: 22px; }
+  .settingsNav { display: grid; grid-template-columns: repeat(var(--settings-tab-count, 2), minmax(0, 1fr)) /* one column per tab (LA draft: three tabs) */; gap: 0; border-bottom: 1px solid var(--lighter-grey); /* border-default */ margin-bottom: 22px; }
   .settingsNavTitle { grid-column: 1 / -1; padding: 0 0 8px; }
   .settingsNav a { justify-content: center; gap: 8px; min-height: 44px; padding: 10px 8px; border-radius: 0; border-bottom: 3px solid transparent; }
   .settingsNavLong { display: none; }
@@ -19230,3 +19230,198 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 /* Icon buttons and the step back arrow: color change only on hover, no background (restored after removing the publish banner). */
 .devPocPage .devE-ico:hover, .devPocPage .devE-stepBack:hover { background: none; }
+
+/* ==========================================================================
+   Library Assistant settings (DESIGN DRAFT, 2026-11-18)
+   Semantic tokens from @sefaria/design-system v1.1.0 (semantic.css) only. Where no semantic
+   token exists, the value is raw or a core token, marked "NO TOKEN" (listed in
+   design-notes/la-settings/token-gaps.md). Reused developer-settings classes (devE-*, devPoc*)
+   are re-pointed at semantic tokens inside .laTabPage only, so the developer tab is unchanged.
+   ========================================================================== */
+.settingsPanel > .devPocPage.laTabPage { max-width: 660px; }
+.laTabPage {
+  --la-radius-card: var(--global-dimension-150);    /* 12px. NO TOKEN: no radius tokens yet, so the core dimension scale stands in */
+  --la-radius-control: var(--global-dimension-50);  /* 4px. NO TOKEN: radius, as above */
+  --la-radius-pill: var(--global-dimension-1600);   /* 128px, a pill for anything shorter. NO TOKEN: radius, as above */
+  --la-focus: var(--core-blue-700); /* NO TOKEN: focus ring (functional focus blue); --border-focus is gray-300, too light for a ring */
+  font-family: var(--english-sans-serif-font-family); /* NO TOKEN: font family */
+  color: var(--text-primary);
+}
+.laTabPage :focus-visible { outline: var(--border-width-thick) solid var(--la-focus); outline-offset: var(--spacing-2xsmall); }
+
+/* Draft-only version switch */
+.laTabPage .laDraftBar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-small); margin-block-end: var(--spacing-2xlarge); padding: var(--spacing-small) var(--spacing-medium); border: var(--border-width-thin) dashed var(--border-default); border-radius: var(--la-radius-card); background: var(--surface-subtle); }
+.laTabPage .laDraftLabel { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); margin-inline-end: var(--spacing-xsmall); }
+.laTabPage .laDraftOption { min-height: 32px; padding: 0 var(--spacing-medium); border: var(--border-width-thin) solid var(--border-default); border-radius: var(--la-radius-pill); background: var(--surface-page); color: var(--text-secondary); font: 500 14px/1 var(--english-sans-serif-font-family); cursor: pointer; }
+.laTabPage .laDraftOption:hover { background: var(--surface-hover); }
+.laTabPage .laDraftOption[aria-pressed="true"] { background: var(--surface-selected); border-color: var(--border-strong); color: var(--action-primary); }
+
+/* Page */
+.laTabPage .laSettings { display: flex; flex-direction: column; gap: var(--spacing-large); }
+.laTabPage .laPageHeader { margin: 0; flex-direction: column; gap: var(--spacing-xsmall); }
+.laTabPage .laPageHeader h1 { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.4; color: var(--text-secondary); } /* as Account and Developer titles (text-secondary, Penina 2026-11-14) */ /* NO TOKEN: type (en-system-h3) */
+.laTabPage .laBack { align-self: flex-start; display: inline-flex; align-items: center; gap: var(--spacing-small); min-height: 32px; padding: var(--spacing-xsmall) var(--spacing-small) var(--spacing-xsmall) var(--spacing-xsmall); margin-inline-start: calc(-1 * var(--spacing-xsmall)); border: 0; border-radius: var(--la-radius-control); background: none; color: var(--text-secondary); font: 500 14px/1.4 var(--english-sans-serif-font-family); cursor: pointer; }
+.laTabPage .laBack:hover { background: var(--surface-hover); color: var(--text-primary); }
+.laTabPage .laBack img { width: var(--icon-medium); height: var(--icon-medium); opacity: .75; }
+.interface-hebrew .laTabPage .laBack img { transform: scaleX(-1); }
+
+.laTabPage .laLead { margin: 0; font-size: 16px; line-height: 1.5; color: var(--text-secondary); } /* NO TOKEN: type (en-system-body) */
+.laTabPage .laHint { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-secondary); } /* NO TOKEN: type (small-comfortable) */
+.laTabPage .laMeta { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); } /* NO TOKEN: type (caption) */
+.laTabPage .laMessage { margin: 0; padding: var(--spacing-small) var(--spacing-medium); border-radius: var(--la-radius-control); background: var(--surface-subtle); font-size: 14px; line-height: 1.5; color: var(--text-primary); }
+.laTabPage .laLink { color: var(--text-link); text-decoration: underline; }
+.laTabPage .laLink:hover { color: var(--text-link-hovered); }
+
+/* Cards */
+.laTabPage .laCard { display: flex; flex-direction: column; gap: var(--spacing-large); padding: var(--spacing-xlarge); border: var(--border-width-thin) solid var(--border-default); border-radius: var(--la-radius-card); background: var(--surface-page); }
+.laTabPage .laCardHead { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-large); }
+.laTabPage .laCardHeadText { display: flex; flex-direction: column; gap: var(--spacing-xsmall); min-width: 0; }
+.laTabPage .laCardTitle { display: flex; align-items: center; gap: var(--spacing-small); margin: 0; font-size: 16px; font-weight: 600; line-height: 1.4; color: var(--text-primary); } /* NO TOKEN: type (en-system-body-strong) */
+.laTabPage .laCardFoot { display: flex; justify-content: flex-start; padding-block-start: var(--spacing-medium); border-block-start: var(--border-width-thin) solid var(--border-subtle); }
+.laTabPage .laCardTools { border-style: dashed; background: var(--surface-subtle); }
+
+/* Section heading (developer settings' devE-sectionHead) */
+.laTabPage .laSectionHead { margin: var(--spacing-large) 0 0; }
+.laTabPage .laH2 { margin: 0 0 var(--spacing-xsmall); font-size: 18px; font-weight: 600; line-height: 1.4; color: var(--text-primary); } /* NO TOKEN: type */
+.laTabPage .laGroup { display: flex; flex-direction: column; gap: var(--spacing-large); }
+.laTabPage .laGroupOff { opacity: .5; } /* the whole Personalized answers area, heading included. NO TOKEN: disabled opacity */
+.laTabPage .laOffNote { margin: 0; padding: var(--spacing-medium) var(--spacing-large); border-radius: var(--la-radius-control); border: var(--border-width-thin) solid var(--feedback-info-border); background: var(--feedback-info-background); color: var(--feedback-info-text); font-size: 14px; line-height: 1.5; }
+
+/* Switch rows (developer settings' devE-restrictRow) and the shared ToggleSwitch */
+.laTabPage .laSwitchRow { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-large); }
+.laTabPage .laSwitchText { display: flex; flex-direction: column; gap: var(--spacing-2xsmall); min-width: 0; }
+.laTabPage .laSwitchLabel { font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--text-primary); } /* NO TOKEN: type */
+.laTabPage .toggle-switch-container { flex: none; }
+.laTabPage .toggle-switch-inner:before { background-color: var(--action-primary); color: var(--text-inverse); }
+.laTabPage .toggle-switch-inner:after { background-color: var(--icon-muted); color: var(--text-inverse); } /* NO TOKEN: switch track when off; --icon-muted borrowed for 3:1 contrast */
+.laTabPage .toggle-switch-switch { background: var(--surface-page); }
+.laTabPage .toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after { background-color: var(--action-primary-disabled); }
+.laTabPage .toggle-switch-checkbox:focus-visible + .toggle-switch-label { outline: var(--border-width-thick) solid var(--la-focus); outline-offset: var(--spacing-2xsmall); }
+.laTabPage .toggle-switch-inner, .laTabPage .toggle-switch-switch { transition-duration: .15s; transition-timing-function: ease-out; }
+@media (prefers-reduced-motion: reduce) { .laTabPage .toggle-switch-inner, .laTabPage .toggle-switch-switch { transition: none; } }
+
+/* Inputs (common/Input) inside the tab */
+.laTabPage .sefaria-input-label { color: var(--text-primary); }
+.laTabPage .sefaria-input-hint { color: var(--text-secondary); }
+.laTabPage .sefaria-input-control { color: var(--text-primary); border-color: var(--border-default); background: var(--surface-page); }
+.laTabPage .sefaria-input-control::placeholder { color: var(--text-muted); }
+.laTabPage .sefaria-input-control:focus { border-color: var(--border-strong); }
+.laTabPage .sefaria-input--disabled .sefaria-input-control, .laTabPage .sefaria-input-control:disabled { background: var(--surface-subtle); color: var(--text-disabled); }
+.laTabPage .sefaria-input-error { color: var(--feedback-error-text); }
+.laTabPage .laCount { font-size: 12px; line-height: 1; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.laTabPage .laCountOver { color: var(--feedback-error-text); font-weight: 600; }
+
+/* Buttons. Primary matches developer settings' devE-pill; sizes as there. */
+.laTabPage .laActions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-small); }
+.laTabPage .laButton { display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-small); min-height: 40px; padding: 0 var(--spacing-large); border-radius: var(--la-radius-control); font: 600 14px/1 var(--english-sans-serif-font-family); cursor: pointer; white-space: nowrap; }
+.laTabPage .laButtonPrimary { border: var(--border-width-medium) solid var(--action-primary); background: var(--action-primary); color: var(--text-inverse); }
+.laTabPage .laButtonPrimary:hover { background: var(--action-primary-hover); border-color: var(--action-primary-hover); }
+.laTabPage .laButtonPrimary:active { background: var(--action-primary-pressed); border-color: var(--action-primary-pressed); }
+.laTabPage .laButtonPrimary:disabled, .laTabPage .laButtonPrimary[aria-disabled="true"] { background: var(--action-primary-disabled); border-color: var(--action-primary-disabled); color: var(--text-disabled); cursor: not-allowed; }
+.laTabPage .laButtonSecondary { border: var(--border-width-thin) solid var(--border-default); background: var(--surface-page); color: var(--action-secondary); }
+.laTabPage .laButtonSecondary:hover { background: var(--surface-hover); color: var(--action-secondary-hover); }
+.laTabPage .laButtonSecondary:disabled { color: var(--text-disabled); cursor: not-allowed; }
+.laTabPage .laButtonText { border: 0; background: none; padding: 0 var(--spacing-small); color: var(--text-link); }
+.laTabPage .laButtonText:hover { color: var(--text-link-hovered); text-decoration: underline; }
+.laTabPage .laButtonDangerText { border: 0; background: none; padding: 0 var(--spacing-small); margin-inline-start: calc(-1 * var(--spacing-small)); color: var(--feedback-error-text); } /* NO TOKEN: destructive action (feedback-error-* borrowed) */
+.laTabPage .laButtonDangerText:hover { color: var(--feedback-error-hover); text-decoration: underline; }
+.laTabPage .laButtonDangerText:disabled { color: var(--text-disabled); text-decoration: none; cursor: not-allowed; }
+
+/* Profile */
+.laTabPage .laProfileText { display: flex; flex-direction: column; gap: var(--spacing-xsmall); }
+.laTabPage .laProfileHeading { margin: var(--spacing-small) 0 0; font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--text-primary); } /* NO TOKEN: type */
+.laTabPage .laProfileText .laProfileHeading:first-child { margin-top: 0; }
+.laTabPage .laProfileBody { margin: 0; font-size: 16px; line-height: 1.5; color: var(--text-primary); }
+.laTabPage .laProfileList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border: var(--border-width-thin) solid var(--border-default); border-radius: var(--la-radius-control); }
+.laTabPage .laProfileItem { position: relative; display: flex; flex-direction: column; gap: var(--spacing-2xsmall); padding: var(--spacing-medium) var(--spacing-large); border-block-start: var(--border-width-thin) solid var(--border-subtle); }
+.laTabPage .laProfileItem:first-child { border-block-start: 0; }
+.laTabPage .laProfileItem .laProfileHeading { margin: 0; font-size: 12px; letter-spacing: .02em; color: var(--text-secondary); }
+.laTabPage .laProfileListPaused .laProfileBody { color: var(--text-muted); }
+.laTabPage .laBadge { align-self: flex-start; margin-block-start: var(--spacing-xsmall); padding: var(--spacing-2xsmall) var(--spacing-small); border-radius: var(--la-radius-pill); background: var(--feedback-info-background); color: var(--feedback-info-text); font-size: 12px; font-weight: 600; line-height: 1.3; }
+.laTabPage .laPaused { padding: var(--spacing-small) var(--spacing-medium); border-radius: var(--la-radius-control); background: var(--feedback-warning-background); color: var(--text-primary); } /* --feedback-warning-text (yellow-700) is too light for text on white */
+.laTabPage .laEmpty { display: flex; flex-direction: column; gap: var(--spacing-small); padding: var(--spacing-large); border: var(--border-width-thin) dashed var(--border-default); border-radius: var(--la-radius-control); background: var(--surface-subtle); }
+.laTabPage .laEmptyList { margin: 0; padding-inline-start: var(--spacing-xlarge); font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+.laTabPage .laEdit { display: flex; flex-direction: column; gap: var(--spacing-medium); padding-block-start: var(--spacing-medium); border-block-start: var(--border-width-thin) solid var(--border-subtle); }
+
+
+/* Dialog (developer settings' delete dialog) */
+.laTabPage .laDialogStage { background: rgb(0 0 0 / 0.4); } /* NO TOKEN: overlay scrim */
+.laTabPage .laDialogStage .laDialog { width: 440px; padding: var(--spacing-3xlarge) var(--spacing-2xlarge) var(--spacing-2xlarge); border-radius: var(--la-radius-card); background: var(--surface-page); box-shadow: var(--shadow-large); /* core shadow: no semantic elevation token */ color: var(--text-primary); text-align: start; }
+.laTabPage .laDialogStage .laDialog h3 { margin: 0 0 var(--spacing-small); font-size: 18px; font-weight: 600; line-height: 1.4; color: var(--text-primary); }
+.laTabPage .laDialogStage .laDialog p { margin: 0 0 var(--spacing-2xlarge); font-size: 14px; line-height: 1.5; color: var(--text-secondary); }
+.laTabPage .laDialogStage .devE-deleteActions { display: flex; flex-direction: row-reverse; justify-content: flex-start; gap: var(--spacing-small); }
+.laTabPage .laDialogStage .devE-deleteBtn { min-height: 40px; padding: 0 var(--spacing-large); border-radius: var(--la-radius-control); border: var(--border-width-thin) solid var(--border-default); background: var(--surface-page); color: var(--action-secondary); font: 600 14px/1 var(--english-sans-serif-font-family); }
+.laTabPage .laDialogStage .devE-deleteBtn:hover { background: var(--surface-hover); }
+.laTabPage .laDialogStage .devE-deleteBtnDanger { border: 0; background: var(--feedback-error-text); color: var(--text-inverse); } /* NO TOKEN: destructive action */
+.laTabPage .laDialogStage .devE-deleteBtnDanger:hover { background: var(--feedback-error-hover); }
+
+/* Testing tools, folded away (B) */
+.laTabPage .laTools { border: var(--border-width-thin) dashed var(--border-default); border-radius: var(--la-radius-card); background: var(--surface-subtle); }
+.laTabPage .laTools summary { display: flex; align-items: center; gap: var(--spacing-small); min-height: 44px; padding: 0 var(--spacing-xlarge); font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+.laTabPage .laToolsNote { font-weight: 400; color: var(--text-muted); }
+.laTabPage .laToolsBody { display: flex; flex-direction: column; gap: var(--spacing-large); padding: 0 var(--spacing-xlarge) var(--spacing-xlarge); }
+
+/* Phones: 44px targets, stacked rows */
+@media (max-width: 540px) {
+  .laTabPage .laCard { padding: var(--spacing-large); }
+  .laTabPage .laButton, .laTabPage .laDraftOption, .laTabPage .laBack { min-height: 44px; }
+  .laTabPage .laActions .laButtonPrimary { flex: 1 1 100%; }
+  .laTabPage .laDialogStage .laDialog { width: auto; }
+  .laTabPage .laDialogStage .devE-deleteActions { flex-direction: column; }
+}
+
+/* LA cards as developer settings' project boxes (.devE-project: surface-selected fill, surface-highlighted
+   border, 12px radius, white content inside). Penina, 2026-11-18. */
+.laTabPage .laCard.devE-project { gap: var(--spacing-large); padding: var(--spacing-xlarge); background: var(--surface-selected); border: var(--border-width-thin) solid var(--surface-highlighted); border-radius: var(--la-radius-card); } /* a surface token as a border: no blue border token */
+.laTabPage .laCard .laProfileList { background: var(--surface-page); }
+.laTabPage .laCard .laProfileItem { border-block-start-color: var(--border-default); }
+.laTabPage .laCard .laEmpty { background: var(--surface-page); }
+.laTabPage .laCard .laMessage { background: var(--surface-page); }
+.laTabPage .laCard .laEdit, .laTabPage .laCard .laCardFoot { border-block-start-color: var(--surface-highlighted); }
+.laTabPage .laCard .laProfileText { padding: var(--spacing-medium) var(--spacing-large); border: var(--border-width-thin) solid var(--border-default); border-radius: var(--la-radius-control); background: var(--surface-page); }
+@media (max-width: 842px) { .laTabPage .laCard.devE-project { padding: var(--spacing-large); } }
+/* More room inside the profile's white box (Penina, 2026-11-18: "looks a little bit tight"). */
+.laTabPage .laCard .laProfileText { padding: var(--spacing-xlarge) var(--spacing-2xlarge); gap: var(--spacing-small); }
+.laTabPage .laCard .laProfileItem { padding: var(--spacing-large) var(--spacing-2xlarge); gap: var(--spacing-xsmall); }
+@media (max-width: 540px) {
+  .laTabPage .laCard .laProfileText { padding: var(--spacing-large); }
+  .laTabPage .laCard .laProfileItem { padding: var(--spacing-medium) var(--spacing-large); }
+}
+/* Clear profile as a filled button in the destructive color, the same as the dialog's Clear profile (Penina, 2026-11-18). */
+.laTabPage .laButtonDanger { border: var(--border-width-medium) solid var(--feedback-error-text); background: var(--feedback-error-text); color: var(--text-inverse); } /* NO TOKEN: destructive action (feedback-error-* borrowed) */
+.laTabPage .laButtonDanger:hover { background: var(--feedback-error-hover); border-color: var(--feedback-error-hover); }
+.laTabPage .laButtonDanger:disabled { background: var(--action-primary-disabled); border-color: var(--action-primary-disabled); color: var(--text-disabled); cursor: not-allowed; }
+/* A section whose switch is off: what's under the switch is grayed, so it's clear it isn't in effect. It stays
+   editable, and comes back to full strength while you work in it (Penina, 2026-11-18). */
+.laTabPage .laBody { display: flex; flex-direction: column; gap: var(--spacing-large); }
+.laTabPage .laBodyOff { opacity: .5; } /* NO TOKEN: disabled opacity */
+.laTabPage .laBodyOff:focus-within { opacity: 1; }
+.laTabPage .laGroupOff .laBodyOff { opacity: 1; } /* the whole group is already dimmed: no double dimming */
+/* Page header as Developer Settings' (title left, links right): here the save status sits on the right. Penina, 2026-11-19. */
+.laTabPage .laPageHeader.devE-pageHeader { flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-small) var(--spacing-large); margin: 0; }
+.laTabPage .laSaveStatus { display: inline-flex; align-items: center; gap: var(--spacing-xsmall); min-height: 24px; margin: 0; font-size: 14px; line-height: 1.4; color: var(--text-muted); white-space: nowrap; } /* NO TOKEN: type */
+.laTabPage .laSavedIcon { width: var(--icon-small); height: var(--icon-small); color: var(--feedback-success); }
+.laTabPage .laSpinner { width: var(--icon-small); height: var(--icon-small); border: var(--border-width-thick) solid var(--surface-highlighted); border-top-color: var(--action-primary); border-radius: 50%; animation: sefaria-auth-spin .8s linear infinite; } /* as developer settings' devE-spinner, smaller */
+@media (prefers-reduced-motion: reduce) { .laTabPage .laSpinner { animation-duration: 2.4s; } }
+.laTabPage .laCardHead .toggle-switch-container { flex: none; }
+/* No divider lines, only space, as version A had (Penina, 2026-11-19): between the profile's parts, and above
+   "Tell the assistant what to change" and Clear profile. */
+.laTabPage .laCard .laProfileList { gap: var(--spacing-medium); padding: var(--spacing-xlarge) var(--spacing-2xlarge); }
+.laTabPage .laCard .laProfileItem { padding: 0; border: 0; gap: var(--spacing-2xsmall); }
+.laTabPage .laCard .laEdit, .laTabPage .laCard .laCardFoot { border: 0; padding-block-start: 0; }
+@media (max-width: 540px) { .laTabPage .laCard .laProfileList { padding: var(--spacing-large); } }
+/* Clear profile: a red outline (secondary) button beside "Last updated", under the profile (Penina, 2026-11-19). */
+.laTabPage .laProfileMetaRow { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-small) var(--spacing-large); flex-wrap: wrap; }
+.laTabPage .laButtonDangerSecondary { border: var(--border-width-thin) solid var(--feedback-error-border); background: var(--surface-page); color: var(--feedback-error-text); } /* NO TOKEN: destructive action (feedback-error-* borrowed) */
+.laTabPage .laButtonDangerSecondary:hover { background: var(--feedback-error-background); border-color: var(--feedback-error-hover); color: var(--feedback-error-hover); }
+.laTabPage .laButtonDangerSecondary:disabled { border-color: var(--border-default); background: var(--surface-page); color: var(--text-disabled); cursor: not-allowed; }
+/* Off switches: a lighter track, exactly as API keys' (#CCCCCC, gray-300), so off reads clearly apart from navy
+   (Penina, 2026-11-19; a ring on the knob was tried and dropped). WCAG 1.4.11: gray-300 on white is 1.6:1, under 3:1. */
+.laTabPage .toggle-switch-inner:after { background-color: var(--core-neutral-gray-300); } /* NO TOKEN: switch track when off (core gray-300, as API keys) */
+.laTabPage .toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after { background-color: var(--action-primary-disabled); }
+.laTabPage .laEmpty .laProfileBody { font-size: 14px; color: var(--text-secondary); } /* empty state reads as a note, not as profile content */
+.laTabPage .laSwitchRow .laButton { flex: none; }
+
+/* No flashing or color change when something changes (Penina, 2026-11-19): no highlight on the changed part, no
+   fades; "Just updated" is plain muted text. */
+.laTabPage .laBadge { padding: 0; background: none; color: var(--text-muted); font-weight: 400; }

@@ -737,6 +737,9 @@ class ReaderApp extends Component {
               hist.title = Sefaria.getPageTitle('Developer Settings');
               hist.url =
                 'settings/developer' + (state.developerProjectId ? '/projects/' + state.developerProjectId : '');
+            } else if (state.settingsTab === 'library-assistant') {
+              hist.title = Sefaria.getPageTitle('Library Assistant Settings');
+              hist.url = 'settings/library-assistant';
             } else {
               hist.title = Sefaria.getPageTitle('Account Settings');
               hist.url = 'settings/account';

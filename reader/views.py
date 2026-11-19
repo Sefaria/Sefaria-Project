@@ -5302,10 +5302,12 @@ def settings_page(request, tab="account", project_id=None):
     titles = {
         "account": "Account Settings",
         "developer": "Developer Settings",
+        "library-assistant": "Library Assistant Settings",
     }
     descs = {
         "account": "Manage your Sefaria account settings.",
         "developer": "Register your projects and manage keys for the Sefaria API.",
+        "library-assistant": "Choose how the Library Assistant answers you.",
     }
     response = menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
     if props["initialDeveloper"] is not None:

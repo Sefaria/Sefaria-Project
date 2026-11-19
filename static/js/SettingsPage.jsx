@@ -32,6 +32,7 @@ import ToggleSwitch from './common/ToggleSwitch.jsx';
 import Select from './common/Select.jsx';
 import { DropdownMenu, DropdownMenuItemWithCallback } from './common/DropdownMenu.jsx';
 import ErrorBanner from './auth/ErrorBanner.jsx';
+import LibraryAssistantTab, { SparkleIcon } from './LibraryAssistantTab.jsx';
 import { requiredFieldValidate } from './auth/utils';
 
 /* Interface strings by Weblate key (static/js/sefaria/i18n/interface/*.json, "developer." keys). tK renders both
@@ -51,7 +52,7 @@ const vK = (id, params) => Sefaria._v(eBi(id, params));
 const sK = (id, slots) => <InterfaceTextWithSlots id={id} slots={slots} />;
 /* A status line that stays in the page, so screen readers announce what is put in it; a line that appears together
    with its live region may not be read (Daniel's 82aeb7f04). Saying the same thing twice still announces it. */
-const useAnnounce = () => {
+export const useAnnounce = () => {
   const [message, setMessage] = useState('');
   const say = (text) => {
     setMessage('');
@@ -356,7 +357,7 @@ const ETipWrap = ({ children }) => {
     </span>
   );
 };
-const useDialogKeys = (focusRef, onEscape) => {
+export const useDialogKeys = (focusRef, onEscape) => {
   useEffect(() => {
     const opener = typeof document !== 'undefined' ? document.activeElement : null;
     if (focusRef.current) {
@@ -404,13 +405,21 @@ const SETTINGS_TABS = [
   {
     tab: 'account',
     url: '/settings/account',
-    label: eBi('developer.frame.account_tab.label'),
+    label: eBi('developer.frame.account_tab.short_label'), // nav says only "Account" under "Settings" (Penina, 2026-11-19)
     shortLabel: eBi('developer.frame.account_tab.short_label'),
+  },
+  /* DESIGN DRAFT (2026-11-18): the Library Assistant tab, beside Account and Developer (Mickey, 2026-11-16:
+     "three-part settings"). Labels are not keyed for Weblate yet. */
+  {
+    tab: 'library-assistant',
+    url: '/settings/library-assistant',
+    label: { en: 'Library Assistant', he: 'עוזר הספרייה' },
+    shortLabel: { en: 'Assistant', he: 'עוזר' },
   },
   {
     tab: 'developer',
     url: '/settings/developer',
-    label: eBi('developer.frame.developer_tab.label'),
+    label: eBi('developer.frame.developer_tab.short_label'),
     shortLabel: eBi('developer.frame.developer_tab.short_label'),
   },
 ];
@@ -433,7 +442,10 @@ const SETTINGS_TAB_ICONS = {
   ],
 };
 const SettingsTabIcon = ({ tab }) =>
-  SETTINGS_TAB_ICONS[tab] ? (
+  tab === 'library-assistant' ? (
+    /* The assistant's own ✦ (ai-chatbot's Ask button and window header), not a Lucide icon: same meaning, same mark. */
+    <SparkleIcon className="settingsNavIcon" />
+  ) : SETTINGS_TAB_ICONS[tab] ? (
     <svg
       className="settingsNavIcon"
       viewBox="0 0 24 24"
@@ -452,7 +464,11 @@ const SettingsTabIcon = ({ tab }) =>
   ) : null;
 
 const SettingsNav = ({ tabs, tab, onSelect }) => (
-  <nav className="settingsNav" aria-label={Sefaria._v(eBi('developer.frame.settings_nav.aria'))}>
+  <nav
+    className="settingsNav"
+    aria-label={Sefaria._v(eBi('developer.frame.settings_nav.aria'))}
+    style={{ '--settings-tab-count': tabs.length }}
+  >
     <div className="settingsNavTitle">
       <InterfaceText text={eBi('developer.frame.settings_nav.aria')} />
     </div>
@@ -4756,20 +4772,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
         {/* The Library Assistant is a plain user setting, shown to every logged-in user. Its
             value is the effective one: users who are on through the pre-migration rule carry
             no setting key yet. */}
-        <SettingSection
-          id="libraryAssistantSetting"
-          label={<InterfaceText text={{ en: 'Library Assistant', he: 'עוזר הספרייה' }} />}
-        >
-          <SettingToggle
-            optionClass="doubleOption"
-            value={libraryAssistant}
-            onChange={setLibraryAssistant}
-            options={[
-              { value: 'true', content: <InterfaceText text={{ en: 'On', he: 'פעיל' }} /> },
-              { value: 'false', content: <InterfaceText text={{ en: 'Off', he: 'כבוי' }} /> },
-            ]}
-          />
-        </SettingSection>
+        {/* DESIGN DRAFT (2026-11-18): moved to the Library Assistant tab (Penina with Mickey, 2026-11-16). */}
 
         <div id="username-change" className="section">
           <label className="control-elem">
@@ -4803,7 +4806,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="email"
                   type="text"
-                  placeholder={Sefaria._("New Email")}
+                  placeholder={Sefaria._('New Email')}
                   autoComplete="off"
                   value={emailFields.email}
                   onChange={(e) => setEmailFields({ ...emailFields, email: e.target.value })}
@@ -4811,7 +4814,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="confirmEmail"
                   type="text"
-                  placeholder={Sefaria._("Confirm New Email")}
+                  placeholder={Sefaria._('Confirm New Email')}
                   autoComplete="off"
                   value={emailFields.confirmEmail}
                   onChange={(e) => setEmailFields({ ...emailFields, confirmEmail: e.target.value })}
@@ -4819,7 +4822,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
                 <input
                   id="confirmPassword"
                   type="password"
-                  placeholder={Sefaria._("Password")}
+                  placeholder={Sefaria._('Password')}
                   autoComplete="new-password"
                   value={emailFields.confirmPassword}
                   onChange={(e) => setEmailFields({ ...emailFields, confirmPassword: e.target.value })}
@@ -5229,7 +5232,19 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         onSessionEnded={endSession}
       />
     ),
-    developer: !verified ? (
+    'library-assistant': <LibraryAssistantTab />,
+    /* DESIGN DRAFT (Penina, 2026-11-19): the Developer tab is only its title here, so this branch doesn't carry
+       developer settings' content. */
+    developer: (
+      <div className="devPocPage">
+        <header className="devPocPageHeader devE-pageHeader">
+          <h1>
+            <InterfaceText text={eBi('developer.frame.developer_tab.label')} />
+          </h1>
+        </header>
+      </div>
+    ),
+    developerFull: !verified ? (
       <div className="devPocPage">
         {verifyFailed ? (
           <p className="devPocWarning" role="alert">
