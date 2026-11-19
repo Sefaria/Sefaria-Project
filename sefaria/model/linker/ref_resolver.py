@@ -187,8 +187,9 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         has_open_bracket = re.search(r"\[[^]]+$", curr_span.text) is not None
 
         if has_open_paren or has_open_bracket:
-            for temp_end in range(curr_end, curr_end + 5):
-                char = curr_span.doc.text[temp_end]
+            # Slice instead of indexing so a span that ends at (or past) the end of the
+            # document does not raise IndexError while looking for the closing delimiter.
+            for temp_end, char in enumerate(curr_span.doc.text[curr_end : curr_end + 5], start=curr_end):
                 if (has_open_paren and char == ")") or (has_open_bracket and char == "]"):
                     curr_end = temp_end + 1
                     break
