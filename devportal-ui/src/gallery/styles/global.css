@@ -1,0 +1,49 @@
+/* The gallery's page styles, scoped to its wrapper (.dp-gallery) so other portal pages keep theirs.
+   :where() keeps them as weak as the element selectors they were before the move. */
+
+/* Hebrew content font (--font-he-content), shipped with Sefaria's design system. */
+@font-face {
+  font-family: 'Taamey Frank CLM';
+  src: url('/gallery/fonts/Amiri-Taamey-Frank-merged.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+html:has(.dp-gallery) {
+  scroll-behavior: smooth;
+}
+
+.dp-gallery {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-en-system);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(.dp-gallery) :focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 2px;
+}
+
+body.dp-scroll-locked {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.dp-gallery) {
+    scroll-behavior: auto;
+  }
+
+  :where(.dp-gallery) *,
+  :where(.dp-gallery) *::before,
+  :where(.dp-gallery) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

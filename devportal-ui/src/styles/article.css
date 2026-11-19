@@ -1,0 +1,988 @@
+/*
+ * article.css: the body styles shared by public pages, the HTMLBlock frame and the editor canvas
+ * (contract C5, PLAN §2.8). W7 owns it.
+ *
+ * It styles exactly the DOM of contract C4 (devportal/contracts/DIALECT.md and its goldens) and the
+ * behaviour the docs enhancers add to it (devportal-ui/src/docs/). Every rule is scoped under
+ * .dp-markdown, the container the templates put the rendered Markdown in, except the image lightbox,
+ * which is a modal dialog appended to <body>.
+ *
+ * The values are live's (developers.sefaria.org, ReadMe's markdown stylesheet, measured with
+ * getComputedStyle on /docs/cli, /docs/the-disambiguator, /docs/linker-api and the reference guides on
+ * 2026-11-18). Live wins here (PLAN §2.8), except the text font, which is Roboto (D-1); monospace keeps
+ * live's system stack. The values are literal so the file works without the shell's scope classes (the
+ * HTMLBlock frame and the editor canvas have none). No inline styles anywhere: dynamic values (frame
+ * heights) go through presentational attributes or classes.
+ */
+
+.dp-article {
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system);
+}
+
+/* ------------------------------------------------------------------ container */
+
+.dp-markdown {
+  /* The design system's English stack with Heebo before the generic fallbacks, so Hebrew runs inside an
+     English page use Heebo (--font-he-system) and Latin runs keep Roboto (--font-en-system). */
+  --dp-md-font: roboto, heebo, 'Helvetica Neue', arial, sans-serif;
+  --dp-md-mono: 'SF Mono', sfmono-regular, ui-monospace, 'DejaVu Sans Mono', menlo, consolas, monospace;
+  --dp-md-text: #32343a;
+  --dp-md-muted: #6a737d;
+  --dp-md-link: #666;
+  --dp-md-spacing: 15px;
+  --dp-md-edge: #dfe2e5;
+  --dp-md-code-bg: #f2f3f4;
+  --dp-md-code-text: #32343a;
+  --dp-md-code-tabs: rgb(235 237 239);
+  --dp-md-table-edges: #e5e5e5;
+  --dp-md-table-head: #f9fafb;
+  --dp-md-table-stripe: #f9fafb;
+  --dp-md-table-row: #fff;
+  --dp-md-focus: rgb(1 43 255 / 25%);
+
+  position: relative;
+  color: var(--dp-md-text);
+  font-family: var(--dp-md-font);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  text-size-adjust: 100%;
+}
+
+.dp-markdown::before,
+.dp-markdown::after {
+  content: '';
+  display: table;
+}
+
+.dp-markdown::after {
+  clear: both;
+}
+
+.dp-markdown * {
+  box-sizing: border-box;
+}
+
+.dp-markdown > * {
+  margin-top: var(--dp-md-spacing);
+  margin-bottom: var(--dp-md-spacing);
+}
+
+.dp-markdown > :first-child {
+  margin-top: 0 !important;
+}
+
+.dp-markdown > :last-child {
+  margin-bottom: 0 !important;
+}
+
+/* ------------------------------------------------------------------ text */
+
+.dp-markdown p {
+  margin-top: 0;
+  margin-bottom: var(--dp-md-spacing);
+}
+
+.dp-markdown a {
+  color: var(--dp-md-link);
+  text-decoration: underline;
+  transition: 0.15s ease;
+}
+
+.dp-markdown a:not([href]) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dp-markdown a:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.dp-markdown strong,
+.dp-markdown b {
+  font-weight: 600;
+}
+
+.dp-markdown hr {
+  overflow: hidden;
+  box-sizing: content-box;
+  height: 0;
+  margin: var(--dp-md-spacing) 0;
+  border-width: 0 0 1px;
+  border-style: solid;
+  border-color: rgb(0 0 0 / 10%);
+  background: transparent;
+}
+
+.dp-markdown kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  border: 1px solid #d1d5da;
+  border-bottom-color: #c6cbd1;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #c6cbd1;
+  background-color: #f6f8fa;
+  color: #444d56;
+  font-family: var(--dp-md-mono);
+  font-size: 11px;
+  line-height: 10px;
+  vertical-align: middle;
+}
+
+/* ------------------------------------------------------------------ headings */
+
+.dp-markdown h1,
+.dp-markdown h2,
+.dp-markdown h3,
+.dp-markdown h4,
+.dp-markdown h5,
+.dp-markdown h6 {
+  --dp-img-margin: 0;
+
+  margin-top: round(1.25em, 1px);
+  margin-bottom: var(--dp-md-spacing);
+  color: inherit;
+  font-family: var(--dp-md-font);
+  font-weight: 600;
+  line-height: 1.25;
+  scroll-margin-top: 16px;
+}
+
+.dp-markdown h1 {
+  font-size: 1.75em;
+}
+
+.dp-markdown h2 {
+  font-size: 1.5em;
+}
+
+.dp-markdown h3 {
+  font-size: 1.25em;
+}
+
+.dp-markdown h4 {
+  font-size: 1em;
+}
+
+.dp-markdown h5 {
+  font-size: 0.875em;
+}
+
+.dp-markdown h6 {
+  color: var(--dp-md-muted);
+  font-size: 0.85em;
+}
+
+.dp-markdown :is(h1, h2, h3, h4, h5, h6):has(+ :is(h1, h2, h3, h4, h5, h6, p)) {
+  margin-bottom: calc(var(--dp-md-spacing) / 2);
+}
+
+.dp-markdown :is(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 0;
+}
+
+.dp-markdown > :is(h1, h2, h3, h4, h5, h6, hr) {
+  clear: both;
+}
+
+/* The renderer's heading: h*.dp-heading > span.dp-heading-text + a.dp-heading-anchor (empty). */
+.dp-markdown .dp-heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.dp-markdown .dp-heading-text {
+  flex: 1 100%;
+}
+
+.dp-markdown .dp-heading-anchor {
+  position: absolute;
+  right: 100%;
+  margin-right: -0.8rem;
+  padding: 0.8rem 0.2rem 0.8rem 0;
+  color: inherit;
+  font-size: 0.8rem;
+  line-height: 1;
+  text-decoration: none;
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: 0.2s ease;
+}
+
+/* The anchor icon (live: Font Awesome's fa-anchor), drawn as a mask so it takes the heading's colour. */
+.dp-markdown .dp-heading-anchor::before {
+  content: '';
+  display: block;
+  width: 1.125em;
+  height: 1em;
+  background-color: currentcolor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'%3E%3Cpath d='M288 32a64 64 0 0 0-32 119.4V192h-56a24 24 0 0 0 0 48h56v222.2c-60.5-10.4-109-55.1-123.6-113.3l17.6 15.1a24 24 0 1 0 31.2-36.4l-64-54.9a24 24 0 0 0-31.2 0l-64 54.9a24 24 0 1 0 31.2 36.4l21.5-18.4C99 432.5 184.2 496 288 496s189-63.5 205.3-149.9l21.5 18.4a24 24 0 1 0 31.2-36.4l-64-54.9a24 24 0 0 0-31.2 0l-64 54.9a24 24 0 1 0 31.2 36.4l17.6-15.1c-14.6 58.2-63.1 102.9-123.6 113.3V240h56a24 24 0 0 0 0-48h-56v-40.6A64 64 0 0 0 288 32m0 48a16 16 0 1 1 0 32 16 16 0 0 1 0-32'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.dp-markdown .dp-callout .dp-heading-anchor {
+  display: none;
+}
+
+.dp-markdown .dp-heading-anchor:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.dp-markdown .dp-heading:hover .dp-heading-anchor {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ lists */
+
+.dp-markdown ul,
+.dp-markdown ol {
+  --dp-img-margin: 0;
+
+  margin-top: 0;
+  margin-bottom: round(1.3333em, 1px);
+  padding-left: 2em;
+}
+
+.dp-markdown ul {
+  list-style: initial;
+}
+
+.dp-markdown ol ol,
+.dp-markdown ul ol {
+  list-style-type: lower-alpha;
+}
+
+.dp-markdown ol ol ol,
+.dp-markdown ol ul ol,
+.dp-markdown ul ol ol,
+.dp-markdown ul ul ol {
+  list-style-type: lower-roman;
+}
+
+.dp-markdown :is(ol, ul) :is(ol, ul) {
+  margin-top: round(0.5333em, 1px);
+  margin-bottom: 0;
+}
+
+.dp-markdown li {
+  clear: both;
+}
+
+.dp-markdown li + li {
+  margin-top: round(0.5333em, 1px);
+}
+
+.dp-markdown li > p {
+  margin-top: 1em;
+}
+
+.dp-markdown dl {
+  margin-top: 0;
+  margin-bottom: var(--dp-md-spacing);
+  padding: 0;
+}
+
+.dp-markdown dl dt {
+  margin-top: 1em;
+  padding: 0;
+  font-size: 1em;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.dp-markdown dl dd {
+  margin-bottom: 1em;
+  margin-left: 0;
+  padding: 0 1em;
+}
+
+/* ------------------------------------------------------------------ blockquote */
+
+.dp-markdown blockquote {
+  display: block;
+  margin: 0 0 var(--dp-md-spacing);
+  padding: 0 1em;
+  border-left: 0.225em solid var(--dp-md-edge);
+  color: var(--dp-md-muted);
+}
+
+.dp-markdown blockquote > :first-child {
+  margin-top: 0;
+}
+
+.dp-markdown blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.dp-markdown blockquote:has(img, figure) {
+  display: flow-root;
+}
+
+/* ------------------------------------------------------------------ callouts */
+
+.dp-markdown .dp-callout {
+  --dp-callout-bg: rgb(247.62 248.31 249);
+  --dp-callout-border: rgb(138.52 146.91 156.23);
+  --dp-callout-title: var(--dp-md-text);
+
+  display: flow-root;
+  margin: 0 0 var(--dp-md-spacing);
+  padding: 1.25rem;
+  border-color: var(--dp-callout-border);
+  border-radius: 2px;
+  background: var(--dp-callout-bg);
+  color: var(--dp-md-text);
+}
+
+.dp-markdown .dp-callout-info {
+  --dp-callout-bg: rgb(1 43 255 / 10%);
+  --dp-callout-border: rgb(1 43 255);
+  --dp-callout-title: #061560;
+}
+
+.dp-markdown .dp-callout-warn {
+  --dp-callout-bg: rgb(247 197 67 / 10%);
+  --dp-callout-border: rgb(247 197 67);
+  --dp-callout-title: #5a3c00;
+}
+
+.dp-markdown .dp-callout-okay {
+  --dp-callout-bg: rgb(18 202 147 / 10%);
+  --dp-callout-border: rgb(18 202 147);
+  --dp-callout-title: #00491f;
+}
+
+.dp-markdown .dp-callout-error {
+  --dp-callout-bg: rgb(233 95 106 / 10%);
+  --dp-callout-border: rgb(233 95 106);
+  --dp-callout-title: #900027;
+}
+
+.dp-markdown .dp-callout > * {
+  margin-left: 1.25rem;
+}
+
+.dp-markdown .dp-callout:not(:has(.dp-callout-icon)) > * {
+  margin-left: 0;
+}
+
+.dp-markdown .dp-callout .dp-callout-icon {
+  position: relative;
+  float: left;
+  margin-left: -0.5rem;
+  font-size: 1em;
+}
+
+.dp-markdown .dp-callout .dp-callout-icon:only-child {
+  float: none;
+}
+
+.dp-markdown .dp-callout > h3,
+.dp-markdown .dp-callout > .dp-heading {
+  position: relative;
+  margin-top: 0;
+  margin-bottom: 0.625rem;
+  color: var(--dp-callout-title);
+  font-size: 1.25em;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.dp-markdown .dp-callout > h3:only-child,
+.dp-markdown .dp-callout > .dp-callout-icon + h3:last-child {
+  margin-bottom: 0;
+}
+
+.dp-markdown .dp-callout h3 a {
+  color: inherit;
+}
+
+.dp-markdown .dp-callout :is(ul, ol) {
+  padding-left: 1.3em;
+}
+
+.dp-markdown .dp-callout hr {
+  border-color: var(--dp-callout-border);
+}
+
+.dp-markdown .dp-callout blockquote {
+  padding: 0 0 0 0.8em;
+  border-color: var(--dp-callout-border);
+  border-width: 3px;
+  color: var(--dp-md-text);
+}
+
+/* ------------------------------------------------------------------ code */
+
+.dp-markdown code,
+.dp-markdown pre {
+  font-family: var(--dp-md-mono);
+}
+
+/* Inline code. */
+.dp-markdown code {
+  margin: 0;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  background-color: var(--dp-md-code-bg);
+  color: var(--dp-md-code-text);
+  font-size: 90%;
+}
+
+.dp-markdown pre {
+  position: relative;
+  overflow: hidden;
+  margin-top: 0;
+  margin-bottom: var(--dp-md-spacing);
+  padding: 0;
+  border-radius: 3px;
+  background-color: var(--dp-md-code-bg);
+  color: var(--dp-md-code-text);
+  font-size: 90%;
+  line-height: 1.45;
+  overflow-wrap: normal;
+}
+
+.dp-markdown pre > code {
+  display: block;
+  overflow: auto;
+  max-height: 90vh;
+  margin: 0;
+  padding: 1em;
+  border: 0;
+  border-radius: 3px;
+  background: inherit;
+  font-size: 100%;
+  line-height: inherit;
+  white-space: pre-wrap;
+  word-break: normal;
+  text-wrap: wrap;
+
+  /* Live's `:where(*)` scrollbar: thin (10px, not 15px, so a block taller than 90vh wraps its lines as live does)
+     with its thumb at 20% of the page's inverse colour (#000) on a clear track. */
+  scrollbar-color: rgb(0 0 0 / 20%) transparent;
+  scrollbar-width: thin;
+}
+
+/* Code tabs: div.dp-codetabs > div.dp-codetabs-toolbar > button + div.dp-codetabs-inner > pre. */
+.dp-markdown .dp-codetabs {
+  overflow: hidden;
+  border-radius: 3px;
+  color: var(--dp-md-code-text);
+  break-inside: avoid;
+}
+
+.dp-markdown .dp-codetabs-toolbar {
+  display: flex;
+  flex-flow: row nowrap;
+  overflow: hidden;
+  overflow-x: auto;
+  background: var(--dp-md-code-tabs);
+  scrollbar-width: none;
+}
+
+.dp-markdown .dp-codetabs-tab {
+  display: inline-block;
+  padding: 0.5em 1em;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75em;
+  line-height: 1.5;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: 0.123s ease;
+  appearance: none;
+}
+
+.dp-markdown .dp-codetabs-tab:focus-visible {
+  outline: 3px solid var(--dp-md-focus);
+  outline-offset: -3px;
+}
+
+.dp-markdown .dp-codetabs-tab:not(.dp-active):hover,
+.dp-markdown .dp-codetabs-tab:not(.dp-active):focus {
+  background: rgb(0 0 0 / 7.5%);
+}
+
+.dp-markdown .dp-codetabs-tab.dp-active {
+  background: var(--dp-md-code-bg);
+  color: var(--dp-md-code-text);
+  cursor: default;
+}
+
+.dp-markdown .dp-codetabs-inner .dp-pre {
+  border-radius: 0 0 3px 3px;
+}
+
+.dp-markdown .dp-codetabs-inner .dp-pre[hidden] {
+  display: none;
+}
+
+/* Copy button, added by the enhancer to every pre. Hidden until the block is hovered or focused. */
+.dp-markdown .dp-code-copy {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0.5em 0.6em 0 0;
+  padding: 0.25em 0.7em;
+  border: none;
+  border-radius: 3px;
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px rgb(170 170 170 / 66%),
+    -1px 2px 6px -3px rgb(0 0 0 / 10%);
+  background: var(--dp-md-code-bg);
+  color: var(--dp-md-code-text);
+  font-size: 13.3333px;
+  line-height: 1;
+  opacity: 0;
+  cursor: copy;
+  transition: 0.15s ease-out;
+}
+
+.dp-markdown .dp-code-copy::before {
+  content: '';
+  display: block;
+  width: 1em;
+  height: 1em;
+  background-color: currentcolor;
+  opacity: 0.66;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath d='M384 336H192c-8.8 0-16-7.2-16-16V64c0-8.8 7.2-16 16-16h140.1l67.9 67.9V320c0 8.8-7.2 16-16 16m-192 48h192c35.3 0 64-28.7 64-64V115.9c0-12.7-5.1-24.9-14.1-33.9l-67.8-67.9C357.1 5.1 344.9 0 332.2 0H192c-35.3 0-64 28.7-64 64v256c0 35.3 28.7 64 64 64M64 128c-35.3 0-64 28.7-64 64v256c0 35.3 28.7 64 64 64h192c35.3 0 64-28.7 64-64v-32h-48v32c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192c0-8.8 7.2-16 16-16h32v-48z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.dp-markdown .dp-code-copy.dp-copied::before {
+  opacity: 1;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512'%3E%3Cpath d='M441 103c9.4 9.4 9.4 24.6 0 33.9L177 401c-9.4 9.4-24.6 9.4-33.9 0L7 265c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l119 119L407 103c9.4-9.4 24.6-9.4 33.9 0z'/%3E%3C/svg%3E");
+}
+
+.dp-markdown .dp-code-copy:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.dp-markdown pre:hover .dp-code-copy,
+.dp-markdown .dp-code-copy.dp-copied {
+  opacity: 1;
+}
+
+.dp-markdown .dp-code-copy:hover:not(:active) {
+  box-shadow:
+    inset 0 0 0 1px rgb(139 139 139 / 75%),
+    -1px 2px 6px -3px rgb(0 0 0 / 20%);
+}
+
+.dp-markdown .dp-code-copy.dp-copied {
+  color: green;
+  pointer-events: none;
+}
+
+/* Syntax highlighting: CodeMirror 5 token classes from the enhancer's runMode pass, coloured as live's
+   docs pages (ReadMe's cm-s-neo theme). */
+.dp-markdown .dp-tok-comment {
+  color: #75787b;
+}
+
+.dp-markdown .dp-tok-keyword,
+.dp-markdown .dp-tok-property {
+  color: #1d75b3;
+}
+
+.dp-markdown .dp-tok-atom,
+.dp-markdown .dp-tok-number {
+  color: #75438a;
+}
+
+.dp-markdown .dp-tok-node,
+.dp-markdown .dp-tok-tag {
+  color: #9c3328;
+}
+
+.dp-markdown .dp-tok-string {
+  color: #b35e14;
+}
+
+.dp-markdown .dp-tok-variable,
+.dp-markdown .dp-tok-qualifier {
+  color: #047d65;
+}
+
+.dp-markdown .dp-tok-header,
+.dp-markdown .dp-tok-strong {
+  font-weight: bold;
+}
+
+.dp-markdown .dp-tok-em {
+  font-style: italic;
+}
+
+.dp-markdown .dp-tok-link {
+  text-decoration: underline;
+}
+
+.dp-markdown .dp-tok-strikethrough {
+  text-decoration: line-through;
+}
+
+/* CodeMirror's global (theme-independent) rules, which live also applies. */
+.dp-markdown .dp-tok-invalidchar {
+  color: red;
+}
+
+.dp-markdown .dp-tok-negative {
+  color: #d44;
+}
+
+.dp-markdown .dp-tok-positive {
+  color: #292;
+}
+
+/* ------------------------------------------------------------------ tables */
+
+.dp-markdown .dp-table {
+  position: relative;
+  display: block;
+  break-inside: avoid;
+}
+
+.dp-markdown .dp-table-inner {
+  overflow: auto;
+  box-sizing: content-box;
+  width: 100%;
+  min-width: 100%;
+}
+
+.dp-markdown table {
+  --dp-img-margin: 0;
+
+  display: table;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: var(--dp-md-spacing);
+  border: 1px solid var(--dp-md-table-edges);
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: var(--dp-md-text);
+}
+
+.dp-markdown .dp-table-inner > table:only-child {
+  margin: 0 !important;
+}
+
+.dp-markdown table tr {
+  background-color: var(--dp-md-table-row);
+}
+
+.dp-markdown table thead tr {
+  background: var(--dp-md-table-head);
+  box-shadow: 3px 0 0 var(--dp-md-table-head);
+}
+
+.dp-markdown table tr + tr {
+  border-top: 1px solid var(--dp-md-table-edges);
+}
+
+.dp-markdown table tr:nth-child(2n) {
+  background-color: var(--dp-md-table-stripe);
+}
+
+.dp-markdown table th,
+.dp-markdown table td {
+  padding: 6px 13px;
+  border: 1px solid var(--dp-md-table-edges);
+  color: inherit;
+  vertical-align: middle;
+}
+
+.dp-markdown table th {
+  background: inherit;
+  font-weight: 600;
+  text-align: inherit;
+}
+
+.dp-markdown table th:last-child {
+  box-shadow: 3px 0 0 var(--dp-md-table-head);
+}
+
+.dp-markdown table :is(th, td):last-child {
+  border-right: none;
+}
+
+.dp-markdown table :is(th, td):empty {
+  padding: 0;
+}
+
+.dp-markdown table :is(th, td) > :first-child {
+  margin-top: 0 !important;
+}
+
+.dp-markdown table :is(th, td) > :last-child {
+  margin-bottom: 0 !important;
+}
+
+.dp-markdown .dp-align-left {
+  text-align: left;
+}
+
+.dp-markdown .dp-align-center {
+  text-align: center;
+}
+
+.dp-markdown .dp-align-right {
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------ images */
+
+.dp-markdown img {
+  display: inline-block;
+  box-sizing: content-box;
+  max-width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  border-style: none;
+  outline: none;
+  vertical-align: middle;
+}
+
+.dp-markdown .dp-img {
+  margin-top: round(var(--dp-img-margin, var(--dp-md-spacing)) * 1.33, 1px);
+  margin-bottom: round(var(--dp-img-margin, var(--dp-md-spacing)) * 1.33, 1px);
+  cursor: zoom-in;
+}
+
+.dp-markdown img.dp-img-align-center {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.dp-markdown img.dp-img-align-left {
+  float: left;
+  margin-right: 0.75rem;
+}
+
+.dp-markdown img.dp-img-align-right {
+  float: right;
+  margin-left: 0.75rem;
+}
+
+.dp-markdown img.dp-img-border {
+  border: 1px solid rgb(0 0 0 / 20%);
+}
+
+.dp-markdown .dp-img-lightbox:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+.dp-markdown .dp-image > .dp-img-lightbox {
+  display: inline;
+}
+
+.dp-markdown figure {
+  margin: var(--dp-md-spacing) auto;
+}
+
+.dp-markdown figure .dp-img {
+  display: block;
+}
+
+.dp-markdown figcaption {
+  --dp-img-margin: 0;
+
+  margin-top: 8px;
+  font-size: 0.93em;
+  font-style: italic;
+  text-align: center;
+}
+
+.dp-markdown .dp-figure-framed {
+  display: block;
+  max-width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgb(0 0 0 / 5%);
+}
+
+.dp-markdown .dp-figure-framed .dp-img {
+  display: inline-block;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.dp-markdown .dp-figure-align-center {
+  clear: both;
+  text-align: center;
+}
+
+.dp-markdown .dp-figure-align-left,
+.dp-markdown .dp-figure-align-right {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.dp-markdown .dp-figure-align-left {
+  clear: left;
+  float: left;
+  margin-right: 0.75rem;
+}
+
+.dp-markdown .dp-figure-align-right {
+  clear: right;
+  float: right;
+  margin-left: 0.75rem;
+}
+
+/* The lightbox: a modal <dialog> the enhancer appends to <body> (live: .lightbox.open). */
+.dp-lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden auto;
+  border: 0;
+  background: rgb(255 255 255 / 96.6%);
+  user-select: none;
+}
+
+.dp-lightbox::backdrop {
+  background: transparent;
+}
+
+.dp-lightbox-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100vw;
+
+  /* Live's inner box runs half an em past the viewport, so the centred image sits 4px lower (15.25px at 1440). */
+  min-height: calc(100vh + 0.5em);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-out;
+}
+
+.dp-lightbox-img {
+  width: auto;
+  max-width: 97.5vw;
+  height: auto;
+  max-height: 97.5vh;
+  margin: 0 auto;
+  box-shadow: 0 0.5em 3em -1em rgb(0 0 0 / 20%);
+}
+
+.dp-lightbox-close {
+  position: fixed;
+
+  /* Where live's close mark lands (its centre at [1420, 36] at 1440; pixel harness). */
+  top: 1.5em;
+  right: 0.5em;
+  z-index: 1;
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #32343a;
+  font-size: 1rem;
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.dp-lightbox-close::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: currentcolor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath d='M345 137c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-119 119L73 103c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l119 119L39 375c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l119-119 119 119c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-119-119z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.dp-lightbox-close:hover,
+.dp-lightbox-close:focus-visible {
+  opacity: 1;
+}
+
+.dp-lightbox-close:focus-visible,
+.dp-lightbox-inner:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #4871bf);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ embeds */
+
+.dp-markdown .dp-embed {
+  padding: 15px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 15%);
+  background: transparent;
+  color: var(--dp-md-code-text);
+  transition: 0.3s ease;
+}
+
+.dp-markdown .dp-embed:hover {
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
+  background: var(--dp-md-code-bg);
+}
+
+.dp-markdown .dp-embed-media {
+  display: flex;
+  justify-content: center;
+}
+
+.dp-markdown .dp-embed-media > :only-child {
+  flex: 1;
+  margin: -15px;
+  border-radius: 0 !important;
+}
+
+/* Live's Embedly frame: the full width of the card (the media box's -15px margins) and the height the embed
+   gives (its height attribute, 480px for YouTube), at every width. */
+.dp-markdown .dp-embed-iframe {
+  display: block;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------ HTML blocks and raw iframes */
+
+/* The frame document of /_portal/htmlblock/<revision>/<n> (htmlblock_frame.html). */
+.dp-htmlblock-body {
+  margin: 0;
+  background: transparent;
+
+  /* The frame is sized to its content (src/docs/htmlblock.ts), so it never scrolls. Without this, the Hebrew guide's
+     right-to-left document overflowed sideways, and its scrollbars took 10px from the text's width (D-12). */
+  overflow: hidden;
+}
+
+.dp-markdown .dp-htmlblock-frame {
+  display: block;
+  width: 100%;
+  border: 0;
+}
+
+/* The contact page's Formstack frame. Its inline style (width: 100%) is removed by the sanitizer;
+   this rule replaces it. The height comes from its height attribute. */
+.dp-markdown iframe[src^='https://sefaria.formstack.com/'] {
+  display: block;
+  width: 100%;
+  border: 0;
+}

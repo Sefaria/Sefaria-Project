@@ -1,0 +1,19 @@
+.link {
+  position: absolute;
+  left: var(--spacing-large);
+  top: -100px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  padding: 0 var(--spacing-xlarge);
+  border-radius: var(--radius-md);
+  background: var(--action-primary);
+  color: var(--text-inverse);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:focus {
+  top: var(--spacing-small);
+}

@@ -1,0 +1,41 @@
+{% extends base_template %}
+{% comment %}
+  One project of the gallery (/powered-by/projects/<id>-<name>), or a "not found" page (an unknown project, or
+  any other /powered-by/<path>), which the view answers
+  with HTTP 404 (PLAN.md §2.14; view: devportal/views/gallery.py). The gallery's React app replaces this
+  markup in one commit, reading the project from /api/powered-by and the page from the #dp-data island.
+{% endcomment %}
+{% block title %}{{ title }}{% endblock %}
+{% block head %}{% include "devportal/gallery_head.html" %}{% endblock %}
+{% block content %}
+<div class="dp-gallery-ssr" data-gallery-view="project">
+  <nav class="dp-gallery-ssr__bar" aria-label="Breadcrumb">
+    <a href="{{ gallery_url }}">All projects</a>
+  </nav>
+  {% if project %}
+  <article>
+    <h1>{{ project.name }}</h1>
+    {% if project.is_buggy %}<p>This project has known issues.</p>{% endif %}
+    {% if project.description %}<p>{{ project.description }}</p>{% endif %}
+    {% if project.backstory %}
+    <h2>In the creator&rsquo;s words</h2>
+    <blockquote><p>{{ project.backstory }}</p></blockquote>
+    {% endif %}
+    <ul class="dp-gallery-ssr__links">
+      {% if project.url %}<li><a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">Visit {{ project.name }}</a></li>{% endif %}
+      {% if project.source_url %}<li><a href="{{ project.source_url }}" target="_blank" rel="noopener noreferrer">Source code</a></li>{% endif %}
+    </ul>
+  </article>
+  {% else %}
+  {% if missing == "page" %}
+  <h1>Page not found</h1>
+  <p>That page doesn&rsquo;t exist.</p>
+  {% else %}
+  <h1>Project not found</h1>
+  <p>That project doesn&rsquo;t exist, or it isn&rsquo;t published.</p>
+  {% endif %}
+  <p><a href="{{ gallery_url }}">All projects</a></p>
+  {% endif %}
+</div>
+{% endblock %}
+{% block data %}{{ payload|json_script:"dp-data" }}{% endblock %}

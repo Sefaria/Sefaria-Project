@@ -1,0 +1,141 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--dp-color-bg, #fff);
+  color: var(--dp-color-text, #111827);
+  font-family: var(--dp-font-sans, Roboto, system-ui, sans-serif);
+}
+
+.topbar {
+  position: sticky;
+  z-index: 5;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--dp-color-border, #e5e7eb);
+  background: var(--dp-color-bg, #fff);
+}
+
+.topbar button {
+  padding: 0.3125rem 0.625rem;
+  border: 1px solid var(--dp-color-border, #d1d5db);
+  border-radius: 4px;
+  background: var(--dp-color-bg, #fff);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.topbar button[aria-pressed='true'] {
+  border-color: var(--dp-color-primary, #2563eb);
+  background: var(--dp-color-primary-soft, #eff6ff);
+}
+
+.brand {
+  font-weight: 600;
+}
+
+.sections,
+.toggle,
+.actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.actions {
+  margin-left: auto;
+}
+
+.primary {
+  border-color: #612854 !important;
+  background: #612854 !important;
+  color: #fff;
+}
+
+.user {
+  color: var(--dp-color-text-muted, #6b7280);
+  font-size: 0.8125rem;
+}
+
+.messages {
+  padding: 0 1rem;
+}
+
+.info,
+.error {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.info {
+  background: #f0f9ff;
+}
+
+.error {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 16rem minmax(0, 1fr) 20rem;
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+@media (width <= 1100px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sidebar,
+.rail {
+  min-width: 0;
+}
+
+.main {
+  min-width: 0;
+}
+
+.placeholder {
+  color: var(--dp-color-text-muted, #6b7280);
+}
+
+.edit,
+.view {
+  max-width: 48rem;
+}
+
+.titleInput {
+  width: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+}
+
+.excerptInput {
+  width: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.visuallyHidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

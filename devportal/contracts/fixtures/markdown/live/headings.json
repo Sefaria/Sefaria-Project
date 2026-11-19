@@ -1,0 +1,2748 @@
+{
+  "about": "Every heading (h1-h6) of the article body of the 59 visible docs pages with a body and the 7 reference guide pages, in document order, as live developers.sefaria.org rendered them on 2026-11-18 (GET of the server HTML). Headings inside an HTMLBlock have no id on live and are not listed. `source` is the page's file relative to the developer-docs repository root.",
+  "pages": {
+    "docs/accessibility-interns-and-the-passages-api-september-2025": {
+      "source": "docs/Dev Digest Archive/accessibility-interns-and-the-passages-api-september-2025.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "hot-off-the-presses",
+          "text": "HOT OFF THE PRESSES:"
+        },
+        {
+          "level": 3,
+          "id": "meet-the-interns",
+          "text": "Meet the Interns!"
+        },
+        {
+          "level": 2,
+          "id": "quick-tech-tip",
+          "text": "QUICK TECH TIP:"
+        },
+        {
+          "level": 3,
+          "id": "the-passages-api",
+          "text": "The Passages API"
+        },
+        {
+          "level": 2,
+          "id": "behind-the-scenes-improving-accessibility",
+          "text": "Behind the Scenes: Improving Accessibility"
+        },
+        {
+          "level": 2,
+          "id": "spotlight-powered-by-sefaria",
+          "text": "SPOTLIGHT: POWERED BY SEFARIA"
+        },
+        {
+          "level": 3,
+          "id": "the-talmud-commentary-atlas",
+          "text": "The Talmud Commentary Atlas"
+        },
+        {
+          "level": 1,
+          "id": "helpful-links",
+          "text": "Helpful Links"
+        }
+      ]
+    },
+    "docs/alternate-structures": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/alternate-structures.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "alternate-structures",
+          "text": "Alternate Structures"
+        }
+      ]
+    },
+    "docs/api-wiki": {
+      "source": "docs/TECHNICAL DOCS/api-wiki/index.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "text-references",
+          "text": "Text References"
+        },
+        {
+          "level": 2,
+          "id": "additional-api-endpoints",
+          "text": "Additional API Endpoints"
+        }
+      ]
+    },
+    "docs/async-task-api": {
+      "source": "docs/TECHNICAL DOCS/linker/async-task-api.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "get-apiasynctask_id",
+          "text": "GET /api/async/:task_id"
+        },
+        {
+          "level": 2,
+          "id": "response-format",
+          "text": "Response Format"
+        }
+      ]
+    },
+    "docs/calendar-api-a-user-requested-feature-and-more": {
+      "source": "docs/Dev Digest Archive/calendar-api-a-user-requested-feature-and-more.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "hot-off-the-presses",
+          "text": "HOT OFF THE PRESSES:"
+        },
+        {
+          "level": 3,
+          "id": "an-updated-sheet-editor",
+          "text": "An Updated Sheet Editor"
+        },
+        {
+          "level": 2,
+          "id": "quick-tech-tip",
+          "text": "QUICK TECH TIP:"
+        },
+        {
+          "level": 3,
+          "id": "something-odd-about-the-calendar-api",
+          "text": "Something Odd About the Calendar API?"
+        },
+        {
+          "level": 2,
+          "id": "behind-the-scenes-a-key-feature-for-the-updated-editor",
+          "text": "Behind the Scenes: A Key Feature for the Updated Editor"
+        },
+        {
+          "level": 2,
+          "id": "spotlight-powered-by-sefaria",
+          "text": "SPOTLIGHT: POWERED BY SEFARIA"
+        },
+        {
+          "level": 2,
+          "id": "the-gematriaphone",
+          "text": "The Gematriaphone"
+        },
+        {
+          "level": 1,
+          "id": "helpful-links",
+          "text": "Helpful Links"
+        }
+      ]
+    },
+    "docs/categories": {
+      "source": "docs/TECHNICAL DOCS/categories.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "the-structure-of-the-category-object",
+          "text": "The Structure of the Category Object"
+        },
+        {
+          "level": 3,
+          "id": "path",
+          "text": "path"
+        },
+        {
+          "level": 3,
+          "id": "titles-or-sharedtitle",
+          "text": "titles or sharedTitle"
+        },
+        {
+          "level": 2,
+          "id": "derived-attributes",
+          "text": "Derived Attributes"
+        },
+        {
+          "level": 3,
+          "id": "lastpath",
+          "text": "lastPath"
+        },
+        {
+          "level": 3,
+          "id": "depth",
+          "text": "depth"
+        },
+        {
+          "level": 2,
+          "id": "optional-attributes",
+          "text": "Optional Attributes"
+        },
+        {
+          "level": 2,
+          "id": "example-category-objects",
+          "text": "Example Category Objects"
+        },
+        {
+          "level": 3,
+          "id": "example-1-the-category-for-the-commentary-of-metzudat-david",
+          "text": "Example 1: The Category for the commentary of Metzudat David:"
+        },
+        {
+          "level": 3,
+          "id": "example-2-the-category-for-the-commentary-of-targum",
+          "text": "Example 2: The Category for the commentary of Targum:"
+        }
+      ]
+    },
+    "docs/category-creation": {
+      "source": "docs/local installation/technical-notes/category-creation.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "creating-a-new-category",
+          "text": "Creating a New Category"
+        },
+        {
+          "level": 3,
+          "id": "post-request",
+          "text": "POST Request"
+        }
+      ]
+    },
+    "docs/cli": {
+      "source": "docs/local installation/cli.md",
+      "headings": [
+        {
+          "level": 3,
+          "id": "local-install-required",
+          "text": "Local Install Required"
+        },
+        {
+          "level": 2,
+          "id": "understanding-the-shell-script",
+          "text": "Understanding the Shell Script"
+        },
+        {
+          "level": 2,
+          "id": "seeing-all-object-properties-and-functions",
+          "text": "Seeing all Object Properties and Functions"
+        },
+        {
+          "level": 2,
+          "id": "cli-examples",
+          "text": "CLI Examples"
+        },
+        {
+          "level": 3,
+          "id": "link-counts",
+          "text": "Link Counts"
+        },
+        {
+          "level": 3,
+          "id": "text-segments",
+          "text": "Text Segments"
+        },
+        {
+          "level": 3,
+          "id": "versions",
+          "text": "Versions"
+        }
+      ]
+    },
+    "docs/commentaries": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/commentaries.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "how-to-work-with-commentaries",
+          "text": "How to Work With Commentaries"
+        },
+        {
+          "level": 2,
+          "id": "index-attributes-for-commentaries",
+          "text": "Index Attributes for Commentaries"
+        },
+        {
+          "level": 2,
+          "id": "commentaries-and-categories",
+          "text": "Commentaries and Categories"
+        }
+      ]
+    },
+    "docs/contributions-to-sefarias-repositories": {
+      "source": "docs/local installation/contributions-to-sefarias-repositories.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "a-note-on-contributions",
+          "text": "A Note on Contributions"
+        }
+      ]
+    },
+    "docs/django-middleware-innovation-mcps-january-2026-issue-7": {
+      "source": "docs/Dev Digest Archive/django-middleware-innovation-mcps-january-2026-issue-7.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "hot-off-the-presses",
+          "text": "HOT OFF THE PRESSES"
+        },
+        {
+          "level": 3,
+          "id": "django-middleware-for-a-modularized-platform",
+          "text": "Django Middleware for a Modularized Platform"
+        },
+        {
+          "level": 3,
+          "id": "middleware-implementation",
+          "text": "Middleware Implementation"
+        },
+        {
+          "level": 3,
+          "id": "usage-in-views--templates",
+          "text": "Usage in Views & Templates"
+        },
+        {
+          "level": 2,
+          "id": "quick-tech-tip",
+          "text": "QUICK TECH TIP"
+        },
+        {
+          "level": 3,
+          "id": "the-sefaria-mcps",
+          "text": "The Sefaria MCPs"
+        },
+        {
+          "level": 1,
+          "id": "helpful-links",
+          "text": "Helpful Links"
+        }
+      ]
+    },
+    "docs/docker-compose-sefaria": {
+      "source": "docs/local installation/local-installation-instructions/docker-compose-sefaria.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "how-to-run-sefaria-with-docker-compose",
+          "text": "How to Run Sefaria With docker-compose"
+        },
+        {
+          "level": 3,
+          "id": "please-note",
+          "text": "Please note:"
+        },
+        {
+          "level": 3,
+          "id": "1-install-docker-and-docker-compose",
+          "text": "1) Install Docker and Docker Compose"
+        },
+        {
+          "level": 3,
+          "id": "2-run-the-project",
+          "text": "2) Run the project"
+        },
+        {
+          "level": 3,
+          "id": "3-connect-to-mongo-and-add-texts",
+          "text": "3) Connect to Mongo and add texts."
+        },
+        {
+          "level": 3,
+          "id": "4-update-your-local-settings-file",
+          "text": "4) Update your local settings file:"
+        },
+        {
+          "level": 3,
+          "id": "5-connect-to-the-django-container-and-run-migrations",
+          "text": "5) Connect to the Django container and run migrations."
+        },
+        {
+          "level": 3,
+          "id": "6-run-webpack",
+          "text": "6) Run webpack."
+        },
+        {
+          "level": 3,
+          "id": "7-visit-the-site",
+          "text": "7) Visit the site."
+        }
+      ]
+    },
+    "docs/general-faq": {
+      "source": "docs/about Sefaria/general-faq.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "whats-with-the-name",
+          "text": "What’s with the name?"
+        },
+        {
+          "level": 2,
+          "id": "how-does-sefaria-make-money",
+          "text": "How does Sefaria make money?"
+        },
+        {
+          "level": 2,
+          "id": "are-you-trying-to-put-book-publishers-out-of-business",
+          "text": "Are you trying to put book publishers out of business?"
+        },
+        {
+          "level": 2,
+          "id": "what-is-the-source-of-sefarias-translations-how-accurate-are-they-and-does-the-library-include-human-non-machine-translations-only",
+          "text": "What is the source of Sefaria’s translations? How accurate are they? And does the library include human (non-machine) translations only?"
+        },
+        {
+          "level": 2,
+          "id": "what-is-sefarias-policy-on-correcting-translations",
+          "text": "What is Sefaria’s policy on correcting translations?"
+        },
+        {
+          "level": 2,
+          "id": "what-do-i-do-if-i-spot-a-mistranslation-or-a-discrepancy-in-a-translation",
+          "text": "What do I do if I spot a mistranslation or a discrepancy in a translation?"
+        },
+        {
+          "level": 2,
+          "id": "what-if-two-people-cant-agree-on-how-to-translate-a-text",
+          "text": "What if two people can’t agree on how to translate a text?"
+        },
+        {
+          "level": 2,
+          "id": "will-sefaria-host-translations-in-languages-besides-english",
+          "text": "Will Sefaria host translations in languages besides English?"
+        },
+        {
+          "level": 2,
+          "id": "do-you-have-a-mobile-app",
+          "text": "Do you have a mobile app?"
+        },
+        {
+          "level": 2,
+          "id": "i-love-the-apps-how-can-i-change-the-font-size-on-the-display",
+          "text": "I love the apps. How can I change the font size on the display?"
+        },
+        {
+          "level": 2,
+          "id": "how-do-i-update-my-app",
+          "text": "How do I update my app?"
+        },
+        {
+          "level": 2,
+          "id": "how-do-i-update-my-offline-library-after-you-have-added-updates",
+          "text": "How do I update my offline library after you have added updates?"
+        },
+        {
+          "level": 2,
+          "id": "can-i-get-sefaria-offline-on-my-computer",
+          "text": "Can I get Sefaria offline on my computer?"
+        },
+        {
+          "level": 2,
+          "id": "how-can-i-get-android-on-my-amazon-fire-device",
+          "text": "How can I get Android on my Amazon Fire device?"
+        },
+        {
+          "level": 2,
+          "id": "can-i-print-your-texts-or-reuse-them-on-my-website",
+          "text": "Can I print your texts or reuse them on my website?"
+        },
+        {
+          "level": 2,
+          "id": "i-reported-a-bug-when-will-it-be-fixed",
+          "text": "I reported a bug. When will it be fixed?"
+        },
+        {
+          "level": 2,
+          "id": "has-anyone-actually-made-any-interesting-applications-using-sefarias-data-or-api",
+          "text": "Has anyone actually made any interesting applications using Sefaria's data or API?"
+        }
+      ]
+    },
+    "docs/getting-evals-right-for-a-jewish-ai-chatbot": {
+      "source": "docs/SEFARIA RESEARCH/getting-evals-right-for-a-jewish-ai-chatbot.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "building-a-good-dataset",
+          "text": "Building a Good Dataset"
+        },
+        {
+          "level": 2,
+          "id": "defining-relevant-scorers",
+          "text": "Defining Relevant Scorers"
+        },
+        {
+          "level": 2,
+          "id": "our-current-practice",
+          "text": "Our Current Practice"
+        }
+      ]
+    },
+    "docs/getting-started-with-local-installation": {
+      "source": "docs/local installation/getting-started-with-local-installation.md",
+      "headings": []
+    },
+    "docs/guide-to-contributing": {
+      "source": "docs/about Sefaria/guide-to-contributing/index.md",
+      "headings": [
+        {
+          "level": 3,
+          "id": "about-the-public-domain",
+          "text": "About the Public Domain"
+        },
+        {
+          "level": 3,
+          "id": "ways-you-can-contribute",
+          "text": "Ways You Can Contribute"
+        },
+        {
+          "level": 3,
+          "id": "1-add-connections",
+          "text": "1. Add Connections"
+        },
+        {
+          "level": 3,
+          "id": "2-correct-errors",
+          "text": "2. Correct Errors"
+        },
+        {
+          "level": 3,
+          "id": "3-translate-texts",
+          "text": "3. Translate Texts"
+        }
+      ]
+    },
+    "docs/how-to-format-citations-for-the-linker": {
+      "source": "docs/TECHNICAL DOCS/linker/how-to-format-citations-for-the-linker.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "citation-format",
+          "text": "Citation Format"
+        },
+        {
+          "level": 3,
+          "id": "trickier-texts",
+          "text": "Trickier Texts"
+        },
+        {
+          "level": 3,
+          "id": "tip-testing-citations-with-the-sefaria-library-search-bar",
+          "text": "Tip: Testing Citations With the Sefaria Library Search Bar"
+        }
+      ]
+    },
+    "docs/how-to-report-a-mistake": {
+      "source": "docs/about Sefaria/guide-to-contributing/how-to-report-a-mistake.md",
+      "headings": []
+    },
+    "docs/index-and-versions": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/index-and-versions.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "the-index",
+          "text": "The Index"
+        },
+        {
+          "level": 1,
+          "id": "versions",
+          "text": "Versions"
+        }
+      ]
+    },
+    "docs/jaggedarray-and-jaggedarray-nodes": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/jaggedarray-and-jaggedarray-nodes.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "content-nodes",
+          "text": "Content Nodes"
+        },
+        {
+          "level": 1,
+          "id": "jaggedarray",
+          "text": "JaggedArray"
+        },
+        {
+          "level": 2,
+          "id": "example-a-jaggedarray-of-depth2",
+          "text": "Example: A JaggedArray of depth=2"
+        },
+        {
+          "level": 1,
+          "id": "jaggedarraynode",
+          "text": "JaggedArrayNode"
+        },
+        {
+          "level": 2,
+          "id": "segments-and-sections",
+          "text": "Segments and Sections"
+        }
+      ]
+    },
+    "docs/june-2024": {
+      "source": "docs/Dev Digest Archive/june-2024.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "hot-off-the-presses-playwright-tests",
+          "text": "HOT OFF THE PRESSES: Playwright Tests"
+        },
+        {
+          "level": 2,
+          "id": "quick-tech-tip-just-the-text",
+          "text": "QUICK TECH TIP: Just the Text"
+        },
+        {
+          "level": 2,
+          "id": "behind-the-scenes",
+          "text": "Behind the Scenes"
+        },
+        {
+          "level": 2,
+          "id": "spotlight-powered-by-sefaria",
+          "text": "Spotlight: Powered By Sefaria"
+        },
+        {
+          "level": 3,
+          "id": "shulkhan-a-touch-interface-for-the-printed-talmud",
+          "text": "Shulkhan: A Touch Interface for the Printed Talmud"
+        },
+        {
+          "level": 3,
+          "id": "your-donation-powers-the-future-of-torah---for-all",
+          "text": "Your donation powers the future of Torah - for all."
+        }
+      ]
+    },
+    "docs/lexicon-docs": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/lexicon-docs.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "understanding-the-lexicon-object-model",
+          "text": "Understanding the Lexicon Object Model"
+        },
+        {
+          "level": 2,
+          "id": "lexicon",
+          "text": "Lexicon"
+        },
+        {
+          "level": 2,
+          "id": "lexicon-entry",
+          "text": "Lexicon Entry"
+        },
+        {
+          "level": 2,
+          "id": "wordform",
+          "text": "WordForm"
+        },
+        {
+          "level": 3,
+          "id": "refs-in-wordform",
+          "text": "Refs in WordForm"
+        },
+        {
+          "level": 3,
+          "id": "many-to-many",
+          "text": "Many-to-Many"
+        },
+        {
+          "level": 2,
+          "id": "index",
+          "text": "Index"
+        },
+        {
+          "level": 3,
+          "id": "dictionarynode",
+          "text": "DictionaryNode"
+        },
+        {
+          "level": 2,
+          "id": "version",
+          "text": "Version"
+        },
+        {
+          "level": 2,
+          "id": "important-notes",
+          "text": "Important Notes"
+        }
+      ]
+    },
+    "docs/linear-integer-programming-for-topic-pages-sources-selection": {
+      "source": "docs/TECHNICAL DOCS/topic-ontology/linear-integer-programming-for-topic-pages-sources-selection.md",
+      "headings": []
+    },
+    "docs/linear-programming-topic-curation-and-api-tips": {
+      "source": "docs/Dev Digest Archive/linear-programming-topic-curation-and-api-tips.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "hot-off-the-presses-sefaria--pycon-israel",
+          "text": "HOT OFF THE PRESSES: Sefaria @ PyCon Israel"
+        },
+        {
+          "level": 2,
+          "id": "quick-tech-tip-using-the-texts-api",
+          "text": "QUICK TECH TIP: Using the Texts API"
+        },
+        {
+          "level": 2,
+          "id": "behind-the-scenes",
+          "text": "Behind the Scenes"
+        },
+        {
+          "level": 2,
+          "id": "spotlight-powered-by-sefaria",
+          "text": "SPOTLIGHT: POWERED BY SEFARIA"
+        },
+        {
+          "level": 3,
+          "id": "powering-talmud-study-on-hadran",
+          "text": "Powering Talmud Study on Hadran"
+        },
+        {
+          "level": 3,
+          "id": "your-donation-powers-the-future-of-torah---for-all",
+          "text": "Your donation powers the future of Torah - for all."
+        }
+      ]
+    },
+    "docs/linker": {
+      "source": "docs/TECHNICAL DOCS/linker/index.md",
+      "headings": []
+    },
+    "docs/linker-api": {
+      "source": "docs/TECHNICAL DOCS/linker/linker-api.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "introduction",
+          "text": "Introduction"
+        },
+        {
+          "level": 1,
+          "id": "the-api",
+          "text": "The API"
+        },
+        {
+          "level": 2,
+          "id": "post-apifind-refs",
+          "text": "POST /api/find-refs"
+        },
+        {
+          "level": 3,
+          "id": "url-parameters",
+          "text": "URL Parameters"
+        },
+        {
+          "level": 3,
+          "id": "post-body",
+          "text": "POST body"
+        },
+        {
+          "level": 3,
+          "id": "response-format",
+          "text": "Response Format"
+        },
+        {
+          "level": 3,
+          "id": "with_text-format",
+          "text": "with_text format"
+        },
+        {
+          "level": 3,
+          "id": "debug-format",
+          "text": "debug format"
+        },
+        {
+          "level": 3,
+          "id": "text-format",
+          "text": "text format"
+        },
+        {
+          "level": 1,
+          "id": "linker-api-example",
+          "text": "Linker API Example"
+        },
+        {
+          "level": 2,
+          "id": "example-input",
+          "text": "Example Input"
+        },
+        {
+          "level": 2,
+          "id": "example-output",
+          "text": "Example Output"
+        },
+        {
+          "level": 1,
+          "id": "debugging-using-local-webpage",
+          "text": "Debugging Using Local Webpage"
+        }
+      ]
+    },
+    "docs/linker-v2": {
+      "source": "docs/TECHNICAL DOCS/linker/linker-v2.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "embedding-code",
+          "text": "Embedding Code"
+        },
+        {
+          "level": 2,
+          "id": "additional-options",
+          "text": "Additional Options"
+        },
+        {
+          "level": 3,
+          "id": "selector",
+          "text": "selector"
+        },
+        {
+          "level": 3,
+          "id": "mode",
+          "text": "mode"
+        },
+        {
+          "level": 3,
+          "id": "contentlang",
+          "text": "contentLang"
+        },
+        {
+          "level": 3,
+          "id": "interfacelang",
+          "text": "interfaceLang"
+        },
+        {
+          "level": 3,
+          "id": "excludefromlinking",
+          "text": "excludeFromLinking"
+        },
+        {
+          "level": 3,
+          "id": "excludefromtracking",
+          "text": "excludeFromTracking"
+        },
+        {
+          "level": 3,
+          "id": "quotationonly",
+          "text": "quotationOnly"
+        },
+        {
+          "level": 3,
+          "id": "parenthesesonly",
+          "text": "parenthesesOnly"
+        },
+        {
+          "level": 3,
+          "id": "dynamic",
+          "text": "dynamic"
+        },
+        {
+          "level": 3,
+          "id": "popupstyles",
+          "text": "popupStyles"
+        },
+        {
+          "level": 3,
+          "id": "hidepopupsonmobile",
+          "text": "hidePopupsOnMobile"
+        },
+        {
+          "level": 2,
+          "id": "dynamic-sites",
+          "text": "Dynamic Sites"
+        },
+        {
+          "level": 2,
+          "id": "versions",
+          "text": "Versions"
+        },
+        {
+          "level": 2,
+          "id": "examples-of-calling-the-plugin-with-options",
+          "text": "Examples of Calling the Plugin With Options"
+        },
+        {
+          "level": 1,
+          "id": "citation-format",
+          "text": "Citation Format"
+        }
+      ]
+    },
+    "docs/linker-v3": {
+      "source": "docs/TECHNICAL DOCS/linker/linker-v3.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "bookmarklet",
+          "text": "Bookmarklet"
+        },
+        {
+          "level": 2,
+          "id": "embedding-code",
+          "text": "Embedding Code"
+        },
+        {
+          "level": 2,
+          "id": "options",
+          "text": "Options"
+        },
+        {
+          "level": 3,
+          "id": "mode",
+          "text": "mode"
+        },
+        {
+          "level": 3,
+          "id": "contentlang",
+          "text": "contentLang"
+        },
+        {
+          "level": 3,
+          "id": "interfacelang",
+          "text": "interfaceLang"
+        },
+        {
+          "level": 3,
+          "id": "excludefromlinking",
+          "text": "excludeFromLinking"
+        },
+        {
+          "level": 3,
+          "id": "whitelistselector",
+          "text": "whitelistSelector"
+        },
+        {
+          "level": 3,
+          "id": "dynamic",
+          "text": "dynamic"
+        },
+        {
+          "level": 3,
+          "id": "popupstyles",
+          "text": "popupStyles"
+        },
+        {
+          "level": 3,
+          "id": "hidepopupsonmobile",
+          "text": "hidePopupsOnMobile"
+        },
+        {
+          "level": 3,
+          "id": "versionpreferencesbycorpus",
+          "text": "versionPreferencesByCorpus"
+        },
+        {
+          "level": 3,
+          "id": "debug",
+          "text": "debug"
+        },
+        {
+          "level": 2,
+          "id": "deprecated-options",
+          "text": "Deprecated options"
+        },
+        {
+          "level": 2,
+          "id": "dynamic-sites",
+          "text": "Dynamic Sites"
+        },
+        {
+          "level": 2,
+          "id": "versions",
+          "text": "Versions"
+        },
+        {
+          "level": 2,
+          "id": "examples-of-calling-the-plugin-with-options",
+          "text": "Examples of Calling the Plugin With Options"
+        },
+        {
+          "level": 1,
+          "id": "citation-format",
+          "text": "Citation Format"
+        }
+      ]
+    },
+    "docs/local-installation-instructions": {
+      "source": "docs/local installation/local-installation-instructions/index.md",
+      "headings": [
+        {
+          "level": 3,
+          "id": "recommended-use-api-instead-of-local-install",
+          "text": "Recommended: Use API Instead of Local Install"
+        },
+        {
+          "level": 1,
+          "id": "getting-started",
+          "text": "Getting Started"
+        },
+        {
+          "level": 3,
+          "id": "please-note",
+          "text": "Please note:"
+        },
+        {
+          "level": 2,
+          "id": "running-sefaria-project-locally",
+          "text": "Running Sefaria-Project Locally"
+        },
+        {
+          "level": 3,
+          "id": "1-install-python-312-or-later",
+          "text": "1) Install Python 3.12 or later."
+        },
+        {
+          "level": 4,
+          "id": "for-linux-and-macos",
+          "text": "For Linux and macOS:"
+        },
+        {
+          "level": 4,
+          "id": "for-windows",
+          "text": "For Windows:"
+        },
+        {
+          "level": 3,
+          "id": "2-install-virtualenv-optional-but-recommended",
+          "text": "2) Install virtualenv (optional but recommended)."
+        },
+        {
+          "level": 4,
+          "id": "working-with-pyenv-recommended",
+          "text": "Working With Pyenv (Recommended)"
+        },
+        {
+          "level": 4,
+          "id": "for-unix--windows",
+          "text": "For Unix & Windows"
+        },
+        {
+          "level": 4,
+          "id": "macos",
+          "text": "macOS:"
+        },
+        {
+          "level": 4,
+          "id": "how-to-create-a-pyenv-virtualenv",
+          "text": "How to Create a pyenv virtualenv."
+        },
+        {
+          "level": 4,
+          "id": "classic-virtualenv",
+          "text": "Classic virtualenv"
+        },
+        {
+          "level": 3,
+          "id": "3-install-pip-if-necessary",
+          "text": "3) Install Pip (if necessary)."
+        },
+        {
+          "level": 4,
+          "id": "for-unix",
+          "text": "For Unix:"
+        },
+        {
+          "level": 4,
+          "id": "for-windows-1",
+          "text": "For Windows:"
+        },
+        {
+          "level": 3,
+          "id": "important",
+          "text": "Important!"
+        },
+        {
+          "level": 4,
+          "id": "on-debian-systems",
+          "text": "On Debian systems:"
+        },
+        {
+          "level": 4,
+          "id": "on-fedora-systems",
+          "text": "On Fedora systems:"
+        },
+        {
+          "level": 3,
+          "id": "4-install-gettext",
+          "text": "4) Install gettext."
+        },
+        {
+          "level": 4,
+          "id": "for-macos",
+          "text": "For macOS:"
+        },
+        {
+          "level": 4,
+          "id": "on-debian-systems-1",
+          "text": "On Debian systems:"
+        },
+        {
+          "level": 3,
+          "id": "5-create-a-local-settings-file",
+          "text": "5) Create a local settings file."
+        },
+        {
+          "level": 3,
+          "id": "6-create-a-log-directory",
+          "text": "6) Create a log directory."
+        },
+        {
+          "level": 3,
+          "id": "7-get-mongo-running",
+          "text": "7) Get Mongo running:"
+        },
+        {
+          "level": 3,
+          "id": "8-add-some-texts-in-your-database",
+          "text": "8) Add some texts in your database."
+        },
+        {
+          "level": 3,
+          "id": "9-set-up-djangos-local-server",
+          "text": "9) Set up Django's local server"
+        },
+        {
+          "level": 3,
+          "id": "10-install-node",
+          "text": "10) Install Node."
+        },
+        {
+          "level": 4,
+          "id": "for-debian-ubuntu-and-linux-mint",
+          "text": "For Debian, Ubuntu, and Linux Mint:"
+        },
+        {
+          "level": 4,
+          "id": "for-macos-1",
+          "text": "For macOS:"
+        },
+        {
+          "level": 4,
+          "id": "run-webpack",
+          "text": "Run Webpack"
+        },
+        {
+          "level": 4,
+          "id": "server-side-rendering-with-node",
+          "text": "Server-side rendering with Node:"
+        },
+        {
+          "level": 4,
+          "id": "install-redis",
+          "text": "Install Redis"
+        },
+        {
+          "level": 4,
+          "id": "configure-django-and-node-to-use-redis-as-a-shared-datastore",
+          "text": "Configure Django and Node to use Redis as a shared datastore"
+        },
+        {
+          "level": 3,
+          "id": "11-run-the-development-server",
+          "text": "11) Run the development server:"
+        },
+        {
+          "level": 2,
+          "id": "command-line-interface",
+          "text": "Command Line Interface"
+        }
+      ]
+    },
+    "docs/node-titles": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/node-titles.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "types-of-titles",
+          "text": "Types of Titles"
+        },
+        {
+          "level": 3,
+          "id": "notes-on-the-background-of-titles",
+          "text": "Notes on the Background of Titles"
+        },
+        {
+          "level": 1,
+          "id": "how-titles-are-created",
+          "text": "How Titles Are Created"
+        },
+        {
+          "level": 2,
+          "id": "1-explicit-titles-on-nodes",
+          "text": "1. Explicit Titles on Nodes"
+        },
+        {
+          "level": 2,
+          "id": "2-shared-titles-terms",
+          "text": "2. Shared Titles (Terms)"
+        },
+        {
+          "level": 2,
+          "id": "3-default-nodes",
+          "text": "3. Default Nodes"
+        }
+      ]
+    },
+    "docs/patot": {
+      "source": "docs/SEFARIA RESEARCH/patot.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "introducing-patot-semantic-chunking-for-jewish-texts",
+          "text": "Introducing Patot: Semantic Chunking for Jewish Texts"
+        },
+        {
+          "level": 2,
+          "id": "the-problem-with-naive-chunking",
+          "text": "The Problem with Naive Chunking"
+        },
+        {
+          "level": 2,
+          "id": "how-it-works",
+          "text": "How It Works"
+        },
+        {
+          "level": 2,
+          "id": "what-you-get",
+          "text": "What You Get"
+        },
+        {
+          "level": 2,
+          "id": "try-it",
+          "text": "Try It"
+        }
+      ]
+    },
+    "docs/powered-by-sefaria": {
+      "source": "docs/TECHNICAL DOCS/powered-by-sefaria/index.md",
+      "headings": []
+    },
+    "docs/powered-by-sefaria-acceptance-criteria": {
+      "source": "docs/TECHNICAL DOCS/powered-by-sefaria/powered-by-sefaria-acceptance-criteria.md",
+      "headings": []
+    },
+    "docs/schemanode": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/schemanode.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "schemanode",
+          "text": "SchemaNode"
+        }
+      ]
+    },
+    "docs/search-api": {
+      "source": "docs/TECHNICAL DOCS/api-wiki/search-api.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "post-apisearchindex_search",
+          "text": "POST /api/search/:index/\\_search"
+        },
+        {
+          "level": 2,
+          "id": "making-a-post-request",
+          "text": "Making a POST Request"
+        },
+        {
+          "level": 3,
+          "id": "the-requests-header",
+          "text": "The Request's Header"
+        },
+        {
+          "level": 3,
+          "id": "the-requests-body",
+          "text": "The Request's Body"
+        },
+        {
+          "level": 4,
+          "id": "example-1-query-text-for-exact-text-results",
+          "text": "Example 1: Query text for Exact Text Results"
+        },
+        {
+          "level": 4,
+          "id": "example-2-query-text-using-broad-analyzer",
+          "text": "Example 2: Query text Using Broad Analyzer"
+        },
+        {
+          "level": 4,
+          "id": "example-3-query-text-using-relevance-ranking",
+          "text": "Example 3: Query text Using Relevance Ranking."
+        },
+        {
+          "level": 4,
+          "id": "example-4-query-text-for-a-specific-book-in-the-sefaria-library",
+          "text": "Example 4: Query text for a Specific Book in the Sefaria Library"
+        },
+        {
+          "level": 4,
+          "id": "example-5-query-sheet-for-a-specific-term",
+          "text": "Example 5: Query sheet for a Specific Term"
+        },
+        {
+          "level": 2,
+          "id": "returned-json",
+          "text": "Returned JSON"
+        },
+        {
+          "level": 3,
+          "id": "returned-json-for-text-queries",
+          "text": "Returned JSON for text Queries"
+        },
+        {
+          "level": 3,
+          "id": "returned-json-for-sheet-queries",
+          "text": "Returned JSON for sheet Queries"
+        }
+      ]
+    },
+    "docs/sefaria-export-a-data-puzzle-and-deep-wiki": {
+      "source": "docs/Dev Digest Archive/sefaria-export-a-data-puzzle-and-deep-wiki.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "hot-off-the-presses-sefaria-export-update",
+          "text": "HOT OFF THE PRESSES: Sefaria-Export Update"
+        },
+        {
+          "level": 2,
+          "id": "quick-tech-tip-exploring-the-codebase-with-deepwiki",
+          "text": "QUICK TECH TIP: Exploring the Codebase with DeepWiki"
+        },
+        {
+          "level": 2,
+          "id": "help-us-solve-the-dictionary-export-puzzle",
+          "text": "Help Us Solve the Dictionary Export Puzzle"
+        },
+        {
+          "level": 2,
+          "id": "community-spotlight-share-your-project",
+          "text": "COMMUNITY SPOTLIGHT: Share your Project"
+        },
+        {
+          "level": 1,
+          "id": "helpful-links",
+          "text": "Helpful Links"
+        }
+      ]
+    },
+    "docs/sefaria-research-at-pyconn-2024": {
+      "source": "docs/SEFARIA RESEARCH/sefaria-research-at-pyconn-2024.md",
+      "headings": []
+    },
+    "docs/september-2024": {
+      "source": "docs/Dev Digest Archive/september-2024.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "hot-off-the-presses-local-install-vs-api",
+          "text": "HOT OFF THE PRESSES: Local Install vs. API"
+        },
+        {
+          "level": 2,
+          "id": "quick-tech-tip-meet-the-shape-api",
+          "text": "QUICK TECH TIP: Meet the Shape API"
+        },
+        {
+          "level": 2,
+          "id": "behind-the-scenes",
+          "text": "Behind the Scenes"
+        },
+        {
+          "level": 2,
+          "id": "spotlight-powered-by-sefaria",
+          "text": "Spotlight: Powered by Sefaria"
+        },
+        {
+          "level": 3,
+          "id": "your-donation-powers-the-future-of-torah---for-all",
+          "text": "Your donation powers the future of Torah - for all."
+        }
+      ]
+    },
+    "docs/sites-using-the-linker": {
+      "source": "docs/TECHNICAL DOCS/linker/sites-using-the-linker.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "english-websites",
+          "text": "English Websites"
+        },
+        {
+          "level": 1,
+          "id": "hebrew-websites",
+          "text": "Hebrew Websites"
+        }
+      ]
+    },
+    "docs/technical-notes": {
+      "source": "docs/local installation/technical-notes/index.md",
+      "headings": []
+    },
+    "docs/term-creation": {
+      "source": "docs/local installation/technical-notes/term-creation.md",
+      "headings": []
+    },
+    "docs/terms": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/terms.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "what-is-a-term",
+          "text": "What is a Term?"
+        },
+        {
+          "level": 2,
+          "id": "examples-of-terms",
+          "text": "Examples of Terms"
+        }
+      ]
+    },
+    "docs/text-formatting-beyond-the-segment-level": {
+      "source": "docs/TECHNICAL DOCS/text-formatting-beyond-the-segment-level.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "text-formatting",
+          "text": "Text Formatting"
+        },
+        {
+          "level": 2,
+          "id": "footnotes",
+          "text": "Footnotes"
+        },
+        {
+          "level": 2,
+          "id": "inline-references",
+          "text": "Inline References"
+        },
+        {
+          "level": 2,
+          "id": "allowed-html-tags-and-attributes",
+          "text": "Allowed HTML Tags and Attributes"
+        },
+        {
+          "level": 3,
+          "id": "allowed-html-tags-with-corresponding-attributes",
+          "text": "Allowed HTML Tags with Corresponding Attributes"
+        },
+        {
+          "level": 3,
+          "id": "allowed-html-tags",
+          "text": "Allowed HTML Tags"
+        }
+      ]
+    },
+    "docs/text-references": {
+      "source": "docs/TECHNICAL DOCS/text-references.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "text-references-citations",
+          "text": "Text References (Citations)"
+        },
+        {
+          "level": 2,
+          "id": "section-string-separators",
+          "text": "Section String Separators"
+        },
+        {
+          "level": 2,
+          "id": "notes",
+          "text": "Notes"
+        },
+        {
+          "level": 2,
+          "id": "classes-of-references-not-yet-supported",
+          "text": "Classes of References Not Yet Supported"
+        }
+      ]
+    },
+    "docs/the-disambiguator": {
+      "source": "docs/SEFARIA RESEARCH/the-disambiguator.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "bringing-redemption-to-citations-building-sefarias-citation-disambiguator",
+          "text": "Bringing Redemption to Citations: Building Sefaria's Citation Disambiguator"
+        },
+        {
+          "level": 2,
+          "id": "after-the-linker",
+          "text": "After the Linker"
+        },
+        {
+          "level": 2,
+          "id": "problem-1-citations-that-are-too-broad",
+          "text": "Problem #1: Citations That Are Too Broad"
+        },
+        {
+          "level": 2,
+          "id": "problem-2-citations-that-are-ambiguous",
+          "text": "Problem #2: Citations That Are Ambiguous"
+        },
+        {
+          "level": 2,
+          "id": "a-compound-case-broad-and-ambiguous",
+          "text": "A Compound Case: Broad and Ambiguous"
+        },
+        {
+          "level": 2,
+          "id": "building-a-citation-disambiguator",
+          "text": "Building a Citation Disambiguator"
+        },
+        {
+          "level": 2,
+          "id": "how-it-works",
+          "text": "How It Works"
+        },
+        {
+          "level": 2,
+          "id": "why-some-matches-can-skip-the-llm",
+          "text": "Why Some Matches Can Skip the LLM"
+        },
+        {
+          "level": 2,
+          "id": "what-changed-in-practice",
+          "text": "What Changed in Practice"
+        },
+        {
+          "level": 2,
+          "id": "results",
+          "text": "Results"
+        }
+      ]
+    },
+    "docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria": {
+      "source": "docs/TECHNICAL DOCS/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria.md",
+      "headings": [
+        {
+          "level": 3,
+          "id": "prompt-1-i-want-to-build-with-text-related-data",
+          "text": "Prompt #1: I want to build with text-related data"
+        },
+        {
+          "level": 3,
+          "id": "prompt-2-i-want-to-build-with-learning-schedules-ie-parashah-daf-yomi-and-similar",
+          "text": "Prompt #2: I want to build with learning schedules (i.e., Parashah, Daf Yomi, and similar)"
+        },
+        {
+          "level": 3,
+          "id": "prompt-3-i-want-to-build-with-data-about-linked-texts",
+          "text": "Prompt #3: I want to build with data about linked texts"
+        },
+        {
+          "level": 3,
+          "id": "prompt-4-i-want-to-build-with-languages-and-translations-of-texts",
+          "text": "Prompt #4: I want to build with languages and translations of texts"
+        },
+        {
+          "level": 3,
+          "id": "prompt-5-i-want-my-ai-to-see-all-the-data-available-from-sefaria",
+          "text": "Prompt #5: I want my AI to see all the data available from Sefaria"
+        }
+      ]
+    },
+    "docs/the-index-schema": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/index.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "index-schemas",
+          "text": "Index Schemas"
+        },
+        {
+          "level": 1,
+          "id": "node-types-for-an-index-schema-tree",
+          "text": "Node Types for an Index Schema Tree"
+        }
+      ]
+    },
+    "docs/the-sefaria-developer-community-archive": {
+      "source": "docs/Dev Digest Archive/the-sefaria-developer-community-archive.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "archive",
+          "text": "Archive"
+        },
+        {
+          "level": 2,
+          "id": "october-5th-2026-weekly-review",
+          "text": "October 5th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "notable-discussion",
+          "text": "Notable Discussion"
+        },
+        {
+          "level": 2,
+          "id": "september-25th-2026-weekly-review",
+          "text": "September 25th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "new-tools--libraries-",
+          "text": "New Tools & Libraries "
+        },
+        {
+          "level": 2,
+          "id": "september-18th-2026-weekly-review",
+          "text": "September 18th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "community--culture-",
+          "text": "Community & Culture "
+        },
+        {
+          "level": 3,
+          "id": "notable-projects--insights-",
+          "text": "Notable Projects & Insights "
+        },
+        {
+          "level": 3,
+          "id": "support-takeaway-",
+          "text": "Support Takeaway "
+        },
+        {
+          "level": 3,
+          "id": "call-to-action-",
+          "text": "Call to Action "
+        },
+        {
+          "level": 2,
+          "id": "september-11th-2026-weekly-review",
+          "text": "September 11th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "notable-projects--announcements-",
+          "text": "Notable Projects & Announcements "
+        },
+        {
+          "level": 3,
+          "id": "community-growth-",
+          "text": "Community Growth "
+        },
+        {
+          "level": 2,
+          "id": "september-4th-2026-weekly-review",
+          "text": "September 4th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "--infrastructure-alert-",
+          "text": " 🚨 Infrastructure Alert "
+        },
+        {
+          "level": 3,
+          "id": "-technical-improvements-",
+          "text": "🔧 Technical Improvements "
+        },
+        {
+          "level": 3,
+          "id": "-new-projects-on-powered-by-sefaria-",
+          "text": "📦 New Projects on Powered-by-Sefaria "
+        },
+        {
+          "level": 3,
+          "id": "-community-insight-",
+          "text": "💡 Community Insight "
+        },
+        {
+          "level": 2,
+          "id": "august-28th-2026-weekly-review",
+          "text": "August 28th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "notable-questions--updates-",
+          "text": "Notable Questions & Updates "
+        },
+        {
+          "level": 3,
+          "id": "interesting-insights-",
+          "text": "Interesting Insights "
+        },
+        {
+          "level": 2,
+          "id": "august-21st-2026-weekly-review",
+          "text": "August 21st, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "new-community-project-",
+          "text": "New Community Project: "
+        },
+        {
+          "level": 3,
+          "id": "community-news-",
+          "text": "Community News "
+        },
+        {
+          "level": 3,
+          "id": "key-takeaway-",
+          "text": "Key Takeaway "
+        },
+        {
+          "level": 2,
+          "id": "august-14th-2026-weekly-review",
+          "text": "August 14th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "notable-discussion-graph-database-for-sefaria-data-",
+          "text": "Notable Discussion: Graph Database for Sefaria Data "
+        },
+        {
+          "level": 3,
+          "id": "link-quality-issue-reported-",
+          "text": "Link Quality Issue Reported "
+        },
+        {
+          "level": 3,
+          "id": "community-wins-",
+          "text": "Community Wins "
+        },
+        {
+          "level": 2,
+          "id": "august-7th-2026-weekly-review",
+          "text": "August 7th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "notable-projects--community-tools",
+          "text": "✨Notable Projects & Community Tools"
+        },
+        {
+          "level": 3,
+          "id": "-community-connection-",
+          "text": "🤝 Community Connection "
+        },
+        {
+          "level": 2,
+          "id": "july-31st-2026-weekly-review",
+          "text": "July 31st, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "notable-projects--community-tools-1",
+          "text": "✨Notable Projects & Community Tools"
+        },
+        {
+          "level": 3,
+          "id": "key-technical-insights-",
+          "text": "🔧Key Technical Insights "
+        },
+        {
+          "level": 3,
+          "id": "support--best-practices-",
+          "text": "🎯Support & Best Practices "
+        },
+        {
+          "level": 2,
+          "id": "july-24th-2026-weekly-review",
+          "text": "July 24th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "notable-projects--community-tools-",
+          "text": "✨Notable Projects & Community Tools "
+        },
+        {
+          "level": 4,
+          "id": "new-powered-by-sefaria-projects-",
+          "text": "New Powered-by-Sefaria Projects: "
+        },
+        {
+          "level": 3,
+          "id": "infrastructure--api-insights-",
+          "text": "🔧Infrastructure & API Insights "
+        },
+        {
+          "level": 3,
+          "id": "-support-questions--answers",
+          "text": "🎯 Support Questions & Answers"
+        },
+        {
+          "level": 2,
+          "id": "july-16th-2026-weekly-review",
+          "text": "July 16th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "--key-support-questions--answers",
+          "text": " 🎯 Key Support Questions & Answers"
+        },
+        {
+          "level": 3,
+          "id": "-notable-insights",
+          "text": "💡 Notable Insights"
+        },
+        {
+          "level": 2,
+          "id": "july-9th-2026-weekly-review",
+          "text": "July 9th, 2026: Weekly Review"
+        },
+        {
+          "level": 3,
+          "id": "-project-highlights",
+          "text": "🔧 Project Highlights"
+        },
+        {
+          "level": 3,
+          "id": "-technical-insights-",
+          "text": "💡 Technical Insights "
+        },
+        {
+          "level": 3,
+          "id": "--collaboration-interests-",
+          "text": " 🤝 Collaboration Interests "
+        }
+      ]
+    },
+    "docs/the-sefaria-mcp": {
+      "source": "docs/TECHNICAL DOCS/the-sefaria-mcp.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "what-is-an-mcp",
+          "text": "What is an MCP?"
+        },
+        {
+          "level": 3,
+          "id": "the-sefaria-developers-mcp---httpsdeveloperssefariaorgmcp",
+          "text": "The Sefaria Developers MCP - https://developers.sefaria.org/mcp"
+        },
+        {
+          "level": 3,
+          "id": "the-sefaria-texts-mcp---httpchatsefariaorgmcp",
+          "text": "The Sefaria Texts MCP - http://chat.sefaria.org/mcp/"
+        },
+        {
+          "level": 3,
+          "id": "second-party-requirements",
+          "text": "Second-Party Requirements"
+        },
+        {
+          "level": 2,
+          "id": "quick-setup-guide",
+          "text": "Quick Setup Guide"
+        }
+      ]
+    },
+    "docs/the-structure-of-a-complex-text": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/the-structure-of-a-complex-text.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "complex-schemas-multi-node-trees",
+          "text": "Complex Schemas (Multi-Node Trees)"
+        },
+        {
+          "level": 2,
+          "id": "example-1-a-simple-complex-text",
+          "text": "Example 1: A \"Simple\" Complex Text"
+        },
+        {
+          "level": 2,
+          "id": "example-2-abarbanel-on-torah",
+          "text": "Example 2: Abarbanel on Torah"
+        },
+        {
+          "level": 3,
+          "id": "the-index-record-schema-for-abarbanel-on-torah",
+          "text": "The Index Record Schema for Abarbanel on Torah"
+        },
+        {
+          "level": 1,
+          "id": "summary",
+          "text": "Summary"
+        }
+      ]
+    },
+    "docs/the-structure-of-a-simple-text": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/the-structure-of-a-simple-text.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "the-schema-of-a-simple-text",
+          "text": "The Schema of a Simple Text"
+        },
+        {
+          "level": 2,
+          "id": "example-genesis",
+          "text": "Example: Genesis"
+        },
+        {
+          "level": 3,
+          "id": "properties-on-the-schema",
+          "text": "Properties on the Schema"
+        }
+      ]
+    },
+    "docs/the-structure-of-a-text-on-sefaria": {
+      "source": "docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/index.md",
+      "headings": [
+        {
+          "level": 3,
+          "id": "quick-notes-on-indexes-and-versions-in-the-sefaria-library",
+          "text": "Quick Notes on Indexes and Versions in the Sefaria Library"
+        }
+      ]
+    },
+    "docs/titles-for-index": {
+      "source": "docs/local installation/technical-notes/titles-for-index.md",
+      "headings": []
+    },
+    "docs/top-tech-tips-new-projects-and-more-march-2025-issue-4": {
+      "source": "docs/Dev Digest Archive/top-tech-tips-new-projects-and-more-march-2025-issue-4.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "hot-off-the-presses-powered--linked-by-sefaria",
+          "text": "HOT OFF THE PRESSES: Powered & Linked by Sefaria"
+        },
+        {
+          "level": 2,
+          "id": "quick-tech-tip-hebrew-author-names",
+          "text": "QUICK TECH TIP: Hebrew Author Names"
+        },
+        {
+          "level": 2,
+          "id": "behind-the-scenes-css-tricks",
+          "text": "Behind the Scenes: CSS Tricks"
+        },
+        {
+          "level": 1,
+          "id": "spotlight-powered-by-sefaria",
+          "text": "SPOTLIGHT: POWERED BY SEFARIA**"
+        },
+        {
+          "level": 2,
+          "id": "read-the-talmud",
+          "text": "Read the Talmud"
+        },
+        {
+          "level": 1,
+          "id": "helpful-links",
+          "text": "Helpful Links"
+        }
+      ]
+    },
+    "docs/topic-ontology": {
+      "source": "docs/TECHNICAL DOCS/topic-ontology/index.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "an-overview-of-bfo",
+          "text": "An Overview of BFO"
+        },
+        {
+          "level": 2,
+          "id": "slugs-and-nodes",
+          "text": "Slugs and Nodes"
+        },
+        {
+          "level": 1,
+          "id": "overview-of-sefarias-nodes",
+          "text": "Overview of Sefaria's Nodes"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-process",
+          "text": "BFO Node: Process"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-temporal-region",
+          "text": "BFO Node: Temporal Region"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-realizable-entity",
+          "text": "BFO Node: Realizable Entity"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-qualities",
+          "text": "BFO Node: Qualities"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-generically-dependent-continuants",
+          "text": "BFO Node: Generically Dependent Continuants"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-object-aggregate",
+          "text": "BFO Node: Object Aggregate"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-object",
+          "text": "BFO Node: Object"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-immaterial-entity",
+          "text": "BFO Node: Immaterial Entity"
+        },
+        {
+          "level": 2,
+          "id": "bfo-node-fiat-object-part",
+          "text": "BFO Node: Fiat Object Part"
+        },
+        {
+          "level": 1,
+          "id": "overview-of-sefaria-link-types",
+          "text": "Overview of Sefaria Link Types"
+        },
+        {
+          "level": 2,
+          "id": "link-types-between-people",
+          "text": "Link Types Between People"
+        },
+        {
+          "level": 2,
+          "id": "link-types-between-other-types-of-nodes",
+          "text": "Link Types Between Other Types of Nodes"
+        },
+        {
+          "level": 2,
+          "id": "general-link-types",
+          "text": "General Link Types"
+        }
+      ]
+    },
+    "docs/usage-of-our-name-and-logo": {
+      "source": "docs/TECHNICAL DOCS/usage-of-our-name-and-logo.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "code-license",
+          "text": "Code License"
+        },
+        {
+          "level": 2,
+          "id": "text-copyright",
+          "text": "Text Copyright"
+        },
+        {
+          "level": 3,
+          "id": "️-important-text-licenses-in-the-sefaria-library",
+          "text": "⚠️ Important: Text Licenses in the Sefaria Library"
+        },
+        {
+          "level": 3,
+          "id": "understanding-reuse-licenses",
+          "text": "Understanding Reuse Licenses"
+        },
+        {
+          "level": 2,
+          "id": "links-license",
+          "text": "Links License"
+        },
+        {
+          "level": 2,
+          "id": "usage-of-sefarias-name-and-logo",
+          "text": "Usage of Sefaria's Name and Logo"
+        }
+      ]
+    },
+    "docs/welcome": {
+      "source": "docs/TECHNICAL DOCS/welcome.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "welcome-to-sefarias-technical-documentation",
+          "text": "Welcome to Sefaria's Technical Documentation"
+        },
+        {
+          "level": 3,
+          "id": "this-is-a-work-in-progress",
+          "text": "This is a work in progress."
+        },
+        {
+          "level": 2,
+          "id": "quick-questions-and-answers",
+          "text": "Quick Questions and Answers"
+        },
+        {
+          "level": 3,
+          "id": "need-more-information-before-exploring-sefarias-api",
+          "text": "Need more information before exploring Sefaria's API?"
+        },
+        {
+          "level": 3,
+          "id": "interested-in-the-structure-of-the-sefaria-library",
+          "text": "Interested in the structure of the Sefaria Library?"
+        },
+        {
+          "level": 3,
+          "id": "looking-for-additional-endpoints-beyond-the-api-reference",
+          "text": "Looking for additional endpoints beyond the API Reference?"
+        },
+        {
+          "level": 2,
+          "id": "were-here-to-help",
+          "text": "We're here to help!"
+        }
+      ]
+    },
+    "docs/workflowy": {
+      "source": "docs/local installation/workflowy.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "what-is-sefarias-workflowy-parser",
+          "text": "What is Sefaria's Workflowy Parser?"
+        },
+        {
+          "level": 2,
+          "id": "what-is-workflowy",
+          "text": "What is Workflowy?"
+        },
+        {
+          "level": 2,
+          "id": "how-can-we-use-workflowy-to-add-texts-to-the-sefaria-library",
+          "text": "How can we use Workflowy to add texts to the Sefaria Library?"
+        },
+        {
+          "level": 1,
+          "id": "part-1-preparing-the-workflowy-document",
+          "text": "Part 1: Preparing the Workflowy Document:"
+        },
+        {
+          "level": 3,
+          "id": "1-book-structure-definition",
+          "text": "1) Book Structure Definition"
+        },
+        {
+          "level": 4,
+          "id": "for-example",
+          "text": "For example:"
+        },
+        {
+          "level": 3,
+          "id": "2-segment-depth-specification",
+          "text": "2) Segment Depth Specification"
+        },
+        {
+          "level": 4,
+          "id": "for-example-1",
+          "text": "For example:"
+        },
+        {
+          "level": 3,
+          "id": "3-default-titles",
+          "text": "3) Default Titles"
+        },
+        {
+          "level": 4,
+          "id": "for-example-",
+          "text": "For example: "
+        },
+        {
+          "level": 3,
+          "id": "4-specifying-categories",
+          "text": "4) Specifying Categories"
+        },
+        {
+          "level": 4,
+          "id": "for-example--1",
+          "text": "For example: "
+        },
+        {
+          "level": 1,
+          "id": "important-notes",
+          "text": "Important Notes"
+        },
+        {
+          "level": 3,
+          "id": "delimiters-and-forbidden-characters",
+          "text": "Delimiters and Forbidden Characters"
+        },
+        {
+          "level": 3,
+          "id": "commenting",
+          "text": "Commenting"
+        },
+        {
+          "level": 4,
+          "id": "for-example-2",
+          "text": "For example:"
+        },
+        {
+          "level": 3,
+          "id": "5-optional-adding-version-text-to-the-workflowy-outline",
+          "text": "5) Optional: Adding version text to the Workflowy outline"
+        },
+        {
+          "level": 4,
+          "id": "parsing-text-formatting",
+          "text": "Parsing Text Formatting"
+        },
+        {
+          "level": 3,
+          "id": "6-exporting-the-workflowy",
+          "text": "6) Exporting the Workflowy:"
+        },
+        {
+          "level": 4,
+          "id": "for-example-3",
+          "text": "For example:"
+        },
+        {
+          "level": 1,
+          "id": "part-2-uploading-the-index-via-moderator-tools",
+          "text": "Part 2: Uploading the Index via Moderator Tools"
+        }
+      ]
+    },
+    "docs/איך-ליצור-מראי-מקורות-להפניה": {
+      "source": "docs/TECHNICAL DOCS/linker/איך-ליצור-מראי-מקורות-להפניה.md",
+      "headings": []
+    },
+    "reference/data-visualization": {
+      "source": "reference/welcome/tutorials/data-visualization.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "a-topics-treemap",
+          "text": "A Topics Treemap"
+        },
+        {
+          "level": 2,
+          "id": "tutorial-setup-react",
+          "text": "Tutorial Setup: React"
+        },
+        {
+          "level": 3,
+          "id": "1-creating-the-app",
+          "text": "1. Creating the App"
+        },
+        {
+          "level": 3,
+          "id": "2-install-d3plus-for-react",
+          "text": "2. Install D3Plus for React"
+        },
+        {
+          "level": 1,
+          "id": "building-the-visualization",
+          "text": "Building the Visualization"
+        },
+        {
+          "level": 2,
+          "id": "imports",
+          "text": "Imports"
+        },
+        {
+          "level": 3,
+          "id": "component-structure",
+          "text": "Component Structure"
+        },
+        {
+          "level": 2,
+          "id": "usestate-hooks",
+          "text": "useState() Hooks"
+        },
+        {
+          "level": 2,
+          "id": "api-call-and-data-processing",
+          "text": "API Call and Data Processing"
+        },
+        {
+          "level": 3,
+          "id": "the-topics-api",
+          "text": "The Topics API"
+        },
+        {
+          "level": 3,
+          "id": "useeffect",
+          "text": "UseEffect"
+        },
+        {
+          "level": 3,
+          "id": "returning-jsx",
+          "text": "Returning JSX"
+        },
+        {
+          "level": 3,
+          "id": "the-user-controls",
+          "text": "The User Controls"
+        },
+        {
+          "level": 3,
+          "id": "the-visualization",
+          "text": "The Visualization"
+        },
+        {
+          "level": 3,
+          "id": "congratulations",
+          "text": "Congratulations!"
+        },
+        {
+          "level": 1,
+          "id": "taking-it-further",
+          "text": "Taking it Further"
+        },
+        {
+          "level": 2,
+          "id": "full-code",
+          "text": "Full Code"
+        }
+      ]
+    },
+    "reference/getting-started": {
+      "source": "reference/welcome/getting-started.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "the-sefaria-api",
+          "text": "The Sefaria API"
+        },
+        {
+          "level": 2,
+          "id": "welcome-to-the-sefaria-api-reference",
+          "text": "Welcome to the Sefaria API Reference!"
+        },
+        {
+          "level": 3,
+          "id": "work-in-progress",
+          "text": "Work-In-Progress"
+        },
+        {
+          "level": 2,
+          "id": "getting-started",
+          "text": "Getting Started"
+        },
+        {
+          "level": 2,
+          "id": "api-pathways",
+          "text": "API Pathways"
+        },
+        {
+          "level": 3,
+          "id": "where-are-the-books",
+          "text": "Where are the books?"
+        },
+        {
+          "level": 3,
+          "id": "ready-to-dive-into-some-text-data",
+          "text": "Ready to dive into some text data?"
+        },
+        {
+          "level": 3,
+          "id": "links-and-relationships-between-texts",
+          "text": "Links and relationships between texts"
+        },
+        {
+          "level": 3,
+          "id": "building-around-a-learning-schedule",
+          "text": "Building around a learning schedule?"
+        },
+        {
+          "level": 3,
+          "id": "topics",
+          "text": "Topics"
+        },
+        {
+          "level": 3,
+          "id": "images",
+          "text": "Images"
+        },
+        {
+          "level": 3,
+          "id": "dictionaries-and-language-tools",
+          "text": "Dictionaries and language tools"
+        },
+        {
+          "level": 3,
+          "id": "building-for-non-english-readers",
+          "text": "Building for non-English readers?"
+        },
+        {
+          "level": 3,
+          "id": "randomized-content",
+          "text": "Randomized Content"
+        }
+      ]
+    },
+    "reference/others-have-asked": {
+      "source": "reference/welcome/others-have-asked.md",
+      "headings": [
+        {
+          "level": 2,
+          "id": "1-how-do-i-retrieve-the-text-of-a-particular-parashah-weekly-torah-reading",
+          "text": "1. How do I retrieve the text of a particular parashah (weekly Torah reading)?"
+        },
+        {
+          "level": 2,
+          "id": "2-how-do-i-retrieve-a-commentary",
+          "text": "2. How do I retrieve a commentary?"
+        },
+        {
+          "level": 2,
+          "id": "3-how-can-i-retrieve-a-range-of-verses",
+          "text": "3. How can I retrieve a range of verses?"
+        },
+        {
+          "level": 2,
+          "id": "4-how-can-i-retrieve-a-specific-parashah-along-with-commentary-by-rashi",
+          "text": "4. How can I retrieve a specific parashah along with commentary by Rashi?"
+        },
+        {
+          "level": 2,
+          "id": "5-how-do-i-use-the-calendar-api-to-retrieve-a-different-weekly-torah-portion",
+          "text": "5. How do I use the Calendar API to retrieve a different weekly Torah portion?"
+        },
+        {
+          "level": 2,
+          "id": "6-how-do-i-retrieve-english-versions-of-commentaries-that-are-in-hebrew",
+          "text": "6. How do I retrieve English versions of commentaries that are in Hebrew?"
+        },
+        {
+          "level": 2,
+          "id": "7-how-do-i-retrieve-commentary-by-a-specific-author",
+          "text": "7. How do I retrieve commentary by a specific author?"
+        }
+      ]
+    },
+    "reference/playwright-tests-for-sefaria": {
+      "source": "reference/welcome/tutorials/playwright-tests-for-sefaria.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "contributing-playwright-tests-to-sefaria-a-volunteer-guide",
+          "text": "Contributing Playwright Tests to Sefaria: A Volunteer Guide"
+        },
+        {
+          "level": 3,
+          "id": "what-are-playwright-tests",
+          "text": "What Are Playwright Tests?"
+        },
+        {
+          "level": 3,
+          "id": "getting-started",
+          "text": "Getting Started"
+        },
+        {
+          "level": 2,
+          "id": "table-of-contents",
+          "text": "Table of Contents"
+        },
+        {
+          "level": 2,
+          "id": "1-prerequisites",
+          "text": "1. Prerequisites"
+        },
+        {
+          "level": 2,
+          "id": "2-claim-a-feature-from-the-github-issue-tracker",
+          "text": "2. Claim a Feature from the Github Issue Tracker"
+        },
+        {
+          "level": 3,
+          "id": "how-to-claim-an-issue-in-three-easy-steps",
+          "text": "How to Claim an Issue in Three Easy Steps"
+        },
+        {
+          "level": 3,
+          "id": "note-github-only-allows-maintainers-or-collaborators-with-write-access-to-assign-issues",
+          "text": "Note: GitHub only allows maintainers or collaborators with write access to assign issues."
+        },
+        {
+          "level": 2,
+          "id": "3-set-up-the-environment",
+          "text": "3. Set Up the Environment"
+        },
+        {
+          "level": 2,
+          "id": "4-fork-and-clone-the-sefaria-repository",
+          "text": "4. Fork and Clone the Sefaria Repository"
+        },
+        {
+          "level": 3,
+          "id": "fork-the-repository",
+          "text": "Fork the Repository"
+        },
+        {
+          "level": 3,
+          "id": "clone-your-fork-locally",
+          "text": "Clone Your Fork Locally"
+        },
+        {
+          "level": 3,
+          "id": "add-the-main-repo-as-a-remote",
+          "text": "Add the Main Repo as a Remote"
+        },
+        {
+          "level": 3,
+          "id": "fetch-the-relevant-branch",
+          "text": "Fetch the Relevant Branch"
+        },
+        {
+          "level": 2,
+          "id": "5-set-up-playwright",
+          "text": "5. Set Up Playwright"
+        },
+        {
+          "level": 2,
+          "id": "6-write-your-tests",
+          "text": "6. Write Your Tests"
+        },
+        {
+          "level": 3,
+          "id": "basic-test-structure",
+          "text": "Basic Test Structure"
+        },
+        {
+          "level": 3,
+          "id": "finding-the-right-locators",
+          "text": "Finding the Right Locators"
+        },
+        {
+          "level": 3,
+          "id": "common-imports",
+          "text": "Common Imports"
+        },
+        {
+          "level": 2,
+          "id": "7-example-choosing-and-creating-a-new-test",
+          "text": "7. Example: Choosing and Creating a New Test"
+        },
+        {
+          "level": 3,
+          "id": "create-the-test-file",
+          "text": "Create the Test File"
+        },
+        {
+          "level": 3,
+          "id": "add-imports",
+          "text": "Add Imports"
+        },
+        {
+          "level": 3,
+          "id": "write-the-tests",
+          "text": "Write the Tests"
+        },
+        {
+          "level": 3,
+          "id": "understanding-the-test-structure",
+          "text": "Understanding the Test Structure"
+        },
+        {
+          "level": 2,
+          "id": "8-run-and-debug-locally",
+          "text": "8. Run and Debug Locally"
+        },
+        {
+          "level": 3,
+          "id": "running-tests",
+          "text": "Running Tests"
+        },
+        {
+          "level": 3,
+          "id": "using-the-playwright-ui",
+          "text": "Using the Playwright UI"
+        },
+        {
+          "level": 3,
+          "id": "common-debugging-tips",
+          "text": "Common Debugging Tips"
+        },
+        {
+          "level": 2,
+          "id": "9-submit-your-contribution",
+          "text": "9. Submit Your Contribution"
+        },
+        {
+          "level": 3,
+          "id": "create-branch-and-commit",
+          "text": "Create Branch and Commit"
+        },
+        {
+          "level": 3,
+          "id": "open-a-pull-request",
+          "text": "Open a Pull Request"
+        },
+        {
+          "level": 3,
+          "id": "review-process",
+          "text": "Review Process"
+        },
+        {
+          "level": 2,
+          "id": "10-tips-for-writing-great-playwright-tests",
+          "text": "10. Tips for Writing Great Playwright Tests"
+        },
+        {
+          "level": 3,
+          "id": "best-practices",
+          "text": "Best Practices"
+        },
+        {
+          "level": 3,
+          "id": "locator-strategy",
+          "text": "Locator Strategy"
+        },
+        {
+          "level": 3,
+          "id": "common-pitfalls-to-avoid",
+          "text": "Common Pitfalls to Avoid"
+        },
+        {
+          "level": 2,
+          "id": "troubleshooting-common-issues",
+          "text": "Troubleshooting Common Issues"
+        },
+        {
+          "level": 3,
+          "id": "common-test-failures-and-recommended-actions",
+          "text": "Common Test Failures and Recommended Actions"
+        },
+        {
+          "level": 3,
+          "id": "common-setup-issues-and-recommended-actions",
+          "text": "Common Setup Issues and Recommended Actions"
+        },
+        {
+          "level": 2,
+          "id": "additional-resources",
+          "text": "Additional Resources"
+        },
+        {
+          "level": 2,
+          "id": "getting-help",
+          "text": "Getting Help"
+        }
+      ]
+    },
+    "reference/tutorial-dvar-torah-outliner": {
+      "source": "reference/welcome/tutorials/tutorial-dvar-torah-outliner.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "the-dvar-torah-outliner",
+          "text": "The Dvar Torah Outliner"
+        },
+        {
+          "level": 2,
+          "id": "tutorial-setup",
+          "text": "Tutorial Setup"
+        },
+        {
+          "level": 2,
+          "id": "1-retrieve-the-citation",
+          "text": "1. Retrieve the Citation"
+        },
+        {
+          "level": 2,
+          "id": "2-selecting-verses",
+          "text": "2. Selecting Verses"
+        },
+        {
+          "level": 2,
+          "id": "3-retrieving-the-text-of-the-parashah",
+          "text": "3. Retrieving the Text of the Parashah"
+        },
+        {
+          "level": 2,
+          "id": "4-retrieving-a-different-edition-of-the-text",
+          "text": "4. Retrieving a Different Edition of the Text"
+        },
+        {
+          "level": 2,
+          "id": "5-retrieving-parashah-commentaries",
+          "text": "5. Retrieving Parashah Commentaries"
+        },
+        {
+          "level": 2,
+          "id": "6-retrieving-the-commentary-text",
+          "text": "6. Retrieving the Commentary Text"
+        },
+        {
+          "level": 2,
+          "id": "7-printing-your-outline",
+          "text": "7. Printing your Outline"
+        },
+        {
+          "level": 3,
+          "id": "congratulations-you-have-officially-written-a-script-to-generate-a-dvar-torah-outline-for-the-weekly-torah-portion",
+          "text": "Congratulations! You have officially written a script to generate a dvar Torah outline for the weekly Torah portion!"
+        },
+        {
+          "level": 2,
+          "id": "addendum-the-full-code",
+          "text": "Addendum: The Full Code"
+        }
+      ]
+    },
+    "reference/tutorial-tanakh-trivia-game": {
+      "source": "reference/welcome/tutorials/tutorial-tanakh-trivia-game.md",
+      "headings": [
+        {
+          "level": 1,
+          "id": "tanakh-trivia",
+          "text": "Tanakh Trivia"
+        },
+        {
+          "level": 2,
+          "id": "the-basics-project-outline",
+          "text": "The Basics: Project Outline"
+        },
+        {
+          "level": 2,
+          "id": "1-getting-set-up",
+          "text": "1. Getting Set Up"
+        },
+        {
+          "level": 2,
+          "id": "2-selecting-a-book",
+          "text": "2. Selecting a Book"
+        },
+        {
+          "level": 2,
+          "id": "3-bringing-in-the-shape-api",
+          "text": "3. Bringing in the Shape API"
+        },
+        {
+          "level": 2,
+          "id": "4-let-the-trivia-begin",
+          "text": "4. Let the Trivia Begin!"
+        },
+        {
+          "level": 2,
+          "id": "5-adding-another-question",
+          "text": "5. Adding Another Question"
+        },
+        {
+          "level": 2,
+          "id": "6-one-last-round",
+          "text": "6. One Last Round"
+        },
+        {
+          "level": 2,
+          "id": "congratulations-youve-written-a-basic-tanakh-trivia-game-using-the-data-from-the-sefaria-api",
+          "text": "Congratulations! You've written a basic Tanakh trivia game using the data from the Sefaria API."
+        },
+        {
+          "level": 1,
+          "id": "summary-the-full-code",
+          "text": "Summary: The Full Code"
+        },
+        {
+          "level": 2,
+          "id": "please-note",
+          "text": "Please Note:"
+        }
+      ]
+    },
+    "reference/tutorials": {
+      "source": "reference/welcome/tutorials/index.md",
+      "headings": []
+    }
+  }
+}

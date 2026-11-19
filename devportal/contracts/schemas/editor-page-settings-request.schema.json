@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-page-settings-request.schema.json",
+  "title": "Editor: page settings",
+  "description": "PATCH /_portal/editor/pages/<id> -> editor-page. Unversioned settings; a slug change creates a Redirect from the old path. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "slug": {
+      "$ref": "common.schema.json#/$defs/slug"
+    }
+  },
+  "required": ["slug"],
+  "additionalProperties": false
+}

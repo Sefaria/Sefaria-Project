@@ -1,0 +1,54 @@
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+  min-height: var(--target-min);
+  padding: 0 var(--spacing-small);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--surface-hover);
+}
+
+.row:has(.input:focus-visible) {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 2px;
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-page);
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+  color: var(--text-inverse);
+}
+
+.check {
+  visibility: hidden;
+}
+
+.input:checked ~ .box {
+  background: var(--module-primary);
+}
+
+.input:checked ~ .box .check {
+  visibility: visible;
+}

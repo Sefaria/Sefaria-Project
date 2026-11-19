@@ -1,0 +1,95 @@
+{
+  "about": "Shared self-test for HTML normalization (NORMALIZE.md). Both devportal/contracts/normalize.py and the TypeScript implementation must turn every input into exactly its expected string, and normalizing an expected string must return it unchanged.",
+  "cases": [
+    {
+      "name": "attributes are sorted by name",
+      "input": "<a title=\"t\" href=\"/x\" class=\"dp-b\">x</a>",
+      "expected": "<a class=\"dp-b\" href=\"/x\" title=\"t\">x</a>"
+    },
+    {
+      "name": "class tokens are sorted, de-duplicated and whitespace-collapsed",
+      "input": "<div class=\"  dp-z dp-a\n dp-z \">x</div>",
+      "expected": "<div class=\"dp-a dp-z\">x</div>"
+    },
+    {
+      "name": "empty class is removed",
+      "input": "<p class=\" \">x</p>",
+      "expected": "<p>x</p>"
+    },
+    {
+      "name": "whitespace between block elements is dropped",
+      "input": "<div>\n  <p>a</p>\n  <p>b</p>\n</div>\n<hr>\n",
+      "expected": "<div><p>a</p><p>b</p></div><hr>"
+    },
+    {
+      "name": "whitespace next to inline elements is kept",
+      "input": "<p><strong>a</strong> <em>b</em></p>",
+      "expected": "<p><strong>a</strong> <em>b</em></p>"
+    },
+    {
+      "name": "whitespace between a block and an inline element is dropped",
+      "input": "<li><p>a</p> <code>b</code></li>",
+      "expected": "<li><p>a</p><code>b</code></li>"
+    },
+    {
+      "name": "whitespace-only text at the start or end of an element is dropped",
+      "input": "<p> <b>a</b> </p><li>\n<a href=\"/x\">x</a>\n<ul><li>y</li></ul></li>",
+      "expected": "<p><b>a</b></p><li><a href=\"/x\">x</a><ul><li>y</li></ul></li>"
+    },
+    {
+      "name": "whitespace inside text that touches a block is kept",
+      "input": "<li>text\n<ul><li>y</li></ul></li>",
+      "expected": "<li>text\n<ul><li>y</li></ul></li>"
+    },
+    {
+      "name": "text inside pre is preserved, one leading newline dropped",
+      "input": "<pre><code>\n  a  \n\n b\n</code></pre>",
+      "expected": "<pre><code>\n  a  \n\n b\n</code></pre>"
+    },
+    {
+      "name": "leading newline directly inside pre is dropped",
+      "input": "<pre>\nx\n</pre>",
+      "expected": "<pre>x\n</pre>"
+    },
+    {
+      "name": "character references are decoded and re-escaped minimally",
+      "input": "<p title=\"&quot;q&quot; &amp; &#x27;s&#x27;\">&lt;b&gt; &amp; &#x20; &#8212; &quot;</p>",
+      "expected": "<p title=\"&quot;q&quot; &amp; &#x27;s&#x27;\">&lt;b&gt; &amp;   — \"</p>"
+    },
+    {
+      "name": "void elements have no closing slash, boolean attributes become empty strings",
+      "input": "<p>a<br/>b<br />c</p><iframe allowfullscreen src=\"https://www.youtube-nocookie.com/embed/x\"></iframe><img src=\"/a.png\" alt=\"\">",
+      "expected": "<p>a<br>b<br>c</p><iframe allowfullscreen=\"\" src=\"https://www.youtube-nocookie.com/embed/x\"></iframe><img alt=\"\" src=\"/a.png\">"
+    },
+    {
+      "name": "editor-only attributes and classes are removed",
+      "input": "<p contenteditable=\"true\" draggable=\"false\" data-pm-slice=\"1 1 []\" data-node-view-wrapper=\"\" data-dp-src=\"3-4\" data-dp-editor-dirty=\"1\" spellcheck=\"false\" class=\"ProseMirror-selectednode dp-editor-x dp-keep\" dir=\"auto\">x</p>",
+      "expected": "<p class=\"dp-keep\" dir=\"auto\">x</p>"
+    },
+    {
+      "name": "comments are dropped, tag and attribute names lower-cased",
+      "input": "<!-- c --><P DIR=\"auto\">x<!-- d --></P>",
+      "expected": "<p dir=\"auto\">x</p>"
+    },
+    {
+      "name": "unclosed elements are closed at their parent's end, stray end tags ignored",
+      "input": "<div><p>a</div></span><p>b",
+      "expected": "<div><p>a</p></div><p>b</p>"
+    },
+    {
+      "name": "CRLF becomes LF",
+      "input": "<pre><code>a\r\nb\r\n</code></pre>",
+      "expected": "<pre><code>a\nb\n</code></pre>"
+    },
+    {
+      "name": "non-ASCII text is kept as characters",
+      "input": "<p dir=\"auto\">בראשית  🚧</p>",
+      "expected": "<p dir=\"auto\">בראשית  🚧</p>"
+    },
+    {
+      "name": "duplicate attributes keep the first",
+      "input": "<a href=\"/a\" href=\"/b\">x</a>",
+      "expected": "<a href=\"/a\">x</a>"
+    }
+  ]
+}

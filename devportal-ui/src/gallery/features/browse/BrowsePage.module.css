@@ -1,0 +1,68 @@
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4xlarge);
+  padding-top: var(--spacing-3xlarge);
+  padding-bottom: var(--spacing-6xlarge);
+}
+
+/* The sidebar only exists from 1024px; below that, filters live in the sheet. */
+.filters {
+  display: none;
+}
+
+.results {
+  display: flex;
+  flex: 999 1 560px;
+  flex-direction: column;
+  gap: var(--spacing-large);
+  min-width: 0;
+}
+
+.heading {
+  font-family: var(--font-en-content);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+  scroll-margin-top: var(--spacing-large);
+}
+
+.heading:focus {
+  outline: none;
+}
+
+.heading:focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 4px;
+}
+
+.summary {
+  min-height: 18px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+@media (width >= 1024px) {
+  .layout {
+    padding-top: var(--spacing-4xlarge);
+  }
+
+  .filters {
+    display: block;
+    flex: 1 1 248px;
+    max-width: 280px;
+    padding-top: var(--spacing-6xlarge);
+
+    /* sticky below the page header; scrolls on its own when taller than the viewport */
+    position: sticky;
+    top: var(--spacing-large);
+    align-self: flex-start;
+    max-height: calc(100vh - 2 * var(--spacing-large));
+    overflow-y: auto;
+
+    /* keep the scrollbar off the counts and the row highlight */
+    scrollbar-gutter: stable;
+    padding-right: var(--spacing-2xlarge);
+  }
+}

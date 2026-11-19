@@ -9,6 +9,8 @@ what the auth service work must and must not render:
 - Phase 1 policy, per environment file: mode observe, ext_authz fails open, no rate limiting; the flag-on render hands
   the auth service container the same mode. A self-test proves the policy check rejects a prod copy set to enforce.
 - Both: the nginx access log records the scrubbed request URI and referer, never the raw ones, and no key header.
+- The chart defaults (what PR sandboxes and cauldrons render) pass the same off and on checks, with the developers
+  module's HTTPS listener covered by the header strip.
 
 Needs helm and PyYAML. Run from the repository root: python3 helm-chart/sefaria/tests/auth_service_render_test.py
 """
@@ -205,6 +207,27 @@ def check_on(env, objects):
     check_log_format_never_logs_a_key(where, log_format, allowed)
 
 
+def check_chart_defaults():
+    """PR sandboxes and cauldrons render the chart's own values, which carry the developers module (English only).
+    Its listeners must get the same treatment as every other host: the header strip names https-developers-en and the
+    site route is served there on HTTPS only (check_on asserts both for every HTTPS listener)."""
+    release = {"metadata": {"name": "sandbox-test"}, "spec": {"values": {"deployEnv": "sandbox-test"}}}
+    check_off("chart defaults", render(release, enabled=False))
+    objects = render(release, enabled=True)
+    check_on("chart defaults", objects)
+    (gateway,) = find(objects, "Gateway")
+    names = {li["name"] for li in gateway["spec"]["listeners"]}
+    check(
+        {"http-developers-en", "https-developers-en"} <= names and not any("developers-he" in n for n in names),
+        "chart defaults: the Gateway has the developers listeners, for English only",
+    )
+    (policy,) = find(objects, "ClientTrafficPolicy")
+    check(
+        "https-developers-en" in {t.get("sectionName") for t in policy["spec"].get("targetRefs") or []},
+        "chart defaults on: the header strip covers the developers host",
+    )
+
+
 def policy_problems(release, mode="observe"):
     """What is wrong with this env file's authService values for phase 1 (empty list: nothing)."""
     auth = release["spec"]["values"]["authService"]
@@ -285,6 +308,7 @@ def main():
         rendered_on = render(release, enabled=True)
         check_on(env, rendered_on)
         check_release_rules(env, release, rendered_on)
+    check_chart_defaults()
     self_test_policy_check()
     if failures:
         sys.exit(f"{len(failures)} check(s) failed")

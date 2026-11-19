@@ -1,0 +1,82 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+  min-width: 0;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+}
+
+.button {
+  width: 100%;
+  font-size: 18px;
+}
+
+.helper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-small);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+
+.globe {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* 600-1023px: an inline panel under the header, buttons side by side at natural width. */
+@media (width >= 600px) {
+  .root {
+    padding: var(--spacing-xlarge);
+    border-radius: var(--radius-lg);
+    background: var(--surface-subtle);
+  }
+
+  .buttons {
+    flex-flow: row wrap;
+  }
+
+  .button {
+    width: auto;
+  }
+}
+
+/* >= 1024px: the sticky side card, buttons stacked full width. */
+@media (width >= 1024px) {
+  .root {
+    position: sticky;
+    top: var(--spacing-2xlarge);
+    padding: var(--spacing-2xlarge);
+    border: 1px solid var(--border-default);
+    background: var(--surface-page);
+  }
+
+  .buttons {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
+
+/* < 600px: a bar stuck to the bottom of the screen, bleeding to its edges. */
+@media (width <= 599px) {
+  .root {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin-inline: calc(-1 * var(--spacing-2xlarge));
+    padding: 12px 16px 20px;
+    background: var(--surface-page);
+    border-top: 1px solid var(--border-default);
+    box-shadow: 0 -4px 12px rgb(31 31 31 / 8%);
+  }
+}

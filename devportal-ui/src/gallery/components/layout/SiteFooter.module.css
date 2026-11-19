@@ -1,0 +1,99 @@
+.footer {
+  background: var(--module-primary);
+  color: var(--text-inverse);
+  padding: var(--spacing-5xlarge) 0;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xlarge);
+}
+
+.title {
+  font-family: var(--font-en-content);
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.body {
+  max-width: 480px;
+  margin-top: var(--spacing-medium);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  border-top: 1px solid var(--divider-inverse);
+}
+
+.item:last-child {
+  border-bottom: 1px solid var(--divider-inverse);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height);
+  color: var(--text-inverse);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline-color: var(--text-inverse);
+}
+
+/* 640px and up: a wrapping row of underlined links, under the text until there is room beside it. */
+@media (width >= 640px) {
+  .links {
+    flex-flow: row wrap;
+    gap: 0 var(--spacing-2xlarge);
+  }
+
+  .item,
+  .item:last-child {
+    border: 0;
+  }
+
+  .link {
+    min-height: var(--target-min);
+    text-decoration: underline;
+  }
+}
+
+@media (width >= 1024px) {
+  .inner {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--spacing-5xlarge);
+  }
+
+  .links {
+    justify-content: flex-end;
+  }
+}
+
+.privacy {
+  margin-top: var(--spacing-medium);
+  font-size: 14px;
+}
+
+.privacyLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  color: var(--text-inverse-soft);
+  text-decoration: underline;
+}
+
+.privacyLink:focus-visible {
+  outline-color: var(--text-inverse);
+}

@@ -1,0 +1,292 @@
+/* Shared reference primitives. Values measured on live (computed-get-v3-texts.json and the live outlines). */
+
+/* Markdown descriptions: 13px/18.2px #484c58 in parameter rows; containers override size where live does. */
+.markdown {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--rm-color-text-muted, #484c58);
+  overflow-wrap: break-word;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown p {
+  margin: 0 0 15px;
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 0 0 17px;
+  padding: 0 0 0 26px;
+}
+
+.markdown li + li {
+  margin-top: 7px;
+}
+
+.markdown hr {
+  margin: 15px 0;
+  border: 0;
+  border-bottom: 1px solid #dfe2e5;
+  height: 0;
+}
+
+.markdown strong {
+  font-weight: 600;
+}
+
+.markdown a {
+  color: var(--rm-color-link-primary, #666);
+  text-decoration: underline;
+}
+
+.markdown a:hover {
+  color: var(--rm-color-link-primary-hover, #333);
+}
+
+.markdown code {
+  font-family: var(--rm-font-family-mono);
+  font-size: 0.9em;
+  color: #32343a;
+  background: #f2f3f4;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+.markdown pre {
+  margin: 0 0 15px;
+  padding: 10px;
+  background: #f2f3f4;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.markdown pre code {
+  padding: 0;
+  background: none;
+}
+
+/* Copy button with its "Copied!" tooltip. */
+.copyButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.copyButton:hover {
+  background: rgb(0 0 0 / 5%);
+}
+
+.copyButton:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #1a73e8);
+  outline-offset: 2px;
+}
+
+.copyIcon {
+  width: 15px;
+  height: 15px;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #384248;
+  color: #fff;
+  font-family: var(--font-en-system);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Status dot: live's HTTPStatus-chit, 12px including its border. */
+.statusDot {
+  display: block;
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border: 1px solid rgb(0 0 0 / 15%);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 50%),
+    inset 0 -1px 2px rgb(0 0 0 / 10%),
+    0 1px 3px rgb(0 0 0 / 10%);
+  background: #c6c9d2;
+}
+
+.status1 {
+  background: #c6c9d2;
+}
+
+.status2 {
+  background: #12ca93;
+}
+
+.status3 {
+  background: #018ef5;
+}
+
+.status4,
+.status5 {
+  background: #e95f6a;
+}
+
+/* Method badge, live's APIMethod "classic" solid style. */
+.method {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 20px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 10%);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 20%),
+    inset 0 -1px 2px rgb(0 0 0 / 20%),
+    0 1px 2px rgb(0 0 0 / 5%);
+}
+
+.get {
+  background: var(--rm-green30, #008756);
+}
+
+.post {
+  background: var(--rm-blue40, #0222c6);
+}
+
+.put {
+  background: #6d5ba6;
+}
+
+.patch {
+  background: #df7d03;
+}
+
+.delete {
+  background: #cb4452;
+}
+
+/* Dropdown: a panel 4px under its trigger, as live's tippy dropdowns. */
+.dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Live's tippy box: the menu plus 10px of transparent space above and below it. */
+.panelFrame {
+  position: absolute;
+  top: calc(100% - 6px);
+  z-index: 30;
+  padding: 10px 0;
+  pointer-events: none;
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  pointer-events: auto;
+  flex-direction: column;
+  min-width: 208px;
+  box-sizing: border-box;
+  padding: 6px 0;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 5px 10px rgb(0 0 0 / 5%),
+    0 2px 6px rgb(0 0 0 / 2.4%),
+    0 1px 3px rgb(0 0 0 / 2.4%);
+  color: #32343a;
+  font-family: var(--font-en-system);
+  text-align: left;
+}
+
+.alignStart {
+  left: 0;
+}
+
+.alignEnd {
+  right: 0;
+}
+
+.menuItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 32px;
+  margin: 0 6px;
+  padding: 6px 8px 6px 30px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #32343a;
+  font: 500 14px/20px var(--font-en-system);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: rgb(0 0 0 / 5%);
+  outline: none;
+}
+
+.menuItemActive {
+  background: rgb(0 0 0 / 3%);
+}
+
+.menuItemIcon {
+  display: flex;
+  margin: 0 8px 0 0;
+  color: #666b79;
+}
+
+.menuItemLabel {
+  flex: 1 1 auto;
+}
+
+.menuItemCheck {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  color: var(--rm-blue, #018ef5);
+}
+
+.menuHeader {
+  margin: 8px 0 4px;
+  padding: 0 12px;
+  color: #666b79;
+  font: 500 12px/16px var(--font-en-system);
+}

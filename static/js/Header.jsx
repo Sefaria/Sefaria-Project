@@ -231,7 +231,7 @@ const ModuleSwitcher = () => {
         />
         <DropdownMenuSeparator />
         <DropdownModuleItem
-          url={'https://developers.sefaria.org'}
+          url={Sefaria.developersURL}
           newTab={true}
           dotColor={'--devportal-purple'}
           text={{ en: 'Developers', he: Sefaria._('header.developers') }}
@@ -669,7 +669,7 @@ const MobileNavMenu = ({
           </a>
         )}
 
-        <a href="https://developers.sefaria.org" className="mobileModuleSwitcher" target="_blank" rel="noreferrer">
+        <a href={Sefaria.developersURL} className="mobileModuleSwitcher" target="_blank" rel="noreferrer">
           <span className="dropdownDot" style={{ backgroundColor: `var(--devportal-purple)` }}></span>
           <InterfaceText>header.developers_on_sefaria</InterfaceText>
         </a>

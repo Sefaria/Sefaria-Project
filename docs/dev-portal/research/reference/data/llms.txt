@@ -1,0 +1,159 @@
+# Sefaria Documentation
+
+> Expand Digital Torah! Leverage the largest open-source database of Jewish texts in history to build apps and services for the People of the Book.
+
+## Docs: TECHNICAL DOCS
+- [Welcome to Sefaria's Technical Documentation](https://developers.sefaria.org/docs/welcome.md): Explore Sefaria's technical documentation, including API insights, details about text structure, and more.
+- [Projects Powered By Sefaria](https://developers.sefaria.org/docs/powered-by-sefaria.md)
+  - [Project Acceptance Criteria](https://developers.sefaria.org/docs/powered-by-sefaria-acceptance-criteria.md)
+- [Copyright and Data Use](https://developers.sefaria.org/docs/usage-of-our-name-and-logo.md): Learn about how to find copyright details for texts in the Library and proper usage of Sefaria's name and logo.
+- [The Structure of a Book in the Sefaria Library](https://developers.sefaria.org/docs/the-structure-of-a-text-on-sefaria.md): Learn about the structure the data corresponding to individual texts in the Sefaria Library.
+  - [Index and Versions](https://developers.sefaria.org/docs/index-and-versions.md): In the Sefaria Library, titles are represented by an Index, while editions of titles are represented by Versions.
+  - [The Index Schema](https://developers.sefaria.org/docs/the-index-schema.md): Learn about how we define the structure of a book in the Sefaria Library.
+    - [JaggedArray and JaggedArray Nodes](https://developers.sefaria.org/docs/jaggedarray-and-jaggedarray-nodes.md): JaggedArray and JaggedArrayNodes are objects used for representing both the text content and the structure of simple texts.
+    - [SchemaNode](https://developers.sefaria.org/docs/schemanode.md): These intermediate nodes are used to define the schema of an Index, thereby creating the structure of a book.
+    - [The Structure of a Simple Text](https://developers.sefaria.org/docs/the-structure-of-a-simple-text.md): Learn more about the index schema for "simple" texts in the Sefaria Library.
+    - [The Structure of a Complex Text](https://developers.sefaria.org/docs/the-structure-of-a-complex-text.md): Learn more about the Index schema of "complex" texts and how they work in the context of the structures of texts in the Sefaria Library.
+    - [Node Titles](https://developers.sefaria.org/docs/node-titles.md): Learn how node titles work at Sefaria for books and sections of books, and how they work together in building text citations.
+  - [Alternate Structures](https://developers.sefaria.org/docs/alternate-structures.md): Learn how to work with texts that feature alternate structures.
+  - [Commentaries](https://developers.sefaria.org/docs/commentaries.md): Learn about working with commentaries in Sefaria's database.
+  - [Terms](https://developers.sefaria.org/docs/terms.md): Learn about these objects, used for grouping titles, alternate titles, and other bilingual terms.
+  - [Lexicon](https://developers.sefaria.org/docs/lexicon-docs.md): Learn about the structure of dictionaries in the Sefaria Library
+- [Text References](https://developers.sefaria.org/docs/text-references.md): The core of Sefaria's system is the system of text references. Understanding how they work is key to using our API and our broader codebase.
+- [Categories](https://developers.sefaria.org/docs/categories.md): Learn about how texts are categorized in the Sefaria Library.
+- [Topic Ontology](https://developers.sefaria.org/docs/topic-ontology.md): Learn how Topics on Sefaria are organized, and how to access them using the Sefaria API.
+  - [Linear Integer Programming For Topic Page Sources Selection](https://developers.sefaria.org/docs/linear-integer-programming-for-topic-pages-sources-selection.md): See the integer programming used for selecting sources featured on Topic pages
+- [Formatting within Sefaria Texts](https://developers.sefaria.org/docs/text-formatting-beyond-the-segment-level.md): Learn more about the HTML supported by Sefaria, used for in-line text formatting, as well as adding footnotes, commentaries, and other in-text emphasis.
+- [Additional API Endpoints](https://developers.sefaria.org/docs/api-wiki.md): Learn more about various API endpoints that are not yet listed in Sefaria's API playground.
+  - [ElasticSearch Proxy API](https://developers.sefaria.org/docs/search-api.md): Understand how to use the Sefaria proxy API to query the ElasticSearch API.
+- [The Sefaria Linker](https://developers.sefaria.org/docs/linker.md): Learn about using Sefaria's powerful citation tool to link your website to source texts.
+  - [Embed Linker v2 In Your Site](https://developers.sefaria.org/docs/linker-v2.md): Learn how to embed version two of Sefaria's powerful citation linking tool into your website.
+  - [Embed Linker v3 on Your Site](https://developers.sefaria.org/docs/linker-v3.md): Learn about the Sefaria Linker: A tool that links references on external webpages and links them to corresponding texts in the Sefaria Library.
+  - [How to Format Citations for the Linker](https://developers.sefaria.org/docs/how-to-format-citations-for-the-linker.md): Learn about formatting citations to ensure they're recognized by the Sefaria Linker.
+  - [איך ליצור מראי מקורות להפניה - How to Format Citations (HE)](https://developers.sefaria.org/docs/איך-ליצור-מראי-מקורות-להפניה.md)
+  - [The Sefaria Linker API](https://developers.sefaria.org/docs/linker-api.md): Learn how to use the Sefaria Linker API.
+  - [The Sefaria Linker Async Task API](https://developers.sefaria.org/docs/async-task-api.md): Learn how to use the Sefaria Linker Async Task API
+  - [Websites Using the Linker](https://developers.sefaria.org/docs/sites-using-the-linker.md): The Sefaria Linker is a free JavaScript plugin for websites that cite Jewish texts. With just a few lines of code, textual citations on your website automatically become clickable, allowing users to…
+- [The Sefaria MCPs](https://developers.sefaria.org/docs/the-sefaria-mcp.md): Use our MCPs to integrate your LLM of choice with the texts in the Sefaria Library and with our open-source data.
+- [The Educator Playbook: A Quick Guide to Vibe-Coding with Sefaria](https://developers.sefaria.org/docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria.md)
+
+## Docs: local installation
+- [Getting Started](https://developers.sefaria.org/docs/getting-started-with-local-installation.md)
+- [Public Contributions](https://developers.sefaria.org/docs/contributions-to-sefarias-repositories.md)
+- [Local Installation Instructions](https://developers.sefaria.org/docs/local-installation-instructions.md): Learn about how set up a local Sefaria environment in order to run a local copy of the application and web server.
+  - [Run Sefaria with Docker-Compose](https://developers.sefaria.org/docs/docker-compose-sefaria.md)
+- [Workflowy](https://developers.sefaria.org/docs/workflowy.md): When working with local installation, tools like our Workflowy Parser may be helpful for creating indices and adding text on Sefaria.
+- [Command-Line-Interface (CLI)](https://developers.sefaria.org/docs/cli.md): Learn more about Sefaria's Command-Line-Interface tool.
+- [Technical Notes](https://developers.sefaria.org/docs/technical-notes.md)
+  - [Term Creation](https://developers.sefaria.org/docs/term-creation.md): Two ways of creating a Term on a local instance of Sefaria
+  - [Titles for Index](https://developers.sefaria.org/docs/titles-for-index.md): How to initialize a new Index on a local instance of Sefaria
+  - [Category Creation](https://developers.sefaria.org/docs/category-creation.md): Creating categories on a local installation of the project.
+
+## Docs: Dev Digest Archive
+- [The Sefaria Developer Community Archive](https://developers.sefaria.org/docs/the-sefaria-developer-community-archive.md)
+- [All About Texts, Volunteering for Tests (June 2024, Issue 1)](https://developers.sefaria.org/docs/june-2024.md): How to strip nikkud from Tanakh via the Texts API, the known limitation with complex text retrieval and how to work around it, plus a developer who projected Talmud translations onto a physical page…
+- [Celery Queues, Local Install and the Shape API (September 2024, Issue 2)](https://developers.sefaria.org/docs/september-2024.md): Sefaria's citation detection upgraded from regex to a CNN-based ML model (Linker v3, available on HuggingFace), plus the underrated Shape API explained and how Celery queues solved text upload…
+- [Linear Programming, Topic Curation, and API Tips (December 2024, Issue 3)](https://developers.sefaria.org/docs/linear-programming-topic-curation-and-api-tips.md): How Sefaria used linear programming to optimize topic page curation across the Jewish canon, plus a trick for deriving Texts API refs from the site URL and calculating verse numbers using nested…
+- [Top Tech Tips, New Projects, and More! (March 2025, Issue 4)](https://developers.sefaria.org/docs/top-tech-tips-new-projects-and-more-march-2025-issue-4.md): How to fetch Hebrew author names via the v2/index API, a zero-ellipsis CSS trick for clamped topic grids, and an interesting community project for a clean read of the Talmud building on Sefaria's…
+- [Calendar API, a User-Requested feature, and More! (June 2025, Issue 5)](https://developers.sefaria.org/docs/calendar-api-a-user-requested-feature-and-more.md): Sefaria's Calendar API quirk explained, how a state-management overhaul saved half a million user sheets from data loss, and a tool that turns Torah verses into sound waves via Gematria.
+- [Accessibility, Interns, and the Passages API (September 2025, Issue 6)](https://developers.sefaria.org/docs/accessibility-interns-and-the-passages-api-september-2025.md): Pass a Talmud reference, get back the full sugya — Sefaria's underrated Passages API explained, plus accessibility work making every element keyboard-navigable, and a community project that mapped…
+- [Django middleware innovation & MCPs (January 2026, Issue 7)](https://developers.sefaria.org/docs/django-middleware-innovation-mcps-january-2026-issue-7.md): How do you split one monolith into three products without touching the codebase? Sefaria's engineering team did it with subdomain-aware Django middleware — read how a single dictionary lookup powers…
+- [Sefaria-Export, A Data Puzzle and Deep Wiki (April 2026, Issue 8)](https://developers.sefaria.org/docs/sefaria-export-a-data-puzzle-and-deep-wiki.md)
+
+## Docs: SEFARIA RESEARCH
+- [The Disambiguator](https://developers.sefaria.org/docs/the-disambiguator.md): Precise linking improvements through citation disambiguation
+- [Patot](https://developers.sefaria.org/docs/patot.md): A Python toolkit for Hebrew/English-aware semantic chunking for model-ready units for downstream AI workflows
+- [Beyond KMeans - PyCon 2024](https://developers.sefaria.org/docs/sefaria-research-at-pyconn-2024.md): Using LLMs to improve text clustering
+- [Getting Evals Right for a Jewish AI Chatbot](https://developers.sefaria.org/docs/getting-evals-right-for-a-jewish-ai-chatbot.md): Learn about our process and priorities for developing the Library Assistant
+
+## Docs: about Sefaria
+- [General FAQ](https://developers.sefaria.org/docs/general-faq.md)
+- [Guide to Contributing](https://developers.sefaria.org/docs/guide-to-contributing.md)
+  - [How to Report a Mistake](https://developers.sefaria.org/docs/how-to-report-a-mistake.md)
+
+## API Reference: welcome
+- [Getting Started With the Sefaria API](https://developers.sefaria.org/reference/getting-started.md): Learn how to use the Sefaria API to access Jewish texts and their interconnections. Get started without needing API keys or authorization.
+- [Tutorials](https://developers.sefaria.org/reference/tutorials.md)
+  - [Tutorial: The Dvar Torah Outliner](https://developers.sefaria.org/reference/tutorial-dvar-torah-outliner.md): This beginner tutorial is great for beginners looking to get started working with the Sefaria API Reference.
+  - [Tutorial: Tanakh Trivia Game](https://developers.sefaria.org/reference/tutorial-tanakh-trivia-game.md): This tutorial demonstrates a proof-of-concept for a Tanakh trivia game powered by the Sefaria API, in approximately 100 lines of code.
+  - [Tutorial: Data Visualization](https://developers.sefaria.org/reference/data-visualization.md): This basic tutorials explain how to use the Sefaria API to create a few possible data visualizations.
+  - [Writing Playwright Tests for Sefaria](https://developers.sefaria.org/reference/playwright-tests-for-sefaria.md): Learn how to contribute to Sefaria's test coverage with this comprehensive guide.
+- [Frequently Asked Questions](https://developers.sefaria.org/reference/others-have-asked.md): Looking to get started, but want a rundown of the basics? Here are some common questions we get in our inbox — along with some quick answers to help you get started.
+
+## API Reference: Sefaria API
+- Text
+  - [Texts (v3)](https://developers.sefaria.org/reference/get-v3-texts.md): The most up-to-date way to retrieve texts from Sefaria via the API, with enhanced control over language, language direction, and other parameters.
+  - [Texts (v1)](https://developers.sefaria.org/reference/get-v1-texts.md): Retrieve the text and some additional metadata for a specific Sefaria textual `Ref`
+  - [Versions](https://developers.sefaria.org/reference/get-versions.md): The versions API takes a title of a valid Sefaria `index` as a parameter, and will return all available versions of the text in the Sefaria database, alongside metadata for each version. A version…
+  - [Languages](https://developers.sefaria.org/reference/get-translations.md): Returns a list of distinct languages for which translations exist in the database.
+  - [Translations](https://developers.sefaria.org/reference/get-translations-lang.md): Returns a dictionary of texts translated into `lang`, organized by the Sefaria category & secondary category of each title.
+  - [Manuscripts](https://developers.sefaria.org/reference/get-manuscripts.md): This call retrieves all associated manuscript data and metadata for a given Sefaria `tref`.
+  - [Random Text](https://developers.sefaria.org/reference/get-texts-random.md): Returns a random text reference from the Sefaria library. Results can be limited to a specific category or from a selection of titles given the correct query params.
+  - [Bulk Text](https://developers.sefaria.org/reference/get-bulktext.md): Returns the English and Hebrew text plus metadata such as the language, ref for the url, etc. for many refs at once. The path parameter is a pipe-delimited list of refs.
+  - [Passages](https://developers.sefaria.org/reference/get-passages.md): Maps each requested ref to the canonical passage that contains it. Particularly useful for Talmud sugyot — a single amud ref is mapped to the full sugya boundary. Also works for Tanakh, where a verse…
+- Index
+  - [Index (v2)](https://developers.sefaria.org/reference/get-v2-index.md): This API endpoint will retrieve the full mongo record of the given `Index` as it appears in the database.
+  - [Table of Contents](https://developers.sefaria.org/reference/get-index.md): This API endpoint returns the titles of all the books in the Sefaria Library arranged by their category along with some additional metadata. This is a large and rarely changing request and should be…
+  - [Shape](https://developers.sefaria.org/reference/get-shape.md): Retrieve basic statistics and information about the "shape" of an `Index` on Sefaria.
+- Related
+  - [Related](https://developers.sefaria.org/reference/get-related.md): A single API endpoint to return all of the content (links, sheets, notes, media, manuscripts, and topics) related to the given `Ref` in the query.
+  - [Links](https://developers.sefaria.org/reference/get-links.md): Returns a list of known connections for the submitted text `ref` along with some additional metadata. Category filters apply to the derived `category` value returned in the API payload, such as…
+  - [Ref-Topic-Links](https://developers.sefaria.org/reference/get-ref-topic-links.md): An API endpoint where, given a `Ref`, all of the topics linked to that `Ref` are retrieved along with the respective metadata.
+  - [Related Web Pages](https://developers.sefaria.org/reference/get-related-websites.md): A single API endpoint to return the webpages related to a segment-level `Ref` in the query.
+  - [Link Summary](https://developers.sefaria.org/reference/get-link-summary.md): Returns a summary of all links targeting a ref, grouped by category, with per-book breakdowns.
+- Calendars
+  - [Calendars](https://developers.sefaria.org/reference/get-calendars.md): Returns the daily or weekly learning schedule for a given date.
+  - [Next Read](https://developers.sefaria.org/reference/get-next-read.md): Given a Parasha name in English, this API returns the next Hebrew and English dates that it is read, along with details about the Torah and Haftarah readings for that date.
+  - [Aliyot for Parasha](https://developers.sefaria.org/reference/get-aliyot-by-parasha.md): Returns the seven aliyot ranges for a given parasha. Used by the source sheet builder when seeding a sheet from a weekly reading.
+  - [Parasha Topic](https://developers.sefaria.org/reference/get-calendar-parasha-topic.md): Returns topic metadata for the current week's parasha — title, ref, category ordering, and bilingual display values.
+  - [Holiday Topic](https://developers.sefaria.org/reference/get-calendar-holiday-topic.md): Returns topic metadata for the active holiday on the requested date. Returns 404 when no holiday is in season for the given day. Use the `year`, `month`, `day` query params (all three required…
+- Lexicon
+  - [Lexicon](https://developers.sefaria.org/reference/get-words.md): Searches Sefaria lexicon entries (i.e. dictionaries) for the query string passed as `word` to the endpoint.
+  - [Word Completion](https://developers.sefaria.org/reference/get-words-completion.md): Serves primarily as an autocompleter, returning potential lexicon entries for a given input.  Returns an array of arrays, each containing two strings. The first is a completion entry in Hebrew…
+  - [Get a lexicon entry](https://developers.sefaria.org/reference/get-lexicon-entry.md): Looks up a single lexicon entry by its exact parent lexicon and headword (NFC-normalized before matching). Unlike `/api/words/{word}`, this does not do fuzzy/inflected-form lookup -- it's meant for…
+- Topic
+  - [Topic (v2)](https://developers.sefaria.org/reference/get-v2-topics.md): Retrieve a specific topic from the `v2` version of the topics API.
+  - [Topic (v1)](https://developers.sefaria.org/reference/get-topic-slug.md): When this endpoint is called with a specific `topic_slug`, it returns a JSON object containing the metadata for the topic.
+  - [All Topics](https://developers.sefaria.org/reference/get-all-topics.md): The topics API returns a list of JSON objects, with each object containing metadata for every topic in the Sefaria database. By default, responses are minified to reduce payload size. Use `minify=0`…
+  - [Topic Graph](https://developers.sefaria.org/reference/get-topics-graph.md): Endpoint to retrieve topics and their links between other topics. As opposed to topic links to refs, this endpoint retrieve connections between one topic to another topic.
+  - [Recommended Topics](https://developers.sefaria.org/reference/get-recommend-topics.md): Given a list of `Ref`s this API returns the most used topics associated with them. This is a fast way of identifying potential shared topics amongst disparate `Ref`s.
+  - [Random By Topic](https://developers.sefaria.org/reference/get-random-by-topic.md): Returns Texts API data for a random text taken from popular topic tags.
+- Term
+  - [Terms](https://developers.sefaria.org/reference/get-terms.md): A Term is a shared title node.  It can be referenced and used by many different `Index` nodes. Terms that use the same `TermScheme` can be ordered within that scheme. So for example, _Parsha_ terms…
+  - [Name](https://developers.sefaria.org/reference/get-name.md): Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria.
+- Sheets
+  - [Sheet](https://developers.sefaria.org/reference/get-sheet.md): Retrieves the full content and metadata of a single Sefaria source sheet.
+  - [Trending Sheet Tags](https://developers.sefaria.org/reference/get-sheets-trending-tags.md): Returns the most-used sheet tags from recent activity.
+  - [Sheet Modified Check](https://developers.sefaria.org/reference/get-sheet-modified.md): Returns the full sheet if it has been modified since the given timestamp; otherwise returns an empty/unchanged response. Useful for clients that cache sheets.
+  - [User's Sheets](https://developers.sefaria.org/reference/get-user-sheets.md): Returns a user's public sheets. For anonymous callers, only public sheets are returned. An authenticated user requesting their own user_id additionally sees their private sheets.
+  - [User's Sheets (Paginated)](https://developers.sefaria.org/reference/get-user-sheets-paginated.md): Returns a user's public sheets, paginated and sorted. Same response shape as the unparameterized variant.
+  - [Bulk Sheets](https://developers.sefaria.org/reference/get-sheets-bulk.md): Fetches lightweight summaries for many sheets at once. The path parameter is a pipe-delimited (`|`) list of sheet IDs. Each ID is found the same way as for single-sheet endpoints (the number in the…
+  - [Sheet Tag List](https://developers.sefaria.org/reference/get-sheets-tag-list.md): Returns all sheet tags with their usage counts. Sorted by count (descending) by default.
+  - [Sheet Tag List (Sorted)](https://developers.sefaria.org/reference/get-sheets-tag-list-sorted.md): Returns all sheet tags with their usage counts, sorted by the given key.
+  - [User's Sheet Tags](https://developers.sefaria.org/reference/get-user-sheet-tags.md): Returns the topic tags used on a specific user's public sheets.
+  - [Sheets by Ref](https://developers.sefaria.org/reference/get-sheets-by-ref.md): Returns public sheets that cite the given Sefaria ref.
+  - [All Public Sheets](https://developers.sefaria.org/reference/get-all-sheets.md): Returns a paginated list of all public sheets.
+- Index
+  - [Author Indexes](https://developers.sefaria.org/reference/get-author-indexes.md): Returns the list of indexes (works) attributed to a given Sefaria author.
+  - [Index Titles](https://developers.sefaria.org/reference/get-index-titles.md): Returns the complete list of recognized title strings on Sefaria, including alternate titles and abbreviations. Useful for client-side autocomplete and ref recognition. Note: this response is…
+  - [Index Metadata](https://developers.sefaria.org/reference/get-index-by-title.md): Returns metadata for a single index (work) by title — categories, schema (text structure), authors, descriptive copy, and ordering hints.
+  - [Index Metadata (v2)](https://developers.sefaria.org/reference/get-index-v2.md): Same as `GET /api/index/{title}`. Returns metadata for a single index (work) by title.
+  - [Counts](https://developers.sefaria.org/reference/get-counts.md): Returns word and segment counts for a text, broken down by language.
+  - [Link Counts Between Categories](https://developers.sefaria.org/reference/get-counts-links.md): Returns the number of links between every book in `cat1` and every book in `cat2`. Returns an error response if no links exist between the requested category pair.
+  - [Word Count for Version](https://developers.sefaria.org/reference/get-counts-words.md): Returns the word count for a specific text version. Example: title=`Genesis`, version=`Miqra according to the Masorah`, language=`he`.
+- Collections
+  - [Collections](https://developers.sefaria.org/reference/get-collections.md): Returns the list of Sefaria collections. Unauthenticated callers see only publicly-listed collections in `public`; the `private` array is empty. Authenticated users additionally see private…
+  - [Collection](https://developers.sefaria.org/reference/get-collection.md): Returns the full content of a single collection, including its member sheets. For unauthenticated callers, only publicly-listed collections are accessible.
+  - [User's Collections](https://developers.sefaria.org/reference/get-user-collections.md): Returns the collections that a specific user owns or belongs to.
+- Ref
+  - [Ref](https://developers.sefaria.org/reference/get-ref.md): Validates a text reference (`tref`) and returns structured metadata about it.  The response varies based on the `node_type` of the referenced text:  - **JaggedArrayNode**: Standard text nodes (e.g.…
+- Misc
+  - [Find Refs](https://developers.sefaria.org/reference/post-find-refs.md): Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual references in any arbitrary text that gets sent to it via…
+  - [Search](https://developers.sefaria.org/reference/post-search-wrapper.md): An [elastic search](https://www.elastic.co/guide/en/elasticsearch/reference/current/) endpoint for Sefaria's data. Given a properly formated POST request this endpoint will return search results for…
+  - [Social Media Image](https://developers.sefaria.org/reference/get-img-gen.md): Given a Sefaria text `Ref` or page path and some other optional parameters, this endpoint returns a .png image ready to share on social media. At Sefaria.org we use it primarily to auto-generate…
+  - [Category](https://developers.sefaria.org/reference/get-category.md): GET requests take a full category path in the request, e.g. `/api/category/Tanakh/Torah/Genesis`, and return the full category object found.   If the category is not found, the returned object will…
+  - [Public Profile](https://developers.sefaria.org/reference/get-profile.md): Returns the public profile for a Sefaria user.
+  - [Get Async Task Status](https://developers.sefaria.org/reference/get-async-task-status.md): Poll the status of an asynchronous task. Returns the current state of the task and, when complete, the result or error. This endpoint is generic — it works for any task enqueued by an asynchronous…
+
+## Pages
+- [Contact Us](https://developers.sefaria.org/page/contact-us.md)

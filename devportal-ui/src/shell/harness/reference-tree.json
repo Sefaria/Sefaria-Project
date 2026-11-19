@@ -1,0 +1,832 @@
+{
+  "contractVersion": 1,
+  "section": "reference",
+  "generation": 1,
+  "categories": [
+    {
+      "id": 1000,
+      "title": "welcome",
+      "items": [
+        {
+          "id": 1001,
+          "kind": "page",
+          "title": "Getting Started With the Sefaria API",
+          "href": "/reference/getting-started",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": []
+        },
+        {
+          "id": 1002,
+          "kind": "page",
+          "title": "Tutorials",
+          "href": "/reference/tutorials",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1003,
+              "kind": "page",
+              "title": "Tutorial: The Dvar Torah Outliner",
+              "href": "/reference/tutorial-dvar-torah-outliner",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1004,
+              "kind": "page",
+              "title": "Tutorial: Tanakh Trivia Game",
+              "href": "/reference/tutorial-tanakh-trivia-game",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1005,
+              "kind": "page",
+              "title": "Tutorial: Data Visualization",
+              "href": "/reference/data-visualization",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1006,
+              "kind": "page",
+              "title": "Writing Playwright Tests for Sefaria",
+              "href": "/reference/playwright-tests-for-sefaria",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1007,
+          "kind": "page",
+          "title": "Frequently Asked Questions",
+          "href": "/reference/others-have-asked",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": 1008,
+      "title": "Sefaria API",
+      "items": [
+        {
+          "id": 1009,
+          "kind": "tag_group",
+          "title": "Text",
+          "href": "/reference/text",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1010,
+              "kind": "endpoint",
+              "title": "Texts (v3)",
+              "href": "/reference/get-v3-texts",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1011,
+              "kind": "endpoint",
+              "title": "Texts (v1)",
+              "href": "/reference/get-v1-texts",
+              "newTab": false,
+              "method": "get",
+              "deprecated": true,
+              "children": []
+            },
+            {
+              "id": 1012,
+              "kind": "endpoint",
+              "title": "Versions",
+              "href": "/reference/get-versions",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1013,
+              "kind": "endpoint",
+              "title": "Languages",
+              "href": "/reference/get-translations",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1014,
+              "kind": "endpoint",
+              "title": "Translations",
+              "href": "/reference/get-translations-lang",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1015,
+              "kind": "endpoint",
+              "title": "Manuscripts",
+              "href": "/reference/get-manuscripts",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1016,
+              "kind": "endpoint",
+              "title": "Random Text",
+              "href": "/reference/get-texts-random",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1017,
+              "kind": "endpoint",
+              "title": "Bulk Text",
+              "href": "/reference/get-bulktext",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1018,
+              "kind": "endpoint",
+              "title": "Passages",
+              "href": "/reference/get-passages",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1019,
+          "kind": "tag_group",
+          "title": "Index",
+          "href": "/reference/index",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1020,
+              "kind": "endpoint",
+              "title": "Index (v2)",
+              "href": "/reference/get-v2-index",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1021,
+              "kind": "endpoint",
+              "title": "Table of Contents",
+              "href": "/reference/get-index",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1022,
+              "kind": "endpoint",
+              "title": "Shape",
+              "href": "/reference/get-shape",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1023,
+          "kind": "tag_group",
+          "title": "Related",
+          "href": "/reference/related",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1024,
+              "kind": "endpoint",
+              "title": "Related",
+              "href": "/reference/get-related",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1025,
+              "kind": "endpoint",
+              "title": "Links",
+              "href": "/reference/get-links",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1026,
+              "kind": "endpoint",
+              "title": "Ref-Topic-Links",
+              "href": "/reference/get-ref-topic-links",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1027,
+              "kind": "endpoint",
+              "title": "Related Web Pages",
+              "href": "/reference/get-related-websites",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1028,
+              "kind": "endpoint",
+              "title": "Link Summary",
+              "href": "/reference/get-link-summary",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1029,
+          "kind": "tag_group",
+          "title": "Calendars",
+          "href": "/reference/calendars",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1030,
+              "kind": "endpoint",
+              "title": "Calendars",
+              "href": "/reference/get-calendars",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1031,
+              "kind": "endpoint",
+              "title": "Next Read",
+              "href": "/reference/get-next-read",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1032,
+              "kind": "endpoint",
+              "title": "Aliyot for Parasha",
+              "href": "/reference/get-aliyot-by-parasha",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1033,
+              "kind": "endpoint",
+              "title": "Parasha Topic",
+              "href": "/reference/get-calendar-parasha-topic",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1034,
+              "kind": "endpoint",
+              "title": "Holiday Topic",
+              "href": "/reference/get-calendar-holiday-topic",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1035,
+          "kind": "tag_group",
+          "title": "Lexicon",
+          "href": "/reference/lexicon",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1036,
+              "kind": "endpoint",
+              "title": "Lexicon",
+              "href": "/reference/get-words",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1037,
+              "kind": "endpoint",
+              "title": "Word Completion",
+              "href": "/reference/get-words-completion",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1038,
+              "kind": "endpoint",
+              "title": "Get a lexicon entry",
+              "href": "/reference/get-lexicon-entry",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1039,
+          "kind": "tag_group",
+          "title": "Topic",
+          "href": "/reference/topic",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1040,
+              "kind": "endpoint",
+              "title": "Topic (v2)",
+              "href": "/reference/get-v2-topics",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1041,
+              "kind": "endpoint",
+              "title": "Topic (v1)",
+              "href": "/reference/get-topic-slug",
+              "newTab": false,
+              "method": "get",
+              "deprecated": true,
+              "children": []
+            },
+            {
+              "id": 1042,
+              "kind": "endpoint",
+              "title": "All Topics",
+              "href": "/reference/get-all-topics",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1043,
+              "kind": "endpoint",
+              "title": "Topic Graph",
+              "href": "/reference/get-topics-graph",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1044,
+              "kind": "endpoint",
+              "title": "Recommended Topics",
+              "href": "/reference/get-recommend-topics",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1045,
+              "kind": "endpoint",
+              "title": "Random By Topic",
+              "href": "/reference/get-random-by-topic",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1046,
+          "kind": "tag_group",
+          "title": "Term",
+          "href": "/reference/term",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1047,
+              "kind": "endpoint",
+              "title": "Terms",
+              "href": "/reference/get-terms",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1048,
+              "kind": "endpoint",
+              "title": "Name",
+              "href": "/reference/get-name",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1049,
+          "kind": "tag_group",
+          "title": "Sheets",
+          "href": "/reference/sheets",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1050,
+              "kind": "endpoint",
+              "title": "Sheet",
+              "href": "/reference/get-sheet",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1051,
+              "kind": "endpoint",
+              "title": "Trending Sheet Tags",
+              "href": "/reference/get-sheets-trending-tags",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1052,
+              "kind": "endpoint",
+              "title": "Sheet Modified Check",
+              "href": "/reference/get-sheet-modified",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1053,
+              "kind": "endpoint",
+              "title": "User's Sheets",
+              "href": "/reference/get-user-sheets",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1054,
+              "kind": "endpoint",
+              "title": "User's Sheets (Paginated)",
+              "href": "/reference/get-user-sheets-paginated",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1055,
+              "kind": "endpoint",
+              "title": "Bulk Sheets",
+              "href": "/reference/get-sheets-bulk",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1056,
+              "kind": "endpoint",
+              "title": "Sheet Tag List",
+              "href": "/reference/get-sheets-tag-list",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1057,
+              "kind": "endpoint",
+              "title": "Sheet Tag List (Sorted)",
+              "href": "/reference/get-sheets-tag-list-sorted",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1058,
+              "kind": "endpoint",
+              "title": "User's Sheet Tags",
+              "href": "/reference/get-user-sheet-tags",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1059,
+              "kind": "endpoint",
+              "title": "Sheets by Ref",
+              "href": "/reference/get-sheets-by-ref",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1060,
+              "kind": "endpoint",
+              "title": "All Public Sheets",
+              "href": "/reference/get-all-sheets",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1061,
+          "kind": "tag_group",
+          "title": "Index",
+          "href": "/reference/index-1",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1062,
+              "kind": "endpoint",
+              "title": "Author Indexes",
+              "href": "/reference/get-author-indexes",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1063,
+              "kind": "endpoint",
+              "title": "Index Titles",
+              "href": "/reference/get-index-titles",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1064,
+              "kind": "endpoint",
+              "title": "Index Metadata",
+              "href": "/reference/get-index-by-title",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1065,
+              "kind": "endpoint",
+              "title": "Index Metadata (v2)",
+              "href": "/reference/get-index-v2",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1066,
+              "kind": "endpoint",
+              "title": "Counts",
+              "href": "/reference/get-counts",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1067,
+              "kind": "endpoint",
+              "title": "Link Counts Between Categories",
+              "href": "/reference/get-counts-links",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1068,
+              "kind": "endpoint",
+              "title": "Word Count for Version",
+              "href": "/reference/get-counts-words",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1069,
+          "kind": "tag_group",
+          "title": "Collections",
+          "href": "/reference/collections",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1070,
+              "kind": "endpoint",
+              "title": "Collections",
+              "href": "/reference/get-collections",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1071,
+              "kind": "endpoint",
+              "title": "Collection",
+              "href": "/reference/get-collection",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1072,
+              "kind": "endpoint",
+              "title": "User's Collections",
+              "href": "/reference/get-user-collections",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1073,
+          "kind": "tag_group",
+          "title": "Ref",
+          "href": "/reference/ref",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1074,
+              "kind": "endpoint",
+              "title": "Ref",
+              "href": "/reference/get-ref",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 1075,
+          "kind": "tag_group",
+          "title": "Misc",
+          "href": "/reference/misc",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 1076,
+              "kind": "endpoint",
+              "title": "Find Refs",
+              "href": "/reference/post-find-refs",
+              "newTab": false,
+              "method": "post",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1077,
+              "kind": "endpoint",
+              "title": "Search",
+              "href": "/reference/post-search-wrapper",
+              "newTab": false,
+              "method": "post",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1078,
+              "kind": "endpoint",
+              "title": "Social Media Image",
+              "href": "/reference/get-img-gen",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1079,
+              "kind": "endpoint",
+              "title": "Category",
+              "href": "/reference/get-category",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1080,
+              "kind": "endpoint",
+              "title": "Public Profile",
+              "href": "/reference/get-profile",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 1081,
+              "kind": "endpoint",
+              "title": "Get Async Task Status",
+              "href": "/reference/get-async-task-status",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,815 @@
+/* Endpoint article: headline, section headers, Recent Requests, parameter cards. Values from the live outlines
+   and research/reference/data/computed-get-v3-texts.json (1440). */
+
+/* Headline */
+.headline {
+  display: flow-root;
+  margin: 0 0 24px;
+  padding: 0 0 32px;
+  border-bottom: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  height: 28px;
+  margin: 2px 0 8px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -4px 0 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pageHeader {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--rm-color-text-default, #32343a);
+  font-size: 31px;
+  font-weight: 600;
+  line-height: 1.2857;
+}
+
+/* No height of its own: the H1's line box stays live's 39.84px. */
+.tags {
+  display: inline-flex;
+  align-items: flex-start;
+  margin: 0 0 0 4px;
+  vertical-align: top;
+}
+
+/* The popover's frame starts at the tag button's left edge, 1px higher than the other menus. */
+.tagsFrame {
+  top: calc(100% - 7px);
+}
+
+.tagsButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  margin: 9px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #484c58;
+  cursor: pointer;
+}
+
+.tagsButton:hover {
+  background: rgb(0 0 0 / 5%);
+}
+
+.tagsIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.tagsPanel {
+  min-width: 0;
+  padding: 0;
+}
+
+.tagsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tagsItem {
+  padding: 12px;
+  white-space: nowrap;
+}
+
+.tagsName {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #666b79;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.tagsNameIcon {
+  width: 13px;
+  height: 13px;
+  color: #666b79;
+}
+
+.tagsDescription {
+  margin: 10px 0 0;
+  padding: 0 2px;
+  color: #666b79;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+/* URL line */
+.urlLine {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 24px;
+}
+
+.deprecatedBadge {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 20px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #484c58;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 20%),
+    inset 0 -1px 2px rgb(0 0 0 / 20%),
+    0 1px 2px rgb(0 0 0 / 5%);
+}
+
+.urlContainer {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.url {
+  display: block;
+  min-height: 24px;
+  overflow: hidden;
+  color: #666b79;
+  font-family: var(--rm-font-family-mono);
+  font-size: 14px;
+  line-height: 1.4286;
+  white-space: nowrap;
+}
+
+.urlClipped {
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+}
+
+.urlExpanded .url {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.urlMore {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  height: 24px;
+  padding: 0 4.58px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: #484c58;
+  font: 600 14px/24px var(--font-en-system);
+  cursor: pointer;
+}
+
+.urlMore:hover {
+  background: rgb(0 0 0 / 5%);
+}
+
+.urlParam {
+  display: inline;
+  margin: 0 1px;
+  padding: 2px;
+  border-radius: 4px;
+  background: #f9fafb;
+  color: #484c58;
+  cursor: pointer;
+}
+
+.urlCopy {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  color: #484c58;
+  opacity: 0;
+}
+
+.urlCopy:focus-visible,
+.urlLine:hover .urlCopy {
+  opacity: 1;
+}
+
+.excerpt {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--rm-color-text-default, #32343a);
+  overflow-wrap: break-word;
+}
+
+.excerpt p {
+  margin: 0 0 15px;
+}
+
+.excerpt > :last-child,
+.excerpt p:last-child {
+  margin-bottom: 0;
+}
+
+.excerpt code {
+  font-family: var(--rm-font-family-mono);
+  font-size: 0.9em;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  background: #f2f3f4;
+}
+
+.excerpt a {
+  color: var(--rm-color-link-primary, #666);
+}
+
+.excerpt .excerptMarkdown {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--rm-color-text-default, #32343a);
+}
+
+/* Section headers ("Recent Requests", "Path Params"…): h2 with an anchor, live's APISectionHeader. */
+.sectionHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin: 32px 0 8px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--rm-color-text-default, #32343a);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22.5px;
+}
+
+.sectionAnchor,
+.paramAnchor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #484c58;
+  opacity: 0;
+}
+
+.sectionAnchor {
+  position: absolute;
+  left: -20px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+}
+
+.anchorIcon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Recent Requests */
+.recentSection {
+  margin: 0 0 16px;
+}
+
+.logs {
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 2.4%);
+  overflow: hidden;
+}
+
+.logsTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.colTime {
+  width: 150px;
+}
+
+.colStatus {
+  width: 100px;
+}
+
+.colEnd {
+  width: 40px;
+}
+
+.logsTable th {
+  box-sizing: border-box;
+
+  /* 34.39px on live; layout snaps to 1/64px, so 34.4 lands on the same value. */
+  height: 34.4px;
+  padding: 0 7.2px 2.4px;
+  color: #666b79;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 10%);
+}
+
+.logsTable td {
+  padding: 5.2px 7.8px;
+  color: #484c58;
+  font-size: 13px;
+  line-height: 19.5px;
+}
+
+.logsEmpty {
+  padding: 5.51px 0;
+  color: #666b79;
+  font-size: 14px;
+  line-height: 21px;
+  text-align: center;
+}
+
+.logRow td {
+  height: 42px;
+  box-sizing: border-box;
+  border-top: 1px solid rgb(0 0 0 / 5%);
+}
+
+.logRowOk {
+  background: rgb(18 202 147 / 8%);
+}
+
+.logRowError {
+  background: rgb(233 95 106 / 8%);
+}
+
+.logRowSelected {
+  box-shadow: inset 3px 0 0 #018ef5;
+}
+
+.logSelect {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logTime {
+  white-space: nowrap;
+}
+
+/* Live: a flex row (gap 2px) of the status chip, an 18×22 box (padding 5px 3px) around the 12px dot, then the code. */
+.logStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.logStatus > :first-child {
+  flex: none;
+  margin: 5px 3px;
+}
+
+.logAgent {
+  display: inline-block;
+
+  /* Live's Badge_xs: 6px either side of the label (37.86px wide with "Try It!"). */
+  padding: 0 6px;
+  border-radius: 4px;
+  background: #0222c6;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+/* Parameter cards (live's rm-ParamContainer) */
+.form {
+  margin: 0;
+}
+
+.paramContainer {
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 2.4%);
+}
+
+.paramList {
+  padding: 0 2px;
+}
+
+.paramRow {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px;
+}
+
+.paramRow + .paramRow {
+  border-top: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+}
+
+.paramContent {
+  display: flex;
+  gap: 8px;
+}
+
+.paramLeft {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.paramHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+/* Live's `.Param-header:only-child`: a header with no description under it (find-refs' `body`, `title`) is a 30px
+   line, so its name sits level with the input beside it, and above the input when they stack (≤531px). */
+.paramHeader:only-child {
+  min-height: 30px;
+  line-height: 29px;
+}
+
+.paramName {
+  max-width: 100%;
+  margin: 0 5px 0 0;
+  color: var(--rm-color-text-default, #32343a);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 21px;
+  overflow-wrap: anywhere;
+}
+
+.paramType {
+  margin: 0 5px 0 0;
+  color: #666b79;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.paramRequired {
+  margin: 0 5px 0 0;
+  color: #ad273c;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.paramDeprecated {
+  margin: 0 5px 0 0;
+  color: #df7d03;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.paramDefault {
+  margin: 0 5px 0 0;
+  color: #666b79;
+  font-size: 13px;
+  line-height: 19.5px;
+}
+
+.paramDescription {
+  margin: 5px 0 0;
+}
+
+.paramForm {
+  flex: 0 0 140px;
+  width: 140px;
+}
+
+.inputWrap,
+.selectWrap {
+  position: relative;
+}
+
+.input,
+.select {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 140px;
+  height: 32px;
+  margin: 0;
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 4px;
+  background: #fff;
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.input {
+  padding: 1px 10px;
+}
+
+.input::placeholder {
+  color: #9499a6;
+  opacity: 1;
+}
+
+.select {
+  padding: 0 30px 0 10px;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* Live's focus: ReadMe blue border and a 3px ring of it at 25% (measured: #012bff over rgb(191 202 255)). */
+.input:focus,
+.select:focus {
+  border-color: #012bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(1 43 255 / 25%);
+}
+
+.selectPlaceholder {
+  color: #9499a6;
+}
+
+.selectCaret {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 16px;
+  height: 16px;
+  color: #666b79;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* As the Dropdown's frame: the visible panel plus 10px above and below (live's tippy box). */
+.comboFrame {
+  position: absolute;
+  top: calc(100% - 6px);
+  right: 0;
+  z-index: 30;
+  padding: 10px 0;
+  pointer-events: none;
+}
+
+.comboPanel {
+  position: relative;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  width: 263.97px;
+  box-sizing: border-box;
+  padding: 6px 0;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 5px 10px rgb(0 0 0 / 5%),
+    0 2px 6px rgb(0 0 0 / 2.4%),
+    0 1px 3px rgb(0 0 0 / 2.4%);
+}
+
+.comboType {
+  display: flex;
+  align-items: center;
+  margin: 0 6px;
+  padding: 6px 8px 6px 9px;
+  font-size: 13px;
+  line-height: 18.6px;
+}
+
+.comboTypeIcon {
+  width: 16px;
+  height: 16px;
+  margin: 0 4px 0 0;
+  color: #9499a6;
+}
+
+.comboTypeKey {
+  margin: 0 5px 0 0;
+  color: #32343a;
+  font-weight: 500;
+}
+
+.comboTypeValue {
+  color: #32343a;
+  font-weight: 500;
+}
+
+.comboDivider {
+  height: 1px;
+  margin: 4px 0;
+  background: rgb(0 0 0 / 5%);
+}
+
+.comboItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin: 0 6px;
+  padding: 6px 8px 6px 30px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #32343a;
+  font-family: var(--font-en-system);
+  text-align: left;
+  cursor: pointer;
+}
+
+.comboItem:hover,
+.comboItem:focus-visible {
+  background: rgb(0 0 0 / 5%);
+  outline: none;
+}
+
+.comboItemTitle {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.comboItemValue {
+  color: #666b79;
+  font-size: 12px;
+  line-height: 17.14px;
+  overflow-wrap: anywhere;
+}
+
+/* "Allowed:" chips: copy the value on click. */
+.enumSection {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 8px 0 0;
+}
+
+.enumLabel {
+  color: #484c58;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.enumValues {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.enumChip {
+  display: flex;
+  box-sizing: border-box;
+  height: 24px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
+  color: var(--rm-color-text-default, #32343a);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.enumValue {
+  font-family: var(--rm-font-family-mono);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Body params: the schema description row, then the fields. */
+.bodyDescription {
+  margin: 5px 0 0;
+  padding: 10px;
+}
+
+.bodyFields {
+  border-top: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+}
+
+.expand {
+  margin: 10px 0 0;
+  border: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 8px;
+  background: #fff;
+}
+
+.expandOdd {
+  background: #f9fafb;
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 30px;
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: normal;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.expandButton:focus {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px #012bff,
+    0 0 0 2px rgb(1 43 255 / 25%);
+}
+
+/* Live's open button is 30px and the 1px rule is the children's top border: 31px in all. */
+.expandOpen > .expandButton {
+  min-height: 31px;
+  border-bottom: 1px solid var(--rm-color-border-default, rgb(0 0 0 / 10%));
+  border-radius: 8px 8px 0 0;
+}
+
+.expandLabel {
+  flex: 1 1 auto;
+}
+
+.expandIcon {
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  margin: 0 0 0 5px;
+  padding: 4px;
+  border-radius: 4px;
+  color: #666b79;
+}
+
+.expandChildren .paramList {
+  padding: 0;
+}
+
+.paramAnchor {
+  align-self: center;
+  width: 12px;
+  height: 12px;
+}
+
+.sectionAnchor:focus-visible,
+.paramAnchor:focus-visible {
+  opacity: 1;
+}
+
+.sectionHeader:hover .sectionAnchor,
+.paramHeader:hover .paramAnchor {
+  opacity: 1;
+}
+
+/* Narrow screens: the input moves under the description (live: ≤531px). */
+@media (width <= 531px) {
+  .paramContent {
+    flex-direction: column;
+  }
+
+  .paramForm {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .input,
+  .select {
+    width: 100%;
+  }
+}

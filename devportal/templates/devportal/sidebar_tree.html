@@ -1,0 +1,26 @@
+{% load devportal_discord %}{% comment %}
+  The sidebar of a docs or endpoint page, rendered on the server (PLAN.md §2.5): the C3 tree, a category plus at
+  most three levels (Page.MAX_DEPTH). Context: `tree` (the C3 sidebar tree) and `active` (the page's path). Included
+  by page_doc.html and page_endpoint.html.
+
+  The markup is the client's (devportal-ui/src/shell/Sidebar/Sidebar.tsx), so the same CSS draws both and React's
+  takeover moves nothing: the filter on the reference sidebar, groups open where they contain the current page
+  (sidebar_row.html), the Discord button in the footer (D-2) and the collapse strip. Without JavaScript the toggles,
+  the filter and the collapse strip do nothing. Ids differ from the client's (React's useId); nothing styles them.
+{% endcomment %}<nav class="dp-sidebar dp-sidebar--app" aria-label="Secondary navigation"{% if tree.section == "reference" %} id="reference-sidebar"{% endif %} data-section="{{ tree.section }}" data-visual="sidebar" data-visual-region="sidebar">
+  <div class="dp-sidebar__body">
+    {% if tree.section == "reference" %}<div class="dp-sidebar-filter"><svg class="dp-sidebar-filter__icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.75" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg><input class="dp-sidebar-filter__input" type="search" aria-label="Filter pages" aria-keyshortcuts="Control+/ Meta+/" placeholder="Filter" value="" autocomplete="off" spellcheck="false" data-visual="filter"><kbd class="dp-sidebar-filter__kbd" aria-hidden="true">CTRL-/</kbd></div>{% endif %}
+    <div class="dp-sidebar-tree">
+      {% for category in tree.categories %}
+      <section class="dp-sidebar-section" aria-labelledby="dp-sidebar-heading-{{ category.id }}">
+        <h2 class="dp-sidebar-heading" id="dp-sidebar-heading-{{ category.id }}" data-visual="sbHeading">{{ category.title }}</h2>
+        <ul class="dp-sidebar-list">
+          {% for item in category.items %}{% include "devportal/sidebar_row.html" with item=item depth=0 %}{% endfor %}
+        </ul>
+      </section>
+      {% endfor %}
+    </div>
+    <div class="dp-sidebar-footer" data-visual-deviation="D-2"><div class="dp-discord-placement dp-discord-sidebar-footer" data-discord-placement="sidebar_footer">{% devportal_discord_button "sidebar_footer" %}</div></div>
+  </div>
+  <button type="button" class="dp-sidebar-collapse" aria-label="Hide sidebar navigation" aria-expanded="true" data-visual="collapseBtn"><svg class="dp-sidebar-collapse__icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="2" y="3" width="12" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"></rect><path d="M6 3v10" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+</nav>

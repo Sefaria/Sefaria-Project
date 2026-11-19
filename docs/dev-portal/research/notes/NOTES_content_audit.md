@@ -1,0 +1,8 @@
+# developer-docs audit (key points)
+- 151 md: docs 65 (TECHNICAL DOCS 39, local installation 10, Dev Digest 9, RESEARCH 4, about 3), reference 83 (73 empty endpoint/tag stubs; welcome/ tutorials 7 real content; ReadMeConfig 3), custom_pages 4. _order.yaml nav, folder index.md = parent, up to 4 levels. 2 Hebrew slugs.
+- Frontmatter: title, excerpt, hidden(11 true), deprecated(1 true: linker-v2), metadata{title,description,robots}, next{description,pages[]}, link{url,new_tab}, api{file,operationId}, api_config, fullscreen.
+- Components needed: Callout(10), blockquote emoji callouts(3), Image(29), md images(17), Table JSX(7), GFM tables(9), Embed youtube(2), HTMLBlock(4 incl powered-by CTA + full RTL hebrew linker page), raw html <br> lots, code fences w/ ReadMe tab titles, emoji shortcodes, RTL Hebrew in 29 files. NOT used: tabs, accordion, cards, glossary, variables, mermaid, recipes.
+- Assets: 39 files.readme.io images hot-linked -> must download before cancel.
+- contact-us.html: Formstack iframe developer_contact + link to powered_by_sefaria_submission_form. Test homepages: HTMLBlock prototypes; footer signup ActiveCampaign (sefaria.activehosted.com/f/46). Live homepage configured in dashboard, not synced.
+- Links: doc:(35) ref:(56) page:(6) absolute(86); broken targets exist (doc:each-book-is-an-index, default-nodes, the-schema-of-a-complex-text, terms-for-internal-use, ref:get_api-shape-title, ref:get_api-v3-texts-tref-1). Slugs unique per namespace.
+- Editors: engineers via PR to branch v1.0; non-eng via ReadMe GUI seat which pushes to v1.0. Spec source of truth = Sefaria-Project docs/openAPI.json (copy at reference/sefaria-api.json).

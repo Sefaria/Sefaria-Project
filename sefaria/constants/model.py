@@ -62,6 +62,9 @@ def get_legacy_lang_from_direction(direction):
 # Module constants that correspond to DOMAIN_MODULES keys
 LIBRARY_MODULE = "library"
 VOICES_MODULE = "voices"
+# The developer portal (developers.sefaria.org, the `devportal` app). Configured under "en" only, and
+# never passed to the React app's domainModules (devportal/contracts/C1_names.md, PLAN.md §2.2).
+DEVELOPERS_MODULE = "developers"
 
 # Topics with fewer sources than this are hidden from the A-Z listing, category browse pages, and Google search
 MIN_SOURCES_FOR_TOPIC_DISPLAY = 3

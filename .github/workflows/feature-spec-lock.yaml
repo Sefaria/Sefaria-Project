@@ -1,0 +1,54 @@
+name: Feature Spec Lock
+# Only spec editors (repo variable SPEC_EDITORS) may change product's behavior specs
+# (e2e-tests/feature-specs/features/), their agent rules and guard, or this lock. A PR fails if
+# any commit that changes those paths was authored by someone else. No review is needed.
+# Logic: build/ci/check-feature-spec-lock.sh. Process: e2e-tests/feature-specs/README.md.
+#
+# pull_request_target, not pull_request: this workflow and its script always come from master,
+# so a PR can't edit the check to let itself through. That's safe because the job never runs
+# code from the PR. It only reads the PR's commits with git and the GitHub API.
+#
+# No `paths:` filter on purpose: this is meant to be a required status check, and a required
+# check whose workflow is skipped stays "pending" forever. The script exits 0 in seconds when
+# no locked file changed.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  merge_group:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: feature-spec-lock-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  feature-spec-lock:
+    name: "Feature Spec Lock"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge queue
+        if: github.event_name == 'merge_group'
+        run: echo "Checked on the PR before it entered the merge queue."
+      # Checks out the base branch (master), so the script below is master's copy.
+      - uses: actions/checkout@v4
+        if: github.event_name != 'merge_group'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch the PR's commits (read only, never executed)
+        if: github.event_name != 'merge_group'
+        run: git fetch --no-tags origin "+refs/pull/${{ github.event.pull_request.number }}/head:refs/remotes/pr/head"
+      - name: Check locked files
+        if: github.event_name != 'merge_group'
+        run: ./build/ci/check-feature-spec-lock.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SPEC_EDITORS: ${{ vars.SPEC_EDITORS }}
+          SPEC_LOCK_REQUIRE_SIGNED: ${{ vars.SPEC_LOCK_REQUIRE_SIGNED }}

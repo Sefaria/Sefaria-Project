@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/feedback-request.schema.json",
+  "title": "Feedback request",
+  "description": "POST /_portal/feedback (\"Did this page help you?\"), JSON, with X-CSRFToken from GET /_portal/csrf. 201 feedback-response; 400 invalid_request, 403, 429 rate_limited as error-response.",
+  "type": "object",
+  "properties": {
+    "path": {
+      "$ref": "common.schema.json#/$defs/portalPath"
+    },
+    "helpful": {
+      "type": "boolean"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Optional comment; empty string when none.",
+      "maxLength": 2000
+    }
+  },
+  "required": ["path", "helpful", "comment"],
+  "additionalProperties": false
+}

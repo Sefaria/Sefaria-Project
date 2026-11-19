@@ -27,7 +27,7 @@ test.describe('Library Topics — display & content (English)', () => {
     await hideAllModalsAndPopups(page);
   });
 
-  test('LIB-001: Topic page loads with core content (title, description, image, URL, tab title)', { tag: '@sanity' }, async () => {
+  test('LIB-001: Topic page loads with core content (title, description, image, URL, tab title)', { tag: ['@sanity', '@pr'] }, async () => {
     await pm.onLibraryTopic().open(MODULE_URLS.EN.LIBRARY, SLUG);
     await pm.onLibraryTopic().expectTitleText(TITLE_EN);
     await pm.onLibraryTopic().expectDescriptionPresent(100);

@@ -1,0 +1,184 @@
+{
+  "contractVersion": 1,
+  "kind": "endpoint",
+  "path": "/reference/get-v3-texts",
+  "title": "Texts (v3)",
+  "meta": {
+    "description": "The most up-to-date way to retrieve texts from Sefaria via the API, with enhanced control over language, language direction, and other parameters.",
+    "robots": "index",
+    "canonicalUrl": "https://developers.sefaria.org/reference/get-v3-texts",
+    "markdownUrl": "https://developers.sefaria.org/reference/get-v3-texts.md"
+  },
+  "header": {
+    "activeTab": "reference"
+  },
+  "site": {
+    "apiOrigin": "https://www.sefaria.org",
+    "ga4": {
+      "default": "G-6SXQFSB219",
+      "gallery": "G-44RHV2ZWQ1"
+    },
+    "analyticsSection": "default",
+    "demoApiKey": null,
+    "searchDocsUrl": "/_portal/search-docs.3f9a2c41d0b7.json",
+    "mcpUrl": "https://developers.sefaria.org/mcp",
+    "generation": 42
+  },
+  "section": "reference",
+  "slug": "get-v3-texts",
+  "pageId": 212,
+  "operation": {
+    "operationId": "get-v3-texts",
+    "method": "get",
+    "path": "/api/v3/texts/{tref}",
+    "tags": ["Text"],
+    "deprecated": false,
+    "specUrl": "/static/bundles/devportal/spec/get-v3-texts.json",
+    "specSha": "e4388184fe8690f41b74a651f5d0c670659234cfb257e75e970e7edd67191c26"
+  },
+  "page": {
+    "title": "Texts (v3)",
+    "sidebarLabel": "Texts (v3)",
+    "descriptionHtml": "<p>The most up-to-date way to retrieve texts from Sefaria via the API, with enhanced control over language, language direction, and other parameters.</p>",
+    "bodyHtml": "",
+    "updatedAt": "2026-05-20T10:00:00Z",
+    "specUpdatedAt": "2026-10-25T08:51:39Z"
+  },
+  "nav": {
+    "section": "reference",
+    "generation": 42,
+    "url": "/_portal/nav/reference.json",
+    "tree": {
+      "contractVersion": 1,
+      "section": "reference",
+      "generation": 42,
+      "categories": [
+        {
+          "id": 200,
+          "title": "welcome",
+          "items": [
+            {
+              "id": 201,
+              "kind": "page",
+              "title": "Getting Started With the Sefaria API",
+              "href": "/reference/getting-started",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 202,
+              "kind": "page",
+              "title": "Tutorials",
+              "href": "/reference/tutorials",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": [
+                {
+                  "id": 203,
+                  "kind": "page",
+                  "title": "Tutorial: The Dvar Torah Outliner",
+                  "href": "/reference/tutorial-dvar-torah-outliner",
+                  "newTab": false,
+                  "method": null,
+                  "deprecated": false,
+                  "children": []
+                },
+                {
+                  "id": 204,
+                  "kind": "page",
+                  "title": "Tutorial: Data Visualization",
+                  "href": "/reference/data-visualization",
+                  "newTab": false,
+                  "method": null,
+                  "deprecated": false,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": 205,
+              "kind": "page",
+              "title": "Frequently Asked Questions",
+              "href": "/reference/others-have-asked",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 210,
+          "title": "Sefaria API",
+          "items": [
+            {
+              "id": 211,
+              "kind": "tag_group",
+              "title": "Text",
+              "href": "/reference/text",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": [
+                {
+                  "id": 212,
+                  "kind": "endpoint",
+                  "title": "Texts (v3)",
+                  "href": "/reference/get-v3-texts",
+                  "newTab": false,
+                  "method": "get",
+                  "deprecated": false,
+                  "children": []
+                },
+                {
+                  "id": 213,
+                  "kind": "endpoint",
+                  "title": "Texts (v1)",
+                  "href": "/reference/get-v1-texts",
+                  "newTab": false,
+                  "method": "get",
+                  "deprecated": true,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": 220,
+              "kind": "tag_group",
+              "title": "Misc",
+              "href": "/reference/misc",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": [
+                {
+                  "id": 221,
+                  "kind": "endpoint",
+                  "title": "Find Refs",
+                  "href": "/reference/post-find-refs",
+                  "newTab": false,
+                  "method": "post",
+                  "deprecated": false,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "pager": {
+    "prev": {
+      "title": "Frequently Asked Questions",
+      "path": "/reference/others-have-asked"
+    },
+    "next": {
+      "title": "Texts (v1)",
+      "path": "/reference/get-v1-texts"
+    }
+  }
+}

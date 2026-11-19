@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*.tsbuildinfo
+# Written by scripts/build-spec.ts at build time
+public/spec/

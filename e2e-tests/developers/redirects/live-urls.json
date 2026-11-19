@@ -1,0 +1,2453 @@
+{
+  "$comment": "Built once by W17 from live (GET, redirects not followed) with build_live_urls.py. See README.md.",
+  "origin": "https://developers.sefaria.org",
+  "recordedAt": "2026-11-18T17:23:15Z",
+  "deviations": {
+    "/docs/powered-by-sefaria": {
+      "status": 302,
+      "location": "/powered-by",
+      "reason": "The page only pointed to the Powered by Sefaria gallery, which the portal serves at /powered-by (product owner, 2026-11-19)."
+    },
+    "/llms-full.txt": {
+      "status": 200,
+      "location": null,
+      "reason": "New in the portal (PLAN.md §2.4, §6.4); live answers 404."
+    },
+    "/login": {
+      "status": 302,
+      "locationEndsWith": "/login",
+      "reason": "PLAN.md §2.4: 302 to the library host's /login, not to ReadMe's dashboard."
+    },
+    "/logout": {
+      "status": 404,
+      "location": null,
+      "reason": "Contract C9 (parity_examples): ReadMe-only route, not carried over; answers through the fallback."
+    },
+    "/suggested-edits/": {
+      "status": 404,
+      "location": null,
+      "reason": "Contract C9 (parity_examples): ReadMe-only route, not carried over; answers through the fallback."
+    }
+  },
+  "entries": [
+    {
+      "path": "/",
+      "sources": ["sitemap", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/page/contact-us",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/general-faq",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/how-to-report-a-mistake",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/guide-to-contributing",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/accessibility-interns-and-the-passages-api-september-2025",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/calendar-api-a-user-requested-feature-and-more",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/django-middleware-innovation-mcps-january-2026-issue-7",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/june-2024",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/linear-programming-topic-curation-and-api-tips",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/sefaria-export-a-data-puzzle-and-deep-wiki",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/september-2024",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-sefaria-developer-community-archive",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/top-tech-tips-new-projects-and-more-march-2025-issue-4",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/cli",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/contributions-to-sefarias-repositories",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/getting-started-with-local-installation",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/docker-compose-sefaria",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/local-installation-instructions",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/category-creation",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/technical-notes",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/term-creation",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/titles-for-index",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/workflowy",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/getting-evals-right-for-a-jewish-ai-chatbot",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/patot",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/sefaria-research-at-pyconn-2024",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-disambiguator",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/api-wiki",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/search-api",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/categories",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/async-task-api",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/how-to-format-citations-for-the-linker",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/linker",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/linker-api",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/linker-v2",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/linker-v3",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/sites-using-the-linker",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/%D7%90%D7%99%D7%9A-%D7%9C%D7%99%D7%A6%D7%95%D7%A8-%D7%9E%D7%A8%D7%90%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9C%D7%94%D7%A4%D7%A0%D7%99%D7%94",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/powered-by-sefaria",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/powered-by-sefaria-acceptance-criteria",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/text-formatting-beyond-the-segment-level",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/text-references",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-sefaria-mcp",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/alternate-structures",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/commentaries",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/index-and-versions",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-structure-of-a-text-on-sefaria",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/lexicon-docs",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/terms",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-index-schema",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/jaggedarray-and-jaggedarray-nodes",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/node-titles",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/schemanode",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-structure-of-a-complex-text",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-structure-of-a-simple-text",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/topic-ontology",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/linear-integer-programming-for-topic-pages-sources-selection",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/usage-of-our-name-and-logo",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/welcome",
+      "sources": ["sitemap", "llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-aliyot-by-parasha",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-calendar-holiday-topic",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-calendar-parasha-topic",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-calendars",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-next-read",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-collection",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-collections",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-user-collections",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-author-indexes",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-counts-links",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-counts-words",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-counts",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-index-by-title",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-index-titles",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-index-v2",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-index",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-shape",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-v2-index",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-lexicon-entry",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-words-completion",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-words",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-async-task-status",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-category",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-img-gen",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-profile",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/post-find-refs",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/post-search-wrapper",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-ref",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-link-summary",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-links",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-ref-topic-links",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-related-websites",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-related",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-all-sheets",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-sheet-modified",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-sheet",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-sheets-bulk",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-sheets-by-ref",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-sheets-tag-list-sorted",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-sheets-tag-list",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-sheets-trending-tags",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-user-sheet-tags",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-user-sheets-paginated",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-user-sheets",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-name",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-terms",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-bulktext",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-manuscripts",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-passages",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-texts-random",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-translations-lang",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-translations",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-v1-texts",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-v3-texts",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-versions",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-all-topics",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-random-by-topic",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-recommend-topics",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-topic-slug",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-topics-graph",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/get-v2-topics",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/getting-started",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/others-have-asked",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/data-visualization",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/tutorials",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/playwright-tests-for-sefaria",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/tutorial-dvar-torah-outliner",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/tutorial-tanakh-trivia-game",
+      "sources": ["sitemap"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/איך-ליצור-מראי-מקורות-להפניה",
+      "sources": ["llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/%D7%90%D7%99%D7%9A-%D7%9C%D7%99%D7%A6%D7%95%D7%A8-%D7%9E%D7%A8%D7%90%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9C%D7%94%D7%A4%D7%A0%D7%99%D7%94.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/accessibility-interns-and-the-passages-api-september-2025.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/alternate-structures.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/api-wiki.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/async-task-api.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/calendar-api-a-user-requested-feature-and-more.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/categories.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/category-creation.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/cli.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/commentaries.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/contributions-to-sefarias-repositories.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/django-middleware-innovation-mcps-january-2026-issue-7.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/docker-compose-sefaria.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/general-faq.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/getting-evals-right-for-a-jewish-ai-chatbot.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/getting-started-with-local-installation.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/guide-to-contributing.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/how-to-format-citations-for-the-linker.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/how-to-report-a-mistake.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/index-and-versions.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/jaggedarray-and-jaggedarray-nodes.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/june-2024.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/lexicon-docs.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/linear-integer-programming-for-topic-pages-sources-selection.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/linear-programming-topic-curation-and-api-tips.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/linker.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/linker-api.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/linker-v2.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/linker-v3.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/local-installation-instructions.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/node-titles.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/patot.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/powered-by-sefaria.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/powered-by-sefaria-acceptance-criteria.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/schemanode.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/search-api.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/sefaria-export-a-data-puzzle-and-deep-wiki.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/sefaria-research-at-pyconn-2024.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/september-2024.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/sites-using-the-linker.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/technical-notes.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/term-creation.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/terms.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/text-formatting-beyond-the-segment-level.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/text-references.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/the-disambiguator.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/the-educator-playbook-a-quick-guide-to-vibe-coding-with-sefaria.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/the-index-schema.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/the-sefaria-developer-community-archive.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/the-sefaria-mcp.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/the-structure-of-a-complex-text.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/the-structure-of-a-simple-text.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/the-structure-of-a-text-on-sefaria.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/titles-for-index.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/top-tech-tips-new-projects-and-more-march-2025-issue-4.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/topic-ontology.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/usage-of-our-name-and-logo.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/welcome.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/workflowy.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/איך-ליצור-מראי-מקורות-להפניה.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/page/contact-us.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/data-visualization.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-aliyot-by-parasha.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-all-sheets.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-all-topics.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-async-task-status.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-author-indexes.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-bulktext.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-calendar-holiday-topic.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-calendar-parasha-topic.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-calendars.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-category.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-collection.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-collections.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-counts.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-counts-links.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-counts-words.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-img-gen.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-index.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-index-by-title.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-index-titles.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-index-v2.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-lexicon-entry.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-link-summary.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-links.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-manuscripts.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-name.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-next-read.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-passages.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-profile.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-random-by-topic.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-recommend-topics.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-ref.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-ref-topic-links.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-related.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-related-websites.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-shape.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-sheet.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-sheet-modified.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-sheets-bulk.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-sheets-by-ref.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-sheets-tag-list.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-sheets-tag-list-sorted.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-sheets-trending-tags.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-terms.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-texts-random.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-topic-slug.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-topics-graph.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-translations.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-translations-lang.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-user-collections.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-user-sheet-tags.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-user-sheets.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-user-sheets-paginated.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-v1-texts.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-v2-index.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-v2-topics.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-v3-texts.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-versions.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-words.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/get-words-completion.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/getting-started.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/others-have-asked.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/playwright-tests-for-sefaria.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/post-find-refs.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/post-search-wrapper.md",
+      "sources": ["md-variant", "static-llms"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/tutorial-dvar-torah-outliner.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/tutorial-tanakh-trivia-game.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/tutorials.md",
+      "sources": ["md-variant"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/robots.txt",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/sitemap.xml",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "application/xml"
+    },
+    {
+      "path": "/llms.txt",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/docs/llms.txt",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/reference/llms.txt",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/llms-full.txt",
+      "sources": ["machine", "atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs.md",
+      "sources": ["machine", "atlas-redirects"],
+      "status": 302,
+      "location": "/docs/llms.txt",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/.well-known/api-catalog",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "application/linkset+json"
+    },
+    {
+      "path": "/openapi/sefaria-api.json",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/.well-known/agent-skills/index.json",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/.well-known/agent-skills/read-the-docs/SKILL.md",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/.well-known/mcp/server-card.json",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/mcp",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/site.webmanifest",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "application/manifest+json"
+    },
+    {
+      "path": "/favicon.ico",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "image/x-icon"
+    },
+    {
+      "path": "/apple-touch-icon.png",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "image/png"
+    },
+    {
+      "path": "/icon-192.png",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "image/png"
+    },
+    {
+      "path": "/icon-512.png",
+      "sources": ["machine"],
+      "status": 200,
+      "location": null,
+      "contentType": "image/png"
+    },
+    {
+      "path": "/feed",
+      "sources": ["machine"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/changelog.rss",
+      "sources": ["machine"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/.well-known/llms.txt",
+      "sources": ["machine"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/.well-known/security.txt",
+      "sources": ["machine"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/.well-known/oauth-authorization-server",
+      "sources": ["machine"],
+      "status": 404,
+      "location": null,
+      "contentType": null
+    },
+    {
+      "path": "/.well-known/oauth-protected-resource",
+      "sources": ["machine"],
+      "status": 404,
+      "location": null,
+      "contentType": null
+    },
+    {
+      "path": "/docs",
+      "sources": ["atlas-redirects"],
+      "status": 301,
+      "location": "/docs/welcome",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/docs/",
+      "sources": ["atlas-redirects"],
+      "status": 301,
+      "location": "/docs",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/docs/welcome/",
+      "sources": ["atlas-redirects"],
+      "status": 301,
+      "location": "/docs/welcome",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/docs/getting-started",
+      "sources": ["atlas-redirects"],
+      "status": 301,
+      "location": "/docs/welcome",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/reference",
+      "sources": ["atlas-redirects"],
+      "status": 301,
+      "location": "/reference/getting-started",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0",
+      "sources": ["atlas-redirects"],
+      "status": 302,
+      "location": "/",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0/docs/welcome",
+      "sources": ["atlas-redirects"],
+      "status": 302,
+      "location": "/docs/welcome",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/page/contact-us/",
+      "sources": ["atlas-redirects"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/login",
+      "sources": ["atlas-redirects"],
+      "status": 302,
+      "location": "https://dash.readme.com/to/sefaria",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/logout",
+      "sources": ["atlas-redirects"],
+      "status": 302,
+      "location": "/",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/suggested-edits/",
+      "sources": ["atlas-redirects"],
+      "status": 302,
+      "location": "/login?redirect=%2Fsuggested-edits%2F",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/DOCS/WELCOME",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/api",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/get-text",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": null,
+      "note": "First GET was rate-limited (429); one re-GET 20 s later answered 404, as SITE_ATLAS §6 records."
+    },
+    {
+      "path": "/docs/text-api",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/sefaria-mcp",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/the-sefaria-mcps",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/linker-v1",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/page/contact",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/contact-us",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": null,
+      "note": "First GET was rate-limited (429); one re-GET 20 s later answered 404, as SITE_ATLAS §6 records."
+    },
+    {
+      "path": "/home",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/index.html",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/mcp/",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/changelog",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/recipes",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/discuss",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/blog",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": null,
+      "note": "First GET was rate-limited (429); one re-GET 20 s later answered 404, as SITE_ATLAS §6 records."
+    },
+    {
+      "path": "/openapi.json",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": null,
+      "note": "First GET was rate-limited (429); one re-GET 20 s later answered 404, as SITE_ATLAS §6 records."
+    },
+    {
+      "path": "/docs/welcome.json",
+      "sources": ["atlas-redirects"],
+      "status": 404,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/page/news-from-the-sefaria-developer-team",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/page/news-from-the-sefaria-developer-team.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/page/test-homepage",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/page/test-homepage.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/page/test-landing-page-for-mobile",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/page/test-landing-page-for-mobile.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/accessibility-at-sefaria",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/accessibility-at-sefaria.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/categories-api",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/categories-api.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/shape-api",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/shape-api.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/migrating-source-sheets-via-the-sefaria-api",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/migrating-source-sheets-via-the-sefaria-api.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/docs/%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%9C%D7%9E%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%9E%D7%97%D7%A0%D7%9B%D7%99%D7%9D-%D7%94%D7%A2%D7%95%D7%A1%D7%A7%D7%99%D7%9D-%D7%91-vibe-coding-%D7%A2%D7%9D-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/docs/%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%9C%D7%9E%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%9E%D7%97%D7%A0%D7%9B%D7%99%D7%9D-%D7%94%D7%A2%D7%95%D7%A1%D7%A7%D7%99%D7%9D-%D7%91-vibe-coding-%D7%A2%D7%9D-%D7%A1%D7%A4%D7%A8%D7%99%D7%90.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/authentication",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/authentication.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/intro-getting-started",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/intro-getting-started.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/my-requests",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/reference/my-requests.md",
+      "sources": ["hidden"],
+      "status": 200,
+      "location": null,
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "/reference/",
+      "sources": ["variants"],
+      "status": 301,
+      "location": "/reference",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/reference/getting-started/",
+      "sources": ["variants"],
+      "status": 301,
+      "location": "/reference/getting-started",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/reference/get-v3-texts/",
+      "sources": ["variants"],
+      "status": 301,
+      "location": "/reference/get-v3-texts",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/docs/the-sefaria-mcp/",
+      "sources": ["variants"],
+      "status": 301,
+      "location": "/docs/the-sefaria-mcp",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0/",
+      "sources": ["variants"],
+      "status": 302,
+      "location": "/",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0/docs",
+      "sources": ["variants"],
+      "status": 302,
+      "location": "/docs",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0/reference",
+      "sources": ["variants"],
+      "status": 302,
+      "location": "/reference",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0/reference/get-v3-texts",
+      "sources": ["variants"],
+      "status": 302,
+      "location": "/reference/get-v3-texts",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0/page/contact-us",
+      "sources": ["variants"],
+      "status": 302,
+      "location": "/page/contact-us",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0/docs/welcome.md",
+      "sources": ["variants"],
+      "status": 302,
+      "location": "/docs/welcome",
+      "contentType": "text/plain"
+    },
+    {
+      "path": "/v1.0/llms.txt",
+      "sources": ["variants"],
+      "status": 302,
+      "location": "/llms.txt",
+      "contentType": "text/plain"
+    }
+  ]
+}

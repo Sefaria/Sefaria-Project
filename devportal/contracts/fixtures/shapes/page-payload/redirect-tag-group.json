@@ -1,0 +1,7 @@
+{
+  "contractVersion": 1,
+  "kind": "redirect",
+  "path": "/reference/text",
+  "status": 302,
+  "location": "/reference/get-v3-texts"
+}

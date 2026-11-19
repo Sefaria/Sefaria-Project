@@ -1,0 +1,122 @@
+{
+  "contractVersion": 1,
+  "section": "reference",
+  "generation": 42,
+  "categories": [
+    {
+      "id": 200,
+      "title": "welcome",
+      "items": [
+        {
+          "id": 201,
+          "kind": "page",
+          "title": "Getting Started With the Sefaria API",
+          "href": "/reference/getting-started",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": []
+        },
+        {
+          "id": 202,
+          "kind": "page",
+          "title": "Tutorials",
+          "href": "/reference/tutorials",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 203,
+              "kind": "page",
+              "title": "Tutorial: The Dvar Torah Outliner",
+              "href": "/reference/tutorial-dvar-torah-outliner",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 204,
+              "kind": "page",
+              "title": "Tutorial: Data Visualization",
+              "href": "/reference/data-visualization",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 205,
+          "kind": "page",
+          "title": "Frequently Asked Questions",
+          "href": "/reference/others-have-asked",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": 210,
+      "title": "Sefaria API",
+      "items": [
+        {
+          "id": 211,
+          "kind": "tag_group",
+          "title": "Text",
+          "href": "/reference/text",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 212,
+              "kind": "endpoint",
+              "title": "Texts (v3)",
+              "href": "/reference/get-v3-texts",
+              "newTab": false,
+              "method": "get",
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 213,
+              "kind": "endpoint",
+              "title": "Texts (v1)",
+              "href": "/reference/get-v1-texts",
+              "newTab": false,
+              "method": "get",
+              "deprecated": true,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 220,
+          "kind": "tag_group",
+          "title": "Misc",
+          "href": "/reference/misc",
+          "newTab": false,
+          "method": null,
+          "deprecated": false,
+          "children": [
+            {
+              "id": 221,
+              "kind": "endpoint",
+              "title": "Find Refs",
+              "href": "/reference/post-find-refs",
+              "newTab": false,
+              "method": "post",
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "contractVersion": 1,
+  "section": "reference",
+  "generation": 43,
+  "nodes": [
+    {
+      "id": 210,
+      "kind": "category",
+      "title": "Sefaria API",
+      "slug": null,
+      "hidden": false,
+      "deprecated": false,
+      "hasDraft": false,
+      "isPublished": false,
+      "method": null,
+      "operationId": null,
+      "children": [
+        {
+          "id": 211,
+          "kind": "tag_group",
+          "title": "Text",
+          "slug": "text",
+          "hidden": false,
+          "deprecated": false,
+          "hasDraft": false,
+          "isPublished": true,
+          "method": null,
+          "operationId": null,
+          "children": [
+            {
+              "id": 212,
+              "kind": "endpoint",
+              "title": "Texts (v3)",
+              "slug": "get-v3-texts",
+              "hidden": false,
+              "deprecated": false,
+              "hasDraft": false,
+              "isPublished": true,
+              "method": "get",
+              "operationId": "get-v3-texts",
+              "children": []
+            },
+            {
+              "id": 213,
+              "kind": "endpoint",
+              "title": "Texts (v1)",
+              "slug": "get-v1-texts",
+              "hidden": false,
+              "deprecated": true,
+              "hasDraft": false,
+              "isPublished": true,
+              "method": "get",
+              "operationId": "get-v1-texts",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 230,
+      "kind": "api_config",
+      "title": "Authentication",
+      "slug": "authentication",
+      "hidden": true,
+      "deprecated": false,
+      "hasDraft": false,
+      "isPublished": true,
+      "method": null,
+      "operationId": null,
+      "children": []
+    }
+  ]
+}

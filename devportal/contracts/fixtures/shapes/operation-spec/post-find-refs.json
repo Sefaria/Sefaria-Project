@@ -1,0 +1,133 @@
+{
+  "contractVersion": 1,
+  "specSha": "e4388184fe8690f41b74a651f5d0c670659234cfb257e75e970e7edd67191c26",
+  "operationId": "post-find-refs",
+  "method": "post",
+  "path": "/api/find-refs",
+  "server": "https://www.sefaria.org",
+  "tags": ["Misc"],
+  "title": "Find Refs",
+  "description": "Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual references in any arbitrary text that gets sent to it via a structured POST request.\n\n**This is an asynchronous API.** The endpoint immediately returns a `task_id` with HTTP 202. You must poll `GET /api/async/{task_id}` to retrieve the task status. When the task completes successfully, the `/api/async/{task_id}` response will include a `result` field containing the same `FindRefsAPIResponse` object described in the 200 response schema below.",
+  "deprecated": false,
+  "parameters": [],
+  "requestBody": {
+    "required": true,
+    "description": "",
+    "content": {
+      "application/json": {
+        "schema": {
+          "title": "Root Type for FindRefsPOSTRequest",
+          "description": "A properly formatted POST request for the Find Refs API",
+          "required": ["lang", "text"],
+          "type": "object",
+          "properties": {
+            "text": {
+              "description": "Initially designed for websites, this API expects the `text` field to contain both a `body` and a `title`. When parsing arbitrary text feel free to just use `body` and pass an empty string `''` to `title`",
+              "type": "object",
+              "properties": {
+                "body": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            },
+            "lang": {
+              "description": "Either `he` or `en`. If not included, it will default to one based on the number of Hebrew or Latin characters in the `body` of the `text`.",
+              "enum": ["he", "en"],
+              "type": "string"
+            }
+          }
+        },
+        "examples": {
+          "Example": {
+            "value": {
+              "text": {
+                "body": "Genesis 1:1 is a citation and also Mishnah Peah 3-4. So is שמות ב",
+                "title": "Some thoughts on Sefer Bereishit 1"
+              },
+              "lang": "en"
+            }
+          }
+        }
+      }
+    }
+  },
+  "responses": [
+    {
+      "status": "202",
+      "description": "Task enqueued. Poll `GET /api/async/{task_id}` to retrieve results. When the task completes successfully, the result will have the shape described by `FindRefsAPIResponse`.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "title": "Async Task Enqueued",
+            "description": "Response returned when an asynchronous task has been successfully enqueued.",
+            "type": "object",
+            "required": ["task_id"],
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Unique identifier for the enqueued task. Pass this to `GET /api/async/{task_id}` to poll for results."
+              }
+            }
+          },
+          "examples": {
+            "Example": {
+              "value": {
+                "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "status": "200",
+      "description": "Shape of the `result` field returned by `GET /api/async/{task_id}` on successful completion.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "title": "Root Type for FindRefsAPIResponse",
+            "description": "A response to the Find Refs API",
+            "type": "object",
+            "properties": {
+              "title": {
+                "description": "Information about any references found in the `title` field of the POST request",
+                "type": "object",
+                "properties": {
+                  "results": {
+                    "type": "array",
+                    "items": {
+                      "description": "A single matched reference",
+                      "type": "object"
+                    }
+                  },
+                  "refData": {
+                    "type": "object"
+                  }
+                }
+              },
+              "body": {
+                "description": "Information about any references found in the `body` field of the POST request",
+                "type": "object",
+                "properties": {
+                  "results": {
+                    "type": "array",
+                    "items": {
+                      "description": "A single matched reference",
+                      "type": "object"
+                    }
+                  },
+                  "refData": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

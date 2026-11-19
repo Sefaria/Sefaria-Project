@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-draft-save-request.schema.json",
+  "title": "Editor: save draft",
+  "description": "PUT /_portal/editor/pages/<id>/draft -> editor-draft-save-response, or 409 editor-conflict-response when baseRevision is not the page's newest revision. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "baseRevision": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "description": "Newest revision the client loaded; null when the page has none.",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "content": {
+      "$ref": "editor-common.schema.json#/$defs/revisionContent"
+    }
+  },
+  "required": ["baseRevision", "content"],
+  "additionalProperties": false
+}

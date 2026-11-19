@@ -1,0 +1,103 @@
+.page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-2xlarge) var(--spacing-6xlarge);
+}
+
+.page:focus {
+  outline: none;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-large);
+  padding-top: var(--spacing-3xlarge);
+}
+
+/* <600px: head, body, then the CTA last, in flow, so it keeps its own height after the details
+   (nothing hides behind it) and, as a flex item of .layout, can stick to the bottom of the screen. */
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xlarge);
+  padding-top: var(--spacing-large);
+}
+
+.head {
+  grid-area: head;
+  min-width: 0;
+}
+
+.cta {
+  order: 3;
+  z-index: 5;
+}
+
+.body {
+  grid-area: body;
+  min-width: 0;
+}
+
+/* 600-1023px: the CTA is an inline panel under the header. */
+@media (width >= 600px) {
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'head'
+      'cta'
+      'body';
+    gap: var(--spacing-3xlarge);
+  }
+
+  .cta {
+    order: 0;
+    grid-area: cta;
+    align-self: start;
+  }
+}
+
+/* >= 1024px: a 360px right column that follows the page. */
+@media (width >= 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-areas:
+      'head cta'
+      'body cta';
+    column-gap: var(--spacing-6xlarge);
+    align-items: start;
+  }
+
+  .cta {
+    align-self: start;
+  }
+}
+
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-large);
+  padding-top: var(--spacing-6xlarge);
+}
+
+.notFoundTitle {
+  font-family: var(--font-en-content);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.notFoundTitle:focus {
+  outline: none;
+}
+
+.notFoundLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  color: var(--text-link);
+  font-weight: 600;
+}

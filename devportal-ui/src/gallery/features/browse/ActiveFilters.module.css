@@ -1,0 +1,30 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xsmall) var(--spacing-small);
+}
+
+/* 44px hit area around a 36px chip */
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-small);
+  height: 36px;
+  padding: 0 var(--spacing-medium);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  color: var(--module-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.button:hover .chip {
+  background: var(--surface-hover);
+}

@@ -1,0 +1,1 @@
+{"$schema":"https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json","name":"com.readme/sefaria","version":"1.0","title":"Sefaria","description":"MCP server for Sefaria. Lets AI agents explore this project's API reference and documentation.","remotes":[{"type":"streamable-http","url":"https://developers.sefaria.org/mcp"}]}

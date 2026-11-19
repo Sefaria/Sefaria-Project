@@ -1,0 +1,20 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: var(--spacing-large);
+}
+
+.grid > li {
+  display: flex;
+}
+
+.grid > li > * {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (width >= 640px) {
+  .grid {
+    gap: var(--spacing-2xlarge);
+  }
+}

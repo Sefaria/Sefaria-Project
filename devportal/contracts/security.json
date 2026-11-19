@@ -1,0 +1,285 @@
+{
+  "$comment": "Contract C10: security invariants (PLAN.md §2.6, §2.10, §2.12, §2.3.5) as data. Prose and rationale in C10_security.md. Tests assert against this file; change only through the Integrator.",
+  "version": 1,
+  "csp": {
+    "$comment": "Built per response by devportal/security/csp.py. Directives are joined with '; ' in this order, sources with ' '. Placeholders: {nonce} a fresh per-request base64 nonce (at least 128 bits); {api_origin} settings.DEVPORTAL_API_ORIGIN.",
+    "header": "Content-Security-Policy",
+    "directives": [
+      ["default-src", "'none'"],
+      ["base-uri", "'none'"],
+      ["object-src", "'none'"],
+      ["frame-ancestors", "'none'"],
+      ["form-action", "'self'"],
+      ["script-src", "'self'", "'nonce-{nonce}'", "https://www.googletagmanager.com"],
+      ["style-src", "'self'"],
+      [
+        "img-src",
+        "'self'",
+        "data:",
+        "https://storage.googleapis.com",
+        "https://www.google-analytics.com",
+        "https://www.googletagmanager.com"
+      ],
+      ["font-src", "'self'"],
+      [
+        "connect-src",
+        "'self'",
+        "{api_origin}",
+        "https://www.google-analytics.com",
+        "https://*.google-analytics.com",
+        "https://*.analytics.google.com",
+        "https://www.googletagmanager.com"
+      ],
+      ["frame-src", "'self'", "https://sefaria.formstack.com", "https://www.youtube-nocookie.com"],
+      ["manifest-src", "'self'"]
+    ],
+    "expected_default": "default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'nonce-{nonce}' https://www.googletagmanager.com; style-src 'self'; img-src 'self' data: https://storage.googleapis.com https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self'; connect-src 'self' https://www.sefaria.org https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; frame-src 'self' https://sefaria.formstack.com https://www.youtube-nocookie.com; manifest-src 'self'",
+    "expected_default_note": "expected_default is the policy with the default settings except DEVPORTAL_ALLOW_README_IMAGES=false.",
+    "conditional": [
+      {
+        "when": "settings.DEVPORTAL_ALLOW_README_IMAGES is true",
+        "append": { "img-src": ["https://files.readme.io"] },
+        "note": "Until devportal_mirror_images has run. Cutover requires it off."
+      },
+      {
+        "when": "editor responses (/editor, /editor/<section>/<slug>) only",
+        "add_directive": ["style-src-attr", "'unsafe-inline'"],
+        "note": "ProseMirror sets inline style attributes. style-src itself is never widened."
+      },
+      {
+        "when": "a pinned library on public pages needs inline style attributes",
+        "add_directive": ["style-src-attr", "'unsafe-inline'"],
+        "note": "Only with a comment in devportal/security/csp.py naming the library. Never 'unsafe-inline' or 'unsafe-eval' in script-src, never widen style-src."
+      },
+      {
+        "when": "settings.DEBUG and settings.DEVPORTAL_VITE_DEV_SERVER is set (local development only; never in a deployed environment)",
+        "append": {
+          "script-src": ["{vite_origin}"],
+          "style-src": ["{vite_origin}", "'unsafe-inline'"],
+          "connect-src": ["{vite_origin}", "{vite_ws_origin}"],
+          "img-src": ["{vite_origin}"],
+          "font-src": ["{vite_origin}"]
+        },
+        "note": "Vite's dev client injects <style> elements and opens a websocket for hot reload. {vite_ws_origin} is the same origin with ws:/wss:."
+      }
+    ],
+    "forbidden_everywhere": [
+      "script-src 'unsafe-inline'",
+      "script-src 'unsafe-eval'",
+      "style-src 'unsafe-inline' (outside the dev_only case)"
+    ],
+    "template_rules": [
+      "Every <script> tag in a portal response carries nonce=\"{nonce}\".",
+      "No inline <style> element and no style attribute on public templates.",
+      "The page data island is <script type=\"application/json\" id=\"dp-data\" nonce> written with json_script."
+    ]
+  },
+  "htmlblock_frame": {
+    "$comment": "The /_portal/htmlblock/<revision>/<n> document (PLAN.md §2.6). It replaces, not extends, the page CSP.",
+    "csp": "sandbox allow-same-origin allow-popups allow-popups-to-escape-sandbox; default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://storage.googleapis.com data:; font-src 'self'",
+    "iframe_sandbox": "allow-same-origin allow-popups allow-popups-to-escape-sandbox",
+    "iframe_src_prefix": "/_portal/htmlblock/",
+    "never": ["allow-scripts", "allow-forms", "allow-top-navigation"]
+  },
+  "response_headers": {
+    "$comment": "Sent on every portal response, in addition to the CSP.",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Content-Language": "en"
+  },
+  "link_header": {
+    "$comment": "Every HTML and Markdown page response (PLAN.md §2.10). {origin} is the request's scheme and host; {md_path} the page's .md path.",
+    "values": [
+      "<{origin}/.well-known/api-catalog>; rel=\"api-catalog\"",
+      "<{origin}/>; rel=\"service-doc\"",
+      "<{origin}/.well-known/agent-skills/index.json>; rel=\"agent-skills\"",
+      "<{origin}/.well-known/mcp/server-card.json>; rel=\"mcp-server\"",
+      "<{origin}{md_path}>; rel=\"alternate\"; type=\"text/markdown\""
+    ],
+    "verify_against_live": "Exact formatting (absolute vs relative targets, order) is copied from live's response headers by W1/W8; update this entry if it differs."
+  },
+  "cookies": {
+    "public_pages_set_no_cookie": true,
+    "views_never_touch_session": true,
+    "csrf_token_endpoint": "/_portal/csrf",
+    "note": "The session cookie is shared with the library host (SessionCookieDomainMiddleware), which is why Try It omits credentials."
+  },
+  "try_it": {
+    "$comment": "devportal-ui/src/reference/tryit/send.ts is the only module that calls the API (PLAN.md §2.12).",
+    "module": "devportal-ui/src/reference/tryit/send.ts",
+    "fetch_options": {
+      "credentials": "omit",
+      "mode": "cors",
+      "cache": "no-store",
+      "referrerPolicy": "no-referrer"
+    },
+    "origin": "The constant apiOrigin from the page payload (DEVPORTAL_API_ORIGIN). No input for it exists.",
+    "url_builder": "Path template with each parameter encoded by encodeURIComponent; for every operation and adversarial parameter values the result starts with apiOrigin + \"/api/\".",
+    "response_rendering": "Response bodies enter the DOM as text nodes only.",
+    "recent_requests": {
+      "storage": "localStorage",
+      "key": "dp:recent-requests:v1",
+      "max_entries": 50,
+      "fields": ["time", "status", "method", "path", "operationId"],
+      "never_stored": ["response body", "request body", "query values", "API key"]
+    },
+    "api_key": {
+      "demo_key_setting": "DEVPORTAL_DEMO_API_KEY",
+      "header": "X-API-Key",
+      "when_empty": "No key is sent and code samples contain none.",
+      "visitor_key_storage": "sessionStorage only",
+      "visitor_key_never": [
+        "sent to the developers host",
+        "put in a URL",
+        "stored in Recent Requests",
+        "sent to analytics"
+      ]
+    },
+    "server_side_proxy": false
+  },
+  "mcp_execute_request": {
+    "$comment": "devportal/mcp/execute.py enforces every rule before any network call (PLAN.md §2.10).",
+    "url": {
+      "scheme": "https",
+      "host_equals": "host of DEVPORTAL_API_ORIGIN (www.sefaria.org), compared exactly after lowercasing; no look-alikes, no IP literals, no trailing dot",
+      "port": [null, 443],
+      "userinfo": false,
+      "reject_characters": ["\\", "whitespace", "control characters"],
+      "rebuild": "The outgoing URL is rebuilt from the validated parts, never passed through."
+    },
+    "path": {
+      "decode": "percent-decoded exactly once",
+      "must_match": "a path template in docs/openAPI.json",
+      "reject_segments": [".", "..", "empty"],
+      "method": "one the spec defines for that path"
+    },
+    "headers": {
+      "forward_only": ["Accept", "Content-Type"],
+      "set": { "User-Agent": "Sefaria-Developers-MCP/1 (+https://developers.sefaria.org/mcp)" },
+      "never_forward": ["Cookie", "Authorization", "Host", "X-Forwarded-*"]
+    },
+    "body": {
+      "allowed_for": "the POST operations of the spec only",
+      "content_type": "application/json",
+      "max_bytes": 102400,
+      "form_params": "rejected"
+    },
+    "transport": {
+      "client": "requests",
+      "allow_redirects": false,
+      "connect_timeout_seconds": 3,
+      "read_timeout_seconds": 10,
+      "cookie_jar": "a fresh session with no cookies",
+      "max_response_bytes": 1048576,
+      "beyond_max": "truncate and mark truncated"
+    },
+    "rate_limits": {
+      "$comment": "devportal/mcp/ratelimit.py: fixed-window counters on Django's cache, keyed by client IP.",
+      "execute_request_per_ip_per_minute": 30,
+      "execute_request_global_per_minute": 600,
+      "other_tools_per_ip_per_minute": 120
+    },
+    "annotations": { "readOnlyHint": true, "destructiveHint": false },
+    "view": "POST /mcp is csrf_exempt and never reads request.user or the session."
+  },
+  "editor_api": {
+    "wrapper": "devportal.security.permissions.staff_api",
+    "anonymous": 401,
+    "not_staff": 403,
+    "missing_csrf": 403,
+    "csrf_exempt_views_in_app": ["/mcp"],
+    "uploads": {
+      "types": ["image/png", "image/jpeg", "image/gif", "image/webp"],
+      "verified_by": "decoding with Pillow",
+      "max_bytes": 5242880
+    },
+    "html_from_client": "never stored; rendered HTML is always produced on the server from Markdown and sanitized"
+  },
+  "sanitizer": {
+    "$comment": "nh3 allow-list applied after rendering (PLAN.md §2.6). The renderer's own tags and attributes are fixed in C4 (devportal/contracts/DIALECT.md); any tag or attribute C4 emits that is missing here must be added here by the Integrator, never allowed ad hoc in code.",
+    "tags": [
+      "a",
+      "b",
+      "blockquote",
+      "br",
+      "code",
+      "del",
+      "div",
+      "em",
+      "figcaption",
+      "figure",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "hr",
+      "i",
+      "iframe",
+      "img",
+      "li",
+      "ol",
+      "p",
+      "pre",
+      "s",
+      "span",
+      "strong",
+      "sub",
+      "sup",
+      "table",
+      "tbody",
+      "td",
+      "th",
+      "thead",
+      "tr",
+      "u",
+      "ul"
+    ],
+    "generic_attributes": ["class", "dir", "id", "title"],
+    "attributes": {
+      "a": ["href", "target", "rel"],
+      "img": ["src", "alt", "width", "height", "loading"],
+      "iframe": ["src", "title", "sandbox", "allow", "allowfullscreen", "loading", "width", "height"],
+      "td": ["colspan", "rowspan"],
+      "th": ["colspan", "rowspan", "scope"],
+      "ol": ["start"],
+      "code": [],
+      "pre": []
+    },
+    "class_rule": "Only class tokens starting with \"dp-\" are kept; other tokens are dropped.",
+    "dir_values": ["auto", "ltr", "rtl"],
+    "url_attributes": ["href", "src"],
+    "url_schemes": ["http", "https", "mailto"],
+    "relative_urls": "allowed (path-absolute, relative and #fragment); protocol-relative //host URLs are rejected",
+    "a_target_values": ["_blank"],
+    "a_rel": "set by the sanitizer to \"noopener noreferrer\"",
+    "iframe_src_allowed_prefixes": [
+      "https://sefaria.formstack.com/",
+      "https://www.youtube-nocookie.com/",
+      "/_portal/htmlblock/"
+    ],
+    "iframe_rule": "An iframe whose src matches none of the prefixes is removed. An iframe to /_portal/htmlblock/ must carry exactly the sandbox value of htmlblock_frame.iframe_sandbox (the renderer emits it). Formstack and YouTube iframes keep only allow-listed attributes.",
+    "forbidden_tags": [
+      "script",
+      "style",
+      "object",
+      "embed",
+      "form",
+      "input",
+      "button",
+      "textarea",
+      "select",
+      "link",
+      "meta",
+      "base",
+      "svg",
+      "math"
+    ],
+    "forbidden_attributes": ["style", "on*", "srcdoc", "formaction", "xlink:href"],
+    "reserved_ids": ["dp-data", "dp-root"],
+    "reserved_ids_rule": "An id equal to a reserved id is dropped, so content cannot shadow the data island or the React root.",
+    "comments": "stripped"
+  }
+}

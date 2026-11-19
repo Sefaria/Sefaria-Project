@@ -1,1 +1,27 @@
 extends: [[spectral:oas, recommended]]
+
+# Overrides for errors that docs/openAPI.json already had when the Spectral CI
+# check was introduced (sc-48158, PLAN.md step 0.6). Each one switches a single
+# rule off for a single example value, so every other example is still checked.
+# They are for the API owners to fix in the spec and then delete here.
+overrides:
+  # Example sheet "id" is the integer 102615; UserSheetsJSON declares id as a string.
+  - files:
+      - "openAPI.json#/paths/~1api~1sheets~1user~1%7Buser_id%7D/get/responses/200/content/application~1json/examples/User%201/value/sheets/0/id"
+    rules:
+      oas3-valid-media-example: "off"
+  # Same integer sheet "id" in the paged variant of the user-sheets endpoint.
+  - files:
+      - "openAPI.json#/paths/~1api~1sheets~1user~1%7Buser_id%7D~1%7Bsort_by%7D~1%7Blimiter%7D~1%7Boffset%7D/get/responses/200/content/application~1json/examples/User%201%20by%20date%2C%205%20per%20page/value/sheets/0/id"
+    rules:
+      oas3-valid-media-example: "off"
+  # Example "digitizedBySefaria" is the boolean true; the schema declares a string.
+  - files:
+      - "openAPI.json#/components/schemas/textAPIReponse/example/versions/1/digitizedBySefaria"
+    rules:
+      oas3-valid-schema-example: "off"
+  # Example "collectionTOC" is the empty string ""; the schema allows only object or null.
+  - files:
+      - "openAPI.json#/components/schemas/RelatedJSON/properties/sheets/example/0/collectionTOC"
+    rules:
+      oas3-valid-schema-example: "off"

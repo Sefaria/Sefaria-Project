@@ -1,0 +1,681 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/page-payload.schema.json",
+  "title": "Page payload",
+  "description": "The data of one page, discriminated by `kind`. Embedded in every HTML page as <script type=\"application/json\" id=\"dp-data\"> (Django json_script) and returned by GET /_portal/page.json?path=<path>, which always answers HTTP 200 whatever the kind (PLAN §2.5).",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/homePayload"
+    },
+    {
+      "$ref": "#/$defs/docPayload"
+    },
+    {
+      "$ref": "#/$defs/endpointPayload"
+    },
+    {
+      "$ref": "#/$defs/notFoundPayload"
+    },
+    {
+      "$ref": "#/$defs/redirectPayload"
+    },
+    {
+      "$ref": "#/$defs/galleryPayload"
+    },
+    {
+      "$ref": "#/$defs/editorPayload"
+    }
+  ],
+  "$defs": {
+    "siteConfig": {
+      "type": "object",
+      "description": "Site-wide settings the browser needs; the same on every page of one deploy.",
+      "properties": {
+        "apiOrigin": {
+          "type": "string",
+          "description": "DEVPORTAL_API_ORIGIN. Try It calls only this origin (PLAN §2.12).",
+          "pattern": "^https?://[^/]+$"
+        },
+        "ga4": {
+          "description": "DEVPORTAL_GA4: analytics section -> GA4 measurement id. Empty: analytics off (PLAN §2.13).",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^G-[A-Z0-9]+$"
+          }
+        },
+        "analyticsSection": {
+          "type": "string",
+          "description": "Which ga4 entry this page reports to: default, or gallery.",
+          "pattern": "^[a-z_]+$"
+        },
+        "demoApiKey": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "DEVPORTAL_DEMO_API_KEY; null while empty (the default).",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "searchDocsUrl": {
+          "type": "string",
+          "description": "/_portal/search-docs.<sha>.json of the current generation (PLAN §2.9).",
+          "pattern": "^/_portal/search-docs\\.[0-9a-f]{7,64}\\.json$"
+        },
+        "mcpUrl": {
+          "type": "string",
+          "description": "Absolute URL of this host's MCP server.",
+          "pattern": "^https?://[^/]+/mcp$"
+        },
+        "generation": {
+          "type": "integer",
+          "description": "PortalState.generation.",
+          "minimum": 0
+        }
+      },
+      "required": ["apiOrigin", "ga4", "analyticsSection", "demoApiKey", "searchDocsUrl", "mcpUrl", "generation"],
+      "additionalProperties": false
+    },
+    "pageMeta": {
+      "type": "object",
+      "description": "markdownUrl is the page's .md URL, or null when the page has none.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "<meta name=\"description\">."
+        },
+        "robots": {
+          "enum": ["index", "noindex"]
+        },
+        "canonicalUrl": {
+          "$ref": "common.schema.json#/$defs/absoluteUrl"
+        },
+        "markdownUrl": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/absoluteUrl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["description", "robots", "canonicalUrl", "markdownUrl"],
+      "additionalProperties": false
+    },
+    "pageNav": {
+      "type": "object",
+      "description": "The sidebar. `tree` is always present in the data island; in a /_portal/page.json response it is null when the request's nav=<generation> parameter equals `generation`, and the client keeps the tree it has.",
+      "properties": {
+        "section": {
+          "$ref": "common.schema.json#/$defs/navSection"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^/_portal/nav/(docs|reference)\\.json$"
+        },
+        "tree": {
+          "anyOf": [
+            {
+              "$ref": "sidebar-tree.schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["section", "generation", "url", "tree"],
+      "additionalProperties": false
+    },
+    "homePayload": {
+      "type": "object",
+      "description": "/ (the homepage).",
+      "properties": {
+        "contractVersion": {
+          "$ref": "common.schema.json#/$defs/contractVersion"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/portalPath"
+        },
+        "title": {
+          "type": "string",
+          "description": "document.title, exactly: nothing appended (PLAN §2.13).",
+          "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/pageMeta"
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "activeTab": {
+              "anyOf": [
+                {
+                  "enum": ["home", "docs", "reference", "gallery", "contact"]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["activeTab"],
+          "additionalProperties": false
+        },
+        "site": {
+          "$ref": "#/$defs/siteConfig"
+        },
+        "kind": {
+          "const": "home"
+        },
+        "bodyHtml": {
+          "type": "string",
+          "description": "The homepage template's HTML."
+        }
+      },
+      "required": ["contractVersion", "path", "title", "meta", "header", "site", "kind", "bodyHtml"],
+      "additionalProperties": false
+    },
+    "docPayload": {
+      "type": "object",
+      "description": "A Markdown page: docs, a hand-written reference page, or a custom page (/page/<slug>, nav null).",
+      "properties": {
+        "contractVersion": {
+          "$ref": "common.schema.json#/$defs/contractVersion"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/portalPath"
+        },
+        "title": {
+          "type": "string",
+          "description": "document.title, exactly: nothing appended (PLAN §2.13).",
+          "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/pageMeta"
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "activeTab": {
+              "anyOf": [
+                {
+                  "enum": ["home", "docs", "reference", "gallery", "contact"]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["activeTab"],
+          "additionalProperties": false
+        },
+        "site": {
+          "$ref": "#/$defs/siteConfig"
+        },
+        "kind": {
+          "const": "doc"
+        },
+        "section": {
+          "$ref": "common.schema.json#/$defs/section"
+        },
+        "slug": {
+          "$ref": "common.schema.json#/$defs/slug"
+        },
+        "pageId": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "layout": {
+          "enum": ["standard", "fullscreen"]
+        },
+        "page": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "bodyHtml": {
+              "type": "string",
+              "description": "Sanitized HTML from the Python renderer (PLAN §2.6)."
+            },
+            "toc": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/tocEntry"
+              }
+            },
+            "updatedAt": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/dateTime"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "deprecated": {
+              "type": "boolean"
+            }
+          },
+          "required": ["title", "excerpt", "bodyHtml", "toc", "updatedAt", "deprecated"],
+          "additionalProperties": false
+        },
+        "nav": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/pageNav"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pager": {
+          "$ref": "common.schema.json#/$defs/pager"
+        }
+      },
+      "required": [
+        "contractVersion",
+        "path",
+        "title",
+        "meta",
+        "header",
+        "site",
+        "kind",
+        "section",
+        "slug",
+        "pageId",
+        "layout",
+        "page",
+        "nav",
+        "pager"
+      ],
+      "additionalProperties": false
+    },
+    "endpointPayload": {
+      "type": "object",
+      "description": "An endpoint page.",
+      "properties": {
+        "contractVersion": {
+          "$ref": "common.schema.json#/$defs/contractVersion"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/portalPath"
+        },
+        "title": {
+          "type": "string",
+          "description": "document.title, exactly: nothing appended (PLAN §2.13).",
+          "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/pageMeta"
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "activeTab": {
+              "anyOf": [
+                {
+                  "enum": ["home", "docs", "reference", "gallery", "contact"]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["activeTab"],
+          "additionalProperties": false
+        },
+        "site": {
+          "$ref": "#/$defs/siteConfig"
+        },
+        "kind": {
+          "const": "endpoint"
+        },
+        "section": {
+          "const": "reference"
+        },
+        "slug": {
+          "$ref": "common.schema.json#/$defs/slug"
+        },
+        "pageId": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "operation": {
+          "type": "object",
+          "properties": {
+            "operationId": {
+              "$ref": "common.schema.json#/$defs/operationId"
+            },
+            "method": {
+              "$ref": "common.schema.json#/$defs/httpMethod"
+            },
+            "path": {
+              "type": "string",
+              "description": "Path template, e.g. /api/v3/texts/{tref}.",
+              "pattern": "^/"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "deprecated": {
+              "type": "boolean"
+            },
+            "specUrl": {
+              "type": "string",
+              "description": "The operation's spec file (operation-spec.schema.json).",
+              "pattern": "^/static/bundles/devportal/spec/[A-Za-z0-9._-]+\\.json$"
+            },
+            "specSha": {
+              "$ref": "common.schema.json#/$defs/sha"
+            }
+          },
+          "required": ["operationId", "method", "path", "tags", "deprecated", "specUrl", "specSha"],
+          "additionalProperties": false
+        },
+        "page": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "title_override or the spec title (PLAN §2.7).",
+              "minLength": 1
+            },
+            "sidebarLabel": {
+              "type": "string",
+              "minLength": 1
+            },
+            "descriptionHtml": {
+              "type": "string",
+              "description": "The overlay's description or the spec's, rendered and sanitized."
+            },
+            "bodyHtml": {
+              "type": "string",
+              "description": "The overlay's free Markdown, rendered; empty when there is none."
+            },
+            "updatedAt": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/dateTime"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "specUpdatedAt": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/dateTime"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["title", "sidebarLabel", "descriptionHtml", "bodyHtml", "updatedAt", "specUpdatedAt"],
+          "additionalProperties": false
+        },
+        "nav": {
+          "$ref": "#/$defs/pageNav"
+        },
+        "pager": {
+          "$ref": "common.schema.json#/$defs/pager"
+        }
+      },
+      "required": [
+        "contractVersion",
+        "path",
+        "title",
+        "meta",
+        "header",
+        "site",
+        "kind",
+        "section",
+        "slug",
+        "pageId",
+        "operation",
+        "page",
+        "nav",
+        "pager"
+      ],
+      "additionalProperties": false
+    },
+    "notFoundPayload": {
+      "type": "object",
+      "description": "Any unknown path; the HTML page answers 404.",
+      "properties": {
+        "contractVersion": {
+          "$ref": "common.schema.json#/$defs/contractVersion"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/portalPath"
+        },
+        "title": {
+          "type": "string",
+          "description": "document.title, exactly: nothing appended (PLAN §2.13).",
+          "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/pageMeta"
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "activeTab": {
+              "anyOf": [
+                {
+                  "enum": ["home", "docs", "reference", "gallery", "contact"]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["activeTab"],
+          "additionalProperties": false
+        },
+        "site": {
+          "$ref": "#/$defs/siteConfig"
+        },
+        "kind": {
+          "const": "notfound"
+        },
+        "suggestions": {
+          "type": "array",
+          "description": "Up to three pages chosen by slug similarity (I-14).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "path": {
+                "$ref": "common.schema.json#/$defs/portalPath"
+              }
+            },
+            "required": ["title", "path"],
+            "additionalProperties": false
+          },
+          "maxItems": 3
+        }
+      },
+      "required": ["contractVersion", "path", "title", "meta", "header", "site", "kind", "suggestions"],
+      "additionalProperties": false
+    },
+    "redirectPayload": {
+      "type": "object",
+      "description": "A path that redirects.",
+      "properties": {
+        "contractVersion": {
+          "$ref": "common.schema.json#/$defs/contractVersion"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/portalPath"
+        },
+        "kind": {
+          "const": "redirect"
+        },
+        "status": {
+          "enum": [301, 302]
+        },
+        "location": {
+          "type": "string",
+          "description": "Target path on this host, or an absolute URL.",
+          "pattern": "^(/(?!/)|https?://)"
+        }
+      },
+      "required": ["contractVersion", "path", "kind", "status", "location"],
+      "additionalProperties": false
+    },
+    "galleryPayload": {
+      "type": "object",
+      "description": "The gallery (/powered-by...). Its own React app renders the content (PLAN §2.14).",
+      "properties": {
+        "contractVersion": {
+          "$ref": "common.schema.json#/$defs/contractVersion"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/portalPath"
+        },
+        "title": {
+          "type": "string",
+          "description": "document.title, exactly: nothing appended (PLAN §2.13).",
+          "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/pageMeta"
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "activeTab": {
+              "anyOf": [
+                {
+                  "enum": ["home", "docs", "reference", "gallery", "contact"]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["activeTab"],
+          "additionalProperties": false
+        },
+        "site": {
+          "$ref": "#/$defs/siteConfig"
+        },
+        "kind": {
+          "const": "gallery"
+        },
+        "view": {
+          "enum": ["index", "project", "charts"]
+        },
+        "projectId": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["contractVersion", "path", "title", "meta", "header", "site", "kind", "view", "projectId"],
+      "additionalProperties": false
+    },
+    "editorPayload": {
+      "type": "object",
+      "description": "The staff editor shell (/editor, /editor/<section>/<slug>).",
+      "properties": {
+        "contractVersion": {
+          "$ref": "common.schema.json#/$defs/contractVersion"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/portalPath"
+        },
+        "title": {
+          "type": "string",
+          "description": "document.title, exactly: nothing appended (PLAN §2.13).",
+          "minLength": 1
+        },
+        "meta": {
+          "$ref": "#/$defs/pageMeta"
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "activeTab": {
+              "anyOf": [
+                {
+                  "enum": ["home", "docs", "reference", "gallery", "contact"]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["activeTab"],
+          "additionalProperties": false
+        },
+        "site": {
+          "$ref": "#/$defs/siteConfig"
+        },
+        "kind": {
+          "const": "editor"
+        },
+        "section": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/section"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "slug": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/slug"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "csrfUrl": {
+          "const": "/_portal/csrf"
+        }
+      },
+      "required": ["contractVersion", "path", "title", "meta", "header", "site", "kind", "section", "slug", "csrfUrl"],
+      "additionalProperties": false
+    }
+  }
+}

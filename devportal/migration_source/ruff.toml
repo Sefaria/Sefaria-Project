@@ -1,0 +1,4 @@
+# The vendored content snapshot must stay byte-identical to its source (SOURCE.json), so Ruff
+# (which also formats Markdown code blocks) must never rewrite it.
+extend = "../../pyproject.toml"
+extend-exclude = ["docs", "reference", "custom_pages", "custom_blocks"]

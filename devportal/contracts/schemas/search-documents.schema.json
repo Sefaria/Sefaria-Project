@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/search-documents.schema.json",
+  "title": "Search documents",
+  "description": "One document per visible page and per operation, built at publish time by devportal/services/search_index.py and served at /_portal/search-docs.<sha>.json (PLAN §2.9).",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "sha": {
+      "$ref": "common.schema.json#/$defs/sha"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/document"
+      }
+    }
+  },
+  "required": ["contractVersion", "sha", "generation", "documents"],
+  "additionalProperties": false,
+  "$defs": {
+    "document": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "page:<Page.id> or op:<operationId>; unique in the file.",
+          "pattern": "^(page:[0-9]+|op:[A-Za-z0-9._-]+)$"
+        },
+        "section": {
+          "$ref": "common.schema.json#/$defs/section"
+        },
+        "kind": {
+          "enum": ["page", "endpoint"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/portalPath"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/httpMethod"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "headings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "body": {
+          "type": "string",
+          "description": "Plain text of the body."
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": ["name", "description"],
+            "additionalProperties": false
+          }
+        },
+        "responses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": ["status", "description"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "section",
+        "kind",
+        "title",
+        "path",
+        "method",
+        "excerpt",
+        "headings",
+        "body",
+        "params",
+        "responses"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "endpoint"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "method": {
+                "$ref": "common.schema.json#/$defs/httpMethod"
+              },
+              "section": {
+                "const": "reference"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "method": {
+                "type": "null"
+              },
+              "params": {
+                "type": "array",
+                "maxItems": 0
+              },
+              "responses": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

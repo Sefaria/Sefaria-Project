@@ -72,8 +72,15 @@ node_modules
 .claude/skills/*
 !.claude/skills/sefaria-release-notes/
 !.claude/skills/sefaria-release-notes/**
+!.claude/skills/write-feature-spec/
+!.claude/skills/write-feature-spec/**
+!.claude/settings.json
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/guard-feature-specs.sh
 CLAUDE.md
 !e2e-tests/CLAUDE.md
+!e2e-tests/feature-specs/CLAUDE.md
 
 # pystest cache #
 #####################
@@ -168,3 +175,12 @@ dump/*
 .env
 static_collected/*
 scripts/debug_cache/
+
+# playwright-bdd generated specs (npm run bddgen)
+/.features-gen/
+/playwright-report-bdd/
+
+# Developer portal (devportal/, devportal-ui/)
+/.devportal-run/
+/devportal-ui/dist/
+/devportal-ui/node_modules/

@@ -1,0 +1,7 @@
+{
+  "contractVersion": 1,
+  "kind": "redirect",
+  "path": "/docs/x",
+  "status": 302,
+  "location": "//evil.example/"
+}

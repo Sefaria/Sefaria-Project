@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/sidebar-tree.schema.json",
+  "title": "Sidebar tree",
+  "description": "The visible navigation tree of one section. GET /_portal/nav/<section>.json, also embedded in page payloads (page-payload nav.tree). Built by the publish pipeline as a PortalArtifact. Depth: category plus three levels.",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "section": {
+      "$ref": "common.schema.json#/$defs/navSection"
+    },
+    "generation": {
+      "type": "integer",
+      "description": "PortalState.generation the tree was built at.",
+      "minimum": 0
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/category"
+      }
+    }
+  },
+  "required": ["contractVersion", "section", "generation", "categories"],
+  "additionalProperties": false,
+  "$defs": {
+    "category": {
+      "type": "object",
+      "description": "A sidebar heading such as \"TECHNICAL DOCS\". Stored in mixed case; CSS upper-cases it.",
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/item"
+          }
+        }
+      },
+      "required": ["id", "title", "items"],
+      "additionalProperties": false
+    },
+    "item": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "A page, a tag group (answers 302 to its first child) or a link.",
+          "properties": {
+            "id": {
+              "$ref": "common.schema.json#/$defs/id"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "href": {
+              "type": "string",
+              "description": "In-portal path, or the absolute URL of a link item.",
+              "pattern": "^(/(?!/)|https?://)"
+            },
+            "newTab": {
+              "type": "boolean",
+              "description": "Only link items may open in a new tab."
+            },
+            "deprecated": {
+              "type": "boolean"
+            },
+            "children": {
+              "type": "array",
+              "description": "Visible children in position order. Hidden pages never appear (I-6).",
+              "items": {
+                "$ref": "#/$defs/item"
+              }
+            },
+            "kind": {
+              "enum": ["page", "tag_group", "link"]
+            },
+            "method": {
+              "type": "null"
+            }
+          },
+          "required": ["id", "kind", "title", "href", "newTab", "method", "deprecated", "children"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "An endpoint row with its method pill.",
+          "properties": {
+            "id": {
+              "$ref": "common.schema.json#/$defs/id"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "href": {
+              "type": "string",
+              "description": "In-portal path, or the absolute URL of a link item.",
+              "pattern": "^(/(?!/)|https?://)"
+            },
+            "newTab": {
+              "type": "boolean",
+              "description": "Only link items may open in a new tab."
+            },
+            "deprecated": {
+              "type": "boolean"
+            },
+            "children": {
+              "type": "array",
+              "description": "Visible children in position order. Hidden pages never appear (I-6).",
+              "items": {
+                "$ref": "#/$defs/item"
+              }
+            },
+            "kind": {
+              "const": "endpoint"
+            },
+            "method": {
+              "$ref": "common.schema.json#/$defs/httpMethod"
+            }
+          },
+          "required": ["id", "kind", "title", "href", "newTab", "method", "deprecated", "children"],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

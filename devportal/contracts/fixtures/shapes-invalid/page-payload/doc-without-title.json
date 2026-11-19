@@ -1,0 +1,158 @@
+{
+  "contractVersion": 1,
+  "kind": "doc",
+  "path": "/docs/welcome",
+  "meta": {
+    "description": "Sefaria's Technical Documentation provides evolving insights into the structure of texts, formatting, and accessibility.",
+    "robots": "index",
+    "canonicalUrl": "https://developers.sefaria.org/docs/welcome",
+    "markdownUrl": "https://developers.sefaria.org/docs/welcome.md"
+  },
+  "header": {
+    "activeTab": "docs"
+  },
+  "site": {
+    "apiOrigin": "https://www.sefaria.org",
+    "ga4": {
+      "default": "G-6SXQFSB219",
+      "gallery": "G-44RHV2ZWQ1"
+    },
+    "analyticsSection": "default",
+    "demoApiKey": null,
+    "searchDocsUrl": "/_portal/search-docs.3f9a2c41d0b7.json",
+    "mcpUrl": "https://developers.sefaria.org/mcp",
+    "generation": 42
+  },
+  "section": "docs",
+  "slug": "welcome",
+  "pageId": 101,
+  "layout": "standard",
+  "page": {
+    "title": "Welcome to Sefaria's Technical Documentation",
+    "excerpt": "",
+    "bodyHtml": "<p dir=\"auto\">Please note: For our API Documentation, see <a href=\"/reference/getting-started\">Getting Started With The Sefaria API</a>.</p>\n<h2 id=\"what-is-sefaria\" dir=\"auto\">What is Sefaria?</h2>\n<p dir=\"auto\">…</p>",
+    "toc": [
+      {
+        "id": "what-is-sefaria",
+        "text": "What is Sefaria?",
+        "level": 2
+      },
+      {
+        "id": "the-sefaria-library",
+        "text": "The Sefaria Library",
+        "level": 3
+      }
+    ],
+    "updatedAt": "2026-05-12T14:03:22Z",
+    "deprecated": false
+  },
+  "nav": {
+    "section": "docs",
+    "generation": 42,
+    "url": "/_portal/nav/docs.json",
+    "tree": {
+      "contractVersion": 1,
+      "section": "docs",
+      "generation": 42,
+      "categories": [
+        {
+          "id": 100,
+          "title": "TECHNICAL DOCS",
+          "items": [
+            {
+              "id": 101,
+              "kind": "page",
+              "title": "Welcome to Sefaria's Technical Documentation",
+              "href": "/docs/welcome",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 102,
+              "kind": "page",
+              "title": "The Sefaria Linker",
+              "href": "/docs/linker",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": [
+                {
+                  "id": 103,
+                  "kind": "page",
+                  "title": "Embed Linker v2 In Your Site",
+                  "href": "/docs/linker-v2",
+                  "newTab": false,
+                  "method": null,
+                  "deprecated": true,
+                  "children": []
+                },
+                {
+                  "id": 104,
+                  "kind": "page",
+                  "title": "Embed Linker v3 on Your Site",
+                  "href": "/docs/linker-v3",
+                  "newTab": false,
+                  "method": null,
+                  "deprecated": false,
+                  "children": []
+                },
+                {
+                  "id": 105,
+                  "kind": "page",
+                  "title": "איך ליצור מראי מקורות להפניה - How to Format Citations (HE)",
+                  "href": "/docs/איך-ליצור-מראי-מקורות-להפניה",
+                  "newTab": false,
+                  "method": null,
+                  "deprecated": false,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": 106,
+              "kind": "link",
+              "title": "Sefaria GitHub",
+              "href": "https://github.com/Sefaria/Sefaria-Project",
+              "newTab": true,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            },
+            {
+              "id": 107,
+              "kind": "page",
+              "title": "The Sefaria MCPs",
+              "href": "/docs/the-sefaria-mcp",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 110,
+          "title": "about Sefaria",
+          "items": [
+            {
+              "id": 111,
+              "kind": "page",
+              "title": "General FAQ",
+              "href": "/docs/general-faq",
+              "newTab": false,
+              "method": null,
+              "deprecated": false,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "pager": {
+    "prev": null,
+    "next": null
+  }
+}

@@ -1,0 +1,100 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-small);
+  min-height: var(--target-min);
+  padding: 0 var(--spacing-xlarge);
+  border-radius: var(--radius-md);
+  border: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.md {
+  min-height: var(--control-height);
+}
+
+.lg {
+  min-height: 52px;
+}
+
+.xl {
+  min-height: 56px;
+  font-size: 18px;
+}
+
+.full {
+  width: 100%;
+}
+
+.primary {
+  background: var(--action-primary);
+  color: var(--text-inverse);
+}
+
+.primary:hover {
+  background: var(--action-primary-hover);
+}
+
+.outline {
+  background: var(--surface-page);
+  color: var(--action-primary);
+  box-shadow: inset 0 0 0 1.5px var(--action-primary);
+}
+
+.outline:hover {
+  background: var(--surface-selected);
+}
+
+.text {
+  background: transparent;
+  color: var(--text-link);
+}
+
+.text:hover {
+  background: var(--surface-hover);
+}
+
+.accent {
+  background: var(--module-primary);
+  color: var(--text-inverse);
+}
+
+.accent:hover {
+  background: var(--brand-devportal-hover);
+}
+
+.accentOutline {
+  background: var(--surface-page);
+  color: var(--module-primary);
+  box-shadow: inset 0 0 0 1.5px var(--module-primary);
+}
+
+.accentOutline:hover {
+  background: var(--surface-hover);
+}
+
+.inverse {
+  background: var(--surface-page);
+  color: var(--module-primary);
+}
+
+.inverse:hover {
+  background: var(--surface-hover);
+}
+
+.inverseOutline {
+  background: transparent;
+  color: var(--text-inverse);
+  box-shadow: inset 0 0 0 1.5px var(--text-inverse);
+}
+
+.inverseOutline:hover {
+  background: rgb(255 255 255 / 12%);
+}

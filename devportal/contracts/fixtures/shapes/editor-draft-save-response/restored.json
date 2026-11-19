@@ -1,0 +1,28 @@
+{
+  "contractVersion": 1,
+  "page": {
+    "id": 101,
+    "section": "docs",
+    "kind": "page",
+    "slug": "welcome",
+    "parentId": 100,
+    "position": 0,
+    "operationId": null,
+    "path": "/docs/welcome",
+    "publishedRevision": 3,
+    "draftRevision": 6,
+    "contentUpdatedAt": "2026-05-12T14:03:22Z"
+  },
+  "revision": {
+    "number": 6,
+    "source": "restore",
+    "author": {
+      "id": 7,
+      "name": "Staff Editor"
+    },
+    "createdAt": "2026-11-18T10:15:00Z",
+    "title": "Welcome to Sefaria's Technical Documentation",
+    "isPublished": false,
+    "isDraft": true
+  }
+}

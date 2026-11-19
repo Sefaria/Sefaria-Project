@@ -29,6 +29,15 @@ import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
 import { UserHistoryCookiePage } from "./userHistoryCookiePage"
 import { LinkExplorerPage } from "./linkExplorerPage"
+import { DevelopersShellPage } from "./developers/developersShellPage"
+import { DevelopersHomePage } from "./developers/developersHomePage"
+import { DevelopersDocsPage } from "./developers/developersDocsPage"
+import { DevelopersReferencePage } from "./developers/developersReferencePage"
+import { DevelopersTryItPage } from "./developers/developersTryItPage"
+import { DevelopersSearchPage } from "./developers/developersSearchPage"
+import { DevelopersCopyPage } from "./developers/developersCopyPage"
+import { DevelopersGalleryPage } from "./developers/developersGalleryPage"
+import { DevelopersEditorPage } from "./developers/developersEditorPage"
 
 
 export class PageManager {
@@ -61,6 +70,16 @@ export class PageManager {
     private readonly interfaceStringsPage: InterfaceStringsPage
     private readonly userHistoryCookiePage: UserHistoryCookiePage
     private readonly linkExplorerPage: LinkExplorerPage
+    // Developer portal (developers.<domain>); contract C7, devportal/contracts/C7_page_objects.md
+    private readonly developersShellPage: DevelopersShellPage
+    private readonly developersHomePage: DevelopersHomePage
+    private readonly developersDocsPage: DevelopersDocsPage
+    private readonly developersReferencePage: DevelopersReferencePage
+    private readonly developersTryItPage: DevelopersTryItPage
+    private readonly developersSearchPage: DevelopersSearchPage
+    private readonly developersCopyPage: DevelopersCopyPage
+    private readonly developersGalleryPage: DevelopersGalleryPage
+    private readonly developersEditorPage: DevelopersEditorPage
 
 
 
@@ -94,6 +113,15 @@ export class PageManager {
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
         this.userHistoryCookiePage = new UserHistoryCookiePage(page, language)
         this.linkExplorerPage = new LinkExplorerPage(page, language)
+        this.developersShellPage = new DevelopersShellPage(page, language)
+        this.developersHomePage = new DevelopersHomePage(page, language)
+        this.developersDocsPage = new DevelopersDocsPage(page, language)
+        this.developersReferencePage = new DevelopersReferencePage(page, language)
+        this.developersTryItPage = new DevelopersTryItPage(page, language)
+        this.developersSearchPage = new DevelopersSearchPage(page, language)
+        this.developersCopyPage = new DevelopersCopyPage(page, language)
+        this.developersGalleryPage = new DevelopersGalleryPage(page, language)
+        this.developersEditorPage = new DevelopersEditorPage(page, language)
 
     }
 
@@ -207,6 +235,44 @@ export class PageManager {
     }
     onLinkExplorer() {
         return this.linkExplorerPage
+    }
+
+    // ---- Developer portal ----
+
+    onDevelopersShell() {
+        return this.developersShellPage
+    }
+
+    onDevelopersHome() {
+        return this.developersHomePage
+    }
+
+    onDevelopersDocs() {
+        return this.developersDocsPage
+    }
+
+    onDevelopersReference() {
+        return this.developersReferencePage
+    }
+
+    onDevelopersTryIt() {
+        return this.developersTryItPage
+    }
+
+    onDevelopersSearch() {
+        return this.developersSearchPage
+    }
+
+    onDevelopersCopyPage() {
+        return this.developersCopyPage
+    }
+
+    onDevelopersGallery() {
+        return this.developersGalleryPage
+    }
+
+    onDevelopersEditor() {
+        return this.developersEditorPage
     }
 
 

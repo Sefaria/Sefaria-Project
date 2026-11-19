@@ -1,0 +1,96 @@
+.band {
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-subtle);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xlarge);
+  padding-block: var(--spacing-3xlarge);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xsmall);
+}
+
+.heading {
+  font-family: var(--font-en-content);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+/* Below 900px: a scroll-snap row that bleeds to the screen edges, so the next card peeks in. */
+.scroller {
+  margin-inline: calc(-1 * var(--container-pad));
+  padding-inline: var(--container-pad);
+  scroll-padding-inline: var(--container-pad);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+}
+
+.scroller:focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: -2px;
+}
+
+.cards {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 300px;
+  gap: var(--spacing-2xlarge);
+
+  /* the last card's end padding, which overflow containers otherwise drop */
+  padding-inline-end: var(--container-pad);
+}
+
+.item {
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+@media (width >= 640px) {
+  .inner {
+    padding-block: var(--spacing-5xlarge);
+  }
+
+  .heading {
+    font-size: 32px;
+  }
+
+  .cards {
+    grid-auto-columns: minmax(280px, 82%);
+  }
+}
+
+@media (width >= 900px) {
+  .scroller {
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .cards {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-columns: auto;
+    padding-inline-end: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroller {
+    scroll-behavior: auto;
+  }
+}

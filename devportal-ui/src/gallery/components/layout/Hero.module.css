@@ -1,0 +1,134 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--module-primary);
+  color: var(--text-inverse);
+  padding: 56px 0 48px;
+}
+
+/* the blue focus ring is too faint on purple, so use white there */
+.hero :focus-visible {
+  outline-color: var(--text-inverse);
+}
+
+.container {
+  padding-left: var(--spacing-2xlarge);
+  padding-right: var(--spacing-2xlarge);
+}
+
+.copy,
+.quote {
+  position: relative;
+  z-index: 1;
+}
+
+.copy {
+  max-width: 600px;
+}
+
+.eyebrow {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: 0;
+}
+
+.title {
+  margin-top: var(--spacing-large);
+  font-family: var(--font-en-content);
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.lead {
+  margin-top: var(--spacing-large);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+  margin-top: var(--spacing-3xlarge);
+}
+
+.action {
+  width: 100%;
+}
+
+/* epigraph: no box, no fill, no border; right-aligned */
+.quote {
+  margin-top: var(--spacing-2xlarge);
+  text-align: right;
+}
+
+.hebrew {
+  font-family: var(--font-he-content);
+  font-size: 26px;
+  line-height: 1.25;
+}
+
+.caption {
+  margin-top: var(--spacing-small);
+  color: var(--text-inverse-soft);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xsmall);
+  min-height: var(--target-min);
+  color: var(--text-inverse);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 50%);
+  text-underline-offset: 4px;
+}
+
+@media (width >= 640px) {
+  .hero {
+    padding: 72px 0;
+  }
+
+  .title {
+    font-size: 40px;
+  }
+
+  .lead {
+    font-size: 18px;
+  }
+
+  .actions {
+    flex-direction: row;
+  }
+
+  .action {
+    width: auto;
+  }
+}
+
+@media (width >= 721px) {
+  .title {
+    font-size: 56px;
+  }
+}
+
+@media (width >= 640px) {
+  .hebrew {
+    font-size: 30px;
+  }
+}
+
+@media (width >= 1100px) {
+  .quote {
+    position: absolute;
+    right: 48px;
+    bottom: 40px;
+    max-width: 360px;
+    margin-top: 0;
+  }
+}

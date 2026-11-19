@@ -1,0 +1,16 @@
+.tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--tile-color);
+  color: var(--text-inverse);
+}
+
+.small {
+  width: 32px;
+  height: 32px;
+}

@@ -1,0 +1,133 @@
+/* Read-only code: live's CodeMirror geometry (lines padding 4px 0, line padding 0 4px, gutters) with our markup. */
+.code {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 4px 0;
+  overflow: auto;
+  font-family: var(--rm-font-family-mono);
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+  scrollbar-width: none;
+}
+
+.code::-webkit-scrollbar {
+  display: none;
+}
+
+.code:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #1a73e8);
+  outline-offset: -2px;
+}
+
+.lines {
+  display: block;
+  min-width: 100%;
+  width: max-content;
+  font: inherit;
+}
+
+.row {
+  display: flex;
+}
+
+/* Stands in for the response rows not rendered yet (ResponseViewer). */
+.spacer {
+  display: block;
+}
+
+.number {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  text-align: right;
+  user-select: none;
+}
+
+.text {
+  flex: 1 0 auto;
+  padding: 0 4px;
+  white-space: pre;
+}
+
+/* Request sample: 12px/18px, gutter 34px (number 30px + 3px right padding), numbers #bebcd7. */
+
+/* CodeMirror sizes its lines to the widest line's text + 7px (4px padding + 3px for the cursor), 1px less than
+   text + padding; the negative margin takes that pixel off the max-content width. */
+.content::after {
+  content: '';
+  margin-right: -1px;
+}
+
+.palenight {
+  line-height: 18px;
+  color: #bebcd7;
+}
+
+.palenight .number {
+  width: 34px;
+  padding: 0 3px 0 0;
+  background: #2b2c31;
+  color: #bebcd7;
+}
+
+/* Response viewer: 12px/17.25px (neo's 1.4375), numbers #e0e2e5 in a 31px column, then a 10px gutter. */
+.neo {
+  height: 100%;
+  line-height: 1.4375;
+  color: #484c58;
+}
+
+.neo .number {
+  width: 31px;
+  padding: 0;
+  background: #fff;
+  color: #e0e2e5;
+}
+
+.foldGutter {
+  position: sticky;
+  left: 31px;
+  z-index: 1;
+  display: flex;
+  flex: 0 0 10px;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.foldButton {
+  width: 10px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #e0e2e5;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.foldButton:hover {
+  color: #1d75b3;
+}
+
+.foldMarker {
+  margin: 0 1px;
+  padding: 0 2px;
+  border: 1px solid #e0e2e5;
+  border-radius: 2px;
+  color: #666b79;
+  line-height: 1;
+}
+
+.foldButton:focus-visible,
+.foldButton[aria-expanded='false'] {
+  opacity: 1;
+}
+
+.code:hover .foldButton {
+  opacity: 1;
+}

@@ -45,6 +45,9 @@
     "build-storybook": "storybook build",
     "test:e2e": "playwright test",
     "test:e2e:mobile": "playwright test --config=playwright.mobileweb.config.ts",
+    "bddgen": "bddgen --config=playwright.bdd.config.ts",
+    "test:bdd": "npm run bddgen && playwright test --config=playwright.bdd.config.ts",
+    "bdd:stubs": "node build/ci/bdd-stubs/generate-step-stubs.cjs",
     "test:library": "playwright test --project=chrome-library",
     "test:library:firefox": "playwright test --project=firefox-library",
     "test:library:webkit": "playwright test --project=safari-library",
@@ -58,6 +61,7 @@
     "test:misc:webkit": "playwright test --project=safari-misc",
     "test:misc:all": "playwright test --project=chrome-misc --project=firefox-misc --project=safari-misc",
     "test:sanity": "playwright test --project=chrome-sanity",
+    "test:pr": "playwright test --project=chrome-pr",
     "test:sanity:mobile": "playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity",
     "test:assistant": "playwright test --project=chrome-assistant",
     "test:resource-panel": "playwright test --project=chrome-resource-panel",
@@ -151,6 +155,7 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@babel/cli": "^7.14.5",
     "@babel/core": "^7.6.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
@@ -179,6 +184,7 @@
     "lint-staged": "^16.4.0",
     "nodemon": "^1.9.2",
     "playwright": "^1.62.1",
+    "playwright-bdd": "9.2.1",
     "prettier": "^3.9.10",
     "sass": "^1.89.1",
     "source-map-support": "^0.4.15",
@@ -196,7 +202,8 @@
     ],
     "testEnvironment": "jsdom",
     "testPathIgnorePatterns": [
-      "<rootDir>/e2e-tests/"
+      "<rootDir>/e2e-tests/",
+      "<rootDir>/devportal-ui/"
     ]
   },
   "babel": {

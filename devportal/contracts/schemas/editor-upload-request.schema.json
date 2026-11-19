@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-upload-request.schema.json",
+  "title": "Editor: upload (logical shape)",
+  "description": "POST /_portal/editor/uploads is multipart/form-data with one part named `file`. This schema is that part's logical shape. The server verifies the type by decoding with Pillow; at most 5 MB. 201 editor-upload-response (200 when the same bytes were uploaded before); 413 file_too_large, 415 unsupported_media_type. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "contentType": {
+          "enum": ["image/png", "image/jpeg", "image/gif", "image/webp"]
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5242880
+        }
+      },
+      "required": ["filename", "contentType", "size"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["file"],
+  "additionalProperties": false
+}
