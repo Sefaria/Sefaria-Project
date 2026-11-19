@@ -95,6 +95,18 @@ def test_tool_that_matches_no_option_becomes_other_and_a_note():
     assert notes == ["Tool that matched no option: Zapier"]
 
 
+def test_only_endpoint_category_apis_become_sefaria_api():
+    assert answers.convert_tools(["texts API", "Calendar API", "calendars API"]) == (["Sefaria API"], [])
+    tools, notes = answers.convert_tools(["OpenAI API"])
+    assert tools == ["Other"]
+    assert notes == ["Tool that matched no option: OpenAI API"]
+
+
+def test_category_ids_with_an_empty_piece_stay_ids():
+    assert answers.convert_category("learning,") == ("learning", [])
+    assert answers.convert_category("learning,,ai") == ("learning,ai", [])
+
+
 def test_tools_not_a_list_or_empty():
     assert answers.convert_tools(None) == ([], [])
     assert answers.convert_tools([]) == ([], [])
@@ -118,6 +130,7 @@ def test_tools_not_a_list_or_empty():
         ("Other: Just launched", "Just launched"),
         ("Other", "other"),
         ("other", "other"),
+        ("other schools use it, ~50", "other schools use it, ~50"),
         ("poc", "poc"),
         ("", ""),
     ],
@@ -144,9 +157,14 @@ SAMPLES = [
     "learning,ai",
     "Learning & Study Tools, Games",
     "",
+    "learning,",
 ]
-TOOL_SAMPLES = [["Sefaria API", "/api/texts", "MCP", "Other: just website pages!", "Zapier"], [], None]
-REACH_SAMPLES = ["~100", "None, it's mostly a proof of concept", "Other: Just launched", "<10", ""]
+TOOL_SAMPLES = [
+    ["Sefaria API", "/api/texts", "MCP", "Other: just website pages!", "Zapier", "OpenAI API", "texts API"],
+    [],
+    None,
+]
+REACH_SAMPLES = ["~100", "None, it's mostly a proof of concept", "Other: Just launched", "<10", "", "Other", "other x"]
 
 
 def test_migration_copy_matches_the_module():

@@ -88,7 +88,7 @@ def convert_category(value):
     value = (value or "").strip()
     if not value:
         return "", []
-    tokens = [token.strip() for token in value.split(",")]
+    tokens = [token.strip() for token in value.split(",") if token.strip()]
     if all(token in CATEGORY_IDS for token in tokens):
         return ",".join(dict.fromkeys(tokens)), []
 
@@ -113,6 +113,14 @@ def convert_category(value):
     return ",".join(c for c in CATEGORY_IDS if c in found), notes
 
 
+def _is_endpoint_api(lower):
+    """ "texts API", "Calendar API": an endpoint category (singular or plural) followed by "api"."""
+    if not lower.endswith(" api"):
+        return False
+    base = lower[: -len(" api")].strip()
+    return base in ENDPOINT_CATEGORIES or f"{base}s" in ENDPOINT_CATEGORIES or base.rstrip("s") in ENDPOINT_CATEGORIES
+
+
 def convert_tools(values):
     """(the form's tool values, without repeats, note lines)."""
     if values in (None, ""):
@@ -129,7 +137,7 @@ def convert_tools(values):
             new = _TOOLS_BY_LOWER[lower]
         elif lower == "mcp":
             new = "Sefaria MCP"
-        elif lower.startswith("/api") or lower in ENDPOINT_CATEGORIES or lower.endswith(" api"):
+        elif lower.startswith("/api") or lower in ENDPOINT_CATEGORIES or _is_endpoint_api(lower):
             new = "Sefaria API"
         elif _OTHER_RE.match(tool):
             new = "Other"
@@ -149,9 +157,10 @@ def convert_reach(value):
     value = (value or "").strip()
     if value in REACH:
         return REACH[value]
-    match = _OTHER_RE.match(value)
-    if match and match.start() == 0:
-        return value[match.end() :].strip() or "other"
+    if value.lower() == "other":
+        return "other"
+    if value.lower().startswith("other:"):
+        return value[len("other:") :].strip() or "other"
     return value
 
 
