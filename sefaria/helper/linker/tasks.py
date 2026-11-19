@@ -1216,7 +1216,7 @@ def rebuild_nonuniqueterm_index_task(self) -> dict:
     return {"count": count}
 
 
-@app.task(name="linker.process_ambiguous_resolution")
+@app.task(name="linker.process_ambiguous_resolution", ignore_result=True)
 def process_ambiguous_resolution(resolution_data: dict) -> None:
     """
     Process an ambiguous resolution from LinkerOutput.
@@ -1282,7 +1282,7 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
     logger.info("=====================================")
 
 
-@app.task(name="linker.process_non_segment_resolution")
+@app.task(name="linker.process_non_segment_resolution", ignore_result=True)
 def process_non_segment_resolution(resolution_data: dict) -> None:
     """
     Process a non-segment-level resolution from LinkerOutput.
