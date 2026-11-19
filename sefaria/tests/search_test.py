@@ -751,6 +751,61 @@ def test_index_from_queue_keeps_record_when_text_write_fails(monkeypatch):
     assert len(fake.index_queue.records) == 1
 
 
+def test_index_from_queue_unescapes_a_ref_stored_with_html_entities(monkeypatch):
+    """add_recent_to_queue copies activity `ref` values verbatim, and legacy rows can
+    hold "&amp;" where the library title holds "&". That ref never parses, so the record
+    must be indexed under the library's own ref and leave the queue."""
+    from sefaria import search
+    from sefaria.system.exceptions import PartialRefInputError
+
+    stored = "Otzar Midrashim, Keri &amp; K'tiv, Midrash Ketiv V'lo Keri 8"
+    library_ref = "Otzar Midrashim, Keri & K'tiv, Midrash Ketiv V'lo Keri 8"
+    fake = _queue_db(monkeypatch, [{"type": "ref", "ref": stored, "version": "v", "lang": "he"}])
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "text-a"})
+
+    def ref(tref):
+        if "&amp;" in tref:
+            raise PartialRefInputError("partial", "Otzar Midrashim", ["Keri & K'tiv"])
+        return tref
+
+    monkeypatch.setattr(search, "Ref", ref)
+    written = []
+    monkeypatch.setattr(
+        search.TextIndexer,
+        "index_ref",
+        classmethod(lambda cls, index_name, oref, *a: written.append((index_name, oref))),
+    )
+
+    search.index_from_queue()
+
+    assert written == [("text-a", library_ref)]
+    assert fake.index_queue.records == []
+
+
+def test_index_from_queue_drops_a_record_whose_ref_never_parses(monkeypatch):
+    """A ref that fails to parse on every run stays in the queue forever under the
+    keep-on-failure rule, so it must be dropped and logged instead of retried."""
+    from sefaria import search
+    from sefaria.system.exceptions import BookNameError
+
+    fake = _queue_db(monkeypatch, [{"type": "ref", "ref": "Gone Book 1", "version": "v", "lang": "en"}])
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "text-a"})
+
+    def ref(tref):
+        raise BookNameError(f"Could not find a book named {tref}")
+
+    monkeypatch.setattr(search, "Ref", ref)
+
+    def never(cls, *a):
+        raise AssertionError("an unparseable ref must not reach index_ref")
+
+    monkeypatch.setattr(search.TextIndexer, "index_ref", classmethod(never))
+
+    search.index_from_queue()
+
+    assert fake.index_queue.records == []
+
+
 def test_index_from_queue_indexes_public_sheet_and_removes_others(monkeypatch):
     """Sheet records sync to the sheet's current state: public -> index, otherwise -> delete."""
     from sefaria import search
