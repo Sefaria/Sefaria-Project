@@ -2496,6 +2496,13 @@ class Ref(metaclass=RefCacheType):
         elif _obj:
             for key, value in list(_obj.items()):
                 setattr(self, key, value)
+            if not hasattr(self, "_lang"):
+                # A Ref built from a data dict has no input string to take a language
+                # from.  Default to "en", the language normal() renders in, so that every
+                # Ref carries the attribute its other callers read -- notably
+                # instantiate_ref_with_legacy_parse_fallback, which reads _lang on a Ref
+                # that the cache may have built this way.
+                self._lang = "en"
             self.tref = self.normal()
             self._validate()
 
