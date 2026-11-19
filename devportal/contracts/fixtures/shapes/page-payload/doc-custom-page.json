@@ -31,7 +31,7 @@
   "page": {
     "title": "Get in Touch",
     "excerpt": "",
-    "bodyHtml": "<p dir=\"auto\">Use this form to contact Sefaria's engineering team…</p>\n<hr>\n<iframe class=\"dp-formstack\" src=\"https://sefaria.formstack.com/forms/developer_contact\"></iframe>",
+    "bodyHtml": "<p>Use this form to contact Sefaria's engineering team…</p>\n<hr>\n<iframe class=\"dp-formstack\" src=\"https://sefaria.formstack.com/forms/developer_contact\"></iframe>",
     "toc": [],
     "updatedAt": "2025-11-02T09:00:00Z",
     "deprecated": false

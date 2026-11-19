@@ -135,7 +135,7 @@ def test_endpoint_page(client, tree, payload_validator):
     assert response["Content-Type"] == "text/html; charset=utf-8"
     html = response.content.decode()
     assert "<title>Texts (v3)</title>" in html
-    assert '<h1 class="dp-endpoint-title" dir="auto">Texts (v3)</h1>' in html
+    assert '<h1 class="dp-endpoint-title">Texts (v3)</h1>' in html
     assert "dp-endpoint-deprecated" not in html
     assert "The most up-to-date way to retrieve texts from Sefaria via the API" in html
     data = _island(response)

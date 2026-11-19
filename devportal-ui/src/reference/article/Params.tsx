@@ -1,5 +1,5 @@
 // The request form: "Path Params", "Query Params", "Header Params", "Body Params" cards, one row per parameter.
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { FormField } from '../model/fields';
 import { useEndpoint } from '../state';
 import { Icon } from '../ui/icons';
@@ -33,7 +33,32 @@ export function SectionHeader({ id, title, deviation }: { id?: string; title: st
   );
 }
 
-function ExampleMenu({ field, onUse }: { field: FormField; onUse: (value: string) => void }) {
+/**
+ * Moves focus among the menu's entries with the arrow keys (they are out of the Tab order, as on live); false when
+ * there is nowhere to go (ArrowUp on the first entry, or from the input).
+ */
+function moveInMenu(event: KeyboardEvent<HTMLElement>, menu: HTMLElement | null, from: 'input' | 'item') {
+  if (menu === null || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp')) return false;
+  const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+  if (items.length === 0) return false;
+  const at = from === 'input' ? -1 : items.indexOf(event.currentTarget);
+  const next = event.key === 'ArrowDown' ? Math.min(at + 1, items.length - 1) : at - 1;
+  const target = items[next];
+  if (next < 0 || target === undefined) return false;
+  event.preventDefault();
+  target.focus();
+  return true;
+}
+
+function ExampleMenu({
+  field,
+  onUse,
+  onItemKeyDown,
+}: {
+  field: FormField;
+  onUse: (value: string) => void;
+  onItemKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
+}) {
   return (
     <>
       <div className={styles.comboType}>
@@ -47,8 +72,11 @@ function ExampleMenu({ field, onUse }: { field: FormField; onUse: (value: string
           key={`${example.value}-${i}`}
           type="button"
           role="menuitem"
+          // Live's entries are not Tab stops: Tab from the input goes on to the next field and closes the list.
+          tabIndex={-1}
           className={styles.comboItem}
           onClick={() => onUse(example.value)}
+          onKeyDown={onItemKeyDown}
         >
           <span className={styles.comboItemTitle}>Use example value</span>
           <span className={styles.comboItemValue}>{example.value}</span>
@@ -62,7 +90,17 @@ function TextInput({ field }: { field: FormField }) {
   const { values, setValue } = useEndpoint();
   const value = values[field.key] ?? '';
   const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const listId = `${field.inputId}__examples`;
+  // Focus back on the input from the list without reopening it (Escape), or keeping it open (ArrowUp).
+  const reopen = useRef(true);
+  const backToInput = (keepOpen: boolean) => {
+    reopen.current = keepOpen;
+    inputRef.current?.focus();
+    reopen.current = true;
+    if (!keepOpen) setOpen(false);
+  };
   return (
     <div
       className={styles.inputWrap}
@@ -71,6 +109,7 @@ function TextInput({ field }: { field: FormField }) {
       }}
     >
       <input
+        ref={inputRef}
         id={field.inputId}
         className={styles.input}
         data-visual="paramInput"
@@ -85,20 +124,38 @@ function TextInput({ field }: { field: FormField }) {
         spellCheck={false}
         placeholder={field.placeholder}
         value={value}
-        onFocus={() => setOpen(true)}
+        // Focus opens the list, by click or by keyboard (live: focus and click both open it); Tab moves on.
+        onFocus={() => {
+          if (reopen.current) setOpen(true);
+        }}
         onKeyDown={(event) => {
           if (event.key === 'Escape') setOpen(false);
+          else if (!open && event.key === 'ArrowDown') setOpen(true);
+          else if (open) moveInMenu(event, menuRef.current, 'input');
         }}
         onChange={(event) => setValue(field.key, event.target.value)}
       />
       {open && field.examples.length > 0 ? (
         <div className={styles.comboFrame} data-visual-region="popover">
-          <div id={listId} role="menu" aria-label={`Examples for ${field.name}`} className={styles.comboPanel}>
+          <div
+            ref={menuRef}
+            id={listId}
+            role="menu"
+            aria-label={`Examples for ${field.name}`}
+            className={styles.comboPanel}
+          >
             <ExampleMenu
               field={field}
               onUse={(v) => {
                 setValue(field.key, v);
                 setOpen(false);
+              }}
+              onItemKeyDown={(event) => {
+                if (event.key === 'Escape') backToInput(false);
+                else if (!moveInMenu(event, menuRef.current, 'item') && event.key === 'ArrowUp') {
+                  event.preventDefault();
+                  backToInput(true);
+                }
               }}
             />
           </div>

@@ -96,6 +96,15 @@ describe('endpoint pages (W3)', () => {
       '/reference/others-have-asked'
     );
     expect(within(pager).getByRole('link', { name: 'Next Page: Texts (v1)' })).toBeInTheDocument();
+    // Live's two copies of the page footer (CSS shows one): the article's, and the stacked one, the columns' last
+    // child after the playground, as the server's prerendered page has them (devportal_endpoint.py).
+    expect(article.querySelector('.dp-endpoint-footer--article')).not.toBeNull();
+    const stacked = document.querySelector('.dp-endpoint-footer--stacked')!;
+    expect(stacked).not.toBeNull();
+    expect(article).not.toContainElement(stacked as HTMLElement);
+    expect(stacked.parentElement!.lastElementChild).toBe(stacked);
+    expect(stacked.previousElementSibling).toContainElement(playground);
+    expect(within(stacked as HTMLElement).getByRole('navigation', { name: 'Pagination Controls' })).toBeInTheDocument();
   });
 
   it('puts the Discord button in the request panel and reports Try It runs on the analytics bus', async () => {

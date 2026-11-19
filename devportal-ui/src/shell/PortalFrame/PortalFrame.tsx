@@ -18,12 +18,25 @@ export interface PortalFrameProps {
   sidebarId?: string;
   /** The right column: the table of contents on docs pages, the playground on endpoint pages. */
   rail?: ReactNode;
+  /**
+   * Reference only: what follows the playground inside the columns (live's `Footer-mobile`: the page footer's copy
+   * shown once the columns stack; hidden by CSS while they are side by side).
+   */
+  pageEnd?: ReactNode;
   /** The article's content. The frame supplies `article#content`, the skip link's target. */
   children: ReactNode;
 }
 
 /** C6 `PortalMain` + `Article`: the three-column frame under the header. */
-export function PortalFrame({ layout, sidebar, sidebarOpen = false, sidebarId, rail, children }: PortalFrameProps) {
+export function PortalFrame({
+  layout,
+  sidebar,
+  sidebarOpen = false,
+  sidebarId,
+  rail,
+  pageEnd,
+  children,
+}: PortalFrameProps) {
   const hasSidebar = layout !== 'plain' && sidebar !== undefined && sidebar !== null;
   const hasRail = layout !== 'plain' && rail !== undefined && rail !== null;
   return (
@@ -41,6 +54,7 @@ export function PortalFrame({ layout, sidebar, sidebarOpen = false, sidebarId, r
                 {children}
               </article>
               {hasRail && <div className={`dp-rm-playground ${styles.playground}`}>{rail}</div>}
+              {pageEnd}
             </div>
           </div>
         ) : (

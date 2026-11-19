@@ -36,7 +36,11 @@ export interface EndpointArticleProps {
   bodyHtml?: string;
   /** Copy Page split button (W2). */
   headerActions?: ReactNode;
-  /** "Updated N ago", prev/next and the feedback widget (W2). */
+  /**
+   * "Updated N ago", prev/next and the feedback widget (W2), at the end of the article. Live shows it there while the
+   * playground is beside the article; its stacked copy goes after the playground (`Endpoint stackedFooter`, or
+   * PortalFrame `pageEnd`).
+   */
   footer?: ReactNode;
 }
 
@@ -55,7 +59,7 @@ export function EndpointArticle({ title, descriptionHtml, bodyHtml, headerAction
       <RecentRequests />
       <Params />
       <Responses />
-      {footer !== undefined ? <div className={styles.footer}>{footer}</div> : null}
+      {footer}
     </>
   );
 }
@@ -67,6 +71,8 @@ export interface EndpointProps extends EndpointOptions, Omit<EndpointArticleProp
   title?: string;
   /** DiscordButton for `reference_request_panel` (W11). */
   discordButton?: ReactNode;
+  /** The page footer's copy after the playground, shown once the columns stack (live's `Footer-mobile`). */
+  stackedFooter?: ReactNode;
 }
 
 export function Endpoint({
@@ -77,6 +83,7 @@ export function Endpoint({
   headerActions,
   footer,
   discordButton,
+  stackedFooter,
   ...options
 }: EndpointProps) {
   return (
@@ -99,6 +106,7 @@ export function Endpoint({
             />
           </article>
           <Playground discordButton={discordButton} />
+          {stackedFooter}
         </div>
       </div>
     </EndpointProvider>

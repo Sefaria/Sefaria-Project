@@ -43,4 +43,8 @@ export {
 export { Feedback, type FeedbackProps } from './Feedback/Feedback';
 export { FEEDBACK_STRINGS } from './Feedback/strings';
 export { CSRF_URL, FEEDBACK_URL, COMMENT_MAX_LENGTH, feedbackBody, sendFeedback } from './Feedback/api';
-export { EndpointFooter, type EndpointFooterProps } from './EndpointFooter/EndpointFooter';
+export {
+  EndpointFooter,
+  type EndpointFooterProps,
+  type EndpointFooterPlacement,
+} from './EndpointFooter/EndpointFooter';

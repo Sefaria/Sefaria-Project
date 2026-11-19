@@ -225,7 +225,6 @@ def _table_cells(tokens, _depth):
                 m = _TEXT_ALIGN.search(style)
                 if m:
                     tok.attrSet("class", "dp-align-" + m.group(1))
-            tok.attrSet("dir", "auto")
 
 
 def _rewrite_attr(m, resolver):
@@ -326,7 +325,7 @@ def _image_html(md, env, attrs):
         cap = ""
         if caption:
             cap_tokens = md.parseInline(caption, env)[0].children
-            cap = f'<figcaption dir="auto"><p>{md.renderer.renderInline(cap_tokens, md.options, env)}</p></figcaption>'
+            cap = f"<figcaption><p>{md.renderer.renderInline(cap_tokens, md.options, env)}</p></figcaption>"
         html = f'<figure class="{" ".join(fig_classes)}">{html}{cap}</figure>'
     return f'<div class="dp-image">{html}</div>\n'
 
@@ -338,7 +337,7 @@ def _install_rules(md, options):
         if not meta.get("text", "").strip():
             return ""
         return (
-            f'<{tok.tag} class="dp-heading dp-heading-{tok.tag[1]}" id="{_attr_escape(meta["id"])}" dir="auto">'
+            f'<{tok.tag} class="dp-heading dp-heading-{tok.tag[1]}" id="{_attr_escape(meta["id"])}">'
             '<span class="dp-heading-text">'
         )
 
@@ -359,10 +358,10 @@ def _install_rules(md, options):
     def paragraph_open(self, tokens, idx, opts, env):
         if tokens[idx].hidden:
             return ""
-        return '<p dir="auto">'
+        return "<p>"
 
     def list_item_open(self, tokens, idx, opts, env):
-        return '<li dir="auto">'
+        return "<li>"
 
     def blockquote_open(self, tokens, idx, opts, env):
         callout = (tokens[idx].meta or {}).get("callout")
@@ -461,7 +460,7 @@ def _install_rules(md, options):
                         toks[paras[0]].hidden = True
                         toks[paras[0] + 2].hidden = True
                     body = self.render(toks, opts, env).strip("\n")
-                    out.append(f'<{cell["tag"]}{cls} dir="auto">{body}</{cell["tag"]}>\n')
+                    out.append(f"<{cell['tag']}{cls}>{body}</{cell['tag']}>\n")
                 out.append("</tr>\n")
             out.append(f"</{section}>\n")
         out.append("</table></div></div>\n")

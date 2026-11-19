@@ -727,6 +727,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+
+  /* W11's DiscordButton is 44px tall: the row keeps that height while the placeholder link stands in (prerender). */
+  min-height: 44px;
   margin: 16px 0 0;
 }
 

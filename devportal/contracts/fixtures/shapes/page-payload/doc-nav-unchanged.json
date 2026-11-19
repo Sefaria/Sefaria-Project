@@ -31,7 +31,7 @@
   "page": {
     "title": "Embed Linker v2 In Your Site",
     "excerpt": "How to embed version 2 of the Sefaria Linker.",
-    "bodyHtml": "<p dir=\"auto\">…</p>",
+    "bodyHtml": "<p>…</p>",
     "toc": [],
     "updatedAt": "2026-05-12T14:03:22Z",
     "deprecated": true

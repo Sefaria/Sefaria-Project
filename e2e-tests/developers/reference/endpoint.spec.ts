@@ -123,6 +123,19 @@ test.describe('Developers Reference, English', () => {
     expect(fields).toEqual(expect.arrayContaining(['body', 'title']));
   });
 
+  test('DEV-REF-019: Tab from an input with examples closes its list and moves on to the next field, as on live', async () => {
+    const reference = pm.onDevelopersReference();
+    await pm.onDevelopersShell().openPath(ENDPOINTS.findRefs.path);
+    await reference.expandBodyObject('text');
+    expect((await reference.openExampleList('body', 'text.title')).length).toBeGreaterThan(0);
+    // Live's next stops: the lang row's anchor, then its select; the "Use example value" entries are not Tab stops.
+    await reference.pressTab();
+    await expect.poll(() => reference.isExampleListOpen('body', 'text.title'), { timeout: t(5000) }).toBe(false);
+    expect(await reference.isParameterFocused('body', 'text.title')).toBe(false);
+    await reference.pressTab();
+    expect(await reference.isParameterFocused('body', 'lang')).toBe(true);
+  });
+
   // ---- C. Responses -----------------------------------------------------------------------
 
   test('DEV-REF-020: The responses heading reads "Response" for one status code', async () => {

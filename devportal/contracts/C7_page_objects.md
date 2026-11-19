@@ -176,6 +176,8 @@ The signatures are final. A body that reads `return notImplemented('<Class>.<met
 | `clickAllowedChip(section: ParamSection, name: string, value: string): Promise<string>`           | Click an "Allowed:" chip; returns the feedback it shows ("Copied!").                                       |
 | `openExampleList(section: ParamSection, name: string): Promise<string[]>`                         | Focus an input with examples; returns its "Use example value" entries.                                     |
 | `useExampleValue(section: ParamSection, name: string, example: string): Promise<void>`            |                                                                                                            |
+| `isExampleListOpen(section: ParamSection, name: string): Promise<boolean>`                        | True while the parameter's "Use example value" list is shown.                                              |
+| `pressTab(backwards?: boolean): Promise<void>`                                                    | Press Tab once (Shift+Tab with `backwards`), for keyboard focus order.                                     |
 | `expandBodyObject(name: string): Promise<string[]>`                                               | Expand an object body parameter with "+"; returns its field names.                                         |
 | `clickUrlPlaceholder(name: string): Promise<void>`                                                | Click a `{placeholder}` chip in the URL line (focuses its input).                                          |
 | `responsesHeading(): Promise<string>`                                                             | "Response" or "Responses".                                                                                 |

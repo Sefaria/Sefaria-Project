@@ -263,6 +263,16 @@ export class DevelopersReferencePage extends HelperBase {
     );
   }
 
+  /** True while a parameter's "Use example value" list is shown. */
+  async isExampleListOpen(section: ParamSection, name: string): Promise<boolean> {
+    return this.page.getByRole('menu', { name: `Examples for ${name.split('.').pop()}` }).isVisible();
+  }
+
+  /** Press Tab once, moving keyboard focus to the next stop (Shift+Tab with `backwards`). */
+  async pressTab(backwards = false): Promise<void> {
+    await this.page.keyboard.press(backwards ? 'Shift+Tab' : 'Tab');
+  }
+
   async useExampleValue(section: ParamSection, name: string, example: string): Promise<void> {
     await this.openExampleList(section, name);
     const menu = this.page.getByRole('menu', { name: `Examples for ${name.split('.').pop()}` });
@@ -279,9 +289,13 @@ export class DevelopersReferencePage extends HelperBase {
   async expandBodyObject(name: string): Promise<string[]> {
     const form = this.page.locator('form#api-request-form');
     const button = form.getByRole('button', { name: new RegExp(`^${escapeRegExp(name)} object`) }).first();
-    await button.scrollIntoViewIfNeeded({ timeout: t(10000) });
-    if ((await button.getAttribute('aria-expanded')) !== 'true') await button.click();
-    await expect(button).toHaveAttribute('aria-expanded', 'true', { timeout: t(5000) });
+    // Retried: React replaces the server's prerendered form once the spec has loaded, which can detach the button
+    // (or leave a click on the inert server markup) while this runs.
+    await expect(async () => {
+      await button.scrollIntoViewIfNeeded({ timeout: t(3000) });
+      if ((await button.getAttribute('aria-expanded')) !== 'true') await button.click({ timeout: t(3000) });
+      await expect(button).toHaveAttribute('aria-expanded', 'true', { timeout: t(2000) });
+    }).toPass({ timeout: t(15000) });
     return button.evaluate((b) =>
       Array.from(b.parentElement?.querySelectorAll('[data-visual="paramName"]') ?? []).map((l) =>
         (l.textContent ?? '').trim()

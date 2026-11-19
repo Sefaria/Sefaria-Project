@@ -65,7 +65,7 @@ const Paragraph = Node.create({
   content: 'inline*',
   priority: 1000,
   parseHTML: () => [{ tag: 'p' }],
-  renderHTML: () => ['p', { dir: 'auto' }, 0],
+  renderHTML: () => ['p', 0],
 });
 
 const Heading = Node.create({
@@ -81,7 +81,7 @@ const Heading = Node.create({
     const level = node.attrs.level as number;
     return [
       `h${level}`,
-      { class: `dp-heading dp-heading-${level}`, dir: 'auto', 'data-dp-editor-heading': '' },
+      { class: `dp-heading dp-heading-${level}`, 'data-dp-editor-heading': '' },
       ['span', { class: 'dp-heading-text' }, 0],
       ['a', { class: 'dp-heading-anchor', contenteditable: 'false' }],
     ];
@@ -150,7 +150,7 @@ const ListItem = Node.create({
   content: 'block+',
   defining: true,
   parseHTML: () => [{ tag: 'li' }],
-  renderHTML: () => ['li', { dir: 'auto' }, 0],
+  renderHTML: () => ['li', 0],
 });
 
 /** Fenced or indented code. A language gives the code-tab chrome; `title` is the tab label (F-4). */
@@ -232,11 +232,7 @@ export function imageSpec(a: ImageAttrs, captionHtml: string | null): Spec {
   if (a.framed) fig.push('dp-figure-framed', 'dp-figure-align-' + (align ?? 'center'));
   const parts: unknown[] = ['figure', { class: fig.join(' ') }, lightbox];
   if (caption) {
-    parts.push([
-      'figcaption',
-      { dir: 'auto' },
-      ['p', {}, ['dp-rawc', { 'data-raw': encodeURIComponent(captionHtml ?? caption) }]],
-    ]);
+    parts.push(['figcaption', {}, ['p', {}, ['dp-rawc', { 'data-raw': encodeURIComponent(captionHtml ?? caption) }]]]);
   }
   return parts as Spec;
 }
@@ -347,7 +343,7 @@ const DpTableRow = Node.create({
 function cellSpec(tag: string) {
   return ({ node }: { node: { attrs: Attrs } }): Spec => {
     const align = node.attrs.align as string | null;
-    const attrs: Attrs = align ? { class: 'dp-align-' + align, dir: 'auto' } : { dir: 'auto' };
+    const attrs: Attrs = align ? { class: 'dp-align-' + align } : {};
     return [tag, attrs, 0];
   };
 }

@@ -22,7 +22,11 @@ export function frameContentHeight(frame: HTMLIFrameElement): number | null {
   return height > 0 ? Math.ceil(height) : null;
 }
 
-/** The frame document's content box (`.dp-htmlblock-document`, the body's one child), or null. */
+/**
+ * The frame document's content box (`.dp-htmlblock-document`, the body's one child), or null. The block's HTML is in
+ * a box of its own inside it (`.dp-htmlblock-html`, live's `.rdmd-html`), so the article's first/last-child margin
+ * resets apply to that box and not to the block's own elements.
+ */
 function frameContent(frame: HTMLIFrameElement): HTMLElement | null {
   let doc: Document | null;
   try {
@@ -90,6 +94,20 @@ export function frameOuterMargins(frame: HTMLIFrameElement): { top: number; bott
 }
 
 /**
+ * How far the frame's content must move so it lands where the block's HTML would be drawn inline (D-12). A frame's
+ * document is painted at the frame's position rounded to a whole device pixel, while live draws the block at the
+ * fractional position the article's text above gives it (the "Powered by Sefaria" block at y 279.69): text and edges
+ * then fall on different pixel rows. Moving the content by the difference puts every box at live's coordinates.
+ */
+export function subpixelShift(frame: HTMLIFrameElement): number {
+  const view = frame.ownerDocument.defaultView ?? window;
+  const ratio = view.devicePixelRatio || 1;
+  const y = (frame.getBoundingClientRect().top + view.scrollY) * ratio;
+  const shift = (y - Math.round(y)) / ratio;
+  return Number.isFinite(shift) ? Math.round(shift * 100) / 100 : 0;
+}
+
+/**
  * Sets the frame's height attribute to its content height. Returns the height set, or null. The margins that
  * would collapse out of the block (frameOuterMargins) are taken out of the frame document (a negative margin on
  * its content box) and put on the block's wrapper, so the frame's box is where live's block box is and the
@@ -100,8 +118,10 @@ export function sizeFrame(frame: HTMLIFrameElement): number | null {
   const content = frameContent(frame);
   const margins = frameOuterMargins(frame);
   if (block?.classList.contains('dp-htmlblock') && content && margins) {
-    // Through the CSSOM (allowed by both CSPs, unlike a style attribute in the markup).
-    content.style.marginTop = margins.top ? `-${margins.top}px` : '';
+    // Through the CSSOM (allowed by both CSPs, unlike a style attribute in the markup). The content also moves by
+    // the frame's sub-pixel offset (subpixelShift).
+    const top = subpixelShift(frame) - margins.top;
+    content.style.marginTop = top ? `${top}px` : '';
     content.style.marginBottom = margins.bottom ? `-${margins.bottom}px` : '';
     // Important: on live the margins escape even where the block is the body's first or last child, whose own
     // margin `.dp-markdown > :first-child` / `:last-child` zero with !important (as live's markdown-body does).
@@ -137,6 +157,8 @@ export function enhanceHtmlBlockFrames(root: ParentNode): Cleanup {
     const onResize = () => sizeFrame(frame);
     frame.addEventListener('load', onLoad);
     window.addEventListener('resize', onResize);
+    // The page's own web fonts move the frame (the text above it gets shorter or longer): its sub-pixel shift too.
+    void document.fonts?.ready.then(onResize);
     if (frame.contentDocument?.readyState === 'complete' && frame.contentDocument.URL !== 'about:blank') onLoad();
     cleanups.push(() => {
       frame.removeEventListener('load', onLoad);

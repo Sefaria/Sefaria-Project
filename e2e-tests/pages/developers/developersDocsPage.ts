@@ -243,7 +243,7 @@ export class DevelopersDocsPage extends HelperBase {
   /** Computed `direction` of the article ("rtl" on the Hebrew page). */
   async articleDirection(): Promise<'ltr' | 'rtl'> {
     await expect(this.article).toBeVisible({ timeout: t(10000) });
-    // The direction is carried by the body's text blocks (dir="auto"), not by the article element. A
+    // The direction is carried by the body's text blocks (left to right, as live), not by the article. A
     // page whose body is an HTML block (the Hebrew citation page, P09) carries it inside that frame.
     const firstTextDirection = (root: Element) => {
       const blocks = Array.from(root.querySelectorAll('p, h1, h2, h3, h4, li, td, div[dir]'));

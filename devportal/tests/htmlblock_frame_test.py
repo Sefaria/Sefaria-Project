@@ -129,7 +129,10 @@ def test_frame_document_shape(client):
     assert html.lstrip().lower().startswith("<!doctype html>")
     assert '<base target="_blank" />' in html
     assert '<body class="dp-htmlblock-body">' in html
-    assert '<div class="dp-markdown dp-htmlblock-document"><div dir="rtl"><h2>איך ליצור</h2></div></div>' in html
+    assert (
+        '<div class="dp-markdown dp-htmlblock-document"><div class="dp-htmlblock-html"><div dir="rtl"><h2>איך ליצור</h2></div></div></div>'
+        in html
+    )
     assert " style=" not in html.split("<body", 1)[0]
 
 

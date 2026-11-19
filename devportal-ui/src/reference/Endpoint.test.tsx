@@ -101,6 +101,31 @@ describe('B. Parameters', () => {
     expect(screen.getByRole('combobox', { name: 'lang' }).tagName).toBe('SELECT');
   });
 
+  it('Tab from an input with examples closes the list and goes on to the next field, as on live', async () => {
+    const { user } = setup('post-find-refs');
+    await user.click(screen.getByRole('button', { name: 'text object' }));
+    const title = screen.getByRole('combobox', { name: 'title' });
+    await user.click(title);
+    expect(title).toHaveAttribute('aria-expanded', 'true');
+    // The entries are not Tab stops: live's next stops are the lang anchor, then its select.
+    await user.tab();
+    expect(screen.getByRole('link', { name: 'Skip link to lang' })).toHaveFocus();
+    expect(title).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('menu', { name: 'Examples for title' })).toBeNull();
+    await user.tab();
+    expect(screen.getByRole('combobox', { name: 'lang' })).toHaveFocus();
+    // Shift+Tab back into the input reopens its list; the arrow keys reach the entries, Escape returns to the input.
+    await user.tab({ shift: true });
+    await user.tab({ shift: true });
+    expect(title).toHaveFocus();
+    expect(title).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getAllByRole('menuitem')[0]).toHaveFocus();
+    await user.keyboard('{Escape}');
+    expect(title).toHaveFocus();
+    expect(title).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('has the section and parameter anchors', () => {
     setup('post-find-refs');
     expect(document.getElementById('body-params')).not.toBeNull();

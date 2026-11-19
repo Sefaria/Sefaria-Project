@@ -102,7 +102,7 @@ def render_markdown(source: str, *, revision_key: str) -> str:
         if exc.name != "devportal.markdown":
             raise
         paragraphs = [p.strip() for p in re.split(r"\n\s*\n", source) if p.strip()]
-        return "".join(f'<p dir="auto">{html.escape(p)}</p>' for p in paragraphs)
+        return "".join(f"<p>{html.escape(p)}</p>" for p in paragraphs)
     return markdown.render(source, revision=revision_key).html
 
 

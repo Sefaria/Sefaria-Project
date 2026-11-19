@@ -51,6 +51,11 @@ export interface PageSlots {
   endpointArticle?: (data: EndpointPayload) => ReactNode;
   /** The playground column of endpoint pages (W3, `src/reference`). */
   playground?: (data: EndpointPayload) => ReactNode;
+  /**
+   * After the playground (PortalFrame `pageEnd`): the page footer's copy that shows once the columns stack (live's
+   * `Footer-mobile`). Rendered with the playground, so not in the spec-loading fallback.
+   */
+  endpointPageEnd?: (data: EndpointPayload) => ReactNode;
   /** The homepage body (W11, `src/home`), including its Discord placements. Default: the adopted body. */
   home?: (data: Extract<PagePayload, { kind: 'home' }>) => ReactNode;
   /** The staff editor (W13, `src/editor`). */
@@ -138,12 +143,23 @@ export function PortalPage({ slots }: { slots: PageSlots }) {
       break;
     case 'endpoint': {
       const title = <h1 className="dp-page-title">{data.page.title}</h1>;
-      const frame = (rail: ReactNode, article: ReactNode) => (
-        <PortalFrame layout="reference" sidebar={sidebar} sidebarOpen={sidebarOpen} sidebarId={SIDEBAR_ID} rail={rail}>
+      const frame = (rail: ReactNode, article: ReactNode, pageEnd?: ReactNode) => (
+        <PortalFrame
+          layout="reference"
+          sidebar={sidebar}
+          sidebarOpen={sidebarOpen}
+          sidebarId={SIDEBAR_ID}
+          rail={rail}
+          pageEnd={pageEnd}
+        >
           {article}
         </PortalFrame>
       );
-      const full = frame(slots.playground?.(data), slots.endpointArticle ? slots.endpointArticle(data) : title);
+      const full = frame(
+        slots.playground?.(data),
+        slots.endpointArticle ? slots.endpointArticle(data) : title,
+        slots.endpointPageEnd?.(data)
+      );
       body = slots.endpointProvider ? slots.endpointProvider(data, full, frame(null, title)) : full;
       break;
     }

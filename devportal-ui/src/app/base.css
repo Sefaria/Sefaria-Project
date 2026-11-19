@@ -22,7 +22,9 @@ html:root {
   outline: none;
 }
 
-html:has(.dp-notfound) {
+/* Live's page scroller keeps a stable scrollbar gutter, so short pages are laid out as wide as long ones. */
+html:has(.dp-notfound),
+html:has(.dp-docs) {
   scrollbar-gutter: stable;
 }
 

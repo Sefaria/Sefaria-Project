@@ -1,6 +1,6 @@
 // Endpoint pages in the portal (PLAN §2.5): W3's reference UI in PortalFrame's two columns, sharing one
 // <EndpointProvider>; W11's Discord button in the request panel; the page footer (Updated, prev/next and the
-// feedback slot) at the end of the article; Try It reported to analytics with `track` (C8 `try_it_run`).
+// feedback slot) at the end of the article (and its stacked copy after the playground, slots.tsx); Try It reported to analytics with `track` (C8 `try_it_run`).
 // The slots that use these are in slots.tsx; the spec files are held by endpointSpecs.ts.
 import { useEffect, useState, type ReactNode } from 'react';
 import type { EndpointPayload } from '../contracts';
@@ -47,13 +47,15 @@ export function EndpointSpecGate({ data, children, fallback }: EndpointSpecGateP
 /** The end of the endpoint article (live: Updated, prev/next, "Did this page help you?"); endpoint_footer.html. */
 export function EndpointFooter({ data, feedback }: { data: EndpointPayload; feedback?: ReactNode }) {
   return (
-    <footer className="dp-docs-footer">
-      <UpdatedAt updatedAt={data.page.updatedAt} />
-      <Pagination pager={data.pager} />
-      <div className="dp-docs-footer__feedback" data-slot="feedback">
-        {feedback}
-      </div>
-    </footer>
+    <div className="dp-endpoint-footer dp-endpoint-footer--article">
+      <footer className="dp-docs-footer">
+        <UpdatedAt updatedAt={data.page.updatedAt} />
+        <Pagination pager={data.pager} />
+        <div className="dp-docs-footer__feedback" data-slot="feedback">
+          {feedback}
+        </div>
+      </footer>
+    </div>
   );
 }
 

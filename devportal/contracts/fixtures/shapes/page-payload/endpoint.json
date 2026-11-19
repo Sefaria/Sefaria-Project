@@ -39,7 +39,7 @@
   "page": {
     "title": "Texts (v3)",
     "sidebarLabel": "Texts (v3)",
-    "descriptionHtml": "<p dir=\"auto\">The most up-to-date way to retrieve texts from Sefaria via the API, with enhanced control over language, language direction, and other parameters.</p>",
+    "descriptionHtml": "<p>The most up-to-date way to retrieve texts from Sefaria via the API, with enhanced control over language, language direction, and other parameters.</p>",
     "bodyHtml": "",
     "updatedAt": "2026-05-20T10:00:00Z",
     "specUpdatedAt": "2026-10-25T08:51:39Z"

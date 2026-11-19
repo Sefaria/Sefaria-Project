@@ -29,7 +29,7 @@ npx playwright test --project=chrome-developers --list e2e-tests/developers/refe
 
 ## Test IDs
 
-Local run (standalone portal, chrome-developers, see `../README.md` "Local runs"): 43 of 45 pass. A failing test is never skipped or weakened; the reason and the lane that owns the fix are in the last column.
+Local run (standalone portal, chrome-developers, see `../README.md` "Local runs"): 46 of 46 pass. A failing test is never skipped or weakened; the reason and the lane that owns the fix are in the last column.
 
 | ID            | Spec file                | What it asserts                                                                                 | Tags            | Local run |
 | ------------- | ------------------------ | ----------------------------------------------------------------------------------------------- | --------------- | --------- |
@@ -46,6 +46,7 @@ Local run (standalone portal, chrome-developers, see `../README.md` "Local runs"
 | `DEV-REF-016` | `endpoint.spec.ts`       | Each parameter and each section has an anchor                                                   |                 | passes    |
 | `DEV-REF-017` | `endpoint.spec.ts`       | Clicking the {tref} chip focuses its input; typing replaces the chip and updates the sample     |                 | passes    |
 | `DEV-REF-018` | `endpoint.spec.ts`       | A POST page has body params whose object expands with "+" to its fields                         |                 | passes    |
+| `DEV-REF-019` | `endpoint.spec.ts`       | Tab from an input with examples closes its list and moves on to the next field, as on live      |                 | passes    |
 | `DEV-REF-020` | `endpoint.spec.ts`       | The responses heading reads "Response" for one status code                                      |                 | passes    |
 | `DEV-REF-021` | `endpoint.spec.ts`       | Each status is an accordion with a coloured dot; it opens and closes                            |                 | passes    |
 | `DEV-REF-022` | `endpoint.spec.ts`       | An expanded status shows "Response body", its type and its properties                           |                 | passes    |

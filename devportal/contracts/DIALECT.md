@@ -44,7 +44,7 @@ container (W7's `<div class="dp-markdown">`).
 ## Global conventions
 
 - Every class the renderer emits starts with `dp-`. The sanitizer removes every other class token.
-- `dir="auto"` is on every `p`, `h1`-`h6`, `li`, `th`, `td` and `figcaption` the renderer emits (RTL, below).
+- The renderer emits no `dir` attribute: every block is left to right, as on live (RTL, below).
 - No `style` attribute anywhere; alignment and widths use classes or the `width` attribute.
 - The renderer emits no `target` or `rel` on links (live emits `target=""`, which does nothing).
 - Text is escaped; attribute values are double-quoted.
@@ -58,7 +58,7 @@ A single newline inside a paragraph is a line break on live (ReadMe renders with
 `the-educator-playbook-...` show `<br>` where the source has a bare newline). So:
 
 ```html
-<p dir="auto">
+<p>
   Yes! We have an iOS app.<br />
   Our iOS app is available on Apple's App Store.
 </p>
@@ -86,7 +86,7 @@ Source: ATX (`#`…`######`) or setext. Output (live: `h2.heading.heading-2.head
 `div.heading-anchor#id`, `div.heading-text`, `a.heading-anchor-icon`):
 
 ```html
-<h2 class="dp-heading dp-heading-2" id="quick-questions-and-answers" dir="auto">
+<h2 class="dp-heading dp-heading-2" id="quick-questions-and-answers">
   <span class="dp-heading-text">Quick Questions and Answers</span>
   <a
     class="dp-heading-anchor"
@@ -120,8 +120,8 @@ note live includes H1 (the plan said H2 and H3; live wins). Nesting by level is 
 
 ### Lists
 
-`<ul>`, `<ol>` (with `start="N"` when the first number is not 1), `<li dir="auto">`. Tight lists render items without
-`<p>`; loose lists wrap item paragraphs in `<p dir="auto">`. `- [ ]` task syntax is plain text.
+`<ul>`, `<ol>` (with `start="N"` when the first number is not 1), `<li>`. Tight lists render items without
+`<p>`; loose lists wrap item paragraphs in `<p>`. `- [ ]` task syntax is plain text.
 
 ### Blockquote
 
@@ -155,8 +155,8 @@ wrapped in `div.readme-tailwind`, which we drop):
 ```html
 <blockquote class="dp-callout dp-callout-warn">
   <span class="dp-callout-icon" aria-hidden="true">🚧</span>
-  <h3 class="dp-heading dp-heading-3" id="work-in-progress" dir="auto">…</h3>
-  <p dir="auto">Please note: …</p>
+  <h3 class="dp-heading dp-heading-3" id="work-in-progress">…</h3>
+  <p>Please note: …</p>
 </blockquote>
 ```
 
@@ -228,7 +228,7 @@ with a trailing space, `"500px"`), `caption`, `border={true|false}`, `framed={tr
 <div class="dp-image">
   <figure class="dp-figure dp-figure-framed dp-figure-align-center">
     <span class="dp-img-lightbox" …>…</span>
-    <figcaption dir="auto"><p>Caption</p></figcaption>
+    <figcaption><p>Caption</p></figcaption>
   </figure>
 </div>
 ```
@@ -250,12 +250,12 @@ Pipe tables and the component form produce the same markup (live: `div.rdmd-tabl
     <table>
       <thead>
         <tr>
-          <th class="dp-align-left" dir="auto">Attribute</th>
+          <th class="dp-align-left">Attribute</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="dp-align-left" dir="auto"><code class="dp-code">dependence</code></td>
+          <td class="dp-align-left"><code class="dp-code">dependence</code></td>
         </tr>
       </tbody>
     </table>
@@ -267,7 +267,7 @@ Pipe tables and the component form produce the same markup (live: `div.rdmd-tabl
   class `dp-align-<a>` on every `th` and `td` of that column (live: `style="text-align:left"`). No alignment, no class.
 - Component form: `<Table align={[…]}>` with `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>` in any indentation. Each
   cell's content is dedented and parsed as Markdown (fences, lists, paragraphs). **A cell with exactly one top-level
-  paragraph renders it without `<p>`**; a cell with several paragraphs keeps `<p dir="auto">` on each (live).
+  paragraph renders it without `<p>`**; a cell with several paragraphs keeps `<p>` on each (live).
 - Pipe-table cells are inline only (GFM).
 
 ### Embed
@@ -333,9 +333,14 @@ Replacement happens before heading ids are computed, which is why `### :warning:
 
 ### RTL
 
-No direction is forced. `dir="auto"` on paragraphs, headings, list items, table cells and captions lets each block
-take the direction of its first strong character, so Hebrew paragraphs, list items and cells run right to left inside
-an English page. The one fully Hebrew page is an HTMLBlock with its own `dir="rtl"`.
+No direction is set: the renderer emits no `dir` on paragraphs, headings, list items, table cells or captions, so
+every block is left to right, Hebrew-first ones included. This is live's rendering (2026-11-18, every element with
+Hebrew text in `linker-v3` and `sites-using-the-linker` list items, `linker-v2` table cells, `the-disambiguator`
+blockquote paragraphs, the Hebrew page's H1 title: no `dir` attribute anywhere in the Markdown, computed `ltr`); an
+earlier draft of this contract put `dir="auto"` on each block, which turned those lists right to left. Hebrew runs
+inside a line still lay out right to left by the bidi algorithm. Right-to-left blocks come only from authored HTML:
+the one fully Hebrew page is an HTMLBlock with its own `<div dir="rtl">`, and the sanitizer keeps an authored `dir`
+(`auto`, `ltr`, `rtl`).
 
 ### Links
 

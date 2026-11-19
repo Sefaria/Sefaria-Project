@@ -212,6 +212,13 @@ def test_endpoint_page_includes_the_prerendered_article(imported, prerender_bund
     assert article.index("</header>") < article.index("Extra notes.") < article.index("PARAMS")
     assert article.index("PARAMS") < article.index('<footer class="dp-docs-footer"')
     assert 'aria-label="Next Page: Texts (v1)"' in article
+    assert '<div class="dp-endpoint-footer dp-endpoint-footer--article">' in article
+    # Live's second copy of the footer, shown once the columns stack: the columns' last child, after the playground.
+    columns_end = text[text.index("PLAYGROUND") : text.index("</main>")]
+    stacked = '<div class="dp-endpoint-footer dp-endpoint-footer--stacked"><footer class="dp-docs-footer">'
+    assert stacked in columns_end
+    assert columns_end.index(stacked) < columns_end.index("</div></div>", columns_end.index("Next Page: Texts (v1)"))
+    assert text.count('aria-label="Pagination Controls"') == 2
     # The sidebar comes before the prerendered columns, inside the page's <main>.
     assert text.index('id="dp-sidebar"') < text.index("dp-Endpoint-module__wrapper") < text.index("</main>")
     island = _island(text)
@@ -222,9 +229,11 @@ def test_endpoint_page_without_the_prerendered_file_falls_back(imported, empty_b
     text = portal_client().get("/reference/get-v3-texts").content.decode()
     article = text[text.index('<article id="content"') : text.index("</article>")]
     assert 'data-dp-prerender="missing"' in article
-    assert '<h1 class="dp-endpoint-title" dir="auto">Texts (v3)</h1>' in article
+    assert '<h1 class="dp-endpoint-title">Texts (v3)</h1>' in article
     assert html_lib.escape("https://www.sefaria.org/api/v3/texts/{tref}") in article or (
         "/api/v3/texts/{tref}" in article
     )
     assert 'aria-label="Next Page: Texts (v1)"' in article
+    # One footer, always shown (no playground to stack under).
+    assert '<div class="dp-endpoint-footer">' in article and "dp-endpoint-footer--" not in text
     assert 'id="dp-sidebar"' in text

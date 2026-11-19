@@ -189,7 +189,7 @@ export function ImageView({ node, updateAttributes, deleteNode, selected }: Prop
         <figure className={`dp-figure${a.framed ? ` dp-figure-framed dp-figure-align-${align || 'center'}` : ''}`}>
           {img}
           {caption && (
-            <figcaption dir="auto">
+            <figcaption>
               <p>{caption}</p>
             </figcaption>
           )}

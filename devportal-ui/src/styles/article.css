@@ -967,6 +967,10 @@
 .dp-htmlblock-body {
   margin: 0;
   background: transparent;
+
+  /* The frame is sized to its content (src/docs/htmlblock.ts), so it never scrolls. Without this, the Hebrew guide's
+     right-to-left document overflowed sideways, and its scrollbars took 10px from the text's width (D-12). */
+  overflow: hidden;
 }
 
 .dp-markdown .dp-htmlblock-frame {

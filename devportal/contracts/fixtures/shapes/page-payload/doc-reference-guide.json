@@ -31,7 +31,7 @@
   "page": {
     "title": "Getting Started With the Sefaria API",
     "excerpt": "Everything you need to make your first call to the Sefaria API.",
-    "bodyHtml": "<p dir=\"auto\">Please note: For our API Documentation, see <a href=\"/reference/getting-started\">Getting Started With The Sefaria API</a>.</p>\n<h2 id=\"what-is-sefaria\" dir=\"auto\">What is Sefaria?</h2>\n<p dir=\"auto\">…</p>",
+    "bodyHtml": "<p>Please note: For our API Documentation, see <a href=\"/reference/getting-started\">Getting Started With The Sefaria API</a>.</p>\n<h2 id=\"what-is-sefaria\">What is Sefaria?</h2>\n<p>…</p>",
     "toc": [],
     "updatedAt": "2026-05-12T14:03:22Z",
     "deprecated": false

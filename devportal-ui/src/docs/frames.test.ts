@@ -1,7 +1,14 @@
 // Embeds and HTMLBlock frames.
 import { axe } from 'vitest-axe';
 import { DEFAULT_EMBED_TITLE, enhanceEmbeds } from './embeds';
-import { FRAME_SANDBOX, enhanceHtmlBlockFrames, frameContentHeight, frameOuterMargins, sizeFrame } from './htmlblock';
+import {
+  FRAME_SANDBOX,
+  enhanceHtmlBlockFrames,
+  frameContentHeight,
+  frameOuterMargins,
+  sizeFrame,
+  subpixelShift,
+} from './htmlblock';
 import { golden, mountArticle } from './test-utils';
 
 afterEach(() => {
@@ -111,6 +118,42 @@ describe('HTMLBlock frames', () => {
     expect(block.style.getPropertyValue('margin-bottom')).toBe('');
     expect(content.style.marginTop).toBe('-28px');
     expect(frame).not.toHaveAttribute('style');
+  });
+
+  it("keeps a block's own last-element margin: the CTA's 32px bottom margin goes to the wrapper (powered-by)", () => {
+    const frame = frameWithHeight(267);
+    const doc = frame.contentDocument!;
+    // The frame document's shape (htmlblock_frame.html): the block in its own box, so the article's last-child reset
+    // does not reach the block's elements. The CTA is a flex box; its margin collapses out of the block's box.
+    doc.body.innerHTML =
+      '<div class="dp-markdown dp-htmlblock-document"><div class="dp-htmlblock-html"><style></style>' +
+      '<div class="pbs-cta" style="display: flex">CTA</div></div></div>';
+    const content = doc.body.firstElementChild as HTMLElement;
+    vi.spyOn(content, 'getBoundingClientRect').mockReturnValue({ top: 0, bottom: 298.69 } as DOMRect);
+    vi.spyOn(content.firstElementChild!, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      bottom: 266.69,
+    } as DOMRect);
+    expect(frameOuterMargins(frame)).toEqual({ top: 0, bottom: 32 });
+    sizeFrame(frame);
+    expect(frame.parentElement!.style.getPropertyValue('margin-bottom')).toBe('32px');
+    expect(content.style.marginBottom).toBe('-32px');
+  });
+
+  it('moves the content by the sub-pixel part of the frame position, as live draws the inline block (D-12)', () => {
+    const frame = frameWithHeight(267);
+    const doc = frame.contentDocument!;
+    doc.body.innerHTML = '<div class="dp-markdown dp-htmlblock-document"><div class="dp-htmlblock-html"></div></div>';
+    const content = doc.body.firstElementChild as HTMLElement;
+    // The frame at y 279.69 is painted at 280: its content moves up 0.31px, to live's coordinates.
+    vi.spyOn(frame, 'getBoundingClientRect').mockReturnValue({ top: 279.6875 } as DOMRect);
+    expect(subpixelShift(frame)).toBe(-0.31);
+    sizeFrame(frame);
+    expect(content.style.marginTop).toBe('-0.31px');
+    // On a whole pixel nothing moves.
+    vi.spyOn(frame, 'getBoundingClientRect').mockReturnValue({ top: 280 } as DOMRect);
+    sizeFrame(frame);
+    expect(content.style.marginTop).toBe('');
   });
 
   it('leaves the height alone while the frame has no layout', () => {

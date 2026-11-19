@@ -26,11 +26,6 @@
   margin: 0 0 24px;
 }
 
-/* W2's page footer brings its own spacing: on live its region starts right under the responses. */
-.footer {
-  margin: 0;
-}
-
 /* ≤1065: the playground stacks under the article (measured on live: 1065 stacks, 1070 does not). */
 @media (width <= 1065px) {
   .container {
@@ -45,19 +40,5 @@
 @media (width <= 700px) {
   .article {
     padding: 32px 20px;
-  }
-}
-
-/* ≤1065 live's page footer is 30px in from the column's edges, not at the article's padding (pagination at
-   x 318 of 288-1014 at 1024, at x 30 width 320 at 390): 30px less the article's 32px, or its 20px at ≤700. */
-@media (width <= 1065px) {
-  .footer {
-    margin: 0 -2px;
-  }
-}
-
-@media (width <= 700px) {
-  .footer {
-    margin: 0 10px;
   }
 }

@@ -6,7 +6,7 @@ import type { DocPayload, EndpointPayload, PagePayload } from '../contracts';
 import { DocsPageEndDiscord, SidebarFooterDiscord } from '../discord';
 import { DocPage } from '../docs';
 import { homeSlot } from '../home';
-import { CopyPage, EndpointFooter, Feedback, Sidebar } from '../shell';
+import { CopyPage, EndpointFooter, Feedback, Sidebar, type EndpointFooterPlacement } from '../shell';
 import { EndpointArticleSlot, EndpointPlaygroundSlot, EndpointSpecGate } from './endpoint';
 import type { DocFrame, PageSlots } from './PortalPage';
 
@@ -88,9 +88,12 @@ export function endpointHeaderActions(data: EndpointPayload) {
   return renderCopyPage(data);
 }
 
-/** For W3's `EndpointArticle footer`: "Updated N ago", prev/next and the feedback widget (no Discord, D-7). */
-export function endpointFooter(data: EndpointPayload) {
-  return <EndpointFooter path={data.path} updatedAt={data.page.updatedAt} pager={data.pager} />;
+/**
+ * "Updated N ago", prev/next and the feedback widget (no Discord, D-7). Live has two copies, shown by width: for
+ * W3's `EndpointArticle footer` ('article') and after the playground once the columns stack ('stacked').
+ */
+export function endpointFooter(data: EndpointPayload, placement: EndpointFooterPlacement = 'article') {
+  return <EndpointFooter path={data.path} updatedAt={data.page.updatedAt} pager={data.pager} placement={placement} />;
 }
 
 /** The slots every page gets. */
@@ -114,6 +117,7 @@ export function createPageSlots(): PageSlots {
       <EndpointArticleSlot data={data} headerActions={endpointHeaderActions(data)} footer={endpointFooter(data)} />
     ),
     playground: () => <EndpointPlaygroundSlot />,
+    endpointPageEnd: (data) => endpointFooter(data, 'stacked'),
     home: homeSlot,
     // editor: W13 (src/editor)
   };

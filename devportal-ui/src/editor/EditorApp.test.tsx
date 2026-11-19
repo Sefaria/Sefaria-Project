@@ -127,8 +127,7 @@ function fakeApi() {
       contractVersion: 1,
       title: 'Welcome',
       excerpt: 'Start here',
-      bodyHtml:
-        '<h1 class="dp-heading dp-heading-1" id="welcome" dir="auto"><span class="dp-heading-text">Welcome</span></h1>',
+      bodyHtml: '<h1 class="dp-heading dp-heading-1" id="welcome"><span class="dp-heading-text">Welcome</span></h1>',
       toc: [],
       sanitizerRemovals: [],
     }),
