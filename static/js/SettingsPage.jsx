@@ -287,11 +287,13 @@ const FOCUSABLE =
 
 /* A modal dialog: focus moves in on open and back to where it was on close, Tab stays inside,
    and Escape closes it. */
-/* True at the header's phone breakpoint (842px and below), updating on resize. False on the server and in tests. */
+/* True at the header's phone breakpoint (842px and below), updating on resize. False on the server and in tests.
+   It starts false in the browser too and is set right after the page loads: the server can't know the width, so a
+   first render that differed from the server's left a mix of both layouts on phones (Add key at zero size; Daniel,
+   2026-11-18). Rendering the phone parts after load instead lets React build them itself. */
 const E_PHONE_QUERY = '(max-width: 842px)';
 const useEIsPhone = () => {
-  const get = () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia(E_PHONE_QUERY).matches;
-  const [isPhone, setIsPhone] = useState(get);
+  const [isPhone, setIsPhone] = useState(false);
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) {
       return undefined;
@@ -1051,10 +1053,12 @@ const EPrimary = ({ children, type = 'submit', ...rest }) => (
 
 /* The way in: what this is for, and one button that starts the steps. */
 /* withConfirm: an email sign-in still has to confirm the address, which comes first. */
-const EEntry = ({ onStart, withConfirm, share }) => {
+/* confirmDone: an email sign-in that already confirmed keeps the step, gray with a green check, so About you still reads
+   "Step 2 of 4" (Penina, 2026-11-19). */
+const EEntry = ({ onStart, withConfirm, confirmDone, share }) => {
   const [shareNote, setShareNote] = useState(!!share);
   const items = [
-    ...(withConfirm ? [tK('developer.welcome.steps.confirm_email')] : []),
+    ...(withConfirm || confirmDone ? [tK('developer.welcome.steps.confirm_email')] : []),
     tK('developer.welcome.steps.about_you'),
     tK('developer.welcome.steps.project'),
     tK('developer.welcome.steps.create_key'),
@@ -1068,11 +1072,16 @@ const EEntry = ({ onStart, withConfirm, share }) => {
         <div className="devE-form">
           <ol className="devE-path">
             {items.map((item, i) => (
-              <li key={i}>
+              <li key={i} className={confirmDone && i === 0 ? 'is-done' : undefined}>
                 <span className="devE-n" aria-hidden="true">
                   {i + 1}
                 </span>
                 {item}
+                {confirmDone && i === 0 ? (
+                  <span className="devE-pathDone" aria-hidden="true">
+                    <ECheckIcon size={18} />
+                  </span>
+                ) : null}
               </li>
             ))}
           </ol>
@@ -1259,10 +1268,10 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
           label={tK('developer.about_you.additional_email.label')}
           labelAddon={
             <React.Fragment>
-              {EOpt}
               <InfoTip fieldId="devEEmail2" icon="help" above>
                 {tK('developer.about_you.additional_email.tooltip')}
               </InfoTip>
+              {EOpt}
             </React.Fragment>
           }
           aria-describedby={tipId('devEEmail2')}
@@ -1403,6 +1412,7 @@ const EProjectFields = ({ fields, set, errors, check, showcase }) => (
 /* One message for a website that isn't a real address (no domain ending like .com), shown on blur under every
    website field (Penina, 2026-11-05). https:// and www. are cleaned up, not errors. */
 const E_SITE_INVALID = <InterfaceText text={eBi('developer.common.invalid_website.error')} />;
+const E_LINK_INVALID = <InterfaceText text={eBi('developer.publish_form.source_code.invalid.error')} />;
 const eSiteError = (value, required) =>
   !(value || '').trim() ? (required ? 'auth.required_field' : null) : parseWebsite(value).valid ? null : E_SITE_INVALID;
 const E_PROJECT_RULES = {
@@ -1629,7 +1639,7 @@ const EKeyRestrictField = ({ project, on, setOn, site, setSite, siteError, setSi
           inputDir="ltr"
           label={tK('developer.common.your_website.label')}
           placeholder="example.com"
-          hint={tK('developer.common.your_website.hint', { domain_hint: E_DOMAIN_HINT })}
+          hint={<InterfaceText text={E_DOMAIN_HINT} />}
           value={site}
           onChange={(e) => setSite(e.target.value)}
           onBlur={() => {
@@ -1645,19 +1655,15 @@ const EKeyRestrictField = ({ project, on, setOn, site, setSite, siteError, setSi
   );
 };
 
-/* When to limit a key, in two lines with on and off in bold (Penina, 2026-11-05; two lines and "Leave it off", 2026-11-15). Used in the key forms and in
-   the window that asks for a website from the key table. */
+/* When to limit a key: one paragraph with on and off in bold (Penina, 2026-11-05; one paragraph, "Leave this off" and
+   "on a server or in an AI tool", 2026-11-19). Used in the key forms and in the window that asks for a website from the
+   key table. */
 const ERestrictHint = ({ id }) => (
   <div className="devE-hint devE-restrictHint" id={id}>
-    <React.Fragment>
-      <span>
-        {sK('developer.key_form.restrict.hint', {
-          on: <strong>{vK('developer.key_form.restrict.hint.on.emphasis')}</strong>,
-          off: <strong>{vK('developer.key_form.restrict.hint.off.emphasis')}</strong>,
-        })}
-      </span>
-      <span>{tK('developer.key_form.restrict.change_anytime.hint')}</span>
-    </React.Fragment>
+    {sK('developer.key_form.restrict.help', {
+      on: <strong>{vK('developer.key_form.restrict.hint.on.emphasis')}</strong>,
+      off: <strong>{vK('developer.key_form.restrict.hint.off.emphasis')}</strong>,
+    })}
   </div>
 );
 
@@ -2126,11 +2132,8 @@ const ELimitKeyDialog = ({ project, apiKey, run, onDone, onCancel }) => {
           inputDir="ltr"
           label={tK('developer.common.your_website.label')}
           placeholder="example.com"
-          hint={
-            <InterfaceText
-              text={apiKey ? eBi('developer.common.your_website.hint', { domain_hint: E_DOMAIN_HINT }) : E_DOMAIN_HINT}
-            />
-          }
+          /* Only the domain hint: "We'll add it to the project's details." was dropped (Penina, 2026-11-19). */
+          hint={<InterfaceText text={E_DOMAIN_HINT} />}
           value={site}
           onChange={(e) => {
             setSite(e.target.value);
@@ -2518,7 +2521,8 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
     const next = {
       websiteUrl: required(form.fields.websiteUrl),
       cats: cats.length ? null : <InterfaceText text={eBi('developer.publish_form.category.error')} />,
-      sourceUrl: eSiteError(sourceUrl, false),
+      // A source-code link isn't a website, so it gets its own message (Penina, 2026-11-19).
+      sourceUrl: eSiteError(sourceUrl, false) ? E_LINK_INVALID : null,
       role: person.role ? null : 'auth.required_field',
     };
     setErrors(next);
@@ -4042,6 +4046,7 @@ const DeveloperE = ({ state, developerOn, run, notice, setNotice, connectedMessa
     body = (
       <EEntry
         withConfirm={needConfirm}
+        confirmDone={!needConfirm && confirmStep}
         share={E_SHARE_LINK}
         onStart={() => {
           setStarted(true);

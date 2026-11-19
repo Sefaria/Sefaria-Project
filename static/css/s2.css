@@ -17560,7 +17560,9 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocInfoButton:hover { color: var(--sefaria-blue); /* action-primary */ }
 /* An info tip after an Input's label sits on the label's centre line. */
 .devPocPage .sefaria-input-labelGroup { align-items: center; }
-.devPocPage .sefaria-input-labelGroup .devPocTip { margin-inline-start: 0; }
+/* A label's (?) sits right after the label text, then "Optional": Label (?) Optional, 8px apart (spacing-small;
+   Penina, 2026-11-19). */
+.devPocPage .sefaria-input-labelGroup .devPocTip { margin-inline-start: 8px; }
 .devPocPage .sefaria-input-labelGroup .devPocInfoButton { margin: 0; }
 .devPocTextButton {
   border: 0;
@@ -18091,6 +18093,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-path { list-style: none; margin: 0; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; /* spacing-large, spacing-xlarge, spacing-medium */ background: #fafafa; /* surface-subtle */ border-radius: 12px; }
 .devPocPage .devE-path li { display: flex; align-items: center; gap: 12px; font-size: 16px; color: var(--near-black); /* text-primary */ }
 .devPocPage .devE-path .devE-n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #e4eaf3; /* surface-highlighted */ color: var(--sefaria-blue); /* action-primary */ font-size: 14px; font-weight: 600; }
+.devPocPage .devE-path li.is-done { color: var(--darker-grey); /* text-secondary */ }
+.devPocPage .devE-path li.is-done .devE-n { background: var(--lighter-grey); color: var(--darker-grey); /* surface-muted; text-secondary */ }
+.devPocPage .devE-path .devE-pathDone { display: inline-flex; color: #518159; /* feedback-success */ }
 .devPocPage .devE-links { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; color: var(--medium-grey-legacy); /* gray-400 */ }
 /* trial E: optional fields say "Optional"; required fields carry no mark */
 .devPocPage .devE-opt { margin-inline-start: 8px; /* 8px, not 4: Hebrew has no italic to set it apart (2026-11-16) */ font: italic 400 12px/20px var(--english-sans-serif-font-family); color: var(--secondary-text-grey); /* en-system-caption, text-muted: the quietest text that still passes AA */ }
@@ -18244,8 +18249,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 @keyframes devESlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .devE-deleteStage, .devE-deleteModal { animation: none; } }
 /* trial E: the AI prompt dialog, and the new key's row tinted for a moment instead of a message */
-.devPocPage .devE-table .devE-keyRowT.is-new td { animation: devENewRow 4s ease-out; }
-@keyframes devENewRow { 0%, 40% { background: #e4eaf3; } 100% { background: transparent; } /* surface-highlighted, fading */ }
 /* trial E: project row extras as chips; Add key is the row's primary action */
 .devPocPage .devE-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .devPocPage .devE-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border: 1px dashed #4f6f9a; border-radius: 14px; background: var(--white); /* surface-page */ font: 500 14px/1 var(--english-sans-serif-font-family); color: var(--sefaria-blue); /* action-primary */ cursor: pointer; /* border-strong, text-link */ }
@@ -18498,7 +18501,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .toggle-switch-inner, .devPocPage .toggle-switch-switch { transition-duration: 0.15s; transition-timing-function: ease-out; }
 .devPocPage .focus-visible:has(input:focus):not(:has(input:focus-visible)) { outline: none; }
 @media (prefers-reduced-motion: reduce) { .devPocPage .toggle-switch-inner, .devPocPage .toggle-switch-switch { transition: none; } }
-.devPocPage .devE-restrictHint span { display: block; }
 .devPocPage .devE-restrictHint strong { font-weight: 600; color: var(--near-black); /* text-primary */ }
 /* "Limit this key to your website" window, opened from the key table: stacked with design system gaps; the hint and the
    field's help text at the dialog's 14px. */
@@ -18561,9 +18563,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .devPocPage .devE-sectionHead .devE-tipWrap { flex: none; }
 }
 /* A project just made: a navy-200 ring that fades, instead of a "saved" message (2026-11-05). */
-@keyframes devENewProject { 0%, 50% { box-shadow: 0 0 0 3px #e4eaf3, 0 0 0 4px #4f6f9a; } 100% { box-shadow: 0 0 0 0 transparent; } }
-.devPocPage .devE-project.is-new { animation: devENewProject 2.4s ease-out; /* navy-200 halo with a navy-600 edge */ }
-@media (prefers-reduced-motion: reduce) { .devPocPage .devE-project.is-new { animation: none; } }
 /* "Limit to website" column: the ? tip holds a Learn more link. */
 .devPocPage .devE-thTip { display: inline-flex; align-items: center; gap: 4px; }
 .devPocPage .devE-thTip .devPocPopover { text-transform: none; letter-spacing: normal; font-weight: 400; }
@@ -18933,6 +18932,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
    the 44px close button). */
 .devPocPage .devE-quiet, .devPocPage .devE-chip { gap: 8px; /* spacing-small */ }
 .devPocPage .devE-chips { margin-top: 8px; }
+/* "Submitted for review" is a note, not a button: the same at rest and on hover (Penina, 2026-11-19). */
+.devPocPage .devE-chip.devE-chipDone, .devPocPage .devE-chip.devE-chipDone:hover { font-weight: 400; color: var(--darker-grey); background: none; text-decoration: none; cursor: default; /* text-secondary */ }
+.devPocPage .devE-chip.devE-chipDone svg, .devPocPage .devE-chip.devE-chipDone:hover svg { color: #518159; /* feedback-success */ }
 .devPocPage .devE-projExtras { margin-top: -8px; }
 .settingsNav a { padding-inline: 12px; /* spacing-medium */ }
 .devPocPage .devE-table thead th { padding-inline: 12px; }

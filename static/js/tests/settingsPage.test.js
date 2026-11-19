@@ -433,7 +433,7 @@ describe('the first project and key', () => {
     await click(button('Continue'));
     expect(screen.getByRole('switch', { name: 'Limit this key to daftracker.org' })).toBeTruthy();
     expect(document.querySelector('.devE-restrictHint').textContent).toContain(
-      'Leave it off if your key is going in a server or an AI tool.'
+      'Leave this off if your key is going on a server or in an AI tool. You can change this setting at any time in Developer Settings.'
     );
   });
 
