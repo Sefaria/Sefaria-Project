@@ -2911,6 +2911,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
   const [readingHistory, setReadingHistory] = useState(settings.readingHistory === false ? 'false' : 'true');
   const [textualCustom, setTextualCustom] = useState(settings.textualCustom);
   const [libraryAssistant, setLibraryAssistant] = useState(settings.libraryAssistantEnabled ? 'true' : 'false');
+  /* nodejs.mode "optin": the new reader or the classic one. The response to the save sets (or clears) the cookie nginx routes
+     page requests by. */
+  const [readerVersion, setReaderVersion] = useState(settings.newReaderEnabled ? 'next' : 'classic');
   /* The warning belongs to the moment the visitor picks Off, not to a setting that was already Off on load. */
   const [warnReadingHistory, setWarnReadingHistory] = useState(false);
 
@@ -2919,6 +2922,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
   const saved = useRef({
     interfaceLanguage: settings.interfaceLanguage,
     libraryAssistant: settings.libraryAssistantEnabled ? 'true' : 'false',
+    readerVersion: settings.newReaderEnabled ? 'next' : 'classic',
     translationLanguage: settings.translationLanguagePreference,
     textualCustom: settings.textualCustom,
   });
@@ -2953,6 +2957,11 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
     if (libraryAssistant !== saved.current.libraryAssistant) {
       profile.settings.library_assistant = libraryAssistant === 'true';
     }
+    // the reader choice, only when offered and changed
+    const readerChanged = !!settings.readerChoiceAvailable && readerVersion !== saved.current.readerVersion;
+    if (readerChanged) {
+      profile.settings.reader_version = readerVersion;
+    }
     // see trans pref in cookie in case user is logged out
     if (profile.settings.translation_language_preference !== undefined) {
       $.cookie('translation_language_preference', profile.settings.translation_language_preference, { path: '/' });
@@ -2970,6 +2979,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
       rememberAccountSettings({
         emailNotifications,
         libraryAssistantEnabled: libraryAssistant === 'true',
+        newReaderEnabled: settings.readerChoiceAvailable ? readerVersion === 'next' : settings.newReaderEnabled,
         ...(torahSpecific
           ? {
               interfaceLanguage,
@@ -2986,8 +2996,8 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
       if (languageChanged) {
         Sefaria.track.setInterfaceLanguage('interface language account settings', interfaceLanguage);
       }
-      // Interface language or Library Assistant changed → reload (interface language affects RTL/LTR and server-rendered content; the assistant needs a fresh chatbot_user_token and script tag)
-      if (languageChanged || libraryAssistant !== saved.current.libraryAssistant) {
+      // Interface language, Library Assistant or reader changed → reload (interface language affects RTL/LTR and server-rendered content; the assistant needs a fresh chatbot_user_token and script tag; the reader is chosen by the cookie this response set)
+      if (languageChanged || libraryAssistant !== saved.current.libraryAssistant || readerChanged) {
         window.location.reload();
         return;
       }
@@ -3196,6 +3206,39 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
             ]}
           />
         </SettingSection>
+
+        {/* nodejs.mode "optin": the switch between the new reader and the classic one, for whom the audience includes; when the
+            new reader's kill switch is on for someone who would otherwise see it, a line saying why it is gone. */}
+        {settings.readerChoiceAvailable ? (
+          <SettingSection
+            id="newReaderSetting"
+            label={<InterfaceText text={{ en: 'New Reader (beta)', he: 'הקורא החדש (בטא)' }} />}
+          >
+            <SettingToggle
+              optionClass="doubleOption"
+              value={readerVersion}
+              onChange={setReaderVersion}
+              options={[
+                { value: 'next', content: <InterfaceText text={{ en: 'On', he: 'פעיל' }} /> },
+                { value: 'classic', content: <InterfaceText text={{ en: 'Off', he: 'כבוי' }} /> },
+              ]}
+            />
+          </SettingSection>
+        ) : settings.newReaderPaused ? (
+          <SettingSection
+            id="newReaderSetting"
+            label={<InterfaceText text={{ en: 'New Reader (beta)', he: 'הקורא החדש (בטא)' }} />}
+          >
+            <div className="control-elem newReaderPaused">
+              <InterfaceText
+                text={{
+                  en: 'The new reader is switched off for now; you are reading with the classic reader.',
+                  he: 'הקורא החדש מושבת כרגע; אתם קוראים בקורא הקלאסי.',
+                }}
+              />
+            </div>
+          </SettingSection>
+        ) : null}
 
         <div id="username-change" className="section">
           <label className="control-elem">

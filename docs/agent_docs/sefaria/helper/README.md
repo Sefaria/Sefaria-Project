@@ -15,6 +15,7 @@ The helper layer sits between raw models and the view/API layer. It contains the
 | [topic_and_community.md](./topic_and_community.md) | `topic.py`, `community_page.py`, `descriptions.py`, `trend_manager.py`                 | Topic page API, community page (parashah/calendar/featured), author data import, user engagement trends          |
 | [crm.md](./crm.md)                                 | `crm/*.py`                                                                             | Salesforce/NationBuilder integration, chatbot opt-in webhook                                                     |
 | [utilities.md](./utilities.md)                     | `search.py`, `slack/`, `texts/`, `file.py`, `webpages.py`, `linker_index_converter.py` | ES query building, Slack webhooks, file/image utilities, URL normalization, legacy Index → linker term migration |
+| (this page, below)                                 | `reader_choice.py`                                                                     | The legacy-vs-new reader choice: `reader_version` cookie, opt-in audience, kill switch                           |
 
 ## File Layout
 
@@ -54,9 +55,19 @@ helper/
 │   └── send_message.py              # Slack webhook
 ├── texts/
 │   └── tasks.py                     # Text Celery tasks
+├── reader_choice.py                 # Legacy vs new reader choice (cookie, audience, kill switch, middleware)
 ├── file.py                          # Image resize/scrape
 └── webpages.py                      # URL normalization
 ```
+
+## reader_choice.py
+
+Owns the `reader_version` cookie that nginx routes page requests by when the Helm chart runs `nodejs.mode: optin` (both readers deployed; Django gets `settings.READER_OPTIN`). In `legacy` mode `available()` is False and everything here is inert.
+
+- `available()` -- `READER_OPTIN`; `on_library(request)` -- the request's django_hosts host is the Library (the cookie is never set or cleared on Voices responses).
+- `audience()` -- remote config `feature.reader.optin.audience`: `"all"` (every signed-in user) or anything else = `"staff"`. `next_disabled()` -- the kill switch, remote config `feature.reader.next.disabled`. `may_use_next(user)` combines them. Remote config is process-local, so a change reaches other pods only after they restart.
+- The choice is stored at `profile.settings["reader_version"]` (`"next"` / `"classic"`), written through `/api/profile` or `/api/reader-choice`; `apply_cookie(response, request, choice)` sets or clears the cookie on the shared cookie domain.
+- `ReaderChoiceMiddleware` -- see [middleware_and_request.md](../system/middleware_and_request.md).
 
 ## Common Patterns
 

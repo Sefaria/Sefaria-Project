@@ -1,0 +1,23 @@
+/* Measured on sefaria.org (2026-10-05, desktop and phone): grey #ededec, 60px tall, 16px #666 text, the content centred in the
+   760px reading column with 30px sides, white 6px-radius buttons (padding 5px 11px) and a 35px #bbb × at the column's end. */
+.banner { --_side: max(30px, calc((100% - 760px) / 2 + 30px)); display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; box-sizing: border-box; padding: 0 var(--_side); background: #ededec; font-family: var(--sefaria-font-ui-en); font-size: 16px; color: #666; position: relative; }
+.banner[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.message { margin: 0; }
+.message strong { color: inherit; font-weight: 700; }
+.buttons { display: flex; gap: 8px; }
+.buttons button { padding: 5px 11px; font-size: 16px; color: #666; background: #fff; border-radius: 6px; height: auto; min-height: 29px; }
+.close { position: absolute; inset-inline-end: calc(var(--_side) - 11px); inset-block-start: 50%; transform: translateY(-50%); }
+.close button { color: #bbb; }
+.close svg { width: 24px; height: 24px; }
+/* A phone (sefaria.org's .singlePanel .readerControlsInner, measured 2026-11-18 at 375 and 320): 15px sides, the message first and
+   taking the room, the button at its narrowest ("Go to / translations" on two lines, 118px at 375) 10px after it, the × at the
+   end; the button ran on one line under the × here */
+@media (max-width: 842px) {
+  .banner { --_side: 15px; justify-content: flex-start; padding-inline-end: 50px; }
+  .message { flex: 1 1 auto; min-width: 0; line-height: normal; }
+  .buttons button { width: min-content; white-space: normal; line-height: normal; }
+  .close { inset-inline-end: 4px; }
+}
+/* the message's lines centred and the button's label regular weight, as there (measured 2026-11-18 on Genesis 1, 375 and 1280) */
+.message { text-align: center; }
+.buttons button { font-weight: 400; }

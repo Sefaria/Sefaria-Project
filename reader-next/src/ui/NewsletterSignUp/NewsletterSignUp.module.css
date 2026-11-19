@@ -1,0 +1,14 @@
+/* The old .navSidebar .newsletterSignUpBox (static/css/s2.css), VERIFIED on sefaria.org /calendars at 1280px and on a phone (2026-11-04):
+   20px under the module's text; each field the module's width, 40px tall, 15px var(--sefaria-color-text-list) text, padded 10px 32px 12px 16px
+   (Hebrew 8px 16px 11px 32px), no border, the 1px-3px shadow, 6px corners, 6px apart; the arrow 18px at 20% opacity, 10px from the
+   top and 12px from the end (mirrored in Hebrew). */
+.box { position: relative; margin-block: 20px 4px; }
+.input { display: block; box-sizing: border-box; width: 100%; height: 40px; margin: 0 0 6px; padding: 10px 32px 12px 16px; border: none; border-radius: 6px; box-shadow: var(--sefaria-shadow-1); background: var(--sefaria-color-surface); font-family: var(--sefaria-font-ui-en); font-size: 15px; color: var(--sefaria-color-text-list); }
+/* Hebrew: the old padding and Heebo's taller line make the field 41px (measured) */
+.box[dir="rtl"] .input { height: 41px; padding: 8px 16px 11px 32px; font-family: var(--sefaria-font-ui-he); }
+.arrow { position: absolute; inset-block-start: 10px; inset-inline-end: 12px; display: block; width: 18px; height: 18px; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+.arrow img { display: block; width: 18px; height: 18px; opacity: 0.2; }
+.box[dir="rtl"] .arrow img { transform: scale(-1, 1); }
+.educator { margin-block-start: 2px; padding: 0 3px; font-size: 14px; }
+.educator input { margin-inline-end: 4px; vertical-align: middle; }
+.message { margin: 4px 0 14px; font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; text-align: center; direction: ltr; }

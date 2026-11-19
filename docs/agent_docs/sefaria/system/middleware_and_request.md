@@ -25,6 +25,10 @@ Handles the Django request/response pipeline: middleware classes that enrich req
 - **`MaxRSSMiddleware`**: Measures memory (maxrss) delta per request and binds it to structlog context. Handles macOS vs Linux unit differences (bytes vs KB).
 - **`ModuleMiddleware`**: Sets `request.active_module` based on hostname lookup against `DOMAIN_MODULES`. Defaults to `LIBRARY_MODULE`. Excludes API and static paths.
 
+### Reader choice middleware (lives outside middleware.py)
+
+- **`ReaderChoiceMiddleware`** (`sefaria/helper/reader_choice.py`, registered in `MIDDLEWARE` after `ProfileMiddleware`): keeps the `reader_version` routing cookie (which nginx uses, in the chart's `nodejs.mode: optin`, to send page requests to the new reader) in line with the user's profile setting `settings.reader_version`. A no-op unless `settings.READER_OPTIN` is set (only the chart's `optin` mode sets it): in `legacy` mode it returns at once, with no DB, remote-config or session access. In `optin` mode it acts only on Library-host responses (never Voices), skips responses whose view already set the cookie (`/api/profile`, `/api/reader-choice`), clears a `next` cookie held by someone the remote-config audience no longer includes or while the kill switch is on, and once per signed-in session loads the `UserProfile` (one Mongo read, guarded by the session flag `reader_version_synced`) to make the cookie match the saved choice. See [helper/README.md](../helper/README.md).
+
 ### decorators.py -- View Decorators
 
 - **`catch_error_as_json`**: Catches `InputError` exceptions and returns them as `{"error": "..."}` JSON. The primary error-handling decorator for API views.
@@ -78,6 +82,7 @@ Handles the Django request/response pipeline: middleware classes that enrich req
 ## Relationships
 
 - Middleware sets request attributes (`interfaceLang`, `contentLang`, `diaspora`, `active_module`, `init_shared_cache`) that views and context processors depend on.
+- `ReaderChoiceMiddleware` reads `request.host` (set by django_hosts) rather than `request.active_module`, because `ModuleMiddleware` leaves `/api/` paths at the default module.
 - `catch_error_as_json` and `catch_error_as_http` depend on the `InputError` hierarchy from `exceptions.py`.
 - `SharedCacheMiddleware` uses `cache.py`'s shared cache functions and triggers library cache regeneration.
 - `LanguageSettingsMiddleware` depends on `UserProfile` model, `DOMAIN_MODULES` settings, and Cloudflare headers.

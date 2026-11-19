@@ -1,0 +1,35 @@
+# The follow-me room relay: a Worker plus one Durable Object per follow session (docs/ROOM_RELAY_CLOUDFLARE.md).
+#   npm run relay:dev                        local (Miniflare), on the dev room server's port
+#   npm run relay:deploy -- --env staging    rooms-staging.sefaria.org
+#   npm run relay:deploy                     rooms.sefaria.org
+name = "sefaria-room-relay"
+# No account_id here: wrangler reads CLOUDFLARE_ACCOUNT_ID from the environment. Set it to the account that holds the sefaria.org
+# zone before `relay:deploy`; with several accounts and no variable, wrangler asks, and a wrong account fails on the custom domain.
+main = "worker.ts"
+compatibility_date = "2026-10-01"
+routes = [{ pattern = "rooms.sefaria.org", custom_domain = true }]   # top-level keys must come before any [table]
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]   # new namespaces must be SQLite-backed; this one never writes to storage
+
+[vars]
+# exact origins, comma-separated; "https://*.suffix" allows any subdomain of suffix (www included, not the bare domain)
+ALLOWED_ORIGINS = "https://www.sefaria.org,https://www.sefaria.org.il,https://*.cauldron.sefaria.org"
+
+[env.staging]
+name = "sefaria-room-relay-staging"
+routes = [{ pattern = "rooms-staging.sefaria.org", custom_domain = true }]
+
+[env.staging.vars]
+# no localhost: the relay's only gate is the Origin (and the room id), and any page served on anyone's localhost:3100 would pass; use
+# the local relay for development (npm run relay:dev, relay/.dev.vars)
+ALLOWED_ORIGINS = "https://*.sefariastaging.org,https://*.sefariastaging-il.org,https://*.cauldron.sefaria.org"
+
+[[env.staging.durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"

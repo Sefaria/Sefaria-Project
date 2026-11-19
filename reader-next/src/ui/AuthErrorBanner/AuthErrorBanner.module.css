@@ -1,0 +1,8 @@
+/* Ported from static/css/auth.scss (.sefaria-auth-error, .sefaria-auth-provider-action). */
+.banner { display: flex; align-items: center; gap: 8px; color: var(--sefaria-color-danger); font-size: 16px; line-height: 1.25; text-align: start; }
+.banner a { color: var(--sefaria-color-danger); }
+.icon { align-self: flex-start; }
+.content { min-width: 0; }
+.providerAction { display: inline; margin-inline-start: 4px; font-weight: 400; color: var(--sefaria-color-danger); text-decoration: underline; cursor: pointer; }
+/* the real Google iframe is portaled in and fills it */
+.googleTarget { position: relative; display: inline-block; }

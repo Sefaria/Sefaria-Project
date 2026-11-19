@@ -1,0 +1,22 @@
+{
+  "tolerance": 0.02,
+  "measured": "2026-11-18",
+  "pages": {
+    "reader page (/Genesis.1)": {
+      "routes": [
+        "__root__",
+        "/$"
+      ],
+      "js": {
+        "files": 73,
+        "raw": 893651,
+        "gzip": 318500
+      },
+      "css": {
+        "files": 22,
+        "raw": 264399,
+        "gzip": 63070
+      }
+    }
+  }
+}

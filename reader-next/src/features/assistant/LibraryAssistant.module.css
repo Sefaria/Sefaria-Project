@@ -1,0 +1,10 @@
+/* The sign-up options a signed-out visitor sees in the assistant's login prompt (its `signup-options` slot) */
+.signupOptions { display: flex; gap: 12px; justify-content: center; }
+/* They show only inside the widget: until its script defines the element, or if it never loads, they would be plain page content
+   (static/css/library-assistant.scss, the same rule) */
+:global(lc-chatbot:not(:defined)) > .signupOptions { display: none; }
+/* The widget's floating button would sit on top of the open phone menu (static/css/library-assistant.scss, the same rule) */
+:global(:root:has(#mobile-nav:not([hidden])) lc-chatbot) { visibility: hidden; }
+/* What the widget inherits through its shadow root, as on sefaria.org's page (body: Roboto, line-height normal): this client's 1.4
+   line height would loosen every line of the chat */
+:global(lc-chatbot) { line-height: normal; font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif; }

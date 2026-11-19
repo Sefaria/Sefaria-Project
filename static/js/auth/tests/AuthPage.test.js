@@ -18,8 +18,18 @@ jest.mock('../RegisterView.jsx', () => mockView('register-email'));
 jest.mock('../LoginView.jsx', () => mockView('login-email'));
 jest.mock('../ForgotView.jsx', () => mockView('forgot'));
 jest.mock('../ResetView.jsx', () => mockView('reset'));
-jest.mock('../ResetExpiredView.jsx', () => mockView('reset-expired'));
-jest.mock('../MessageView.jsx', () => mockView('message'));
+jest.mock(
+  '../ResetExpiredView.jsx',
+  () =>
+    ({ onResendSuccess }) =>
+      require('react').createElement('button', { 'data-view': 'reset-expired', onClick: onResendSuccess })
+);
+jest.mock(
+  '../MessageView.jsx',
+  () =>
+    ({ heading, sub }) =>
+      require('react').createElement('div', { 'data-view': 'message', 'data-heading': heading, 'data-sub': sub })
+);
 jest.mock('../../common/Button.jsx', () => () => null);
 jest.mock('../../Misc.jsx', () => ({ InterfaceText: ({ children }) => children }));
 jest.mock('../../sefaria/csrf', () => ({ getCsrfToken: () => 'csrf' }));
@@ -80,5 +90,23 @@ describe('AuthPage initialView', () => {
     expect(fireMethodChosen).toHaveBeenCalledWith(flowId, expect.any(String), 'email');
     expect(fireProcessStarted).toHaveBeenCalledWith(flowId, expect.any(String));
     expect(fireFlowStarted.mock.invocationCallOrder[0]).toBeLessThan(fireMethodChosen.mock.invocationCallOrder[0]);
+  });
+});
+
+describe('AuthPage expired reset link', () => {
+  // The server mails a new link only when the link genuinely expired, and answers 200 either way, so the card shown
+  // after "Request New Link" must not be the "Reset Link Sent / check your email" card.
+  it('after Request New Link, says a link was requested without promising an email', () => {
+    mount({ initialPath: '/password/reset/confirm/MTI/abc-123/', resetValid: false });
+    expect(shownView()).toBe('reset-expired');
+
+    act(() => {
+      container.querySelector('[data-view="reset-expired"]').click();
+    });
+
+    const card = container.querySelector('[data-view]');
+    expect(card.getAttribute('data-view')).toBe('message');
+    expect(card.getAttribute('data-heading')).toBe('auth.new_link_requested_title');
+    expect(card.getAttribute('data-sub')).toBe('auth.new_link_requested_sub');
   });
 });

@@ -1,0 +1,105 @@
+/* A compact media bar: [play] [track ··········] 1:05 / 3:20 [1x 2x 4x]. Sized for a floating dock (min 280px wide). */
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: var(--sefaria-space-3);
+  min-width: 0;
+  font-family: var(--sefaria-font-ui-en);
+  font-size: var(--sefaria-text-sans-small);
+  color: var(--sefaria-color-text);
+}
+/* the controls dim, the time stays readable (and above contrast minimums) */
+.timeline[data-disabled] .play, .timeline[data-disabled] .track, .timeline[data-disabled] .rate { opacity: 0.5; }
+
+.play {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--sefaria-radius-round);
+  background: var(--sefaria-color-brand);
+  color: var(--sefaria-color-on-brand);
+  cursor: pointer;
+}
+.play:hover:not(:disabled) { background: var(--sefaria-color-brand-hover); }
+.play:disabled { cursor: not-allowed; }
+
+/* The hit area is taller than the rail so the scrubber is easy to grab with a finger. */
+.track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 80px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+  border-radius: var(--sefaria-radius-sm);
+}
+.track:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+.track[aria-disabled="true"] { cursor: not-allowed; }
+
+.rail {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--sefaria-radius-pill);
+  background: var(--sefaria-color-border-strong);
+}
+.fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  border-radius: inherit;
+  background: var(--sefaria-color-brand);
+}
+.marker {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 10px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--sefaria-color-text-secondary);
+  pointer-events: none;
+}
+.thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--sefaria-radius-round);
+  background: var(--sefaria-color-brand);
+  border: 2px solid var(--sefaria-color-surface);
+  box-shadow: var(--sefaria-shadow-1);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.clock {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--sefaria-color-text-secondary);
+  white-space: nowrap;
+}
+
+.rates { flex: none; display: inline-flex; gap: 2px; }
+.rate {
+  min-width: 30px;
+  height: 26px;
+  padding: 0 var(--sefaria-space-1);
+  border: 1px solid transparent;
+  border-radius: var(--sefaria-radius-sm);
+  background: none;
+  color: var(--sefaria-color-text-secondary);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.rate:hover:not(:disabled) { color: var(--sefaria-color-text); }
+.rate[aria-pressed="true"] { border-color: var(--sefaria-color-border-strong); background: var(--sefaria-color-surface-muted); color: var(--sefaria-color-text); }
+.play:focus-visible, .rate:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }

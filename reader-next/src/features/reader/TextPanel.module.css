@@ -1,0 +1,48 @@
+/* Desktop: the panel fills its workspace cell; the text column and each side panel scroll on their own. */
+.panel { display: flex; flex: 1; min-width: 0; min-height: 0; height: 100%; background: var(--sefaria-color-surface, #fff); }
+.text { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+.aside { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+
+/* Phone (old single-panel mode): the page scrolls, so the browser can collapse its address bar. A side panel
+   is a sheet over the bottom 54% of the screen (old `.singlePanel .textList`), the text readable above it. */
+@media (max-width: 842px) {
+  .panel { display: block; height: auto; }
+  .panel > :global([data-direction]) { display: block; overflow: visible; }
+  .panel > :global([data-direction]) > div { display: block; }
+  .text { display: block; }
+  .panel[data-has-aside="true"] .text { padding-block-end: 54vh; }
+  /* while the sheet is open the reader's bar gives way to the text, as sefaria.org's ReaderPanel leaves ReaderControls out in its
+     phone mode TextAndConnections; choosing the verse again, Back, or the sheet's Close brings it back */
+  .panel[data-has-aside="true"] .text > :global(header) { display: none; }
+  /* the translation suggestion stays under the reader's bar while the page scrolls, as sefaria.org's banner sits inside its fixed
+     .readerControlsOuter (60px under the top, 2026-11-18); it gives way with the bar while the sheet is open */
+  .bannerBox { position: sticky; top: 60px; z-index: calc(var(--sefaria-z-panel-chrome) - 1); } /* under the bar, so the bar's menus open over it */
+  .panel[data-has-aside="true"] .bannerBox { display: none; }
+  .aside {
+    position: fixed; inset-inline: 0; bottom: 0; height: 54vh; z-index: var(--sefaria-z-sheet);
+    background: var(--sefaria-color-surface, #fff); border-block-start: 1px solid var(--sefaria-color-border);
+    box-shadow: 0 -2px 12px rgb(0 0 0 / 0.08);
+  }
+}
+
+/* The leading control: Close on a screen with room for panels, the menu button on a phone (as on sefaria.org, where the
+   site header gives way to the panel's own header while reading). Both are in the page so the server render needs no guess. */
+.notPhone { display: contents; }
+.onlyPhone { display: none; }
+@media (max-width: 842px) {
+  .notPhone { display: none; }
+  .onlyPhone { display: contents; }
+}
+/* The phone's menu button in the reader's bar, as sefaria.org's span.readerNavMenuMenuButton (2026-11-18, 375x812): a 40x56 target
+   6px down, #666, its fa-bars glyph (24px, 21 wide) at its start, the glyph's top 18px into it; 2px further in for Hebrew
+   (.interface-hebrew .leftButtons { margin-right: 2px }) */
+.phoneMenu { display: flex; align-items: flex-start; justify-content: flex-start; flex-shrink: 0; width: 40px; height: 56px; padding: 0; border: 0; background: none; color: var(--sefaria-color-text-dark-grey); cursor: pointer; position: relative; top: 6px; }
+.phoneMenu[data-he] { margin-inline-start: 2px; }
+.phoneMenu svg { display: block; width: 20.57px; height: 17.14px; margin-block-start: 18.3px; }
+
+/* The "Aa" menu card, as the old .texts-properties-menu (VERIFIED on sefaria.org 1280px, 2026-10-29): 256px inside a 1px #ededec
+   border, radius 5, a soft #ededec shadow below, hung from the bottom of the 56px button, flush with its end */
+.displayMenu { position: absolute; top: 100%; inset-inline-end: 0; z-index: var(--sefaria-z-overlay); width: 258px; box-sizing: border-box; background: var(--sefaria-color-surface); border: 1px solid var(--sefaria-color-border-light); border-radius: 5px; box-shadow: var(--sefaria-shadow-menu); color: var(--sefaria-color-text-strong); }
+/* While the phone's menu is open the suggestion steps aside: over the menu it hid the menu's search box (on sefaria.org too). Hidden,
+   not removed: its 60px stay, so the text does not move under the menu (and Back from the menu finds it where it was). */
+:global([data-menu="open"]) .bannerBox { visibility: hidden; }

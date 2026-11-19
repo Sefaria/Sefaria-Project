@@ -1125,6 +1125,16 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None, sheet_ids=None, slim=
     return results
 
 
+def get_sheet_anchors_for_ref(tref):
+    """
+    The public sheets on `tref` reduced to what a count needs: one item per (sheet, anchor) with only `id`, `owner`,
+    `anchorRef` and `anchorRefExpanded`, the same anchors `get_sheets_for_ref` returns. A client counts the distinct ids
+    anchored to the verses it shows without the sheet records, owner profiles, collections and scores
+    (`/api/related/<ref>?sheets=count`). The same slim sheets `get_sheets_for_ref(..., slim=True)` gives.
+    """
+    return get_sheets_for_ref(tref, slim=True)
+
+
 def _slim_sheets_for_ref(oref, segment_refs, query):
     # Not just a count: the client counts per selected segment(s) from one response for the whole section.
     # It needs the anchor refs to split sheets by segment, the id to count a sheet on several selected segments once,

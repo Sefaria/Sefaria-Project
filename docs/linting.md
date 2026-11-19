@@ -13,6 +13,10 @@ review and common bugs are caught before merge.
 Files that are never linted (build output, vendored libraries, migrations, lockfile) are listed in `.prettierignore`
 and in the `ignores` / `exclude` sections of the ESLint, Stylelint and Ruff configs.
 
+The new reader client, `reader-next/`, has its own checks: TypeScript (`tsc`) and its own ESLint (`reader-next/eslint.config.mjs`,
+`npm run lint` there, run by the `reader-next client` workflow). It is not Prettier-formatted: `.prettierignore` excludes the whole
+folder, Markdown and JSON included, so the root check and lint-staged leave it alone.
+
 ## One-time setup
 
 ```bash

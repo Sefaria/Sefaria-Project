@@ -1,0 +1,143 @@
+.segment {
+  position: relative;
+  margin-block-end: var(--sefaria-segment-gap);
+  /* sefaria.org's gutters are physical: a number or dot on the left sits 48px out, on the right 46px (s2.css: .ltr number left -48,
+     .rtl/.bilingual number right -46, dots opposite); 30px on both sides in a narrow panel */
+  --_left: 48px;
+  --_right: 46px;
+  --_start: var(--_right);
+  --_end: var(--_left);
+  /* Linked verses scroll to just below the sticky header with some air above. */
+  scroll-margin-top: calc(var(--sefaria-reader-controls-height) + var(--sefaria-space-12));
+}
+@container reader (max-width: 560px) { .segment { --_left: 30px; --_right: 30px; } }
+[data-language="english"] .segment { --_start: var(--_left); --_end: var(--_right); }
+
+/* The verse the address named, on arrival: sefaria.org focuses it and tints it (.segment:focus) until focus goes elsewhere (the panel
+   sets data-arrival and clears it on a click or focus elsewhere), in its colour, #f5faff. A highlight, below, wins. */
+.segment[data-arrival="true"] { background: var(--sefaria-color-focus-tint); }
+.segment[data-highlighted="true"] { background: var(--sefaria-color-highlight-soft); }
+/* The reading focus: set by the column as the reader scrolls; visible only while the sidebar is open. */
+:global([data-show-focus="true"]) .segment[data-focused="true"] { background: var(--sefaria-color-highlight-soft); }
+.segment[data-selectable="true"] { cursor: pointer; }
+.segment:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 4px; }
+
+.body { display: block; margin: 0; text-align: justify; }
+
+/* Sides ─────────────────────────────────────────────── */
+.side { display: block; }
+.side[dir="rtl"] { text-align: justify; text-align-last: start; }
+.side[dir="ltr"] { text-align: left; }
+/* Hebrew-script sides use the text face at 122%; an RTL *translation* uses the Hebrew UI face at 100% */
+.primary[dir="rtl"] { font-family: var(--sefaria-font-text-he); font-size: calc(1em * var(--sefaria-reader-body-he-ratio)); }
+.translation[dir="rtl"] { font-family: var(--sefaria-font-ui-he); font-size: 1em; }
+.primary[dir="ltr"], .translation[dir="ltr"] { font-family: var(--sefaria-font-text-en); }
+.translation { color: var(--sefaria-color-text-secondary); }
+
+/* Bilingual, stacked. VERIFIED on sefaria.org (2026-11-10, Genesis 1:1 at 1280): Hebrew ends at 396, English starts at 406 (10px, the
+   translation's `margin: 10px 0 20px`); the next verse starts 20px below (the translation's 20px bottom margin wins over the segment's
+   14px); a verse without a translation is 14px from the next. The Hebrew is right-aligned in every bilingual layout. */
+[data-language="bilingual"] .body { display: flex; flex-direction: column; gap: 10px; }
+[data-language="bilingual"][data-bilayout="stacked"] .segment { margin-block-end: 14px; }
+[data-language="bilingual"][data-bilayout="stacked"] .segment:is([data-sides="both"], [data-sides="translation"]) { margin-block-end: 20px; }
+[data-language="bilingual"] .primary[dir="rtl"] { text-align: right; text-align-last: auto; }
+/* The enlarged first word (legacy <big>) keeps legacy's line-height of 1.2: with the reader's 1.6 it made the first line of every
+   chapter 9px taller than sefaria.org's (Genesis 1:1's Hebrew 51.5px against 42.9px). */
+.side :global(big), .side :global([style*="larger"]) { line-height: 1.2; }
+
+/* Bilingual, side by side. Physical columns regardless of reading direction. As sefaria.org's s2.css: each side is a 50% column
+   (border-box) with 20px of padding toward the middle, so the text runs over [0, 50% - 20px] and [50% + 20px, 100%] and the centred
+   number sits in the 40px gap. A side shown alone keeps its half: filling the row put the number on top of the text (a commentary
+   with no translation, side by side). */
+[data-bilayout="heLeft"] .body, [data-bilayout="heRight"] .body { flex-direction: row; direction: ltr; gap: 0; align-items: flex-start; }
+[data-bilayout="heLeft"] .side, [data-bilayout="heRight"] .side { flex: 0 0 50%; box-sizing: border-box; min-width: 0; }
+[data-bilayout="heRight"] .primary { order: 2; padding-left: 20px; }
+[data-bilayout="heRight"] .translation { order: 1; margin: 0; padding-right: 20px; }
+[data-bilayout="heLeft"] .primary { order: 1; padding-right: 20px; }
+[data-bilayout="heLeft"] .translation { order: 2; margin: 0; padding-left: 20px; }
+/* the right-hand column's side, shown alone, stays on the right */
+[data-bilayout="heRight"] .segment[data-sides="primary"] .primary, [data-bilayout="heLeft"] .segment[data-sides="translation"] .translation { margin-left: auto; }
+
+/* One side only: align like its language */
+.segment[data-sides="primary"] .primary[dir="rtl"], .segment[data-sides="translation"] .translation[dir="rtl"] { text-align: justify; }
+
+/* Continuous flow (single language only): segments run together as a paragraph */
+/* sefaria.org (s2.css .continuous .segment): 0.3333em above and below, 0.15em in an English panel; on an inline box it only sizes the
+   tint behind the words, it does not move the lines */
+[data-layout="continuous"] .segment { display: inline; margin: 0; padding-block: 0.3333em; }
+[data-layout="continuous"][data-language="english"] .segment { padding-block: 0.15em; }
+[data-layout="continuous"] .body, [data-layout="continuous"] .side { display: inline; }
+[data-layout="continuous"] .body :global(br) { display: none; }
+/* In running text a segment is not a box: its number and dot are placed against the surface's edges, at the line where the
+   segment begins (an absolutely positioned box with no `top` stays on the line it would have been in). */
+[data-layout="continuous"] .segment { position: static; }
+[data-layout="continuous"] .number, [data-layout="continuous"] .dot { top: auto; margin-top: 0; }
+[data-layout="continuous"] .number { inset-inline-start: calc(var(--_pad, 30px) - 48px); }
+[data-layout="continuous"] .dot { inset-inline-end: calc(var(--_pad, 30px) - 48px + 4px); font-family: var(--sefaria-font-ui-en); }
+/* A phone (34px of padding, the old singlePanel): the number and dot sit in the padding, 4px from the screen's edges, as on sefaria.org
+   (Berakhot 2a, Hebrew, 390px: numbers at 356-386, dots at 4-34). 48px out put them past the edge and the page scrolled sideways. */
+@media (max-width: 842px) and (pointer: coarse) {
+  [data-layout="continuous"] .number { inset-inline-start: 4px; }
+  [data-layout="continuous"] .dot { inset-inline-end: 4px; }
+}
+
+/* Gutter: number on the reading-start side, link dot on the other */
+.number, .dot { position: absolute; top: 0; width: 30px; text-align: center; line-height: 1.9; user-select: none; }
+.number { inset-inline-start: calc(-1 * var(--_start)); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-micro); color: var(--sefaria-color-text); }
+/* VERIFIED on sefaria.org (2026-11-10, Genesis 1 and Berakhot 2a, desktop 1280 and Pixel 7, English and Hebrew interface): the number
+   is 12px whatever the reader's font size; Hebrew numerals are set in Heebo (.segmentNumberInner .he), Arabic ones in Roboto. Legacy's
+   weight is `lighter` (100 computed); we keep 400 on purpose: the thin face is what makes the numbers hard to read (support's most
+   common complaint), and the size stays legacy's. */
+.number[data-lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.dot { inset-inline-end: calc(-1 * var(--_end)); }
+[data-bilayout="heLeft"] .number, [data-bilayout="heRight"] .number { inset-inline-start: auto; left: calc(50% - 15px); }
+[data-bilayout="heLeft"] .dot, [data-bilayout="heRight"] .dot { visibility: hidden; }
+/* One language on screen: the number (and the dot opposite it) go on the reading-start side of the language shown, as sefaria.org's
+   panel .ltr/.rtl class does (taken from the shown side). English mode showing a right-to-left translation (the Zohar's Hebrew) puts
+   it on the right; Hebrew mode, or a stacked bilingual segment with only its source, on a left-to-right source (an English-only
+   work) puts it on the left. Logical insets resolve against the element's own direction, so setting it on the two spans is enough.
+   Side by side keeps the number in the gap. */
+[data-language="english"] .segment:has(> .body > .translation[dir="rtl"]) :is(.number, .dot) { direction: rtl; --_start: var(--_right); --_end: var(--_left); }
+[data-language="hebrew"] .segment:has(> .body > .primary[dir="ltr"]) :is(.number, .dot),
+[data-language="hebrew"] .segment[data-sides="translation"]:has(> .body > .translation[dir="ltr"]) :is(.number, .dot),
+[data-language="bilingual"][data-bilayout="stacked"] .segment[data-sides="primary"]:has(> .body > .primary[dir="ltr"]) :is(.number, .dot) { direction: ltr; --_start: var(--_left); --_end: var(--_right); }
+.dotInner { display: inline-block; width: var(--sefaria-link-dot-size); height: var(--sefaria-link-dot-size); border-radius: var(--sefaria-radius-round); background: var(--sefaria-color-text-muted); vertical-align: middle; }
+
+/* Print (legacy s2-print.css, linked media=print on every reader page): segment numbers stay, at the top of their segment; the
+   connection dots do not. */
+@media print { .dot { display: none; } .number { top: 0; } }
+
+/* VERIFIED on sefaria.org (2026-10-06, desktop and phone UA): a translation shown ALONE is black and justified; beside the source it
+   is #666 and left-aligned. */
+.translation { color: var(--sefaria-color-text-dark-grey); }
+[data-language="english"] .translation { color: var(--sefaria-color-text-strong); text-align: justify; }
+/* sefaria.org greys a translation only when it is stacked under its source and is not Hebrew (`.stacked.bilingual .translation`,
+   `.he.translation` black): side by side, and a Hebrew translation stacked (the Zohar's), it has the source's colour (one token, so
+   the two sides also match in the dark theme). */
+[data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation, [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text); }
+
+/* A panel 500px wide or less is always stacked, whatever the side-by-side setting (sefaria.org ReaderPanel.currentLayout: side by side
+   only when the panel is wider than 500px; a phone, two panels in a narrow window, a panel beside the sidebar). The panel is the
+   reading column's `panel` container, so this holds from the server render on, without measuring in script. sefaria.org reads the
+   width as a whole number (jQuery 2's offsetWidth), so a 500.47px panel is still "500" there: stacked below 500.5px. It undoes the
+   side-by-side rules above and applies the stacked ones. */
+@container panel (width < 500.5px) {
+  [data-bilayout="heLeft"] .body, [data-bilayout="heRight"] .body { flex-direction: column; direction: inherit; gap: 10px; align-items: stretch; }
+  [data-bilayout="heLeft"] .side, [data-bilayout="heRight"] .side { flex: none; order: 0; padding: 0; margin: 0; }
+  [data-bilayout="heRight"] .segment[data-sides="primary"] .primary, [data-bilayout="heLeft"] .segment[data-sides="translation"] .translation { margin-left: 0; }
+  [data-bilayout="heLeft"] .number, [data-bilayout="heRight"] .number { left: auto; right: auto; inset-inline-start: calc(-1 * var(--_start)); }
+  [data-bilayout="heLeft"] .dot, [data-bilayout="heRight"] .dot { visibility: visible; }
+  [data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation { color: var(--sefaria-color-text-dark-grey); }
+  [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text); }
+  [data-language="bilingual"]:is([data-bilayout="heLeft"], [data-bilayout="heRight"]) .segment { margin-block-end: 14px; }
+  [data-language="bilingual"]:is([data-bilayout="heLeft"], [data-bilayout="heRight"]) .segment:is([data-sides="both"], [data-sides="translation"]) { margin-block-end: 20px; }
+  [data-language="bilingual"]:is([data-bilayout="heLeft"], [data-bilayout="heRight"]) .segment[data-sides="primary"]:has(> .body > .primary[dir="ltr"]) :is(.number, .dot) { direction: ltr; --_start: var(--_left); --_end: var(--_right); }
+}
+/* The source text and the verse numbers are black, as sefaria.org's .segment (#000; the Hebrew side was #121212 here, measured
+   2026-11-18 on Genesis 1 in Hebrew and bilingual, 375 and 1280); a translation that has the source's colour has it too */
+.primary, .number { color: var(--sefaria-color-text-strong); }
+[data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation, [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text-strong); }
+@container panel (width < 500.5px) {
+  [data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation { color: var(--sefaria-color-text-dark-grey); }
+  [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text-strong); }
+}

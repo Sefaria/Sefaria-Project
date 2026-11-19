@@ -1,0 +1,48 @@
+import type { ReactNode } from "react";
+import { useInterfaceLang } from "~/lib/i18n/interface-lang";
+import { categoryColor } from "../tokens/category-color";
+import styles from "./NavPage.module.css";
+
+export interface NavPageProps {
+  children: ReactNode;
+  /** Sidebar modules, top to bottom. */
+  sidebar?: ReactNode;
+  /** The footer under the sidebar's modules. */
+  footer?: ReactNode;
+  /** Top category: tints the line under the header. Omit for none. */
+  colorCategory?: string;
+  /** Accessible name of the sidebar. */
+  sidebarLabel?: string;
+  /** Top padding of the page column and of the sidebar on a wide screen, where a page sits lower than the library's 56px (search). */
+  top?: { main?: number; side?: number };
+  /** The old ReaderPanel's `data-anl-batch` (its analytics parameters for every event inside the panel, e.g. panel_number and content_lang), kept on the page's frame. */
+  anlBatch?: Readonly<Record<string, unknown>>;
+  /**
+   * "library" (default): the old .sidebarLayout, the sidebar beside the page down to 701px, both shrinking with the window.
+   * "landing": the topics landing page's wider column (783px), the sidebar under it at 920px or less.
+   * "search": a fixed 420px sidebar, one column at 985px or less, where the search page moves its filters to a button.
+   */
+  layout?: "library" | "landing" | "search";
+}
+
+/**
+ * The frame of the library's pages — home, category, book: the page's own column and a sidebar of modules with a footer,
+ * a coloured line on top, one column at 700px or less. Replaces the old `.readerNavMenu .sidebarLayout` + NavSidebar.
+ *
+ * @feature LIB-023 Nav sidebar container and module registry
+ * @feature LIB-019 Category and text color coding
+ */
+export function NavPage({ children, sidebar, footer, colorCategory, sidebarLabel, top, anlBatch, layout = "library" }: NavPageProps) {
+  const he = useInterfaceLang() === "hebrew";
+  return (
+    <div className={layout === "library" ? styles.page : `${styles.page} ${styles[layout]}`} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-anl-batch={anlBatch ? JSON.stringify(anlBatch) : undefined}>
+      {/* the old .categoryColorLine: over the top of the page, and it stays there while the page scrolls under it */}
+      {colorCategory ? <div className={styles.colorLine} style={{ background: categoryColor(colorCategory) }} aria-hidden="true" /> : null}
+      <div className={styles.main} style={top?.main ? ({ "--_top": `${top.main}px` } as React.CSSProperties) : undefined}>{children}</div>
+      <aside className={styles.side} style={top?.side ? ({ "--_top": `${top.side}px` } as React.CSSProperties) : undefined} aria-label={sidebarLabel ?? (he ? "ניווט בסרגל הצד" : "Sidebar navigation")}>
+        {sidebar}
+        {footer ? <div className={styles.footer}>{footer}</div> : null}
+      </aside>
+    </div>
+  );
+}

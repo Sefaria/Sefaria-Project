@@ -1,0 +1,11 @@
+.spinner {
+  display: inline-block;
+  width: var(--_size, 1.5rem);
+  height: var(--_size, 1.5rem);
+  border: 0.14em solid var(--sefaria-color-border-strong);
+  border-top-color: var(--sefaria-color-brand);
+  border-radius: var(--sefaria-radius-round);
+  animation: spin 0.8s linear infinite;
+  flex: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

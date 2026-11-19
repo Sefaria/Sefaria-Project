@@ -9,6 +9,7 @@ on:
     paths:
       - "helm-chart/**"
       - ".github/workflows/helm.yaml"
+      - "build/ci/reader-nginx-routing.py"
   # Each event runs its own job, so nothing runs twice when a pushed branch has an open PR. A push lints, runs the chart
   # tests and then releases the chart, so a release always waits for the tests. A PR runs only what needs the PR's
   # base branch: the render diff, plus the env-file render test, because promotion PRs into preprod and prod (envs files
@@ -18,6 +19,7 @@ on:
       - "helm-chart/**"
       - "envs/**"
       - ".github/workflows/helm.yaml"
+      - "build/ci/reader-nginx-routing.py"
 
 jobs:
   lint:
@@ -37,6 +39,13 @@ jobs:
           version: v3.5.1
       - name: Lint chart
         run: ct lint --charts helm-chart/sefaria
+      # the new reader's nginx routing (reader-next/docs/DEPLOYMENT.md): every nodejs.mode renders a config nginx accepts and
+      # routes as documented. The generated Django paths are checked for freshness in continuous.yaml, only on changes that can
+      # make them stale.
+      - name: Reader nginx routing (legacy, optin, optin with the kill switch, reader)
+        run: |
+          command -v nginx >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq nginx)
+          python3 build/ci/reader-nginx-routing.py --table
       - name: Test release-rules channel derivation
         run: bash helm-chart/sefaria/tests/release-rules-channel.test.sh
       - name: Test the auth service render in each environment (flag off and on)

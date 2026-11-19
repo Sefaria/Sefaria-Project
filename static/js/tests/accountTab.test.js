@@ -751,3 +751,40 @@ describe('Account tab and the back/forward cache', () => {
     expect(option('emailNotifications', 'weekly').classList).toContain('on');
   });
 });
+
+/* nodejs.mode "optin": the New Reader (beta) switch, carried over from the Django template the page replaced. */
+describe('Account tab: New Reader (beta)', () => {
+  it('is absent unless the view offers the choice', () => {
+    mount();
+    expect(container.querySelector('#newReaderSetting')).toBeNull();
+  });
+
+  it('shows the saved choice, and sends nothing when it was not changed', () => {
+    mount({ readerChoiceAvailable: true, newReaderEnabled: true });
+    expect(option('newReaderSetting', 'next').classList).toContain('on');
+    const { payload } = save();
+    expect(payload.settings).not.toHaveProperty('reader_version');
+    expect(window.location.reload).not.toHaveBeenCalled();
+  });
+
+  it('sends reader_version when it was changed, then reloads so the cookie the response set takes effect', () => {
+    mount({ readerChoiceAvailable: true, newReaderEnabled: false });
+    expect(option('newReaderSetting', 'classic').classList).toContain('on');
+    choose('newReaderSetting', 'next');
+    const { payload } = save();
+    expect(payload.settings.reader_version).toBe('next');
+    expect(window.location.reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('says the new reader is paused where the kill switch took the choice away', () => {
+    mount({ readerChoiceAvailable: false, newReaderPaused: true });
+    expect(container.querySelector('#newReaderSetting .toggleOption')).toBeNull();
+    expect(container.querySelector('#newReaderSetting .newReaderPaused').textContent).toContain('switched off for now');
+  });
+
+  it('is labelled in Hebrew for a Hebrew interface', () => {
+    Sefaria.interfaceLang = 'hebrew';
+    mount({ readerChoiceAvailable: true, newReaderEnabled: true });
+    expect(container.querySelector('#newReaderSetting label').textContent).toBe('הקורא החדש (בטא)');
+  });
+});

@@ -1,0 +1,41 @@
+import { describe, expect, it } from "vitest";
+import { pageCacheHeaders } from "./cache-policy";
+
+const html = (extra: Record<string, string> = {}) => new Headers({ "content-type": "text/html; charset=utf-8", vary: "Origin", ...extra });
+
+// Regression: a signed-in reader's page must never be kept by a shared cache
+describe("pageCacheHeaders", () => {
+  it("a signed-in reader's page is private and never stored", () => {
+    const h = pageCacheHeaders("csrftoken=a; sessionid=xyz; interfaceLang=english", html());
+    expect(h.get("cache-control")).toBe("private, no-store");
+    expect(h.get("vary")).toBe("Origin, Cookie, CF-IPCountry");
+  });
+  it("an anonymous page varies on cookies and is revalidated", () => {
+    const h = pageCacheHeaders("interfaceLang=hebrew", html());
+    expect(h.get("cache-control")).toBe("no-cache");
+    expect(h.get("vary")).toBe("Origin, Cookie, CF-IPCountry");
+    expect(pageCacheHeaders(null, html()).get("cache-control")).toBe("no-cache");
+  });
+  it("a redirect or an error page is not marked no-cache (a permanent redirect stays cacheable)", () => {
+    expect(pageCacheHeaders(null, html(), 301).get("cache-control")).toBeNull();
+    expect(pageCacheHeaders(null, html(), 404).get("cache-control")).toBeNull();
+    expect(pageCacheHeaders("sessionid=1", html(), 301).get("cache-control")).toBe("private, no-store");
+  });
+  it("on a host pinned to a language the page also varies on Accept-Language (the bounce)", () => {
+    expect(pageCacheHeaders(null, html(), 200, true).get("vary")).toBe("Origin, Cookie, CF-IPCountry, Accept-Language");
+  });
+  it("a signed-out reader with a reading history: private and never stored (the library home draws it, Recently Viewed)", () => {
+    expect(pageCacheHeaders("interfaceLang=english; user_history=%5B%7B%22ref%22%3A%22Genesis%201%22%7D%5D", html()).get("cache-control")).toBe("private, no-store");
+    expect(pageCacheHeaders("user_history=", html()).get("cache-control")).toBe("no-cache"); // an empty cookie carries nothing
+    expect(pageCacheHeaders("xuser_history=1", html()).get("cache-control")).toBe("no-cache");
+  });
+  it("a cookie merely named like the session one does not count", () => {
+    expect(pageCacheHeaders("xsessionid=1", html()).get("cache-control")).toBe("no-cache");
+  });
+  it("leaves Django's pages and non-HTML answers alone", () => {
+    const django = html({ "x-served-by": "django", "cache-control": "max-age=60" });
+    expect(pageCacheHeaders("sessionid=1", django).get("cache-control")).toBe("max-age=60");
+    const json = new Headers({ "content-type": "application/json" });
+    expect(pageCacheHeaders("sessionid=1", json).get("cache-control")).toBeNull();
+  });
+});

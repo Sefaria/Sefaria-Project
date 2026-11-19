@@ -1,0 +1,6 @@
+.player { margin-block: var(--sefaria-space-2); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); }
+.row { display: flex; align-items: center; gap: var(--sefaria-space-3); }
+.button { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--sefaria-color-border); border-radius: 50%; background: var(--sefaria-color-surface, #fff); color: var(--sefaria-color-text-secondary); cursor: pointer; }
+.button:hover { background: var(--sefaria-color-surface-subtle, #f4f4f2); }
+.time { color: var(--sefaria-color-text-secondary); font-variant-numeric: tabular-nums; }
+.slider { width: 100%; margin-block-start: var(--sefaria-space-2); accent-color: var(--sefaria-color-brand, #18345d); }
