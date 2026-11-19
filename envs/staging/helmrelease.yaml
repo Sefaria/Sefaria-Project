@@ -30,7 +30,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.17.0"
+        tag: "v7.17.1"
       resources:
         web:
           resources:
@@ -54,7 +54,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v7.17.0"
+        tag: "v7.17.1"
       resources:
         requests:
           memory: "400Mi"
@@ -96,7 +96,7 @@ spec:
       image:
         # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
         repository: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
-        tag: "v7.17.0"
+        tag: "v7.17.1"
       extAuth:
         # Fail open: if the auth service is down or slower than the timeout, the request goes through as the anonymous tier.
         failOpen: true
@@ -117,7 +117,7 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v7.17.0"
+        tag: "v7.17.1"
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
