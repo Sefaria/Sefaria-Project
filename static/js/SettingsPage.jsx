@@ -3297,6 +3297,21 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
             />
           </div>
         </div>
+        <div id="yourDataLink" className="section">
+          <label className="control-elem">
+            <InterfaceText text={{ en: 'Your Data', he: 'המידע שלך' }} />
+          </label>
+          <div className="additional-info">
+            <a href="/settings/your-data">
+              <InterfaceText
+                text={{
+                  en: 'See what Sefaria stores about you, download it, or clear your reading history',
+                  he: 'צפייה במידע שספריא שומרת עליך, הורדתו או מחיקת היסטוריית הקריאה',
+                }}
+              />
+            </a>
+          </div>
+        </div>
 
         {saveErrorMessage('account-save-error-bottom')}
         <div className="saveCancel">

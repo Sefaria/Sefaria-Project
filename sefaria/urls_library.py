@@ -50,6 +50,9 @@ urlpatterns = [
     re_path(r"^settings/account/?$", partial(reader_views.settings_page, tab="account")),
     path("settings/account/user", reader_views.account_user_update),
     re_path(r"^settings/profile/?$", reader_views.settings_profile_redirect),
+    re_path(r"^settings/your-data/?$", reader_views.your_data_page),
+    path("settings/your-data/export", reader_views.your_data_export),
+    path("settings/your-data/history", reader_views.your_data_history_api),
     re_path(
         r"^settings/developer/?$",
         developer_views.requires_developer_settings(partial(reader_views.settings_page, tab="developer")),
