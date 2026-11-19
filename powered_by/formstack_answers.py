@@ -4,8 +4,9 @@ Old Formstack answers in the format of the new publish form (developer settings,
 The Formstack form stored labels and free text: categories as labels joined with commas or spaces (two labels
 contain commas themselves), tools mixed with the endpoint answers, monthly users as the option's text. The new form
 stores ids. These functions convert one value at a time; the intake uses them so a Formstack submission is saved in
-the new format, and migration 0014 holds a frozen copy for the rows saved before (keep the two in step until the
-Formstack intake is retired; powered_by/tests/formstack_answers_test.py checks they agree).
+the new format. A data migration in a later release converts the rows saved before, with a frozen copy of these
+functions. It has to come later: preprod runs migrations on prod's database, so the code prod serves must already turn
+ids back into labels (gallery_category, gallery_reach) before any stored value becomes an id.
 
 Anything that can't be kept in the new format (the text typed under "Other", an answer that matches no option) is
 returned as a note line, for the staff-only `notes`.

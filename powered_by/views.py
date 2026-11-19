@@ -356,8 +356,8 @@ def _formstack_signature_ok(request):
 
 def _convert_to_publish_form_format(cleaned):
     """
-    Save categories, tools and monthly users in the new publish form's format (ids), the format migration 0014
-    converted the older rows to, so the form reopens a Formstack submission and the gallery reads one format.
+    Save categories, tools and monthly users in the new publish form's format (ids), so the form reopens a Formstack
+    submission and the gallery reads one format. Project.contents() turns the ids back into labels for the gallery.
     What doesn't fit (the text typed under "Other") goes to the staff-only notes.
     """
     lines = []

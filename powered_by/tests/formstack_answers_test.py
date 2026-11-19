@@ -1,21 +1,16 @@
 """
-Old Formstack answers converted to the new publish form's format (powered_by/formstack_answers.py), the frozen copy
-in migration 0014, the Formstack intake that now saves the new format, and the gallery API that shows categories as
-labels. The sample values are the shapes found in the live gallery on 2026-11-19.
+Old Formstack answers converted to the new publish form's format (powered_by/formstack_answers.py), the Formstack
+intake that now saves the new format, and the gallery API that shows categories as labels. The sample values are the shapes found in the live gallery on 2026-11-19.
 """
 
 import hashlib
 import hmac
-import importlib
 import json
 
 import pytest
 
 from powered_by import formstack_answers as answers
 from powered_by.models import Project
-
-MIGRATION = importlib.import_module("powered_by.migrations.0014_convert_formstack_answers")
-
 
 # --- Categories --------------------------------------------------------------
 
@@ -147,37 +142,6 @@ def test_notes_lines_are_added_under_a_heading_after_existing_notes():
     assert answers.append_notes(None, ["a"], "Heading:") == "Heading:\n- a"
     assert answers.append_notes("Staff note.", [], "Heading:") == "Staff note."
     assert answers.append_notes(None, [], "Heading:") is None
-
-
-# --- The migration's frozen copy agrees with the module ------------------------
-
-SAMPLES = [
-    "Learning & Study Tools AI Projects, Apps, & Other Tools Other: Davening Toolkit",
-    "Extensions and API Integrations, Visualization & Data Analysis",
-    "learning,ai",
-    "Learning & Study Tools, Games",
-    "",
-    "learning,",
-]
-TOOL_SAMPLES = [
-    ["Sefaria API", "/api/texts", "MCP", "Other: just website pages!", "Zapier", "OpenAI API", "texts API"],
-    [],
-    None,
-]
-REACH_SAMPLES = ["~100", "None, it's mostly a proof of concept", "Other: Just launched", "<10", "", "Other", "other x"]
-
-
-def test_migration_copy_matches_the_module():
-    for value in SAMPLES:
-        assert MIGRATION.convert_category(value) == answers.convert_category(value)
-    for value in TOOL_SAMPLES:
-        assert MIGRATION.convert_tools(value) == answers.convert_tools(value)
-    for value in REACH_SAMPLES:
-        assert MIGRATION.convert_reach(value) == answers.convert_reach(value)
-    assert MIGRATION.CATEGORY_LABELS == answers.CATEGORY_LABELS
-    assert MIGRATION.TOOLS == answers.TOOLS
-    assert MIGRATION.ENDPOINT_CATEGORIES == answers.ENDPOINT_CATEGORIES
-    assert MIGRATION.REACH == answers.REACH
 
 
 # --- Gallery API shows labels ----------------------------------------------------
