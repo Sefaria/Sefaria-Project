@@ -55,6 +55,19 @@ export class DeveloperSettingsPage extends HelperBase {
       .trim();
   }
 
+  /** The raw string for `key` in a given language ('en' or 'he'), placeholders left in. */
+  async strIn(key: string, lang: 'en' | 'he'): Promise<string> {
+    const raw = await this.page.evaluate(
+      ([k, l]) => (window as any).Sefaria?._keyedString?.(k, l) ?? null,
+      [key, lang]
+    );
+    if (raw == null || raw === key) throw new Error(`No interface string for key ${key}`);
+    return String(raw)
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   /** The string for `key` with any remaining {placeholder} turned into a wildcard, as a RegExp. */
   async strPattern(key: string, params: Record<string, string | number> = {}): Promise<RegExp> {
     const s = await this.str(key, params);
@@ -74,7 +87,9 @@ export class DeveloperSettingsPage extends HelperBase {
 
   /** A project on the home page: a region named for the project. */
   project(name: string): Locator {
-    return this.root().getByRole('region', { name, exact: true });
+    // A project with an organization is named "<name> · <organization>".
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return this.root().getByRole('region', { name: new RegExp(`^${escaped}( · .*)?$`) });
   }
 
   /** A key's row in its project's table. */
@@ -89,7 +104,8 @@ export class DeveloperSettingsPage extends HelperBase {
   }
 
   dialog(): Locator {
-    return this.page.getByRole('dialog');
+    // Confirm windows are alertdialogs; the rest are dialogs.
+    return this.page.getByRole('alertdialog').or(this.page.getByRole('dialog'));
   }
 
   // --- Assertions ------------------------------------------------------------------------

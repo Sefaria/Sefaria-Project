@@ -18,11 +18,6 @@ const NEW_PROJECT = 'Torah Tracker';
  * to the lock's own 10-minute limit: the scenario's time limit leaves room for both.
  */
 async function developer(visitor: Visitor) {
-  const info = test.info();
-  if (!notes(visitor).publishTimeout) {
-    notes(visitor).publishTimeout = true;
-    info.setTimeout(info.timeout * 2 + 10 * 60 * 1000);
-  }
   return asDeveloper(visitor);
 }
 

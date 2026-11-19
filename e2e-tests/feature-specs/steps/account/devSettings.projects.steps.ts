@@ -49,15 +49,6 @@ async function ensureEditForm(visitor: Visitor): Promise<ProjDev> {
   return p;
 }
 
-// DS-PROJ-5 opens with the shared "Given Verse a Day's website is example.com", which expects the
-// project to exist already, and the Projects rule has no Background. Set the project up first.
-// TODO: a fallback in that shared step (set up the project when none is) would replace this hook.
-Before(async ({ $testInfo, visitor }) => {
-  if (!/^DS-PROJ-5 /.test($testInfo.title)) return;
-  await asDeveloper(visitor);
-  await addProject(visitor, 'Verse a Day');
-});
-
 // --- DS-PROJ-1, DS-PROJ-2: a new project ---------------------------------------------------
 
 Then(

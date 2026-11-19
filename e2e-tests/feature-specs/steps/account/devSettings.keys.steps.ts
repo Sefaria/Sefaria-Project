@@ -118,17 +118,20 @@ Then('the key on screen stays hidden', async ({ visitor }) => {
 
 // --- DS-KEY-4 / DS-KEY-5 Delete ------------------------------------------------------------
 
-Then(/^a window asks "([^"]*)" \[([^\]]+)\]$/, async ({ visitor }, _quoted: string, stringKey: string) => {
-  const { ks } = await keys(visitor);
-  const { project, key } = current(visitor);
-  const win = ks.confirmWindow();
-  await expect(win).toBeVisible({ timeout: t(10000) });
-  const title = await ks.str(stringKey, { key_name: key });
-  await expect(win.getByRole('heading', { name: title, exact: true })).toBeVisible();
-  await expect(win).toHaveAccessibleName(title);
-  // Remembered for "the key no longer works against the API", after the row is gone.
-  notes(visitor).deletedKeyId = await ks.keyIdFromRow(project, key);
-});
+Then(
+  /^a window asks "([^"]*)" \[(developer\.delete_key_dialog\.header)\]$/,
+  async ({ visitor }, _quoted: string, stringKey: string) => {
+    const { ks } = await keys(visitor);
+    const { project, key } = current(visitor);
+    const win = ks.confirmWindow();
+    await expect(win).toBeVisible({ timeout: t(10000) });
+    const title = await ks.str(stringKey, { key_name: key });
+    await expect(win.getByRole('heading', { name: title, exact: true })).toBeVisible();
+    await expect(win).toHaveAccessibleName(title);
+    // Remembered for "the key no longer works against the API", after the row is gone.
+    notes(visitor).deletedKeyId = await ks.keyIdFromRow(project, key);
+  }
+);
 
 Then(/^it says "([^"]*)" \[([^\]]+)\]$/, async ({ visitor }, _quoted: string, stringKey: string) => {
   const { ks } = await keys(visitor);
@@ -198,14 +201,7 @@ Then('the window closes, the key is still listed, and focus is back on the delet
 
 // --- DS-KEY-6 / DS-KEY-7 Add a key ---------------------------------------------------------
 
-When(
-  /^the developer clicks "([^"]*)" \[([^\]]+)\] on (.+)$/,
-  async ({ visitor }, _quoted: string, stringKey: string, projectName: string) => {
-    const { ks } = await keys(visitor);
-    await ks.button(await ks.str(stringKey), ks.project(projectName)).click();
-    notes(visitor).currentProject = projectName;
-  }
-);
+// "the developer clicks \"Add key\" […] on <project>" is in devSettings.publish.steps.ts.
 
 Then(
   /^the page reads "([^"]*)", with no step counter and a back link to the projects$/,

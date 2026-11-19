@@ -13,6 +13,7 @@ import { Page } from '@playwright/test';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { test } from 'playwright-bdd';
 import { Given, When, Then, After, expect, Visitor } from '../fixtures';
 import { DeveloperApi, DevProject } from './developerApi';
 import { DeveloperSettingsPage } from '../../../pages/developerSettingsPage';
@@ -28,6 +29,8 @@ export type Dev = {
 export type DevNotes = {
   /** Full key values by key label (from the API, which returns a value only on creation). */
   keyValues?: Record<string, string>;
+  /** Key ids by key label. */
+  keyIds?: Record<string, string>;
   /** Project ids by project name. */
   projectIds?: Record<string, string>;
   /** The project a scenario is about when a sentence doesn't name one. */
@@ -72,6 +75,9 @@ async function lockAccount(visitor: Visitor, account: string): Promise<void> {
     try {
       fs.mkdirSync(dir);
       n.lockDir = dir;
+      // Time spent waiting for another scenario doesn't count against this one's time limit.
+      const info = test.info();
+      info.setTimeout(info.timeout + (Date.now() - start));
       return;
     } catch {
       try {
@@ -133,6 +139,7 @@ export async function addKey(visitor: Visitor, projectName: string, label: strin
   const key = await d.api.createKey(projectId, label);
   const n = notes(visitor);
   n.keyValues = { ...(n.keyValues ?? {}), [label]: key.value };
+  n.keyIds = { ...(n.keyIds ?? {}), [label]: String(key.id) };
   n.currentKey = label;
   return key;
 }
@@ -145,17 +152,43 @@ export function projectId(visitor: Visitor, name?: string): string {
   return id;
 }
 
-/** The text a sentence's quoted words and optional [translation.key] stand for. */
+/**
+ * The text a sentence's quoted words and optional [translation.key] stand for, in the page's
+ * interface language. A key with {placeholders} takes their values from the quoted English:
+ * "Show key, Daily email" [developer.home.key.show.aria] fills {key_name} with "Daily email".
+ */
 export async function copyFor(visitor: Visitor, quoted: string | undefined, key: string | undefined): Promise<string> {
-  if (key) return (await dev(visitor)).ds.str(key);
-  if (quoted === undefined) throw new Error('A sentence needs quoted words or a [translation.key]');
-  return quoted;
+  if (!key) {
+    if (quoted === undefined) throw new Error('A sentence needs quoted words or a [translation.key]');
+    return quoted;
+  }
+  const { ds } = await dev(visitor);
+  const template = await ds.str(key);
+  const names = [...template.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((m) => m[1]);
+  if (!names.length || quoted === undefined) return template;
+  const english = await ds.strIn(key, 'en');
+  const pattern = new RegExp(
+    '^' +
+      english
+        .split(/\{[a-zA-Z0-9_]+\}/)
+        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('(.+?)') +
+      '$'
+  );
+  const match = quoted.match(pattern);
+  if (!match) throw new Error(`"${quoted}" doesn't match ${key} ("${english}")`);
+  const params: Record<string, string> = {};
+  [...english.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].forEach((m, i) => (params[m[1]] = match[i + 1]));
+  return ds.str(key, params);
 }
 
 // --- The account ---------------------------------------------------------------------------
 
+// "New project" shows only once there is a project (with none, the empty state offers "Create a
+// project"), so a developer "with a profile" has one; "and no projects" has none.
 Given('a developer with a profile', async ({ visitor }) => {
   await asDeveloper(visitor);
+  await addProject(visitor, 'Verse a Day', { websiteUrl: 'example.com' });
   await reloadHome(visitor);
 });
 
@@ -188,8 +221,13 @@ Given('a project {string}', async ({ visitor }, projectName: string) => {
 });
 
 Given(/^(.+)'s website is (\S+)$/, async ({ visitor }, projectName: string, site: string) => {
-  const d = await dev(visitor);
-  await d.api.updateProject(projectId(visitor, projectName), { websiteUrl: site });
+  if (!notes(visitor).projectIds?.[projectName]) {
+    await asDeveloper(visitor);
+    await addProject(visitor, projectName, { websiteUrl: site });
+  } else {
+    const d = await dev(visitor);
+    await d.api.updateProject(projectId(visitor, projectName), { websiteUrl: site });
+  }
   await reloadHome(visitor);
 });
 
