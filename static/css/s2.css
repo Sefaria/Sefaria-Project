@@ -7855,6 +7855,52 @@ But not to use a display block directive that might break continuous mode for ot
   vertical-align: middle;
   margin-top: -2px;
 }
+/* Mobile web Resources panel: close button (ConnectionsPanelHeader).
+   Colors and sizes are Sefaria/design-system semantic tokens (static/design-system/semantic.css). */
+/* Only the category filter row is long enough to run under the close button; padding the whole
+   header instead would push the centered "Resources" title off center */
+.singlePanel .connectionsHeader .recentFilterSet.topFilters {
+  margin-inline-end: var(--spacing-2xlarge);
+}
+/* A child of the 60px header (not the shorter readerControlsInner), so it centers on the title */
+.connectionsPanelClose {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: var(--spacing-xsmall); /* right in English, left in Hebrew */
+  transform: translateY(-50%);
+  width: 44px; /* minimum touch target */
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--icon-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* no gray box on tap; the icon darkens instead */
+}
+.connectionsPanelClose:active {
+  color: var(--icon-default);
+}
+@media (hover: hover) {
+  .connectionsPanelClose:hover {
+    color: var(--icon-default);
+  }
+}
+.connectionsPanelClose svg {
+  width: var(--icon-medium);
+  height: var(--icon-medium);
+}
+.connectionsPanelClose:focus-visible {
+  /* --border-focus (#CCCCCC) is under 3:1 on this header, so the ring uses --border-strong */
+  outline: var(--border-width-thick) solid var(--border-strong);
+  outline-offset: calc(-1 * var(--spacing-xsmall));
+}
+.dark .connectionsPanelClose {
+  color: var(--light-grey);
+}
 .connectionsPanel .flashMessage {
   font-size: 18px;
   color: var(--medium-grey);
