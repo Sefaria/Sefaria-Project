@@ -543,6 +543,20 @@ export class LocalAdapter implements VisualAdapter {
     // opened a different image than live's baseline.
     await this.click(`${REGIONS.lightboxImage.local} img, img${REGIONS.lightboxImage.local}`);
     await this.animationsDone();
+    // Wait for the opened image to finish loading: the first 1280 baseline was taken while it was still blank.
+    await this.page
+      .waitForFunction(
+        () =>
+          [...document.images]
+            .filter((i) => {
+              const r = i.getBoundingClientRect();
+              return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight;
+            })
+            .every((i) => i.complete && i.naturalWidth > 0),
+        undefined,
+        { timeout: 15000 }
+      )
+      .catch(() => undefined);
     await this.frames();
   }
 

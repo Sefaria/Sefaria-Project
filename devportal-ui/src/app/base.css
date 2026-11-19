@@ -35,3 +35,9 @@ body {
   font-size: 16px;
   line-height: 1.5;
 }
+
+/* Not while the image lightbox is open: with the gutter, 100vw loses the scrollbar's width and the lightbox
+   (100vw wide, 0.5em taller than the window, as live's) draws a scrollbar of its own, which live's does not. */
+html:has(.dp-lightbox[open]) {
+  scrollbar-gutter: auto;
+}

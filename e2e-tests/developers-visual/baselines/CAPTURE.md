@@ -2,7 +2,7 @@
 
 | Item                  | Value                                                                                          |
 | --------------------- | ---------------------------------------------------------------------------------------------- |
-| Capture date          | 2026-11-18, 12:09–12:39 UTC (full run); full-page states re-captured 12:46 UTC                 |
+| Capture date          | 2026-11-18, 12:09–12:39 UTC (full run); full-page states re-captured 12:46 UTC; `docs_disambiguator_lightbox` at 1280 re-captured 2026-11-19 (same deploy) after the capture began waiting for the opened image to load                 |
 | ReadMe deploy version | `5.968.3` (live's `<meta name="readme-deploy">`, read on every job; same as at research time)  |
 | Site                  | https://developers.sefaria.org                                                                 |
 | States                | 60 state ids covering the 56 rows of PLAN.md Appendix B                                        |
