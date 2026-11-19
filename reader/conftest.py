@@ -1,3 +1,5 @@
+import json
+import re
 import secrets
 import uuid
 from unittest.mock import MagicMock, patch
@@ -32,12 +34,20 @@ def create_test_user(prefix, superuser=False):
     )
 
 
+def page_props(html):
+    """The ReaderApp props a rendered page carries, as base.html writes them out."""
+    match = re.search(r"props:\s*(\{.*\}),\n", html)
+    assert match, "props JSON not found in the rendered page"
+    return json.loads(match.group(1))
+
+
 def purge_test_profiles(*users):
     """Delete the Mongo profile docs of synthetic users — and refuse anything else."""
     ids = [getattr(u, "id", u) for u in users]
     real = [i for i in ids if i < SYNTHETIC_USER_ID_FLOOR]
     assert not real, f"refusing to delete profile docs for non-synthetic user ids {real}"
     db.profiles.delete_many({"id": {"$in": ids}})
+    db.developer_confirmation_throttle.delete_many({"uid": {"$in": ids}})
 
 
 def make_profile_missing_la_setting(user):

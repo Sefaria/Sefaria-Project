@@ -284,7 +284,8 @@ def ensure_indices(active_db=None):
         ("trend", ["name"], {}),
         ("trend", ["uid"], {}),
         ("webpages", ["refs"], {}),
-        ("webpages", ["expandedRefs"], {}),
+        ("webpages", [[("expandedRefs", pymongo.ASCENDING), ("lastUpdated", pymongo.DESCENDING)]], {}),
+        ("webpages", ["lastUpdated"], {}),
         ("websites", ["domains"], {}),
         ("manuscript_pages", ["expanded_refs"], {}),
         (
@@ -305,6 +306,7 @@ def ensure_indices(active_db=None):
         ("linker_editor_history", ["index_title"], {}),
         ("linker_editor_history", ["slug"], {}),
         ("linker_editor_history", ["created"], {}),
+        ("developer_confirmation_throttle", ["uid"], {"unique": True}),
     ]
 
     for col, args, kwargs in indices:
