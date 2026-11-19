@@ -402,6 +402,8 @@ cryptography==42.0.7
 # Additional packages from master
 redis==5.2.1
 git+https://github.com/Sefaria/ne_span.git@v1.0.2
+# spaCy 3.7.5 crashes on import (OverflowError in its tokenizer) with preshed 3.0.14
+preshed<3.0.14
 levenshtein==0.27.1
 langchain-openai==0.2.14
 langchain-anthropic==0.3.22
