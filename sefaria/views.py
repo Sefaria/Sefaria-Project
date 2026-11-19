@@ -50,6 +50,7 @@ from remote_config import remoteConfigCache
 from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria import tracker
 from sefaria.celery_setup.config import CeleryQueue
+from sefaria.celery_setup.enqueue import TaskCouldNotBeEnqueued, enqueue_task
 from sefaria.clean import remove_old_counts
 from sefaria.client.util import celeryResponse, jsonResponse, read_webpack_bundle, read_webpack_bundle_map, send_email
 from sefaria.datatype.jagged_array import JaggedTextArray
@@ -550,6 +551,9 @@ def find_refs_report_api(request):
 
 FIND_REFS_TASK_EXPIRES_SECONDS = 60
 
+# A caller that retries sooner than this reaches a broker that is still switching masters.
+FIND_REFS_BROKER_RETRY_AFTER_SECONDS = 30
+
 
 @cors_allow_all
 @api_view(["POST", "OPTIONS"])
@@ -559,13 +563,20 @@ def find_refs_api(request):
 
     request_text, options, metadata = unpack_find_refs_request(request)
     find_refs_input = FindRefsInput(request_text, options, metadata)
-    async_result = find_refs_api_task.apply_async(
-        args=(asdict(find_refs_input),),
-        queue=CeleryQueue.FIND_REFS.value,
-        # The linker client gives up polling after ~60s (its 15 retries, in static/js/linker.v3/main.js, run out
-        # before maxRetryTime). Past that nobody is waiting for the result, so workers should skip the task.
-        expires=FIND_REFS_TASK_EXPIRES_SECONDS,
-    )
+    try:
+        async_result = enqueue_task(
+            find_refs_api_task,
+            args=(asdict(find_refs_input),),
+            queue=CeleryQueue.FIND_REFS.value,
+            # The linker client gives up polling after ~60s (its 15 retries, in static/js/linker.v3/main.js, run out
+            # before maxRetryTime). Past that nobody is waiting for the result, so workers should skip the task.
+            expires=FIND_REFS_TASK_EXPIRES_SECONDS,
+        )
+    except TaskCouldNotBeEnqueued:
+        # find_refs_api_task only reads, so a caller that retries cannot duplicate a write.
+        response = jsonResponse({"error": "enqueue_failed"}, status=503)
+        response["Retry-After"] = str(FIND_REFS_BROKER_RETRY_AFTER_SECONDS)
+        return response
     logger.info(
         "find_refs_api:enqueued",
         task_id=async_result.id,
