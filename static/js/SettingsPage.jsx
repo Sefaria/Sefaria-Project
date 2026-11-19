@@ -1214,7 +1214,10 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
           {email ? (
             <p className="devE-signed">
               <span className="devE-signedLabel">{tK('developer.common.signed_in_as.note')}</span>{' '}
-              {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi>
+              {name ? <strong dir="auto">{name}</strong> : null}{' '}
+              <bdi className="devE-signedEmail" dir="ltr">
+                ({email})
+              </bdi>
             </p>
           ) : null}
         </React.Fragment>
@@ -2642,7 +2645,10 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
               {email ? (
                 <p className="devE-signed">
                   <span className="devE-signedLabel">{tK('developer.common.signed_in_as.note')}</span>{' '}
-                  {name ? <strong dir="auto">{name}</strong> : null} <bdi dir="ltr">({email})</bdi>
+                  {name ? <strong dir="auto">{name}</strong> : null}{' '}
+                  <bdi className="devE-signedEmail" dir="ltr">
+                    ({email})
+                  </bdi>
                 </p>
               ) : null}
               <Select
@@ -3289,7 +3295,9 @@ const EHome = ({
                   ) : null}
                   {/* Phones: the website shows under the description; the rest of the project's actions are in the ⋮ menu
                       (Penina, 2026-11-15, option B). */}
-                  {isPhone && host ? (
+                  {/* Always rendered and hidden by CSS on desktop, so Add key doesn't jump down when the phone
+                      layout kicks in after load (Daniel, 2026-11-19). */}
+                  {host ? (
                     <a
                       className="devE-siteLink devE-phoneOnly"
                       href={project.websiteUrl}

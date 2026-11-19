@@ -17982,6 +17982,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-lead { margin: 0; font-size: 16px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-signed { margin: 8px 0 0; /* with the head gap: 16px under the title */ padding: 8px 16px; border-radius: 8px; background: #fafafa; /* surface-subtle */ font-size: 14px; color: var(--darker-grey); /* text-secondary */ }
 .devPocPage .devE-signed strong { color: var(--near-black); /* text-primary */ font-weight: 600; }
+/* The email (with its parentheses) moves to the next line whole instead of breaking in the middle; only an email
+   longer than the box breaks (Daniel, 2026-11-19). */
+.devPocPage .devE-signedEmail { display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
 .devPocPage .devE-form { display: flex; flex-direction: column; gap: 20px; }
 .devPocPage .devE-form .sefaria-common-button.fullwidth { height: 51px; }
 .devPocPage .devE-legal { margin: -8px 0 0; text-align: center; font-size: 14px; line-height: 1.5; color: var(--darker-grey); /* text-secondary */ }
@@ -18150,6 +18153,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .interface-hebrew .devPocPage .devE-stepBack img { transform: scaleX(-1); }
 .devPocPage .devE-form { gap: 12px; /* spacing-medium */ }
 .devPocPage .devE-head:has(.devE-stepBack) { min-height: 40px; justify-content: center; }
+/* Keep the back arrow's width clear on both sides, so a long title (with its step number) never runs under the arrow
+   and stays centered (Penina, 2026-11-19, option A). */
+.devPocPage .devE-head:has(.devE-stepBack) { padding-inline: 40px; }
 .devPocPage .devE-wrap { gap: 12px; }
 .devPocPage .devE-card { gap: 12px; }
 .devPocPage .devE .sefaria-input-control--multiline { min-height: 80px; }
