@@ -231,3 +231,13 @@ def test_formstack_submission_is_saved_in_the_new_format(client, formstack_hmac_
     assert response.json()["project"]["project_category"] == (
         "Learning & Study Tools, AI Projects, Apps, & Other Tools, Other"
     )
+
+
+def test_non_text_answers_in_a_clean_body_are_converted_as_text():
+    from powered_by.views import _convert_to_publish_form_format
+
+    cleaned = {"project_reach": 100, "project_category": ["Learning & Study Tools"], "notes": 7}
+    _convert_to_publish_form_format(cleaned)
+    assert cleaned["project_reach"] == "100"
+    assert cleaned["notes"] == "7"
+    assert cleaned["project_category"] == "learning"

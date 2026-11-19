@@ -360,6 +360,13 @@ def _convert_to_publish_form_format(cleaned):
     submission and the gallery reads one format. Project.contents() turns the ids back into labels for the gallery.
     What doesn't fit (the text typed under "Other") goes to the staff-only notes.
     """
+    # clean_and_default_post_body accepts any JSON type for these; the model stores them as text anyway.
+    for field in ("project_category", "project_reach", "notes"):
+        value = cleaned.get(field)
+        if isinstance(value, list):
+            cleaned[field] = ", ".join(str(item) for item in value)
+        elif value is not None and not isinstance(value, str):
+            cleaned[field] = str(value)
     lines = []
     if "project_category" in cleaned:
         cleaned["project_category"], category_lines = convert_category(cleaned["project_category"])
