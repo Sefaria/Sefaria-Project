@@ -432,9 +432,6 @@ def base_props(request):
                     saved=True, secondary=False, serialized=True, annotate=False, sheets_only=sheets_only
                 ),
             },  # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
-            "last_place": profile.get_history(
-                last_place=True, secondary=False, sheets_only=sheets_only, serialized=True
-            ),
         }
     else:
         user_data = {
@@ -3112,12 +3109,19 @@ def related_api(request, tref):
     elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
-        sheets = get_sheets_for_ref(tref)
+        with_sheet_links = bool(int(request.GET.get("with_sheet_links", False)))
+        # with_sheet_links is used here as a marker for "the request comes from our web reader", the only client that
+        # sends it. The reader only counts the public sheets, so slim ones are enough. Other clients (the mobile app,
+        # third parties) still get full sheets: we don't know whether they use them at all (probably not), so we keep
+        # the response they had. We don't add a slim param, because changing the reader's URL would make every
+        # chapter start uncached in Varnish, and heavy chapters time out when uncached.
+        slim_sheets = with_sheet_links
+        sheets = get_sheets_for_ref(tref, slim=slim_sheets)
         response = {
             "links": get_links(
                 tref,
                 with_text=False,
-                with_sheet_links=bool(int(request.GET.get("with_sheet_links", False))),
+                with_sheet_links=with_sheet_links,
                 public_sheets=sheets,
             ),
             "sheets": sheets,
@@ -5169,7 +5173,8 @@ def get_url_params_user_history(request):
         last_place = bool(int(last_place))
     tref = request.GET.get("tref", None)
     oref = Ref(tref) if tref else None
-    return saved, secondary, last_place, oref
+    book = request.GET.get("book", None)
+    return saved, secondary, last_place, book, oref
 
 
 def saved_history_for_ref(request):
@@ -5178,7 +5183,7 @@ def saved_history_for_ref(request):
     :tref: Ref associated with history item
     """
     if request.method == "GET":
-        _, _, _, oref = get_url_params_user_history(request)
+        _, _, _, _, oref = get_url_params_user_history(request)
         if oref is None:
             return jsonResponse({"error": "Must specify 'tref' param"})
         return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
@@ -5196,11 +5201,12 @@ def user_history_api(request):
     :saved: bool. True if you only want saved items. None if you dont care
     :secondary: bool. True if you only want secondary items. None if you dont care
     :tref: Ref associated with history item
+    :book: index title, to only get items of this book
     """
     if request.method == "GET":
         if not request.user.is_authenticated:
             return jsonResponse(_get_anonymous_user_history(request))
-        saved, secondary, last_place, oref = get_url_params_user_history(request)
+        saved, secondary, last_place, book, oref = get_url_params_user_history(request)
         user = UserProfile(id=request.user.id)
         if "reading_history" in user.settings and not user.settings["reading_history"] and not saved:
             return jsonResponse([])
@@ -5219,6 +5225,7 @@ def user_history_api(request):
                 last_place=last_place,
                 skip=skip,
                 limit=limit,
+                book=book,
             )
         )
     return jsonResponse({"error": "Unsupported HTTP method."})
