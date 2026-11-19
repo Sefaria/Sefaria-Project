@@ -163,6 +163,13 @@ data:
                 "formatter": "json_formatter",
             },
         },
+        # Keep every record on exactly one handler. gunicorn's defaults let the
+        # gunicorn.access and gunicorn.error loggers propagate to the root logger, where
+        # local_settings installs a second handler, so each access line was emitted twice.
+        "loggers": {
+            "gunicorn.error": {"handlers": ["error_console"], "level": "INFO", "propagate": False},
+            "gunicorn.access": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        },
     }
 
     # #-------
