@@ -325,7 +325,8 @@ def ensure_indices(active_db=None, collections=None, dry_run=False):
         ("trend", ["name"], {}),
         ("trend", ["uid"], {}),
         ("webpages", ["refs"], {}),
-        ("webpages", ["expandedRefs"], {}),
+        ("webpages", [[("expandedRefs", pymongo.ASCENDING), ("lastUpdated", pymongo.DESCENDING)]], {}),
+        ("webpages", ["lastUpdated"], {}),
         ("websites", ["domains"], {}),
         ("manuscript_pages", ["expanded_refs"], {}),
         (
