@@ -13,6 +13,18 @@ from sefaria.system.exceptions import InputError
 
 logger = structlog.get_logger(__name__)
 
+# The GPU server runs gunicorn with a single synchronous worker and its default 30s
+# worker timeout. A request whose inference runs longer than that is aborted and the
+# worker is killed, which fails this call and takes NER offline while the models reload.
+# Send bounded batches so no single request can outlast the worker timeout. 150 matches
+# the server's own model batch size (app_helper.BATCH_SIZE).
+BULK_RECOGNIZE_MAX_TEXTS = 150
+
+
+def _batched(inputs: list[str], size: int) -> Generator[list[str], None, None]:
+    for start in range(0, len(inputs), size):
+        yield inputs[start : start + size]
+
 
 def get_linker_normalizer(lang: str) -> NormalizerComposer:
     """
@@ -60,13 +72,15 @@ class LinkerEntityRecognizer:
         """
         normalized_inputs = self._normalize_input(inputs)
         start_time = time.perf_counter()
-        data = self._bulk_recognize_entities_api_request(normalized_inputs)
+        results = []
+        for batch in _batched(normalized_inputs, BULK_RECOGNIZE_MAX_TEXTS):
+            results += self._bulk_recognize_entities_api_request(batch)["results"]
         elapsed_time = time.perf_counter() - start_time
         logger.info(
             "bulk_recognize GPU server post completed", elapsed_time=elapsed_time, num_inputs=len(normalized_inputs)
         )
         merged_entities = []
-        for input_str, result in zip(normalized_inputs, data["results"]):
+        for input_str, result in zip(normalized_inputs, results):
             raw_refs, non_citations = self._parse_recognize_response(input_str, result)
             merged_entities += [raw_refs + non_citations]
         return merged_entities

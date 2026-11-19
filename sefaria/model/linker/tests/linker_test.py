@@ -18,7 +18,7 @@ from sefaria.helper.linker_resource_panel_admin import _span_matches, parse_link
 from sefaria.model import schema
 from sefaria.model.link import Link
 from sefaria.model.linker.linker import LinkedDoc
-from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
+from sefaria.model.linker.linker_entity_recognizer import BULK_RECOGNIZE_MAX_TEXTS, LinkerEntityRecognizer
 from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.ref_resolver import IbidHistory, RefResolver, ResolvedRef
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
@@ -1264,3 +1264,27 @@ def test_linker_output_validate(resolver_data, is_ambiguous):
     if existing:
         pkey_data["_id"] = existing._id
     assert LinkerOutput(pkey_data)._validate()
+
+
+def test_bulk_recognize_sends_bounded_batches(monkeypatch):
+    """
+    The GPU NER server runs one synchronous worker with gunicorn's 30s worker timeout. A
+    request whose inference runs longer is aborted and the worker is killed, which fails
+    this call and takes NER offline while the models reload. bulk_recognize must therefore
+    split its input into bounded requests instead of one unbounded POST.
+    """
+    batch_sizes = []
+
+    def fake_bulk_request(_recognizer, inputs):
+        batch_sizes.append(len(inputs))
+        return {"results": [{"entities": []} for _ in inputs]}
+
+    monkeypatch.setattr(LinkerEntityRecognizer, "_bulk_recognize_entities_api_request", fake_bulk_request)
+    num_inputs = BULK_RECOGNIZE_MAX_TEXTS * 2 + 7
+    merged_entities = LinkerEntityRecognizer("he").bulk_recognize(
+        [f"\u05d8\u05e7\u05e1\u05d8 {i}" for i in range(num_inputs)]
+    )
+
+    assert len(merged_entities) == num_inputs
+    assert batch_sizes == [BULK_RECOGNIZE_MAX_TEXTS, BULK_RECOGNIZE_MAX_TEXTS, 7]
+    assert max(batch_sizes) <= BULK_RECOGNIZE_MAX_TEXTS
