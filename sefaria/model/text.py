@@ -4708,7 +4708,10 @@ class Ref(metaclass=RefCacheType):
         except PartialRefInputError as e:
             matched_ref = Ref(e.matched_part)
             try:
-                tref = Ref.__clean_tref(tref, matched_ref._lang)
+                # `Ref(e.matched_part)` can return an instance the Ref cache holds from an
+                # `_obj` construction, which never sets the `_lang` slot. Derive the
+                # language from the input ref rather than the possibly cached matched ref.
+                tref = Ref.__clean_tref(tref, "he" if is_all_hebrew(tref) else "en")
                 # replace input title with normalized title in case input was an alt title
                 tref = tref.replace(e.matched_part, matched_ref.normal())
                 legacy_ref_parser = legacy_ref_parser_handler[matched_ref.index.title]
