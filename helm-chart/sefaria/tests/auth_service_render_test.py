@@ -24,6 +24,11 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 CHART = ROOT / "helm-chart" / "sefaria"
 ENVS = ("staging", "preprod", "prod")
+# What each env file ships, changed only on purpose: staging rehearses every prod step first, so it is turned on before
+# preprod and prod (Yotam, 2026-11-18). A flip here must come with the flip in envs/<env>/helmrelease.yaml.
+SHIPPED_ENABLED = {"staging": True, "preprod": False, "prod": False}
+# The auth service's mode per env file, with the same rule: staging enforces on the gated paths first (R4).
+SHIPPED_MODE = {"staging": "enforce", "preprod": "observe", "prod": "observe"}
 SEFARIA_HEADERS = {
     "x-sefaria-tier",
     "x-sefaria-project",
@@ -60,6 +65,9 @@ def render(release, enabled):
         if enabled:
             # A release writes the image tag; rendering with the flag on fails without one.
             args += ["--set", "authService.enabled=true", "--set", "authService.image.tag=render-test"]
+        else:
+            # The off render is the rollback path (enabled: false), whatever the env file ships.
+            args += ["--set", "authService.enabled=false"]
         result = subprocess.run(args, capture_output=True, text=True)
     if result.returncode != 0:
         sys.exit(f"helm template failed for {release['metadata']['name']} (enabled={enabled}):\n{result.stderr}")
@@ -197,12 +205,12 @@ def check_on(env, objects):
     check_log_format_never_logs_a_key(where, log_format, allowed)
 
 
-def policy_problems(release):
+def policy_problems(release, mode="observe"):
     """What is wrong with this env file's authService values for phase 1 (empty list: nothing)."""
     auth = release["spec"]["values"]["authService"]
     problems = []
-    if auth.get("mode") != "observe":
-        problems.append(f"authService.mode is {auth.get('mode')!r}, not 'observe'")
+    if auth.get("mode") != mode:
+        problems.append(f"authService.mode is {auth.get('mode')!r}, not {mode!r}")
     if (auth.get("extAuth") or {}).get("failOpen") is not True:
         problems.append("authService.extAuth.failOpen is not true")
     if (auth.get("rateLimit") or {}).get("enabled") is not False:
@@ -227,15 +235,16 @@ def self_test_policy_check():
 
 def check_release_rules(env, release, rendered_on):
     values = release["spec"]["values"]
-    problems = policy_problems(release)
-    check(not problems, f"{env}: phase 1 policy: mode observe, failOpen true, rateLimit off ({'; '.join(problems)})")
+    mode = SHIPPED_MODE[env]
+    problems = policy_problems(release, mode)
+    check(not problems, f"{env}: phase 1 policy: mode {mode}, failOpen true, rateLimit off ({'; '.join(problems)})")
     deployment = find(rendered_on, "Deployment", r"-auth-service$")
     container_env = {
         e["name"]: e.get("value") for e in deployment[0]["spec"]["template"]["spec"]["containers"][0]["env"]
     }
     check(
-        container_env.get("AUTH_MODE") == "observe",
-        f"{env} on: the auth-service container runs with AUTH_MODE={container_env.get('AUTH_MODE')!r} (want 'observe')",
+        container_env.get("AUTH_MODE") == mode,
+        f"{env} on: the auth-service container runs with AUTH_MODE={container_env.get('AUTH_MODE')!r} (want {mode!r})",
     )
     # Phase 1 ships no 429s (D3): prod has no rate-limit backend, and the templates are untested on a cluster.
     check(
@@ -267,7 +276,11 @@ def check_release_rules(env, release, rendered_on):
 def main():
     for env in ENVS:
         release = helm_release(env)
-        check(release["spec"]["values"]["authService"]["enabled"] is False, f"{env}: ships authService.enabled false")
+        shipped = SHIPPED_ENABLED[env]
+        check(
+            release["spec"]["values"]["authService"]["enabled"] is shipped,
+            f"{env}: ships authService.enabled {str(shipped).lower()}",
+        )
         check_off(env, render(release, enabled=False))
         rendered_on = render(release, enabled=True)
         check_on(env, rendered_on)

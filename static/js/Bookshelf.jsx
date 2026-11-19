@@ -337,8 +337,26 @@ const BookshelfSignUpSlot = () => (
 
 /** "My bookshelf" section above Browse the Library. */
 const BookshelfHome = () => {
-  useBookshelfVersion();
+  const version = useBookshelfVersion();
   const mounted = useMounted();
+  const [, setPlacesLoaded] = useState(0);
+
+  // The page no longer carries every book's last place, so load it for each book on the shelf.
+  useEffect(() => {
+    if (!mounted || !Sefaria._uid) {
+      return;
+    }
+    let cancelled = false;
+    Promise.all(Bookshelf.homeBooks().map((book) => Sefaria.loadLastPlaceForText(book).catch(() => null))).then(() => {
+      if (!cancelled) {
+        setPlacesLoaded((n) => n + 1);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mounted, version]);
+
   if (!mounted) {
     return null;
   }
