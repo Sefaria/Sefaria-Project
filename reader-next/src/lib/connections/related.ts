@@ -79,8 +79,8 @@ export function resourceCounts(
   extra: { webpages: number | null; translations: number; mine?: { uid: number; sheets: ByRef<RelatedSheet> } },
 ): ResourceCounts {
   const publicSheets = pick(res?.sheets ?? {}, refs);
-  // the reader's public sheets are in both lists under the same id: one set of ids counts each once (public sheets come as ids and
-  // anchors only, so there is no owner to filter on)
+  // the reader's public sheets are in both lists under the same id: one set of ids counts each once (the public answer also names
+  // each sheet's owner, but the ids are enough)
   const all = extra.mine ? [...pick(extra.mine.sheets, refs), ...publicSheets] : publicSheets;
   const sheets = new Set(all.map((s) => String(s.id))).size; // spanning anchors duplicate
   const topics = new Set(pick(res?.topics ?? {}, refs).map((t) => t.topic)).size;

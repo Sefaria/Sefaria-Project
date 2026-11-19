@@ -2,7 +2,7 @@
 /api/related/<ref> (reader/views.py related_api): the two lighter modes the new reader asks for.
 
 - `?with_links=0` leaves the links out (the client has them from /api/links);
-- `?sheets=count` answers the sheets with only id + anchors (sefaria/sheets.py get_sheet_anchors_for_ref), enough to count them
+- `?sheets=count` answers the sheets with only id, owner + anchors (sefaria/sheets.py get_sheet_anchors_for_ref), enough to count them
   per verse; the full sheet records, owner profiles and collections are not loaded.
 - Without either parameter the answer is exactly what it was (every other caller, and their Varnish keys, unchanged).
 
@@ -141,7 +141,12 @@ class SheetAnchorsTestCase(TestCase):
         )
         fake_db = MagicMock()
         fake_db.sheets.find.return_value = [
-            {"id": 42, "includedRefs": ["Genesis 1:1", "Genesis 1:2-3"], "expandedRefs": ["Genesis 1:1", "Genesis 1:2"]}
+            {
+                "id": 42,
+                "owner": 9,
+                "includedRefs": ["Genesis 1:1", "Genesis 1:2-3"],
+                "expandedRefs": ["Genesis 1:1", "Genesis 1:2"],
+            }
         ]
         with patch.object(sheets_module.model, "Ref", return_value=oref), patch.object(sheets_module, "db", fake_db):
             out = sheets_module.get_sheet_anchors_for_ref("Genesis 1")
@@ -149,15 +154,22 @@ class SheetAnchorsTestCase(TestCase):
         self.assertEqual(
             out,
             [
-                {"id": "42", "anchorRef": "Genesis 1:1", "anchorRefExpanded": ["Genesis 1:1"]},
-                {"id": "42", "anchorRef": "Genesis 1:2-3", "anchorRefExpanded": ["Genesis 1:2", "Genesis 1:3"]},
+                {"id": "42", "owner": 9, "anchorRef": "Genesis 1:1", "anchorRefExpanded": ["Genesis 1:1"]},
+                {
+                    "id": "42",
+                    "owner": 9,
+                    "anchorRef": "Genesis 1:2-3",
+                    "anchorRefExpanded": ["Genesis 1:2", "Genesis 1:3"],
+                },
             ],
         )
         query, projection = fake_db.sheets.find.call_args.args
         self.assertEqual(
             query, {"expandedRefs": {"$in": ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"]}, "status": "public"}
         )
-        self.assertEqual(projection, {"id": 1, "includedRefs": 1, "expandedRefs": 1})
+        # master's slim sheets (get_sheets_for_ref(slim=True)): the owner too, so a client can leave a reader's own public sheets
+        # out of a count that also has their private request
+        self.assertEqual(projection, {"id": 1, "owner": 1, "includedRefs": 1, "expandedRefs": 1})
         oref.get_all_anchor_refs.assert_called_once_with(
             ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"],
             ["Genesis 1:1", "Genesis 1:2-3"],
