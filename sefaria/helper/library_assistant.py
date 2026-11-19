@@ -41,6 +41,11 @@ from sefaria.model.user_profile import UserProfile
 # writes the key at profile creation -- see the comment there.
 SETTING_KEY = LIBRARY_ASSISTANT_SETTING_KEY
 
+# The user's "Hide Ask button" choice from the assistant's own menu: whether its floating
+# "✦ Ask" button is hidden. Saved here so it follows the user across devices; absent means
+# shown. The header and mobile-menu entry points are unaffected (that's SETTING_KEY).
+FLOATING_BUTTON_HIDDEN_KEY = "library_assistant_floating_button_hidden"
+
 
 def normalize(value):
     """
@@ -63,6 +68,23 @@ def is_enabled(profile):
     if SETTING_KEY in settings:
         return normalize(settings[SETTING_KEY])
     return _legacy_enabled(profile)
+
+
+def is_floating_button_hidden(profile):
+    """
+    Whether this logged-in user hid the assistant's floating Ask button.
+    """
+    settings = getattr(profile, "settings", None) or {}
+    return normalize(settings.get(FLOATING_BUTTON_HIDDEN_KEY, False))
+
+
+def show_floating_button_if_turned_on(profile, was_enabled):
+    """
+    Turning the assistant back on starts with its Ask button shown: a hidden choice made
+    before it was turned off is cleared. Call after updating the profile, before saving.
+    """
+    if not was_enabled and is_enabled(profile):
+        profile.settings[FLOATING_BUTTON_HIDDEN_KEY] = False
 
 
 def is_enabled_for_anonymous():
@@ -112,7 +134,9 @@ def set_enabled(user, enabled):
     """
     enabled = normalize(enabled)
     profile = UserProfile(id=user.id)
+    was_enabled = is_enabled(profile)
     profile.update({"settings": {SETTING_KEY: enabled}})
+    show_floating_button_if_turned_on(profile, was_enabled)
     profile.save()
 
     return enabled

@@ -1,1 +1,3 @@
-Confirm your email for Sefaria developer settings
+{% load i18n %}{% autoescape off %}
+{% trans "Confirm your email for Sefaria Developer Settings" %}
+{% endautoescape %}
