@@ -30,7 +30,9 @@ def test_operation_index_has_61_operations():
 
 
 def test_excluded_spec_equals_docs_openapi_when_parsed():
-    """SOURCE.json: the excluded sefaria-api.json differs from docs/openAPI.json only in `100` vs `100.0`."""
+    """SOURCE.json: the excluded sefaria-api.json was not vendored because docs/openAPI.json is the spec. At the
+    snapshot it differed only in `100` vs `100.0`; docs/openAPI.json has moved on since (sc-48262 added
+    `with_sheet_links`), so what must hold is that excluding it loses nothing: every operation it has, ours has."""
     info = json.loads((SOURCE_DIR / "SOURCE.json").read_text(encoding="utf-8"))
     excluded = info["excluded"][0]
     upstream = UPSTREAM_CLONE / excluded["path"]
@@ -41,7 +43,12 @@ def test_excluded_spec_equals_docs_openapi_when_parsed():
         pytest.skip("the developer-docs clone is at another commit than the snapshot")
     ours = (REPO_ROOT / "docs" / "openAPI.json").read_bytes()
     assert hashlib.sha256(ours).digest() != hashlib.sha256(data).digest()  # not byte-identical
-    assert spec_adapter.normalized_sha256(json.loads(data)) == spec_adapter.spec_sha()
+
+    def operations(spec):
+        methods = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
+        return {(path, m) for path, item in spec["paths"].items() for m in item if m in methods}
+
+    assert operations(json.loads(data)) <= operations(json.loads(ours))
 
 
 def test_link_rewriting_touches_destinations_only():

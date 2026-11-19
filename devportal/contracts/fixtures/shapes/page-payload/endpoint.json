@@ -34,7 +34,7 @@
     "tags": ["Text"],
     "deprecated": false,
     "specUrl": "/static/bundles/devportal/spec/get-v3-texts.json",
-    "specSha": "ae477027ea7d147ed5149687d49b1e11d724a73d286833f6bde40abd0f4f803d"
+    "specSha": "e4388184fe8690f41b74a651f5d0c670659234cfb257e75e970e7edd67191c26"
   },
   "page": {
     "title": "Texts (v3)",

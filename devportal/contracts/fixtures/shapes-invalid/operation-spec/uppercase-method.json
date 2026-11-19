@@ -1,6 +1,6 @@
 {
   "contractVersion": 1,
-  "specSha": "ae477027ea7d147ed5149687d49b1e11d724a73d286833f6bde40abd0f4f803d",
+  "specSha": "e4388184fe8690f41b74a651f5d0c670659234cfb257e75e970e7edd67191c26",
   "operationId": "get-calendars",
   "method": "GET",
   "path": "/api/calendars",

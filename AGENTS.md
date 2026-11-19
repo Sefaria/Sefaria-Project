@@ -45,6 +45,7 @@ agent_docs/
 | API, sourcesheets, chatbot, guides, etc.            | [`agent_docs/apps/README.md`](./agent_docs/apps/README.md)                                   |
 | Developer portal (developers.sefaria.org)           | [`agent_docs/apps/devportal.md`](./agent_docs/apps/devportal.md)                             |
 | Scripts / one-off jobs                              | [`agent_docs/scripts.md`](./agent_docs/scripts.md)                                           |
+| Production slowness / performance incidents         | [`docs/runbooks/performance-triage.md`](./docs/runbooks/performance-triage.md)               |
 | Config, exports, stats, sitemap, image gen          | [`agent_docs/sefaria/config_and_utilities.md`](./agent_docs/sefaria/config_and_utilities.md) |
 
 ## Core Conventions Every Agent Should Know
