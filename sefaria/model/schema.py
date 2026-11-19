@@ -1772,6 +1772,17 @@ class DictionaryEntryNode(TitledTreeNode):
             self.title = title
             self._ref_regex = regex.compile("^" + regex.escape(title) + r"[, _]*(\S[^0-9.]*)(?:[. ](\d+))?$")
             self._match = self._ref_regex.match(tref)
+            if self._match is None:
+                # The tref runs on past the dictionary title with something that is not an
+                # entry address, e.g. trailing markup ("Jastrow, שלום.1</a>") or a deeper
+                # address than one section. Report a missing entry, so callers turn it into
+                # a 404 instead of failing on the None match.
+                raise DictionaryEntryNotFoundError(
+                    f"Word not found in {parent.full_title()}",
+                    parent.lexiconName,
+                    parent.full_title(),
+                    tref,
+                )
             self.word = self._match.group(1) or ""
         elif word:
             self.word = word
