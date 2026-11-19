@@ -1,0 +1,1699 @@
+{% load static %}{% get_static_prefix as STATIC_PREFIX %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#18345D">
+<meta name="robots" content="noindex, nofollow">
+<title>Sefaria App Demo</title>
+<link rel="icon" type="image/svg+xml" href="{{ STATIC_PREFIX }}icons/library/favicon.svg?v=2" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Frank+Ruhl+Libre:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap">
+<style>
+  @font-face { font-family: "Taamey Frank"; font-weight: normal; font-style: normal;
+    src: url('{{ STATIC_PREFIX }}fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'); }
+  @font-face { font-family: "Taamey Frank"; font-weight: bold; font-style: normal;
+    src: url('{{ STATIC_PREFIX }}fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf'); }
+</style>
+{% verbatim %}
+<style>
+  :root {
+    --navy: #18345D;
+    --navy-2: #1f4274;
+    --blue: #4871bf;
+    --ink: #1a1a1a;
+    --ink-2: #555;
+    --ink-3: #888;
+    --line: #e5e5e5;
+    --bg: #fbfbfa;
+    --card: #ffffff;
+    --gold: #ccb479;
+    --gold-2: #b89a4f;
+    --green: #2e7d5b;
+    --tanakh: #004e5f;
+    --mishnah: #5a99b7;
+    --talmud: #ccb479;
+    --halakhah: #802f3e;
+    --liturgy: #ab4e66;
+    --midrash: #5d956f;
+    --musar: #7c406f;
+    --radius: 14px;
+    --serif: "EB Garamond", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+    --hebrew: "Taamey Frank", "Frank Ruhl Libre", "Times New Roman", serif;
+    --sans: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  a { color: inherit; text-decoration: none; }
+  .he { font-family: var(--hebrew); direction: rtl; unicode-bidi: isolate; }
+  .serif { font-family: var(--serif); }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 13px; }
+  .hidden { display: none !important; }
+
+  /* ---------- App shell ---------- */
+  .app { position: relative; width: 100%; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); margin: 0 auto; }
+  .appbar { flex: none; display: flex; align-items: center; justify-content: space-between; padding: calc(10px + var(--safe-t)) 16px 10px; background: #fff; border-bottom: 1px solid var(--line); }
+  .wordmark { font-family: var(--serif); font-size: 25px; font-weight: 500; color: var(--navy); letter-spacing: .2px; display: flex; align-items: center; gap: 8px; }
+  .wordmark .he-mark { font-family: var(--hebrew); font-size: 20px; color: var(--ink-3); font-weight: normal; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-weight: 500; font-size: 14px; }
+  .avatar svg { width: 18px; height: 18px; }
+  main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .panel { display: none; padding: 16px 16px 28px; }
+  .panel.active { display: block; }
+  .tabbar { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); background: #fff; border-top: 1px solid var(--line); padding: 6px 4px calc(6px + var(--safe-b)); }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 0; font-size: 11px; color: var(--ink-3); font-weight: 500; letter-spacing: .2px; }
+  .tab svg { width: 24px; height: 24px; }
+  .tab.active { color: var(--navy); }
+
+  h1.page { font-family: var(--serif); font-weight: 500; font-size: 30px; line-height: 1.1; margin: 4px 0 2px; color: var(--ink); }
+  .dateline { color: var(--ink-2); font-size: 14px; }
+  .dateline .he { font-size: 15px; color: var(--ink-3); }
+  h2.section { font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--ink-3); font-weight: 500; margin: 24px 0 10px; }
+
+  .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--line); padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+  .stack > * + * { margin-top: 10px; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .grow { flex: 1; min-width: 0; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 20px; border-radius: 999px; font-weight: 500; font-size: 15px; transition: transform .08s ease, background .2s; }
+  .btn:active { transform: scale(.98); }
+  .btn.primary { background: var(--navy); color: #fff; }
+  .btn.secondary { background: #fff; color: var(--navy); border: 1.5px solid var(--navy); }
+  .btn.ghost { color: var(--navy); }
+  .btn.block { width: 100%; }
+  .btn.sm { height: 36px; padding: 0 14px; font-size: 14px; }
+  .btn.gold { background: linear-gradient(135deg, #d8c28a, #b89a4f); color: #fff; }
+  .btn svg { width: 18px; height: 18px; }
+  .link { color: var(--blue); font-weight: 500; }
+
+  /* ---------- Today ---------- */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .stat { padding: 14px; }
+  .stat .label { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+  .stat .big { font-family: var(--serif); font-size: 34px; line-height: 1; color: var(--ink); margin-top: 6px; display: flex; align-items: baseline; gap: 6px; }
+  .stat .big small { font-family: var(--sans); font-size: 13px; color: var(--ink-2); }
+  .stat .note { font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+  .flame { color: #e0802c; width: 22px; height: 22px; align-self: center; }
+  .ring { width: 48px; height: 48px; flex: none; }
+  .ring circle { fill: none; stroke-width: 5; }
+  .ring .bg { stroke: #eceae4; }
+  .ring .fg { stroke: var(--navy); stroke-linecap: round; transition: stroke-dashoffset .6s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .learned-btn { margin-top: 10px; width: 100%; }
+  .learned-btn.done { background: #e8f3ee; color: var(--green); border-color: transparent; }
+
+  .banner { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--radius); background: #f3efe4; border: 1px solid #e7dfc9; margin-top: 12px; }
+  .banner .ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: #fff; color: var(--gold-2); flex: none; }
+  .banner .ic svg { width: 20px; height: 20px; }
+  .banner .t { font-weight: 500; font-size: 14px; }
+  .banner .s { font-size: 13px; color: var(--ink-2); }
+  .banner.shabbat { background: linear-gradient(135deg, #1d3a66, #18345D); color: #fff; border: 0; }
+  .banner.shabbat .s { color: #c9d4e6; }
+  .banner.shabbat .ic { background: rgba(255,255,255,.12); color: #f5d98b; }
+
+  .preview-cta { margin-top: 12px; display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 16px; border-radius: var(--radius); background: var(--navy); color: #fff; box-shadow: 0 6px 18px rgba(24,52,93,.25); }
+  .preview-cta .ic { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,.14); display: grid; place-items: center; flex: none; }
+  .preview-cta .ic svg { width: 22px; height: 22px; }
+  .preview-cta .t { font-weight: 500; font-size: 16px; }
+  .preview-cta .s { font-size: 13px; color: #c9d4e6; }
+  .preview-cta .chev { margin-left: auto; opacity: .7; }
+
+  .lcard { display: block; position: relative; overflow: hidden; padding: 14px 16px 14px 20px; }
+  .lcard::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--c, var(--navy)); }
+  .lcard .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-3); font-weight: 500; display: flex; justify-content: space-between; }
+  .lcard .title { font-family: var(--serif); font-size: 23px; line-height: 1.15; margin-top: 4px; color: var(--ink); }
+  .lcard .trow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 4px; }
+  .lcard .trow .title { margin-top: 0; }
+  .lcard .htitle { font-family: var(--hebrew); font-size: 20px; color: var(--ink-2); direction: rtl; text-align: right; white-space: nowrap; }
+  .lcard .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 13px; color: var(--ink-2); }
+  .lcard .meta .go { color: var(--blue); font-weight: 500; display: inline-flex; align-items: center; gap: 2px; }
+  .lcard .desc { font-size: 13px; color: var(--ink-2); margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .skeleton { background: linear-gradient(90deg, #f0efeb 0%, #f7f6f3 50%, #f0efeb 100%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius); height: 104px; }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  .error-card { text-align: center; padding: 22px 16px; }
+  .error-card .t { font-family: var(--serif); font-size: 20px; }
+
+  /* ---------- Goals ---------- */
+  .goal-hero { padding: 18px 16px; }
+  .goal-hero .goal-title { font-family: var(--serif); font-size: 24px; line-height: 1.2; }
+  .bar { height: 10px; border-radius: 999px; background: #eceae4; overflow: hidden; margin-top: 12px; }
+  .bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--navy), var(--blue)); border-radius: inherit; transition: width .6s ease; }
+  .bar-legend { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+  .streak-card { display: flex; align-items: center; gap: 14px; }
+  .streak-num { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--ink); }
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 14px; text-align: center; }
+  .week .d { font-size: 11px; color: var(--ink-3); }
+  .week .dot { width: 30px; height: 30px; margin: 4px auto 0; border-radius: 50%; display: grid; place-items: center; font-size: 12px; background: #f1efea; color: var(--ink-3); }
+  .week .dot.on { background: var(--navy); color: #fff; }
+  .week .dot.rest { background: #f3efe4; color: var(--gold-2); }
+  .week .dot.today { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--blue); }
+  .week .dot svg { width: 14px; height: 14px; }
+  .note-line { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--ink-2); margin-top: 12px; }
+  .note-line svg { width: 16px; height: 16px; color: var(--gold-2); flex: none; margin-top: 1px; }
+  .badges { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 8px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none; }
+  .badges::-webkit-scrollbar { display: none; }
+  .badge { flex: none; width: 76px; text-align: center; font-size: 11px; color: var(--ink-2); }
+  .badge .medal { width: 60px; height: 60px; margin: 0 auto 6px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 30% 30%, #f3e7c3, #ccb479 70%); color: #6b5520; box-shadow: inset 0 0 0 3px rgba(255,255,255,.5), 0 2px 6px rgba(0,0,0,.08); }
+  .badge .medal svg { width: 26px; height: 26px; }
+  .badge.locked .medal { background: #efeee9; color: #b9b7b0; box-shadow: inset 0 0 0 2px #fff; }
+  .log-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0efeb; }
+  .log-item:last-child { border-bottom: 0; }
+  .log-item .when { width: 46px; flex: none; text-align: center; }
+  .log-item .when b { display: block; font-family: var(--serif); font-size: 20px; line-height: 1; font-weight: 500; }
+  .log-item .when span { font-size: 11px; color: var(--ink-3); text-transform: uppercase; }
+  .log-item .mins { font-size: 13px; color: var(--ink-2); }
+  .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 3px 9px; border-radius: 999px; background: #eef2f9; color: var(--navy); font-weight: 500; }
+  .chip.demo { background: #f3efe4; color: #8a7340; }
+
+  .seg { display: flex; background: #f1efea; border-radius: 999px; padding: 3px; gap: 2px; }
+  .seg button { flex: 1; height: 34px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+  .seg button.on { background: #fff; color: var(--navy); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .field { margin-top: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 500; }
+  select, input[type=date], input[type=text], input[type=time], textarea { width: 100%; font: inherit; font-size: 16px; padding: 11px 12px; border: 1px solid #d9d7d0; border-radius: 10px; background: #fff; color: var(--ink); appearance: none; -webkit-appearance: none; }
+  textarea { resize: none; line-height: 1.4; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #d9d7d0; background: #fff; font-size: 14px; color: var(--ink); }
+  .pill.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  /* ---------- Share ---------- */
+  .share-card { position: relative; border-radius: 18px; padding: 22px 20px 18px; color: #fff; overflow: hidden; background: radial-gradient(120% 90% at 100% 0%, #2d5aa0 0%, #18345D 55%, #10233f 100%); box-shadow: 0 10px 24px rgba(24,52,93,.28); }
+  .share-card::after { content: "א"; position: absolute; right: -14px; bottom: -58px; font-family: var(--hebrew); font-size: 210px; line-height: 1; color: rgba(255,255,255,.06); }
+  .share-card .brand { font-family: var(--serif); font-size: 18px; opacity: .9; }
+  .share-card .quote { font-family: var(--serif); font-size: 27px; line-height: 1.18; margin: 18px 0 16px; position: relative; z-index: 1; }
+  .share-card .foot { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #c9d4e6; position: relative; z-index: 1; }
+  .share-card .who { display: flex; align-items: center; gap: 8px; }
+  .share-card .who .avatar { width: 28px; height: 28px; font-size: 12px; background: #f5d98b; color: var(--navy); }
+  .share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .share-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 4px; border-radius: 12px; background: #fff; border: 1px solid var(--line); font-size: 12px; color: var(--ink-2); font-weight: 500; }
+  .share-btn .ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff; }
+  .share-btn .ic svg { width: 20px; height: 20px; }
+  .friend { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0efeb; }
+  .friend:last-child { border-bottom: 0; }
+  .friend .avatar { background: #e9eef7; color: var(--navy); }
+
+  /* ---------- Text (portrait) ---------- */
+  .text-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+  .text-head .ref { font-family: var(--serif); font-size: 26px; line-height: 1.1; }
+  .text-head .heref { font-family: var(--hebrew); font-size: 18px; color: var(--ink-3); }
+  .rotate-hint { display: flex; align-items: center; gap: 10px; margin: 14px 0 6px; padding: 10px 12px; border-radius: 12px; background: #eef2f9; color: var(--navy); font-size: 13px; }
+  .rotate-hint svg { width: 22px; height: 22px; flex: none; animation: tilt 2.4s ease-in-out infinite; }
+  @keyframes tilt { 0%, 40% { transform: rotate(0); } 60%, 90% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+  .verses { margin-top: 10px; }
+  .verse { padding: 12px 4px; border-bottom: 1px solid #f0efeb; position: relative; border-radius: 8px; transition: background .2s; }
+  .verse .num { position: absolute; left: 4px; top: 14px; font-size: 11px; color: var(--ink-3); font-family: var(--sans); }
+  .verse .v-he { font-family: var(--hebrew); direction: rtl; text-align: right; font-size: calc(22px * var(--ts, 1)); line-height: 1.6; color: var(--ink); padding-left: 22px; }
+  .verse .v-en { font-family: var(--serif); font-size: calc(18px * var(--ts, 1)); line-height: 1.45; color: #333; padding-left: 22px; margin-top: 4px; }
+  .verse.hl { background: #fdf6e0; }
+  .lang-he .v-en, .lang-en .v-he { display: none; }
+  .lang-en .v-en { margin-top: 0; }
+  /* A segment with only one language shows it whatever the setting. */
+  .lang-en .verse.only-he .v-he, .lang-he .verse.only-en .v-en { display: block; }
+
+  /* ---------- Reader (texts opened from Today, inside the app) ---------- */
+  .reader-bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 6px; margin: -16px -16px 14px; padding: 7px 12px 7px 4px; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .reader-back { display: inline-flex; align-items: center; height: 36px; padding: 0 10px 0 2px; border-radius: 999px; color: var(--navy); font-weight: 500; flex: none; }
+  .reader-back svg { width: 22px; height: 22px; }
+  .reader-bar .rb-title { flex: 1; min-width: 0; text-align: center; font-family: var(--serif); font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reader-bar .aa { flex: none; font-family: var(--serif); font-size: 18px; color: var(--navy); width: 38px; height: 32px; border-radius: 8px; background: #f1efea; }
+  .reader-sub { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+  .reader-desc { font-size: 14px; color: var(--ink-2); margin-top: 10px; }
+  .part-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 22px 0 2px; padding-bottom: 6px; border-bottom: 2px solid var(--c, var(--navy)); }
+  .part-head .t { font-family: var(--serif); font-size: 21px; }
+  .part-head .s { font-size: 12px; color: var(--ink-3); text-align: right; }
+  .sec-head { margin: 16px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-3); font-weight: 500; }
+  .part-err { padding: 12px 4px; font-size: 13px; color: var(--ink-2); }
+  .reader-foot { margin-top: 20px; text-align: center; }
+  .sbs-rows .part-head, .sbs-rows .sec-head { margin-left: 10px; margin-right: 10px; }
+
+  /* ---------- Side by side (landscape) ---------- */
+  .sbs { display: none; }
+  .app.landscape.tab-text .appbar, .app.landscape.tab-text .tabbar { display: none; }
+  .app.landscape.tab-text #panel-text > .portrait { display: none; }
+  .app.landscape.tab-text #panel-text { padding: 0; }
+  .app.landscape.tab-text .sbs { display: block; }
+  /* The reader shares the text view's landscape layout. */
+  .app.landscape.tab-read .appbar, .app.landscape.tab-read .tabbar { display: none; }
+  .app.landscape.tab-read #panel-read > .portrait { display: none; }
+  .app.landscape.tab-read #panel-read { padding: 0; }
+  .app.landscape.tab-read .sbs { display: block; }
+  .sbs-bar { position: sticky; top: 0; z-index: 2; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 10px 20px; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 13px; }
+  .sbs-bar .mode { color: var(--ink-2); display: flex; align-items: center; gap: 8px; }
+  .sbs-bar .mode b { color: var(--navy); font-weight: 500; }
+  .sbs-bar .mode button { color: var(--navy); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #f1efea; }
+  .sbs-bar .mode button svg { width: 16px; height: 16px; }
+  .sbs-bar .center { font-family: var(--serif); font-size: 18px; color: var(--ink); text-align: center; white-space: nowrap; }
+  .sbs-bar .center .he { font-size: 16px; color: var(--ink-3); margin-left: 8px; }
+  .sbs-bar .aa { justify-self: end; font-family: var(--serif); font-size: 20px; color: var(--navy); width: 40px; height: 32px; border-radius: 8px; background: #f1efea; }
+  .sbs-rows { padding: 6px 20px 24px; max-width: 1100px; margin: 0 auto; }
+  .sbs-row { display: grid; grid-template-columns: 1fr 34px 1fr; gap: 14px; padding: 12px 10px; border-radius: 10px; border-bottom: 1px solid #f0efeb; cursor: pointer; transition: background .2s; }
+  .sbs-row .en { font-family: var(--serif); font-size: calc(18px * var(--ts, 1)); line-height: 1.45; color: #333; }
+  .sbs-row .n { text-align: center; font-size: 12px; color: var(--ink-3); padding-top: 4px; }
+  .sbs-row .hb { font-family: var(--hebrew); direction: rtl; text-align: right; font-size: calc(21px * var(--ts, 1)); line-height: 1.55; }
+  .sbs-row.hl { background: #fdf6e0; border-bottom-color: transparent; }
+  .sbs-row.hl .n { color: var(--gold-2); font-weight: 700; }
+
+  /* ---------- Overlays ---------- */
+  .overlay { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; background: #fff; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .sheet-backdrop { position: absolute; inset: 0; z-index: 60; background: rgba(15,25,45,.4); animation: fadeIn .2s ease; display: flex; align-items: flex-end; }
+  .sheet { width: 100%; background: #fff; border-radius: 20px 20px 0 0; padding: 10px 18px calc(22px + var(--safe-b)); animation: sheetUp .28s cubic-bezier(.2,.9,.3,1); max-height: 88%; overflow-y: auto; }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .sheet .grab { width: 40px; height: 5px; border-radius: 3px; background: #ddd; margin: 0 auto 14px; }
+  .sheet h3 { font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 0 0 4px; }
+  .menu-item { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 14px 0; border-bottom: 1px solid #f0efeb; text-align: left; font-size: 15px; }
+  .menu-item .v { color: var(--ink-3); font-size: 14px; }
+  .menu-item.danger { color: var(--halakhah); }
+
+  /* Onboarding */
+  .ob { background: var(--bg); }
+  .ob-top { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + var(--safe-t)) 16px 6px; min-height: 52px; }
+  .ob-back { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); }
+  .ob-back svg { width: 22px; height: 22px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 7px; height: 7px; border-radius: 4px; background: #d8d6cf; transition: all .25s; }
+  .dots i.on { width: 22px; background: var(--navy); }
+  .dots i.done { background: #8fa3c4; }
+  .skip { color: var(--ink-2); font-size: 15px; font-weight: 500; padding: 8px 4px; min-width: 36px; text-align: right; }
+  .ob-body { flex: 1; overflow-y: auto; padding: 8px 20px 16px; animation: stepIn .3s ease; }
+  @keyframes stepIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+  .ob-foot { padding: 10px 20px calc(18px + var(--safe-b)); background: linear-gradient(to top, var(--bg) 70%, rgba(251,251,250,0)); }
+  .ob h2 { font-family: var(--serif); font-weight: 500; font-size: 30px; line-height: 1.12; margin: 6px 0 8px; }
+  .ob .lead { color: var(--ink-2); font-size: 15px; margin: 0 0 18px; }
+  .welcome-mark { display: flex; align-items: center; gap: 10px; margin: 6px 0 16px; }
+  .logo-tile { width: 44px; height: 44px; border-radius: 12px; background: var(--navy); color: #fff; display: grid; place-items: center; font-family: var(--hebrew); font-size: 26px; line-height: 1; padding-bottom: 2px; }
+  .opt { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 16px; background: #fff; border: 1.5px solid var(--line); border-radius: var(--radius); transition: border-color .15s, box-shadow .15s; }
+  .opt + .opt { margin-top: 10px; }
+  .opt.on { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(24,52,93,.08); }
+  .opt .o-t { font-weight: 500; font-size: 16px; }
+  .opt .o-s { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+  .opt .sample { font-size: 17px; color: var(--ink); margin-top: 6px; }
+  .opt .sample .he { font-size: 19px; display: block; text-align: left; }
+  .check { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #cfcdc6; flex: none; display: grid; place-items: center; color: transparent; margin-left: auto; }
+  .check.sq { border-radius: 7px; }
+  .opt.on .check { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .check svg { width: 14px; height: 14px; }
+  .swatch { width: 10px; align-self: stretch; border-radius: 5px; background: var(--c); flex: none; }
+  .fine { font-size: 13px; color: var(--ink-3); margin-top: 14px; display: flex; gap: 8px; align-items: flex-start; }
+  .fine svg { width: 16px; height: 16px; flex: none; margin-top: 1px; }
+
+  /* Chat */
+  .chat { display: flex; flex-direction: column; gap: 10px; padding-bottom: 8px; }
+  .msg { max-width: 86%; padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; animation: pop .25s ease; }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .msg.bot { background: #fff; border: 1px solid var(--line); border-bottom-left-radius: 6px; align-self: flex-start; }
+  .msg.me { background: var(--navy); color: #fff; border-bottom-right-radius: 6px; align-self: flex-end; }
+  .bot-row { display: flex; gap: 8px; align-items: flex-end; }
+  .bot-row .logo-tile { width: 28px; height: 28px; border-radius: 9px; font-size: 16px; flex: none; }
+  .typing { display: inline-flex; gap: 4px; padding: 14px 16px; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: #b8b6ae; animation: blink 1.2s infinite; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+  .suggest-card { margin-left: 36px; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; animation: pop .3s ease; max-width: 86%; }
+  .suggest-card .top { padding: 12px 14px; border-left: 5px solid var(--c, var(--mishnah)); }
+  .suggest-card .t { font-family: var(--serif); font-size: 21px; line-height: 1.15; }
+  .suggest-card .s { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+  .suggest-card blockquote { margin: 10px 0 0; font-family: var(--serif); font-size: 15px; color: #444; font-style: italic; }
+  .suggest-card .act { padding: 10px 14px 12px; border-top: 1px solid #f0efeb; }
+  .replies { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-top: 6px; }
+  .reply { max-width: 90%; text-align: right; padding: 9px 14px; border-radius: 18px; border: 1.5px solid var(--navy); color: var(--navy); background: #fff; font-size: 14px; font-weight: 500; animation: pop .25s ease; }
+  .chat-input { display: flex; gap: 8px; align-items: center; }
+  .chat-input input { border-radius: 999px; height: 44px; font-size: 15px; }
+  .chat-input button { width: 44px; height: 44px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; flex: none; }
+  .chat-input button svg { width: 18px; height: 18px; }
+
+  /* Toggles */
+  .toggle-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0efeb; }
+  .toggle-row:last-child { border-bottom: 0; }
+  .toggle-row .t { font-weight: 500; font-size: 15px; }
+  .toggle-row .s { font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+  .switch { position: relative; width: 50px; height: 30px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .switch span { position: absolute; inset: 0; border-radius: 999px; background: #d9d7d0; transition: background .2s; }
+  .switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+  .switch input:checked + span { background: var(--green); }
+  .switch input:checked + span::after { transform: translateX(20px); }
+  .time-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 12px; border-bottom: 1px solid #f0efeb; }
+  .time-row input { width: 150px; text-align: center; font-size: 18px; padding: 8px 10px; }
+  .widget-wrap { display: flex; gap: 14px; align-items: center; margin-top: 16px; padding: 16px; border-radius: 18px; background: linear-gradient(160deg, #cfd9e8, #e9e2d3); }
+  .widget { width: 150px; height: 150px; flex: none; border-radius: 24px; padding: 14px; color: #fff; background: linear-gradient(160deg, #24487d, #18345D); box-shadow: 0 8px 20px rgba(24,52,93,.3); display: flex; flex-direction: column; }
+  .widget .w-k { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: #aebdd6; font-weight: 500; }
+  .widget .w-t { font-family: var(--serif); font-size: 22px; line-height: 1.08; margin-top: 6px; }
+  .widget .w-h { font-family: var(--hebrew); font-size: 16px; color: #c9d4e6; direction: rtl; text-align: left; margin-top: 2px; }
+  .widget .w-f { margin-top: auto; font-size: 12px; display: flex; align-items: center; gap: 4px; color: #f5d98b; }
+  .widget .w-f svg { width: 14px; height: 14px; }
+  .signin-hero { text-align: center; padding: 18px 0 8px; }
+  .signin-hero .logo-tile { width: 64px; height: 64px; font-size: 38px; border-radius: 18px; margin: 0 auto 12px; }
+  .benefit { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; }
+  .benefit .ic { width: 36px; height: 36px; border-radius: 10px; background: #eef2f9; color: var(--navy); display: grid; place-items: center; flex: none; }
+  .benefit .ic svg { width: 20px; height: 20px; }
+  .benefit .t { font-weight: 500; }
+
+  /* Lock screen */
+  .lock { position: absolute; inset: 0; z-index: 80; color: #fff; display: flex; flex-direction: column; align-items: center; overflow: hidden; touch-action: none;
+    background: radial-gradient(120% 70% at 20% 0%, #4a6fa8 0%, rgba(74,111,168,0) 60%), radial-gradient(90% 60% at 100% 100%, #b58f5a 0%, rgba(181,143,90,0) 60%), linear-gradient(170deg, #1b3561 0%, #22345a 45%, #3b2f4a 100%);
+    animation: fadeIn .3s ease; transition: transform .35s cubic-bezier(.3,.8,.3,1), opacity .35s; }
+  .lock.leaving { transform: translateY(-100%); opacity: .6; }
+  .lock-status { width: 100%; display: flex; justify-content: space-between; padding: calc(12px + var(--safe-t)) 26px 0; font-size: 14px; font-weight: 500; }
+  .lock-status .icons { display: flex; gap: 6px; align-items: center; }
+  .lock-status svg { height: 12px; }
+  .lock-lockicon { margin-top: 18px; opacity: .9; } .lock-lockicon svg { width: 18px; height: 18px; }
+  .lock-date { margin-top: 8px; font-size: 19px; font-weight: 500; opacity: .95; }
+  .lock-clock { font-size: 96px; line-height: 1; font-weight: 300; letter-spacing: -2px; margin-top: 2px; font-family: -apple-system, "SF Pro Display", var(--sans); }
+  .lock-heb { margin-top: 8px; font-size: 14px; opacity: .8; display: flex; gap: 10px; }
+  .lock-heb .he { font-size: 16px; }
+  .notifs { width: calc(100% - 24px); margin-top: auto; margin-bottom: 104px; display: flex; flex-direction: column; gap: 8px; }
+  .notif { background: rgba(245,245,250,.78); color: #111; border-radius: 22px; padding: 12px 14px; backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); box-shadow: 0 8px 24px rgba(0,0,0,.18); opacity: 0; transform: translateY(40px) scale(.96); }
+  .notif.in { animation: notifIn .55s cubic-bezier(.2,.9,.3,1.1) forwards; }
+  @keyframes notifIn { to { opacity: 1; transform: none; } }
+  .notif-h { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .6px; color: #555; font-weight: 500; }
+  .notif-h .logo-tile { width: 22px; height: 22px; border-radius: 6px; font-size: 14px; }
+  .notif-h .when { margin-left: auto; letter-spacing: 0; color: #777; font-weight: 400; }
+  .notif-t { font-weight: 700; font-size: 15px; margin-top: 6px; }
+  .notif-b { font-size: 14px; color: #333; margin-top: 1px; }
+  .notif-sep { height: 1px; background: rgba(0,0,0,.1); margin: 10px 0; }
+  .notif-verse { font-family: var(--serif); font-size: 16px; line-height: 1.35; color: #222; margin-top: 4px; }
+  .notif-verse-he { font-family: var(--hebrew); font-size: 17px; direction: rtl; text-align: right; color: #222; margin-top: 4px; line-height: 1.5; }
+  .notif-cite { font-size: 12px; color: #666; margin-top: 4px; }
+  .notif.small .notif-t { margin-top: 4px; }
+  .lock-bottom { width: 100%; padding: 0 0 calc(10px + var(--safe-b)); text-align: center; font-size: 13px; opacity: .85; }
+  .lock-bottom .homebar { width: 134px; height: 5px; border-radius: 3px; background: #fff; margin: 10px auto 0; opacity: .9; }
+  .lock-bottom .swipe { animation: nudge 1.8s ease-in-out infinite; display: inline-block; }
+  @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .lock-tools { position: absolute; left: 0; right: 0; bottom: calc(52px + var(--safe-b)); display: flex; justify-content: space-between; padding: 0 36px; pointer-events: none; }
+  .lock-tools span { width: 46px; height: 46px; border-radius: 50%; background: rgba(0,0,0,.25); display: grid; place-items: center; backdrop-filter: blur(10px); }
+  .lock-tools svg { width: 20px; height: 20px; }
+
+  /* Siyum */
+  .siyum { background: radial-gradient(90% 55% at 50% 22%, #fff8e6 0%, #fbfbfa 70%); align-items: center; text-align: center; overflow-y: auto; }
+  .siyum .close { position: absolute; top: calc(12px + var(--safe-t)); right: 14px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); background: rgba(0,0,0,.04); z-index: 2; }
+  .siyum .close svg { width: 18px; height: 18px; }
+  .medallion { position: relative; width: 200px; height: 200px; margin: calc(56px + var(--safe-t)) auto 22px; border-radius: 50%; padding: 9px; background: conic-gradient(from 200deg, #f5e4b0, #c9a95c, #f6e7ba, #b08f45, #f5e4b0); box-shadow: 0 14px 34px rgba(150,120,50,.35); animation: medal .8s cubic-bezier(.2,.9,.3,1.3); flex: none; }
+  @keyframes medal { from { transform: scale(.4) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+  .medallion .inner { width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #27497f, #18345D 60%, #11264a); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18); }
+  .medallion .s1 { font-family: var(--hebrew); font-size: 20px; color: #f5d98b; letter-spacing: 1px; }
+  .medallion .s2 { font-family: var(--hebrew); font-size: 50px; line-height: 1.05; font-weight: bold; }
+  .medallion .s3 { font-family: var(--serif); font-size: 18px; color: #c9d4e6; letter-spacing: .5px; margin-top: 2px; }
+  .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .siyum > :not(.confetti) { position: relative; z-index: 1; }
+  .siyum > .close { position: absolute; }
+  .confetti i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; opacity: .9; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(900px) rotate(540deg); opacity: 0; } }
+  .siyum h2 { font-family: var(--serif); font-weight: 500; font-size: 30px; margin: 0 24px; line-height: 1.15; }
+  .siyum .mazal { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold-2); font-weight: 700; margin-bottom: 8px; }
+  .siyum .sub { color: var(--ink-2); margin: 8px 24px 0; font-size: 15px; }
+  .up-next { margin: 22px 20px 0; text-align: left; display: flex; align-items: center; gap: 12px; width: calc(100% - 40px); }
+  .up-next .k { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-3); font-weight: 500; }
+  .up-next .t { font-family: var(--serif); font-size: 21px; }
+  .siyum .actions { width: calc(100% - 40px); margin: 20px 20px calc(24px + var(--safe-b)); display: flex; flex-direction: column; gap: 10px; }
+
+  .toast { position: absolute; left: 50%; bottom: calc(84px + var(--safe-b)); transform: translateX(-50%) translateY(20px); background: #1c1c1e; color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; opacity: 0; transition: all .25s; z-index: 100; pointer-events: none; max-width: calc(100% - 40px); text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Landscape (non-text tabs): keep content readable */
+  .app.landscape .panel { max-width: 640px; margin: 0 auto; }
+  .app.landscape.tab-text .panel, .app.landscape.tab-read .panel { max-width: none; }
+  .app.landscape .lock-clock { font-size: 64px; }
+  .app.landscape .notifs { max-width: 420px; margin-bottom: 60px; }
+  .app.landscape .lock { flex-wrap: wrap; }
+
+  /* Desktop: present as a phone for demos */
+  .desk-tools { display: none; }
+  @media (min-width: 720px) and (min-height: 760px) {
+    body { background: #e7eaef; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 16px; }
+    .app { width: 390px; height: 844px; border-radius: 48px; border: 11px solid #16181d; box-shadow: 0 30px 80px rgba(20,30,50,.3); flex: none; margin: 0; }
+    .app.rotated { width: 844px; height: 390px; }
+    .desk-tools { display: flex; gap: 10px; align-items: center; font-size: 13px; color: #5b6475; }
+    .desk-tools button { height: 34px; padding: 0 14px; border-radius: 999px; background: #fff; border: 1px solid #d3d8e0; color: var(--navy); font-weight: 500; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="appbar">
+    <div class="wordmark">Sefaria <span class="he-mark">ספריא</span></div>
+    <button class="avatar" id="avatarBtn" aria-label="Profile and settings"></button>
+  </header>
+  <main id="main">
+    <section class="panel active" id="panel-today"></section>
+    <section class="panel" id="panel-goals"></section>
+    <section class="panel" id="panel-share"></section>
+    <section class="panel" id="panel-text">
+      <div class="portrait"></div>
+      <div class="sbs"></div>
+    </section>
+    <section class="panel" id="panel-read">
+      <div class="portrait"></div>
+      <div class="sbs"></div>
+    </section>
+  </main>
+  <nav class="tabbar" id="tabbar">
+    <button class="tab active" data-tab="today"><span data-icon="sun"></span>Today</button>
+    <button class="tab" data-tab="goals"><span data-icon="target"></span>Goals</button>
+    <button class="tab" data-tab="share"><span data-icon="share"></span>Share</button>
+    <button class="tab" data-tab="text"><span data-icon="book"></span>Text</button>
+  </nav>
+  <div class="toast" id="toast"></div>
+</div>
+<div class="desk-tools"><span>Desktop preview</span><button id="rotateBtn">Rotate phone</button></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ======================================================================
+     Config
+     ====================================================================== */
+  var qs = new URLSearchParams(location.search);
+  var IS_LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  // Relative URLs on a deployed server; the public site when opened locally.
+  var API = qs.get('api') === 'local' ? '' : ((qs.get('api') === 'remote' || IS_LOCAL) ? 'https://www.sefaria.org' : '');
+  var READER = API;
+  var STORE_KEY = 'sefariaAppDemo.v1';
+
+  /* ======================================================================
+     Icons
+     ====================================================================== */
+  var I = {
+    sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>',
+    target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>',
+    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>',
+    book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 5.5c3-1.3 6-1.3 9 .6 3-1.9 6-1.9 9-.6V19c-3-1.3-6-1.3-9 .6-3-1.9-6-1.9-9-.6z"/><path d="M12 6.1v13.5"/></svg>',
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5" stroke-linecap="round"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 004 0"/></svg>',
+    flame: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.6 2.3c.4 3-1.3 4.6-2.8 6.2C8.3 10 7 11.6 7 14.3 7 17.9 9.3 21 12.5 21s5.5-2.6 5.5-6.3c0-2.5-1.1-4.3-2.2-5.6-.2 1.5-.9 2.6-2 3.1.6-3.9-.3-7.4-1.2-9.9zM12.4 19c-1.6 0-2.9-1.3-2.9-3.1 0-1.6 1-2.6 2-3.6.2 1.2.9 1.9 1.8 2.4.6.3 1.3.9 1.3 2 0 1.3-1 2.3-2.2 2.3z"/></svg>',
+    candles: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.2c.9 1 .9 2 0 2.8-.9-.8-.9-1.8 0-2.8zM16 3.2c.9 1 .9 2 0 2.8-.9-.8-.9-1.8 0-2.8z" fill="currentColor"/><path d="M8 8v10M16 8v10M5 21h14"/></svg>',
+    leaf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-13 15-14-1 10-6 15-14 15"/><path d="M5 19l7-7"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l7.5 3v5.5c0 4.5-3.2 8-7.5 9.5-4.3-1.5-7.5-5-7.5-9.5V6z"/><path d="M8.8 12l2.2 2.2 4.2-4.4" stroke-linecap="round"/></svg>',
+    sync: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 00-14.3-4.5L4 8.5M4 13a8 8 0 0014.3 4.5L20 15.5"/><path d="M4 4v4.5h4.5M20 20v-4.5h-4.5"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+    send: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.5-7.5c.8-.4.8-1.5 0-1.8L3.4 3.6c-.7-.3-1.4.3-1.2 1l1.9 6.4 8.4 1-8.4 1-1.9 6.4c-.2.7.5 1.3 1.2 1z"/></svg>',
+    rotate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2" stroke-linecap="round"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7.5a5 5 0 0110 0V10h.5A1.5 1.5 0 0119 11.5v8A1.5 1.5 0 0117.5 21h-11A1.5 1.5 0 015 19.5v-8A1.5 1.5 0 016.5 10zm2 0h6V7.5a3 3 0 00-6 0z"/></svg>',
+    torch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 3h8v4l-2 3v11h-4V10L8 7z"/></svg>',
+    camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>',
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6l8.5 7 8.5-7" stroke-linecap="round"/></svg>',
+    whatsapp: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5a9.4 9.4 0 00-8.1 14.2L2.6 21.5l4.9-1.3A9.4 9.4 0 1012 2.5zm0 17a7.6 7.6 0 01-3.9-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A7.6 7.6 0 1112 19.5zm4.2-5.7c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.2 6.2 0 01-3.1-2.7c-.2-.4.2-.4.7-1.2.1-.1 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a.9.9 0 00-.6.3 2.7 2.7 0 00-.9 2 4.6 4.6 0 001 2.5 10.6 10.6 0 004.1 3.6c1.5.7 2.1.7 2.9.6.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1l-.8-.7z"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 3h3l-6.6 7.6L22 21h-6.1l-4.8-6.2L5.6 21h-3l7.1-8.1L2.2 3h6.2l4.3 5.7zm-1 16.2h1.7L7.3 4.7H5.5z"/></svg>',
+    facebook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4a21 21 0 00-2.3-.1c-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21z"/></svg>',
+    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2.6 5.5 6 .7-4.5 4.1 1.2 5.9L12 16.5l-5.3 2.9 1.2-5.9-4.5-4.1 6-.7z"/></svg>',
+    sunrise: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.5 17a5.5 5.5 0 0111 0M2.5 20.5h19M12 3.5v4M4.4 9.4l1.8 1.8M19.6 9.4l-1.8 1.8"/></svg>',
+    scroll: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 4h11a2 2 0 012 2v1h-4M7 4a2 2 0 00-2 2v12a2 2 0 002 2h9a2 2 0 002-2V7M7 4a2 2 0 012 2v12a2 2 0 01-2 2"/></svg>',
+    spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l1.8 5.7 5.7 1.8-5.7 1.8L12 17.5l-1.8-5.7L4.5 10l5.7-1.8zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.1"/></svg>',
+    moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>'
+  };
+
+  /* ======================================================================
+     Utilities
+     ====================================================================== */
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function iconize(root) { $$('[data-icon]', root).forEach(function (el) { el.innerHTML = I[el.getAttribute('data-icon')] || ''; el.style.display = 'contents'; }); }
+  var toastTimer;
+  function toast(msg) { var t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600); }
+  function readerUrl(url) { return READER + '/' + String(url || '').replace(/^\//, ''); }
+  // Strip HTML, footnotes and section markers from API text, without executing anything.
+  var parser = new DOMParser();
+  function cleanText(html) {
+    if (Array.isArray(html)) html = html.join(' ');
+    var doc = parser.parseFromString('<div>' + String(html || '') + '</div>', 'text/html');
+    $$('sup.footnote-marker, i.footnote, .footnote, .mam-spi-pe, .mam-spi-samekh', doc).forEach(function (e) { e.remove(); });
+    return doc.body.textContent.replace(/\{[פס]\}/g, '').replace(/\s+/g, ' ').trim();
+  }
+  function truncate(s, n) { if (s.length <= n) return s; var cut = s.slice(0, n); return cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:—-]+$/, '') + '…'; }
+
+  /* ---------- Dates ---------- */
+  function parseDateParam(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3], 12);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  var NOW = new Date();
+  var TODAY = parseDateParam(qs.get('date')) || new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate(), 12);
+  function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function fromIso(s) { return parseDateParam(s); }
+  function addDays(d, n) { var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+  function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+  function fmtLong(d) { return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
+  function fmtMed(d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  var TODAY_ISO = iso(TODAY);
+
+  /* ---------- Hebrew calendar (computed on device via Intl) ---------- */
+  var hebFmt = null;
+  try { hebFmt = new Intl.DateTimeFormat('en-u-ca-hebrew', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { hebFmt = null; }
+  var MONTH_EN = { Tishri: 'Tishrei', Heshvan: 'Cheshvan', Tamuz: 'Tammuz' };
+  var MONTH_HE = { Tishri: 'תשרי', Heshvan: 'חשון', Kislev: 'כסלו', Tevet: 'טבת', Shevat: 'שבט', 'Adar I': 'אדר א׳', 'Adar II': 'אדר ב׳', Adar: 'אדר', Nisan: 'ניסן', Iyar: 'אייר', Sivan: 'סיון', Tamuz: 'תמוז', Av: 'אב', Elul: 'אלול' };
+  function gematria(n) {
+    var ones = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'], tens = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'], hund = ['', 'ק', 'ר', 'ש', 'ת', 'תק', 'תר', 'תש', 'תת', 'תתק'];
+    n = n % 1000;
+    var s = hund[Math.floor(n / 100)], r = n % 100;
+    if (r === 15) s += 'טו'; else if (r === 16) s += 'טז'; else s += tens[Math.floor(r / 10)] + ones[r % 10];
+    return s.length === 1 ? s + '׳' : s.slice(0, -1) + '״' + s.slice(-1);
+  }
+  var hebCache = {};
+  function heb(d) {
+    var k = iso(d);
+    if (k in hebCache) return hebCache[k];
+    var r = null;
+    if (hebFmt) {
+      var p = {};
+      hebFmt.formatToParts(d).forEach(function (x) { p[x.type] = x.value; });
+      var day = parseInt(p.day, 10), year = parseInt(p.year, 10);
+      r = { day: day, month: p.month, year: year,
+            en: day + ' ' + (MONTH_EN[p.month] || p.month) + ' ' + year,
+            he: gematria(day) + ' ' + (MONTH_HE[p.month] || '') + ' ' + gematria(year) };
+    }
+    hebCache[k] = r;
+    return r;
+  }
+  var HOLIDAYS = [
+    ['Tishri', 1, 'Rosh Hashanah'], ['Tishri', 10, 'Yom Kippur'], ['Tishri', 15, 'Sukkot'], ['Tishri', 22, 'Shemini Atzeret'],
+    ['Tishri', 23, 'Simchat Torah'], ['Kislev', 25, 'Chanukah'], ['Shevat', 15, 'Tu BiShvat'], ['Adar', 14, 'Purim'], ['Adar II', 14, 'Purim'],
+    ['Nisan', 15, 'Pesach'], ['Sivan', 6, 'Shavuot'], ['Av', 9, "Tisha B'Av"]
+  ];
+  var YOM_TOV = { Tishri: [1, 2, 10, 15, 16, 22, 23], Nisan: [15, 16, 21, 22], Sivan: [6, 7] };
+  function holidayOn(d) { var h = heb(d); if (!h) return null; for (var i = 0; i < HOLIDAYS.length; i++) if (HOLIDAYS[i][0] === h.month && HOLIDAYS[i][1] === h.day) return HOLIDAYS[i][2]; return null; }
+  function isYomTov(d) { var h = heb(d); return !!(h && YOM_TOV[h.month] && YOM_TOV[h.month].indexOf(h.day) >= 0); }
+  function isRestDay(d) { return d.getDay() === 6 || isYomTov(d); }
+  function festivalToday(d) {
+    var h = heb(d); if (!h) return null;
+    if (h.month === 'Tishri' && h.day >= 15 && h.day <= 21) return h.day <= 16 ? 'Sukkot' : h.day === 21 ? 'Hoshana Rabbah' : 'Chol HaMoed Sukkot';
+    if (h.month === 'Nisan' && h.day >= 15 && h.day <= 22) return (h.day <= 16 || h.day >= 21) ? 'Pesach' : 'Chol HaMoed Pesach';
+    for (var i = 0; i < 8; i++) if (holidayOn(addDays(d, -i)) === 'Chanukah') return 'Chanukah · day ' + (i + 1);
+    return holidayOn(d);
+  }
+  function nextHoliday(d, name) {
+    for (var i = 1; i < 420; i++) { var x = addDays(d, i), n = holidayOn(x); if (n && (!name || n === name)) return { name: n, date: x, days: i }; }
+    return null;
+  }
+
+  /* ======================================================================
+     State (localStorage)
+     ====================================================================== */
+  var DEFAULTS = {
+    onboarded: false, lang: 'bi', cycles: [], exploring: false, level: 'intermediate',
+    goal: { type: 'minutes', minutes: 10 },
+    remindersOn: false,
+    reminders: { time: '07:00', daily: true, calendar: true, social: true, freq: 'daily' },
+    signedIn: false, log: [], seeded: false, textScale: 1
+  };
+  var S = load();
+  function load() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { s = null; }
+    var out = clone(DEFAULTS);
+    if (s && typeof s === 'object') Object.keys(s).forEach(function (k) { out[k] = s[k]; });
+    return out;
+  }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) { /* private mode: keep in memory */ } }
+  function resetAll() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} S = clone(DEFAULTS); }
+
+  /* ======================================================================
+     Learning cycles
+     ====================================================================== */
+  var CAT_COLOR = { Tanakh: 'var(--tanakh)', Mishnah: 'var(--mishnah)', Talmud: 'var(--talmud)', Halakhah: 'var(--halakhah)', Liturgy: 'var(--liturgy)', Midrash: 'var(--midrash)', Musar: 'var(--musar)' };
+  var CYCLES = {
+    daf:      { label: 'Daf Yomi', cal: 'Daf Yomi', desc: 'A page of Talmud a day', cat: 'Talmud', mins: '~45 min' },
+    mishnah:  { label: 'Mishnah Yomit', cal: 'Daily Mishnah', desc: 'Two mishnayot a day', cat: 'Mishnah', mins: '~10 min' },
+    tanakh:   { label: '929 · Tanakh', cal: '929', desc: 'One chapter of Tanakh a day', cat: 'Tanakh', mins: '~10 min' },
+    tehillim: { label: 'Tehillim', cal: null, desc: 'The monthly cycle of Psalms', cat: 'Liturgy', mins: '~15 min' },
+    rambam:   { label: 'Daily Rambam', cal: 'Daily Rambam', desc: 'One chapter of Mishneh Torah', cat: 'Halakhah', mins: '~15 min' },
+    halakha:  { label: 'Halakhah Yomit', cal: 'Halakhah Yomit', desc: 'A few se’ifim of Shulchan Arukh', cat: 'Halakhah', mins: '~10 min' },
+    parasha:  { label: 'Parashat Hashavua', cal: 'Parashat Hashavua', desc: 'The weekly Torah portion', cat: 'Tanakh', mins: '~1 hr / week' },
+    avot:     { label: 'Pirkei Avot', cal: null, desc: 'One mishnah a day on ethics', cat: 'Musar', mins: '~2 min', hidden: true }
+  };
+  var CYCLE_ORDER = ['daf', 'mishnah', 'tanakh', 'tehillim', 'rambam', 'halakha', 'parasha', 'avot'];
+  // Traditional monthly Tehillim division, by day of the Hebrew month.
+  var TEHILLIM = [null, '1-9', '10-17', '18-22', '23-28', '29-34', '35-38', '39-43', '44-48', '49-54', '55-59', '60-65', '66-68', '69-71', '72-76', '77-78', '79-82', '83-87', '88-89', '90-96', '97-103', '104-105', '106-107', '108-112', '113-118', '119:1-96', '119:97-176', '120-134', '135-139', '140-144', '145-150'];
+  function tehillimToday() {
+    var h = heb(TODAY); if (!h) return null;
+    var r = TEHILLIM[h.day];
+    if (h.day === 29 && heb(addDays(TODAY, 1)).day === 1) r = '140-150';
+    var url = 'Psalms.' + r.replace(':', '.').replace(/(\d+)\.(\d+)-(\d+)/, '$1.$2-$3');
+    return { en: 'Psalms ' + r.replace('-', '–'), he: 'תהלים', ref: 'Psalms ' + r, url: url, note: 'Day ' + h.day + ' of ' + (MONTH_EN[h.month] || h.month) };
+  }
+  var AVOT_LEN = [18, 16, 18, 22, 23, 11];
+  function avotToday() {
+    var n = ((daysBetween(new Date(2024, 0, 1, 12), TODAY) % 108) + 108) % 108, c = 0;
+    while (n >= AVOT_LEN[c]) { n -= AVOT_LEN[c]; c++; }
+    return { en: 'Pirkei Avot ' + (c + 1) + ':' + (n + 1), he: 'פרקי אבות ' + gematria(c + 1) + ':' + gematria(n + 1), ref: 'Pirkei Avot ' + (c + 1) + ':' + (n + 1), url: 'Pirkei_Avot.' + (c + 1) + '.' + (n + 1), note: 'One mishnah a day' };
+  }
+  function hasLearning() { return S.cycles.length > 0 && !S.exploring; }
+  function primaryCycleLabel() {
+    var c = S.cycles.filter(function (k) { return k !== 'parasha'; })[0] || S.cycles[0];
+    return c ? CYCLES[c].label.replace(' · Tanakh', '') : 'Torah';
+  }
+
+  /* ======================================================================
+     Data: calendar + texts
+     ====================================================================== */
+  var CAL = null, CAL_ERR = null, CAL_LOADING = true;
+  var PASSAGE = null, PASSAGE_ERR = null;
+  function fetchJSON(url) {
+    return fetch(url, { headers: { Accept: 'application/json' } }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (j) { if (j && j.error) throw new Error(j.error); return j; });
+  }
+  function loadCalendar() {
+    CAL_LOADING = true; CAL_ERR = null;
+    var tz = 'UTC';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch (e) {}
+    var diaspora = tz === 'Asia/Jerusalem' ? 0 : 1;
+    var url = API + '/api/calendars?year=' + TODAY.getFullYear() + '&month=' + (TODAY.getMonth() + 1) + '&day=' + TODAY.getDate() +
+      '&timezone=' + encodeURIComponent(tz) + '&diaspora=' + diaspora;
+    return fetchJSON(url).then(function (j) {
+      if (!j || !Array.isArray(j.calendar_items)) throw new Error('Unexpected response');
+      CAL = j;
+    }).catch(function (e) { CAL_ERR = e; CAL = null; }).then(function () { CAL_LOADING = false; });
+  }
+  function calItem(title) {
+    if (!CAL) return null;
+    for (var i = 0; i < CAL.calendar_items.length; i++) if (CAL.calendar_items[i].title.en === title) return CAL.calendar_items[i];
+    return null;
+  }
+  var HOLIDAY_RE = /(Atzeret|Sukkot|Pesach|Passover|Shavuot|Rosh Hashanah|Yom Kippur|Chanukah|Hanukkah|Simchat|Purim|Chol HaMoed|Fast|Tisha)/i;
+  function parshaInfo() {
+    var p = calItem('Parashat Hashavua');
+    if (!p) return { name: 'Bereshit', label: 'Parashat Bereshit', ref: 'Genesis 1:1-6:8', url: 'Genesis.1.1-6.8', fallback: true };
+    var name = p.displayValue.en;
+    return { name: name, heName: p.displayValue.he, label: HOLIDAY_RE.test(name) ? name + ' reading' : 'Parashat ' + name, ref: p.ref, url: p.url, desc: p.description && p.description.en };
+  }
+  function parseStart(ref) {
+    var first = String(ref || '').split('-')[0].trim();
+    var m = /^(.+?) (\d+):(\d+)$/.exec(first);
+    return m ? { book: m[1], ch: +m[2], v: +m[3] } : null;
+  }
+  function loadChapterSlice(book, ch, v, n) {
+    var tref = book + ' ' + ch;
+    return fetchJSON(API + '/api/v3/texts/' + encodeURIComponent(tref) + '?version=hebrew&version=english&return_format=text_only').then(function (j) {
+      var he = [], en = [];
+      (j.versions || []).forEach(function (ver) {
+        if (ver.language === 'he' && !he.length) he = ver.text || [];
+        if (ver.language === 'en' && !en.length) en = ver.text || [];
+      });
+      var len = Math.max(he.length, en.length);
+      if (!len || v > len) throw new Error('No text');
+      var rows = [];
+      for (var i = v - 1; i < Math.min(len, v - 1 + n); i++) rows.push({ n: i + 1, he: cleanText(he[i]), en: cleanText(en[i]) });
+      var last = rows[rows.length - 1].n;
+      return { book: book, ch: ch, rows: rows, heBook: j.heIndexTitle || j.heTitle || '',
+               ref: book + ' ' + ch + ':' + v + (last > v ? '–' + last : ''),
+               heRef: (j.heIndexTitle || '') + ' ' + gematria(ch) + ':' + gematria(v) + (last > v ? '–' + gematria(last) : '') };
+    });
+  }
+  function loadPassage() {
+    var s = parseStart(parshaInfo().ref) || { book: 'Genesis', ch: 1, v: 1 };
+    return loadChapterSlice(s.book, s.ch, s.v, 8).catch(function () {
+      return loadChapterSlice('Genesis', 1, 1, 8);
+    }).then(function (p) { PASSAGE = p; }).catch(function (e) { PASSAGE_ERR = e; });
+  }
+
+  /* ---------- Reader: any ref (or list of refs) from the Today tab ---------- */
+  function versionText(j, lang) {
+    var v = (j.versions || []).filter(function (x) { return x.language === lang; })[0];
+    return v ? v.text : null;
+  }
+  // Flattens a v3 response into rows. Spanning refs (a whole daf, a multi-chapter
+  // range) come back one array per section; each section gets a small heading.
+  function refRows(j) {
+    var he = versionText(j, 'he'), en = versionText(j, 'en'), rows = [];
+    var depth = j.textDepth || 1, secs = j.sections || [];
+    // Numbering starts mid-section only when the ref names a segment (e.g. 14:22).
+    var first = secs.length >= depth ? parseInt(secs[secs.length - 1], 10) || 1 : 1;
+    function leaves(t, out) {
+      if (Array.isArray(t)) t.forEach(function (x) { leaves(x, out); });
+      else if (t != null && t !== '') out.push(t);
+      return out;
+    }
+    function addSection(h, e, start) {
+      var hs = leaves(h, []), es = leaves(e, []);
+      for (var i = 0; i < Math.max(hs.length, es.length); i++) rows.push({ n: start + i, he: cleanText(hs[i]), en: cleanText(es[i]) });
+    }
+    if (j.isSpanning && Array.isArray(j.spanningRefs)) {
+      var name = (j.sectionNames || [])[0] || '', title = j.indexTitle || '';
+      j.spanningRefs.forEach(function (sr, i) {
+        var label = sr.indexOf(title) === 0 ? sr.slice(title.length).trim().split(':')[0] : sr;
+        rows.push({ sec: (name ? name + ' ' : '') + label });
+        addSection(he && he[i], en && en[i], i === 0 ? first : 1);
+      });
+    } else {
+      addSection(he, en, first);
+    }
+    return rows.filter(function (r) { return r.sec || r.he || r.en; });
+  }
+  function loadRef(tref) {
+    return fetchJSON(API + '/api/v3/texts/' + encodeURIComponent(tref) + '?version=hebrew&version=english&return_format=text_only').then(function (j) {
+      var rows = refRows(j);
+      if (!rows.some(function (r) { return !r.sec; })) throw new Error('No text');
+      return { ref: j.ref || tref, heRef: j.heRef || '', rows: rows };
+    });
+  }
+  // parts: [{ ref, head? }]. Parts load in parallel; one failing part becomes a
+  // note in place, and only a total failure shows the error state.
+  function loadReader(parts) {
+    return Promise.all(parts.map(function (p) {
+      return loadRef(p.ref).catch(function (e) { return { ref: p.ref, err: e }; });
+    })).then(function (res) {
+      if (res.every(function (r) { return r.err; })) throw res[0].err;
+      var rows = [], k = 0;
+      res.forEach(function (r, i) {
+        if (parts.length > 1) rows.push({ head: parts[i].head || r.ref, sub: r.err ? '' : r.ref });
+        if (r.err) { rows.push({ err: 'Couldn’t load ' + parts[i].ref }); return; }
+        r.rows.forEach(function (x) { if (!x.sec) x.k = ++k; rows.push(x); });
+      });
+      return { rows: rows, heRef: res.length === 1 ? res[0].heRef : '', single: res.length === 1 ? res[0].ref : null };
+    });
+  }
+
+  /* ======================================================================
+     Log, streak, goal
+     ====================================================================== */
+  function loggedOn(isoDate) { return S.log.some(function (e) { return e.date === isoDate; }); }
+  function minutesOn(isoDate) { return S.log.filter(function (e) { return e.date === isoDate; }).reduce(function (a, e) { return a + (e.minutes || 0); }, 0); }
+  function streak() {
+    var n = loggedOn(TODAY_ISO) ? 1 : 0, d = addDays(TODAY, -1);
+    for (var i = 0; i < 400; i++, d = addDays(d, -1)) {
+      if (loggedOn(iso(d))) n++;
+      else if (!isRestDay(d)) break;   // Shabbat and Yom Tov never break a streak
+    }
+    return n;
+  }
+  function seedDemoHistory() {
+    if (S.seeded && S.seedAnchor && S.seedAnchor !== TODAY_ISO && S.log.some(function (e) { return e.demo; })) {
+      // A different ?date= was requested: rebuild the sample history around it (real entries are kept).
+      S.log = S.log.filter(function (e) { return !e.demo && e.date <= TODAY_ISO; });
+      S.seeded = false;
+    }
+    if (S.seeded) return;
+    S.seedAnchor = TODAY_ISO;
+    var what = S.goal.type === 'finish' ? 'Masechet ' + S.goal.book : primaryCycleLabel();
+    var mins = S.goal.type === 'minutes' ? S.goal.minutes : 12;
+    for (var i = 14; i >= 1; i--) {
+      var d = addDays(TODAY, -i);
+      if (isRestDay(d) || i === 14 || loggedOn(iso(d))) continue; // gap two weeks back keeps the streak finite
+      S.log.push({ date: iso(d), minutes: mins + ((i * 7) % 5) - 2, what: what, demo: true });
+    }
+    if (S.goal.type === 'finish' && S.goal.done == null) S.goal.done = 38;
+    S.seeded = true;
+    save();
+  }
+  var BOOKS = {
+    Berakhot:     { he: 'ברכות', unit: 'dapim', total: 63, first: '2a', last: '64a', url: 'Berakhot.2a', next: 'Shabbat' },
+    Shabbat:      { he: 'שבת', unit: 'dapim', total: 156, first: '2a', last: '157b', url: 'Shabbat.2a', next: 'Eruvin' },
+    Megillah:     { he: 'מגילה', unit: 'dapim', total: 31, first: '2a', last: '32a', url: 'Megillah.2a', next: 'Moed Katan' },
+    'Pirkei Avot':{ he: 'פרקי אבות', unit: 'chapters', total: 6, first: '1', last: '6', url: 'Pirkei_Avot.1', next: 'Mishnah Berakhot' },
+    Genesis:      { he: 'בראשית', unit: 'chapters', total: 50, first: '1', last: '50', url: 'Genesis.1', next: 'Exodus' }
+  };
+  function goalDeadline(g) {
+    if (g.by === 'custom' && g.byDate) return { date: fromIso(g.byDate), label: fmtMed(fromIso(g.byDate)) };
+    var name = g.by === 'rosh' ? 'Rosh Hashanah' : g.by === 'shavuot' ? 'Shavuot' : 'Pesach';
+    var h = nextHoliday(TODAY, name);
+    return h ? { date: h.date, label: name } : { date: addDays(TODAY, 180), label: 'in six months' };
+  }
+  function goalText(g) {
+    g = g || S.goal;
+    if (g.type === 'finish') return 'Finish ' + (BOOKS[g.book] && BOOKS[g.book].unit === 'dapim' ? 'Masechet ' : '') + g.book + ' by ' + goalDeadline(g).label;
+    if (g.type === 'custom') return g.text || 'My own goal';
+    return g.minutes + ' minutes a day';
+  }
+  function todayProgress() {
+    if (S.goal.type === 'finish') return { done: loggedOn(TODAY_ISO) ? 1 : 0, target: 1, unit: BOOKS[S.goal.book].unit === 'dapim' ? 'daf' : 'chapter' };
+    var target = S.goal.type === 'minutes' ? S.goal.minutes : 10;
+    return { done: minutesOn(TODAY_ISO), target: target, unit: 'min' };
+  }
+  function learnedToday() {
+    if (loggedOn(TODAY_ISO)) {
+      S.log = S.log.filter(function (e) { return e.date !== TODAY_ISO; });
+      if (S.goal.type === 'finish') S.goal.done = Math.max(0, (S.goal.done || 0) - 1);
+      save(); renderAll(); toast('Removed today’s entry');
+      return;
+    }
+    var what;
+    if (S.goal.type === 'finish') {
+      S.goal.done = Math.min(BOOKS[S.goal.book].total, (S.goal.done || 0) + 1);
+      what = S.goal.book + ' · ' + S.goal.done + ' of ' + BOOKS[S.goal.book].total;
+    } else {
+      var d = calItem('Daf Yomi');
+      what = currentTab === 'read' && READ ? READ.item.en : S.cycles.indexOf('daf') >= 0 && d ? d.displayValue.en : primaryCycleLabel();
+    }
+    S.log.push({ date: TODAY_ISO, minutes: S.goal.type === 'minutes' ? S.goal.minutes : 12, what: what });
+    save(); renderAll();
+    toast('Yasher koach! ' + streak() + '-day streak');
+  }
+
+  /* ======================================================================
+     Rendering: Today
+     ====================================================================== */
+  function ringSVG(frac) {
+    var r = 20, c = 2 * Math.PI * r, off = c * (1 - Math.max(0, Math.min(1, frac)));
+    return '<svg class="ring" viewBox="0 0 48 48"><circle class="bg" cx="24" cy="24" r="' + r + '"/><circle class="fg" cx="24" cy="24" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"/></svg>';
+  }
+  function greeting() { var h = NOW.getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
+  // Cards open in the in-app reader; the href stays as a fallback (and for items with no ref).
+  var TODAY_ITEMS = [];
+  function lcard(opts) {
+    var read = opts.parts && opts.parts.length ? ' data-read="' + (TODAY_ITEMS.push(opts) - 1) + '"' : '';
+    return '<a class="card lcard" style="--c:' + (CAT_COLOR[opts.cat] || 'var(--navy)') + '" href="' + esc(readerUrl(opts.url)) + '"' + read + '>' +
+      '<div class="kicker"><span>' + esc(opts.kicker) + '</span><span>' + esc(opts.mins || '') + '</span></div>' +
+      '<div class="trow"><div class="title">' + esc(opts.en) + '</div>' +
+      (opts.he && S.lang !== 'en' ? '<div class="htitle">' + esc(opts.he) + '</div>' : '') + '</div>' +
+      (opts.desc ? '<div class="desc">' + esc(opts.desc) + '</div>' : '') +
+      '<div class="meta"><span>' + esc(opts.note || opts.cat) + '</span><span class="go">Start learning ' + I.chev + '</span></div></a>';
+  }
+  function renderToday() {
+    var el = $('#panel-today');
+    var h = heb(TODAY), st = streak(), tp = todayProgress(), done = loggedOn(TODAY_ISO);
+    var html = '';
+    html += '<div class="dateline">' + esc(greeting()) + '</div>';
+    html += '<h1 class="page">' + esc(fmtLong(TODAY)) + '</h1>';
+    if (h) html += '<div class="dateline">' + esc(h.en) + ' · <span class="he">' + esc(h.he) + '</span></div>';
+
+    html += '<div class="stats">' +
+      '<div class="card stat"><div class="label">Streak</div><div class="big">' + st + '<small>' + (st === 1 ? 'day' : 'days') + '</small><span class="flame">' + I.flame + '</span></div>' +
+      '<div class="note">Shabbat &amp; chagim never break it</div></div>' +
+      '<div class="card stat"><div class="label">Today’s goal</div><div class="row" style="margin-top:6px">' + ringSVG(tp.done / tp.target) +
+      '<div><div class="serif" style="font-size:22px;line-height:1">' + tp.done + '<span class="muted small"> / ' + tp.target + ' ' + tp.unit + '</span></div>' +
+      '<div class="note" style="margin-top:3px">' + (S.goal.type === 'finish' ? esc(S.goal.book) + ' · ' + Math.round(100 * (S.goal.done || 0) / BOOKS[S.goal.book].total) + '%' : tp.done >= tp.target ? 'Goal met!' : (tp.target - tp.done) + ' min to go') + '</div></div></div></div>' +
+      '</div>';
+    html += '<button class="btn secondary learned-btn' + (done ? ' done' : '') + '" data-act="learned">' + (done ? I.check + ' Learned today · tap to undo' : 'I learned today') + '</button>';
+
+    // Calendar awareness
+    var fest = festivalToday(TODAY), nxt = nextHoliday(TODAY);
+    if (TODAY.getDay() === 5) {
+      var p = parshaInfo();
+      html += '<div class="banner shabbat"><div class="ic">' + I.candles + '</div><div><div class="t">Shabbat begins tonight</div>' +
+        '<div class="s">Shabbat Shalom! Your streak is safe until Sunday. This week: ' + esc(p.label) + '.</div></div></div>';
+    } else if (TODAY.getDay() === 6) {
+      html += '<div class="banner shabbat"><div class="ic">' + I.candles + '</div><div><div class="t">Shabbat Shalom</div><div class="s">A day of rest — your streak is paused, not broken.</div></div></div>';
+    }
+    if (fest || (nxt && nxt.days <= 14)) {
+      var t = fest ? (/Chol HaMoed|Hoshana/.test(fest) ? 'Moadim l’simcha — ' + fest : 'Chag sameach — ' + fest) : nxt.name + ' is coming up';
+      var s = nxt && nxt.days <= 14 ? nxt.name + (nxt.days === 1 ? ' begins tomorrow' : ' begins in ' + nxt.days + ' days') + ' · ' + fmtLong(nxt.date).split(',')[0] : 'Enjoy the festival';
+      html += '<div class="banner"><div class="ic">' + I.leaf + '</div><div><div class="t">' + esc(t) + '</div><div class="s">' + esc(s) + '</div></div></div>';
+    }
+
+    html += '<button class="preview-cta" data-act="lock"><span class="ic">' + I.bell + '</span><span><div class="t">Preview reminder</div>' +
+      '<div class="s">See your ' + esc(fmtTime(S.reminders.time)) + ' lock-screen notification</div></span><span class="chev">' + I.chev + '</span></button>';
+
+    html += '<h2 class="section">Your learning today</h2>';
+    if (CAL_LOADING) {
+      html += '<div class="stack"><div class="skeleton"></div><div class="skeleton"></div></div>';
+    } else if (CAL_ERR) {
+      html += '<div class="card error-card"><div class="t">We couldn’t load today’s calendar</div>' +
+        '<p class="muted small">Check your connection and try again. Your streak and goals are saved on this device.</p>' +
+        '<button class="btn secondary sm" data-act="retry">Try again</button></div>';
+    } else {
+      var cards = [], shown = {};
+      TODAY_ITEMS = [];
+      var want = ['daf', 'parasha'].concat(S.cycles.filter(function (c) { return c !== 'daf' && c !== 'parasha'; }));
+      want.forEach(function (key) {
+        if (shown[key]) return; shown[key] = 1;
+        var c = CYCLES[key]; if (!c) return;
+        if (c.cal) {
+          var it = calItem(c.cal); if (!it) return;
+          var desc = key === 'parasha' && it.description ? it.description.en : '';
+          cards.push(lcard({ kicker: c.label, en: key === 'parasha' ? parshaInfo().label : it.displayValue.en, he: it.displayValue.he, url: it.url, cat: c.cat, mins: c.mins,
+            desc: desc, note: key === 'parasha' ? it.ref : it.category, ref: it.ref, parts: key === 'parasha' ? parshaParts(it) : itemParts(it) }));
+        } else {
+          var loc = key === 'tehillim' ? tehillimToday() : avotToday(); if (!loc) return;
+          cards.push(lcard({ kicker: c.label, en: loc.en, he: loc.he, url: loc.url, cat: c.cat, mins: c.mins, note: loc.note, ref: loc.ref, parts: [{ ref: loc.ref }] }));
+        }
+      });
+      html += '<div class="stack">' + cards.join('') + '</div>';
+      html += '<p class="small muted" style="text-align:center;margin-top:16px"><a class="link" href="' + esc(readerUrl('calendars')) + '">See all learning schedules</a></p>';
+    }
+    el.innerHTML = html;
+  }
+  // What the reader loads for a calendar item: its refs array if it has one, else its ref.
+  function itemParts(it) {
+    if (Array.isArray(it.refs) && it.refs.length) return it.refs.map(function (r) { return { ref: r, head: r }; });
+    return it.ref ? [{ ref: it.ref }] : [];
+  }
+  // The parashah reads aliyah by aliyah (maftir included), then the haftarah(ot).
+  var ALIYAH = ['Rishon', 'Sheni', 'Shlishi', 'Revi’i', 'Chamishi', 'Shishi', 'Shvi’i'];
+  function parshaParts(it) {
+    var al = (it.extraDetails && it.extraDetails.aliyot) || [];
+    var parts = al.length > 1 ? al.map(function (r, i) { return { ref: r, head: i === al.length - 1 ? 'Maftir' : (ALIYAH[i] || 'Aliyah ' + (i + 1)) }; }) : itemParts(it);
+    if (parts.length === 1) parts[0].head = 'Torah reading';
+    CAL.calendar_items.forEach(function (h) {
+      if (h.title.en === 'Haftarah') itemParts(h).forEach(function (p) { parts.push({ ref: p.ref, head: 'Haftarah' }); });
+    });
+    return parts;
+  }
+  function fmtTime(t) {
+    var m = /^(\d{1,2}):(\d{2})/.exec(t || '07:00'), hh = +m[1], ap = hh >= 12 ? 'pm' : 'am';
+    return ((hh % 12) || 12) + ':' + m[2] + ap;
+  }
+
+  /* ======================================================================
+     Rendering: Goals
+     ====================================================================== */
+  var editingGoal = false, draftGoal = null;
+  function badgesHTML(st) {
+    var fest = S.log.some(function (e) { var d = fromIso(e.date); return d && festivalToday(d); });
+    var list = [
+      { n: 'First step', ic: 'star', on: S.log.length > 0 },
+      { n: '7-day streak', ic: 'flame', on: st >= 7 },
+      { n: 'Chag learner', ic: 'leaf', on: fest },
+      { n: 'Early riser', ic: 'sunrise', on: S.remindersOn && S.reminders.time <= '07:00' },
+      { n: '30-day streak', ic: 'flame', on: st >= 30 },
+      { n: 'Siyum', ic: 'scroll', on: false },
+      { n: 'Chavruta', ic: 'user', on: false }
+    ];
+    return '<div class="badges">' + list.map(function (b) {
+      return '<div class="badge' + (b.on ? '' : ' locked') + '"><div class="medal">' + I[b.ic] + '</div>' + esc(b.n) + '</div>';
+    }).join('') + '</div>';
+  }
+  function weekHTML() {
+    var out = '';
+    for (var i = 6; i >= 0; i--) {
+      var d = addDays(TODAY, -i), k = iso(d), cls = 'dot', inner = String(d.getDate());
+      if (loggedOn(k)) { cls += ' on'; inner = I.check; }
+      else if (isRestDay(d)) { cls += ' rest'; inner = d.getDay() === 6 ? I.candles : I.leaf; }
+      if (i === 0) cls += ' today';
+      out += '<div><div class="d">' + d.toLocaleDateString('en-US', { weekday: 'narrow' }) + '</div><div class="' + cls + '">' + inner + '</div></div>';
+    }
+    return '<div class="week">' + out + '</div>';
+  }
+  function goalEditorHTML() {
+    var g = draftGoal;
+    var h = '<div class="card" style="margin-top:12px"><div class="seg" data-seg="gtype">' +
+      ['minutes', 'finish', 'custom'].map(function (t) { return '<button data-v="' + t + '" class="' + (g.type === t ? 'on' : '') + '">' + ({ minutes: 'Minutes a day', finish: 'Finish a book', custom: 'Custom' })[t] + '</button>'; }).join('') + '</div>';
+    if (g.type === 'minutes') {
+      h += '<div class="field"><label>Minutes per day</label><div class="pills" data-pills="minutes">' +
+        [5, 10, 15, 20, 30, 45].map(function (m) { return '<button class="pill' + (g.minutes === m ? ' on' : '') + '" data-v="' + m + '">' + m + ' min</button>'; }).join('') + '</div></div>';
+    } else if (g.type === 'finish') {
+      h += '<div class="field"><label>Book</label><select data-f="book">' + Object.keys(BOOKS).map(function (b) { return '<option' + (g.book === b ? ' selected' : '') + '>' + b + '</option>'; }).join('') + '</select></div>';
+      h += '<div class="field"><label>Finish by</label><div class="pills" data-pills="by">' +
+        [['pesach', 'Pesach'], ['shavuot', 'Shavuot'], ['rosh', 'Rosh Hashanah'], ['custom', 'Pick a date']].map(function (b) { return '<button class="pill' + (g.by === b[0] ? ' on' : '') + '" data-v="' + b[0] + '">' + b[1] + '</button>'; }).join('') + '</div>' +
+        (g.by === 'custom' ? '<input type="date" data-f="byDate" style="margin-top:10px" value="' + esc(g.byDate || iso(addDays(TODAY, 120))) + '">' : '') + '</div>';
+    } else {
+      h += '<div class="field"><label>Your goal</label><input type="text" data-f="text" placeholder="e.g. Learn with my daughter every Sunday" value="' + esc(g.text || '') + '"></div>';
+    }
+    h += '<div class="row" style="margin-top:16px"><button class="btn ghost sm" data-act="goal-cancel">Cancel</button><span class="grow"></span><button class="btn primary sm" data-act="goal-save">Save goal</button></div></div>';
+    return h;
+  }
+  function renderGoals() {
+    var el = $('#panel-goals'), st = streak(), g = S.goal, html = '';
+    html += '<h1 class="page">Goals</h1><div class="dateline">Build a steady habit, one day at a time.</div>';
+
+    html += '<h2 class="section">Current goal</h2>';
+    if (editingGoal) {
+      html += goalEditorHTML();
+    } else {
+      html += '<div class="card goal-hero"><div class="row"><div class="grow"><div class="goal-title">' + esc(goalText()) + '</div></div>' +
+        '<button class="btn ghost sm" data-act="goal-edit">Edit</button></div>';
+      if (g.type === 'finish') {
+        var b = BOOKS[g.book], done = g.done || 0, dl = goalDeadline(g), left = Math.max(1, daysBetween(TODAY, dl.date));
+        var pace = (b.total - done) / left;
+        html += '<div class="bar"><span style="width:' + (100 * done / b.total).toFixed(1) + '%"></span></div>' +
+          '<div class="bar-legend"><span>' + done + ' of ' + b.total + ' ' + b.unit + '</span><span>' + Math.round(100 * done / b.total) + '%</span></div>' +
+          '<div class="note-line">' + I.info + '<span>' + left + ' days until ' + esc(dl.label) + ' (' + esc(fmtMed(dl.date)) + '). ' +
+          (pace <= 1 ? 'About 1 ' + (b.unit === 'dapim' ? 'daf' : 'chapter') + ' every ' + Math.max(1, Math.round(1 / pace)) + ' days keeps you on track.' : 'About ' + pace.toFixed(1) + ' ' + b.unit + ' a day keeps you on track.') + '</span></div>';
+      } else {
+        var tp = todayProgress();
+        html += '<div class="bar"><span style="width:' + Math.min(100, 100 * tp.done / tp.target).toFixed(1) + '%"></span></div>' +
+          '<div class="bar-legend"><span>Today: ' + tp.done + ' of ' + tp.target + ' min</span><span>' + Math.min(100, Math.round(100 * tp.done / tp.target)) + '%</span></div>';
+      }
+      html += '<button class="btn ' + (loggedOn(TODAY_ISO) ? 'secondary done' : 'primary') + ' block learned-btn" data-act="learned" style="margin-top:14px">' +
+        (loggedOn(TODAY_ISO) ? I.check + ' Learned today · tap to undo' : 'I learned today') + '</button></div>';
+    }
+
+    html += '<h2 class="section">Streak</h2>';
+    html += '<div class="card"><div class="streak-card"><span class="flame" style="width:38px;height:38px">' + I.flame + '</span>' +
+      '<div><div class="streak-num">' + st + '</div></div><div class="grow"><div style="font-weight:500">' + (st === 1 ? 'day' : 'days') + ' in a row</div>' +
+      '<div class="small muted">' + (loggedOn(TODAY_ISO) ? 'You’ve learned today. See you tomorrow!' : 'Learn today to keep it going.') + '</div></div></div>' +
+      weekHTML() +
+      '<div class="note-line">' + I.shield + '<span>Shabbat and holidays don’t break your streak — we’ll pick up right where you left off.</span></div></div>';
+
+    html += '<h2 class="section">Badges</h2>' + badgesHTML(st);
+    html += '<button class="btn gold block" data-act="siyum" style="margin-top:6px">' + I.scroll + ' Preview siyum</button>';
+
+    html += '<h2 class="section">Learning log</h2><div class="card" style="padding:4px 16px">';
+    var entries = S.log.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 7);
+    if (!entries.length) html += '<p class="muted small" style="padding:10px 0">Nothing logged yet. Tap “I learned today” to start.</p>';
+    entries.forEach(function (e) {
+      var d = fromIso(e.date);
+      html += '<div class="log-item"><div class="when"><b>' + d.getDate() + '</b><span>' + d.toLocaleDateString('en-US', { month: 'short' }) + '</span></div>' +
+        '<div class="grow"><div style="font-weight:500">' + esc(e.what) + '</div><div class="mins">' + esc(d.toLocaleDateString('en-US', { weekday: 'long' })) + ' · ' + (e.minutes || 0) + ' min</div></div>' +
+        (e.demo ? '<span class="chip demo">demo</span>' : '') + '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  /* ======================================================================
+     Rendering: Share
+     ====================================================================== */
+  var shareOverride = null;
+  function shareLink() {
+    if (location.protocol === 'file:' || IS_LOCAL) return 'https://www.sefaria.org/app-demo';
+    return location.origin + location.pathname;
+  }
+  function shareQuote() {
+    if (shareOverride) return shareOverride;
+    if (S.goal.type === 'finish') return 'I’m learning Masechet ' + S.goal.book + ' — aiming to finish by ' + goalDeadline(S.goal).label + '. Join me?';
+    if (S.goal.type === 'custom') return 'My learning goal: ' + (S.goal.text || 'learn every day') + '. Join me?';
+    return 'I’m learning ' + primaryCycleLabel() + ' — ' + S.goal.minutes + ' minutes a day. Join me?';
+  }
+  function renderShare() {
+    var el = $('#panel-share'), st = streak(), q = shareQuote(), msg = q + ' ' + shareLink();
+    var html = '<h1 class="page">Share</h1><div class="dateline">Learning is better together. Invite a friend or a chavruta.</div>';
+    html += '<h2 class="section">Your goal card</h2>';
+    html += '<div class="share-card"><div class="brand">Sefaria</div><div class="quote">' + esc(q) + '</div>' +
+      '<div class="foot"><span class="who"><span class="avatar">' + (S.signedIn ? 'M' : 'Y') + '</span>' + (S.signedIn ? 'Michael' : 'You') + '</span>' +
+      '<span>' + I.flame.replace('<svg', '<svg width="14" height="14" style="vertical-align:-2px;color:#f5d98b"') + ' ' + st + '-day streak</span></div></div>';
+    html += '<div class="field"><label>Message</label><textarea rows="3" id="shareMsg">' + esc(msg) + '</textarea></div>';
+    html += '<button class="btn primary block" data-act="native-share" style="margin-top:12px">' + I.share + ' Share…</button>';
+    var items = [
+      ['email', 'Email', '#5b6b82', I.mail], ['whatsapp', 'WhatsApp', '#25D366', I.whatsapp], ['x', 'X', '#111', I.x],
+      ['facebook', 'Facebook', '#1877F2', I.facebook], ['copy', 'Copy link', '#18345D', I.link], ['sms', 'Messages', '#34C759', I.send]
+    ];
+    html += '<div class="share-grid">' + items.map(function (it) {
+      return '<button class="share-btn" data-share="' + it[0] + '"><span class="ic" style="background:' + it[2] + '">' + it[3] + '</span>' + it[1] + '</button>';
+    }).join('') + '</div>';
+    html += '<h2 class="section">Friends learning now</h2><div class="card" style="padding:4px 16px">' +
+      friend('S', 'Sarah K.', 'Finished Masechet Berakhot · yesterday', 'Cheer') +
+      friend('D', 'David L.', 'Daf Yomi · 41-day streak', 'Cheer') +
+      friend('R', 'Rivka M.', 'Pirkei Avot each morning', 'Join') + '</div>' +
+      '<p class="small muted" style="text-align:center;margin-top:10px">Friends shown here are sample data for the demo.</p>';
+    el.innerHTML = html;
+  }
+  function friend(i, n, s, a) {
+    return '<div class="friend"><span class="avatar">' + i + '</span><div class="grow"><div style="font-weight:500">' + esc(n) + '</div><div class="small muted">' + esc(s) + '</div></div>' +
+      '<button class="btn secondary sm" data-act="cheer" data-name="' + esc(n) + '">' + a + '</button></div>';
+  }
+  function doShare(kind) {
+    var msg = ($('#shareMsg') && $('#shareMsg').value) || (shareQuote() + ' ' + shareLink()), link = shareLink();
+    var enc = encodeURIComponent, url = null;
+    if (kind === 'email') url = 'mailto:?subject=' + enc('Learn with me on Sefaria') + '&body=' + enc(msg);
+    else if (kind === 'whatsapp') url = 'https://wa.me/?text=' + enc(msg);
+    else if (kind === 'x') url = 'https://twitter.com/intent/tweet?text=' + enc(msg.replace(link, '').trim()) + '&url=' + enc(link);
+    else if (kind === 'facebook') url = 'https://www.facebook.com/sharer/sharer.php?u=' + enc(link) + '&quote=' + enc(msg);
+    else if (kind === 'sms') url = 'sms:?&body=' + enc(msg);
+    if (kind === 'copy') {
+      var done = function () { toast('Link copied'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg).then(done, function () { fallbackCopy(msg); done(); });
+      else { fallbackCopy(msg); done(); }
+      return;
+    }
+    if (kind === 'native') {
+      if (navigator.share) { navigator.share({ title: 'Learn with me on Sefaria', text: msg.replace(link, '').trim(), url: link }).catch(function () {}); }
+      else { fallbackCopy(msg); toast('Sharing isn’t available in this browser — message copied'); }
+      return;
+    }
+    if (url) {
+      if (/^(mailto|sms):/.test(url)) location.href = url; else window.open(url, '_blank', 'noopener');
+    }
+  }
+  function fallbackCopy(text) { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); }
+
+  /* ======================================================================
+     Rendering: Text (portrait stacked + landscape side by side)
+     ====================================================================== */
+  var hlVerse = null;
+  function renderText() {
+    var el = $('#panel-text'), portrait = $('.portrait', el), sbs = $('.sbs', el), p = parshaInfo();
+    el.style.setProperty('--ts', S.textScale || 1);
+    if (!PASSAGE && !PASSAGE_ERR) {
+      portrait.innerHTML = '<h1 class="page">This week’s reading</h1><div class="stack" style="margin-top:16px"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';
+      sbs.innerHTML = '<div class="sbs-bar"><div class="mode">Loading…</div></div>';
+      return;
+    }
+    if (PASSAGE_ERR) {
+      portrait.innerHTML = '<h1 class="page">This week’s reading</h1><div class="card error-card" style="margin-top:16px"><div class="t">We couldn’t load the text</div><p class="muted small">Check your connection and try again.</p><button class="btn secondary sm" data-act="retry">Try again</button></div>';
+      sbs.innerHTML = portrait.innerHTML;
+      return;
+    }
+    var P = PASSAGE;
+    var h = '<div class="dateline">' + esc(p.fallback ? 'Start at the beginning' : 'This week · ' + p.label) + '</div>' +
+      '<div class="text-head"><div><div class="text-head ref">' + esc(P.ref) + '</div><div class="heref">' + esc(P.heRef) + '</div></div></div>';
+    h += langSegHTML() + rotateHintHTML() + versesHTML(P.rows, hlVerse);
+    h += '<p class="small" style="text-align:center;margin-top:18px"><a class="link" href="' + esc(readerUrl(p.url)) + '">Continue in the Sefaria reader</a></p>';
+    portrait.innerHTML = h;
+
+    var s = '<div class="sbs-bar"><div class="mode"><button data-act="exit-sbs" aria-label="Back">' + I.back + '</button><b>Bilingual</b> · side by side</div>' +
+      '<div class="center">' + esc(P.ref) + '<span class="he">' + esc(P.heRef) + '</span></div>' +
+      '<button class="aa" data-act="aa" aria-label="Text size">Aa</button></div>';
+    s += sbsRowsHTML(P.rows, hlVerse);
+    sbs.innerHTML = s;
+  }
+
+  /* ---------- Shared pieces of the text view (Text tab + reader) ---------- */
+  // Rows are verses { n, he, en, k? } (k: unique key when numbers repeat), part
+  // headings { head, sub }, section headings { sec } and load notes { err }.
+  function rowKey(r) { return r.k != null ? r.k : r.n; }
+  function headHTML(r) {
+    if (r.head) return '<div class="part-head"><span class="t">' + esc(r.head) + '</span><span class="s">' + esc(r.sub || '') + '</span></div>';
+    if (r.sec) return '<div class="sec-head">' + esc(r.sec) + '</div>';
+    return '<div class="part-err">' + esc(r.err) + '</div>';
+  }
+  function langSegHTML() {
+    return '<div class="seg" data-seg="lang" style="margin-top:14px">' + [['he', 'Hebrew'], ['bi', 'Bilingual'], ['en', 'English']].map(function (l) {
+      return '<button data-v="' + l[0] + '" class="' + (S.lang === l[0] ? 'on' : '') + '">' + l[1] + '</button>'; }).join('') + '</div>';
+  }
+  function rotateHintHTML() { return '<div class="rotate-hint">' + I.rotate + '<span>Turn your phone sideways for <b>side-by-side</b> Hebrew and English.</span></div>'; }
+  function versesHTML(rows, hl) {
+    return '<div class="verses lang-' + S.lang + '">' + rows.map(function (r) {
+      if (r.n == null) return headHTML(r);
+      var only = !r.en ? ' only-he' : !r.he ? ' only-en' : '';
+      return '<div class="verse' + only + (hl === rowKey(r) ? ' hl' : '') + '" data-v="' + rowKey(r) + '"><span class="num">' + r.n + '</span>' +
+        '<div class="v-he">' + esc(r.he) + '</div><div class="v-en">' + esc(r.en) + '</div></div>';
+    }).join('') + '</div>';
+  }
+  function sbsRowsHTML(rows, hl) {
+    return '<div class="sbs-rows">' + rows.map(function (r) {
+      if (r.n == null) return headHTML(r);
+      return '<div class="sbs-row' + (hl === rowKey(r) ? ' hl' : '') + '" data-v="' + rowKey(r) + '"><div class="en">' + esc(r.en) + '</div><div class="n">' + r.n + '</div><div class="hb">' + esc(r.he) + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  /* ======================================================================
+     Reader: texts opened from Today, shown inside the app
+     ====================================================================== */
+  var READ = null, readHl = null, readSeq = 0, todayScroll = 0;
+  function openReader(item) {
+    if (currentTab === 'today') todayScroll = $('#main').scrollTop;
+    READ = { item: item, token: ++readSeq, data: null, err: null };
+    readHl = null;
+    switchTab('read');
+    renderReader();
+    var tok = READ.token;
+    loadReader(item.parts).then(function (d) { if (READ && READ.token === tok) { READ.data = d; renderReader(); } },
+      function (e) { if (READ && READ.token === tok) { READ.err = e; renderReader(); } });
+  }
+  function closeReader() {
+    switchTab('today');
+    $('#main').scrollTop = todayScroll;
+  }
+  function renderReader() {
+    var el = $('#panel-read'), portrait = $('.portrait', el), sbs = $('.sbs', el);
+    el.style.setProperty('--ts', S.textScale || 1);
+    if (!READ) { portrait.innerHTML = sbs.innerHTML = ''; return; }
+    var it = READ.item, d = READ.data, done = loggedOn(TODAY_ISO);
+    el.style.setProperty('--c', CAT_COLOR[it.cat] || 'var(--navy)');
+    var he = it.he || (d && d.heRef) || '', ref = (d && d.single) || it.ref || '';
+    var sefaria = '<a class="link" href="' + esc(readerUrl(it.url)) + '" target="_blank" rel="noopener">Open on Sefaria.org</a>';
+    var h = '<div class="reader-bar"><button class="reader-back" data-act="reader-back" aria-label="Back to Today">' + I.back + 'Today</button>' +
+      '<div class="rb-title">' + esc(it.kicker) + '</div><button class="aa" data-act="aa" aria-label="Text size">Aa</button></div>';
+    h += '<div class="text-head"><div class="grow"><div class="ref">' + esc(it.en) + '</div>' +
+      (he && S.lang !== 'en' ? '<div class="heref">' + esc(he) + '</div>' : '') + '</div></div>';
+    if (ref && ref !== it.en) h += '<div class="reader-sub">' + esc(ref) + '</div>';
+    if (it.desc) h += '<div class="reader-desc">' + esc(it.desc) + '</div>';
+    var s = '<div class="sbs-bar"><div class="mode"><button data-act="exit-sbs" aria-label="Back">' + I.back + '</button><b>Bilingual</b> · side by side</div>' +
+      '<div class="center">' + esc(it.en) + (he ? '<span class="he">' + esc(he) + '</span>' : '') + '</div>' +
+      '<button class="aa" data-act="aa" aria-label="Text size">Aa</button></div>';
+    if (!d && !READ.err) {
+      h += '<div class="stack" style="margin-top:16px"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';
+      portrait.innerHTML = h;
+      sbs.innerHTML = s + '<div class="sbs-rows"><div class="stack" style="margin-top:12px"><div class="skeleton"></div><div class="skeleton"></div></div></div>';
+      return;
+    }
+    if (READ.err) {
+      var err = '<div class="card error-card" style="margin-top:16px"><div class="t">We couldn’t load this text</div>' +
+        '<p class="muted small">Check your connection and try again, or read it on the website.</p>' +
+        '<button class="btn secondary sm" data-act="reader-retry">Try again</button><p class="small" style="margin:14px 0 0">' + sefaria + '</p></div>';
+      portrait.innerHTML = h + err;
+      sbs.innerHTML = s + '<div class="sbs-rows">' + err + '</div>';
+      return;
+    }
+    h += langSegHTML() + rotateHintHTML() + versesHTML(d.rows, readHl);
+    // Finishing a text is the natural moment to log the day (same toggle as on Today).
+    h += '<div class="reader-foot"><button class="btn ' + (done ? 'secondary done' : 'primary') + ' block learned-btn" data-act="learned">' +
+      (done ? I.check + ' Learned today · tap to undo' : 'I learned today') + '</button>' +
+      '<p class="small" style="margin-top:14px">' + sefaria + '</p></div>';
+    portrait.innerHTML = h;
+    sbs.innerHTML = s + sbsRowsHTML(d.rows, readHl);
+  }
+
+  /* ======================================================================
+     Lock-screen reminder preview
+     ====================================================================== */
+  function openLock() {
+    var app = $('#app'), h = heb(TODAY), daf = calItem('Daf Yomi'), p = parshaInfo();
+    var verse = PASSAGE && PASSAGE.rows[0], m = /^(\d{1,2}):(\d{2})/.exec(S.reminders.time || '07:00');
+    var clock = ((+m[1] % 12) || 12) + ':' + m[2];
+    var main = hasLearning() && S.cycles.indexOf('daf') < 0 ? firstLearningForNotif() : null;
+    var title = main ? main.title : 'Today’s Daf: ' + (daf ? daf.displayValue.en : '—');
+    var body = main ? main.body : 'Tap to start today’s page';
+    var nx = nextHoliday(TODAY);
+    var div = document.createElement('div');
+    div.className = 'lock';
+    div.innerHTML =
+      '<div class="lock-status"><span>' + clock + '</span><span class="icons">' +
+        '<svg viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>' +
+        '<svg viewBox="0 0 26 12" fill="none" stroke="#fff"><rect x=".5" y=".5" width="22" height="11" rx="3" opacity=".5"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#fff" stroke="none"/><path d="M24.5 4v4" stroke-linecap="round"/></svg>' +
+      '</span></div>' +
+      '<div class="lock-lockicon">' + I.lock + '</div>' +
+      '<div class="lock-date">' + esc(fmtLong(TODAY)) + '</div>' +
+      '<div class="lock-clock">' + clock + '</div>' +
+      (h ? '<div class="lock-heb"><span>' + esc(h.en) + '</span><span class="he">' + esc(h.he) + '</span></div>' : '') +
+      '<div class="notifs">' +
+        '<div class="notif" id="n1"><div class="notif-h"><span class="logo-tile">ס</span>SEFARIA<span class="when">now</span></div>' +
+          '<div class="notif-t">' + esc(title) + '</div><div class="notif-b">' + esc(body) + '</div>' +
+          '<div class="notif-sep"></div>' +
+          '<div class="notif-t" style="margin-top:0">This week: ' + esc(p.label) + '</div>' +
+          (verse ? (S.lang !== 'en' ? '<div class="notif-verse-he">' + esc(truncate(verse.he, 110)) + '</div>' : '') +
+                   (S.lang !== 'he' ? '<div class="notif-verse">“' + esc(truncate(verse.en, 130)) + '”</div>' : '') +
+                   '<div class="notif-cite">' + esc(PASSAGE.book + ' ' + PASSAGE.ch + ':' + verse.n) + '</div>'
+                 : '<div class="notif-b">Open to read this week’s portion.</div>') +
+        '</div>' +
+        (S.reminders.calendar !== false && nx && nx.days <= 14 ?
+          '<div class="notif small" id="n2"><div class="notif-h"><span class="logo-tile">ס</span>SEFARIA<span class="when">2m ago</span></div>' +
+          '<div class="notif-t">' + esc(nx.name) + ' begins in ' + nx.days + (nx.days === 1 ? ' day' : ' days') + '</div><div class="notif-b">Explore texts for the chag</div></div>' : '') +
+      '</div>' +
+      '<div class="lock-tools"><span>' + I.torch + '</span><span>' + I.camera + '</span></div>' +
+      '<div class="lock-bottom"><span class="swipe">Swipe up to open</span><div class="homebar"></div></div>';
+    app.appendChild(div);
+    setTimeout(function () { var n = $('#n2', div); if (n) n.classList.add('in'); }, 250);
+    setTimeout(function () { var n = $('#n1', div); if (n) n.classList.add('in'); }, 650);
+    var startY = null;
+    function close() { div.classList.add('leaving'); setTimeout(function () { div.remove(); }, 350); }
+    div.addEventListener('click', close);
+    div.addEventListener('touchstart', function (e) { startY = e.touches[0].clientY; }, { passive: true });
+    div.addEventListener('touchmove', function (e) { if (startY != null && startY - e.touches[0].clientY > 60) { startY = null; close(); } }, { passive: true });
+  }
+  function firstLearningForNotif() {
+    var key = S.cycles.filter(function (c) { return c !== 'parasha'; })[0];
+    if (!key) return null;
+    var c = CYCLES[key];
+    if (c.cal) { var it = calItem(c.cal); if (it) return { title: 'Today’s ' + c.label.replace(' · Tanakh', '') + ': ' + it.displayValue.en, body: 'Tap to start today’s learning' }; return null; }
+    var loc = key === 'tehillim' ? tehillimToday() : avotToday();
+    return loc ? { title: 'Today’s ' + c.label + ': ' + loc.en, body: 'A two-minute teaching to start your morning' } : null;
+  }
+
+  /* ======================================================================
+     Siyum preview
+     ====================================================================== */
+  function openSiyum() {
+    var div = document.createElement('div');
+    div.className = 'overlay siyum';
+    var colors = ['#ccb479', '#18345D', '#4871bf', '#e0802c', '#5a99b7', '#802f3e'], conf = '';
+    for (var i = 0; i < 46; i++) {
+      conf += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + colors[i % colors.length] + ';animation-duration:' + (2.2 + Math.random() * 2.2).toFixed(2) + 's;animation-delay:' + (Math.random() * .8).toFixed(2) + 's"></i>';
+    }
+    div.innerHTML = '<div class="confetti">' + conf + '</div>' +
+      '<button class="close" data-act="close" aria-label="Close">' + I.close + '</button>' +
+      '<div style="flex:1 0 0"></div><div class="medallion"><div class="inner"><div class="s1">סיום</div><div class="s2">ברכות</div><div class="s3">Berakhot</div></div></div>' +
+      '<div class="mazal">Mazal tov</div>' +
+      '<h2>You finished Masechet Berakhot</h2>' +
+      '<div class="sub">All 63 dapim, from 2a to 64a</div>' +
+      '<a class="card up-next" href="' + esc(readerUrl('Shabbat.2a')) + '"><div class="grow"><div class="k">Up next</div><div class="t">Masechet Shabbat</div><div class="small muted">Starts at Shabbat 2a · 156 dapim</div></div><span class="link">' + I.chev + '</span></a>' +
+      '<div class="actions"><button class="btn primary block" data-act="siyum-share">' + I.share + ' Share with friends</button>' +
+      '<a class="btn secondary block" href="' + esc(readerUrl('Hadran')) + '">Say the Hadran</a></div><div style="flex:1 0 0"></div>';
+    $('#app').appendChild(div);
+    div.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-act]'); if (!a) return;
+      if (a.getAttribute('data-act') === 'close') div.remove();
+      if (a.getAttribute('data-act') === 'siyum-share') {
+        shareOverride = 'I just finished Masechet Berakhot on Sefaria — all 63 dapim! Up next: Masechet Shabbat. Learn with me?';
+        div.remove(); switchTab('share');
+      }
+    });
+  }
+
+  /* ======================================================================
+     Settings sheet
+     ====================================================================== */
+  function openSettings() {
+    var bd = document.createElement('div');
+    bd.className = 'sheet-backdrop';
+    var levels = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
+    var langs = { he: 'Hebrew', en: 'English', bi: 'Hebrew & English' };
+    bd.innerHTML = '<div class="sheet"><div class="grab"></div><div class="row" style="margin-bottom:6px"><span class="avatar">' + (S.signedIn ? 'M' : I.user) + '</span>' +
+      '<div class="grow"><h3>' + (S.signedIn ? 'Michael' : 'Guest') + '</h3><div class="small muted">' + (S.signedIn ? 'Signed in (demo) · progress synced' : 'Not signed in · progress saved on this device') + '</div></div></div>' +
+      item('Text language', langs[S.lang]) + item('Comfort level', levels[S.level]) +
+      item('My learning', S.exploring || !S.cycles.length ? 'Just exploring' : S.cycles.map(function (c) { return CYCLES[c].label.replace(' · Tanakh', ''); }).join(', ')) +
+      item('Goal', goalText()) +
+      item('Reminders', S.remindersOn ? fmtTime(S.reminders.time) + ' · ' + ({ daily: 'every day', weekdays: 'weekdays', three: '3× a week' })[S.reminders.freq] : 'Off') +
+      '<button class="menu-item" data-act="replay"><span class="link">Replay onboarding</span><span class="v">' + I.chev + '</span></button>' +
+      '<button class="menu-item danger" data-act="reset-log"><span>Reset streak &amp; log</span><span></span></button>' +
+      '<p class="small muted" style="margin-top:14px">Demo date: ' + esc(TODAY_ISO) + '. Add <code>?date=YYYY-MM-DD</code> to the URL to try another day.</p></div>';
+    function item(k, v) { return '<div class="menu-item"><span>' + k + '</span><span class="v" style="max-width:60%;text-align:right">' + esc(v) + '</span></div>'; }
+    $('#app').appendChild(bd);
+    bd.addEventListener('click', function (e) {
+      if (e.target === bd) { bd.remove(); return; }
+      var a = e.target.closest('[data-act]'); if (!a) return;
+      var act = a.getAttribute('data-act');
+      if (act === 'replay') { resetAll(); bd.remove(); startOnboarding(); }
+      if (act === 'reset-log') { S.log = []; S.seeded = true; if (S.goal.type === 'finish') S.goal.done = 0; save(); bd.remove(); renderAll(); toast('Streak and log cleared'); }
+    });
+  }
+
+  /* ======================================================================
+     Onboarding
+     ====================================================================== */
+  var ob = null; // { el, i }
+  function obSteps() {
+    var s = ['lang', 'learn', 'guide', 'level', 'goal'];
+    if (hasLearning()) s.push('remind');
+    s.push('signin');
+    return s;
+  }
+  function startOnboarding() {
+    var el = document.createElement('div');
+    el.className = 'overlay ob';
+    $('#app').appendChild(el);
+    ob = { el: el, i: 0, chat: null };
+    renderOb();
+    el.addEventListener('click', onObClick);
+    el.addEventListener('change', onObChange);
+    el.addEventListener('input', onObChange);
+  }
+  function finishOnboarding() {
+    S.onboarded = true;
+    seedDemoHistory();
+    save();
+    ob.el.remove(); ob = null;
+    switchTab('today');
+    renderAll();
+  }
+  function obNext() {
+    var steps = obSteps();
+    if (steps[ob.i] === 'remind') S.remindersOn = true;
+    save();
+    if (ob.i >= steps.length - 1) { finishOnboarding(); return; }
+    ob.i++; renderOb();
+  }
+  function obSkip() {
+    var steps = obSteps();
+    if (ob.i >= steps.length - 1) { finishOnboarding(); return; }
+    ob.i++; renderOb();
+  }
+  function opt(key, val, title, sub, extra, multi) {
+    var on = multi ? (val === '__explore' ? S.exploring : S.cycles.indexOf(val) >= 0) : S[key] === val;
+    return '<button class="opt' + (on ? ' on' : '') + '" data-opt="' + key + '" data-v="' + val + '">' + (extra && extra.swatch ? '<span class="swatch" style="--c:' + extra.swatch + '"></span>' : '') +
+      '<span class="grow"><div class="o-t">' + title + '</div>' + (sub ? '<div class="o-s">' + sub + '</div>' : '') + (extra && extra.sample ? '<div class="sample">' + extra.sample + '</div>' : '') + '</span>' +
+      '<span class="check' + (multi ? ' sq' : '') + '">' + I.check + '</span></button>';
+  }
+  function renderOb() {
+    var steps = obSteps(), step = steps[ob.i], body = '', foot = '';
+    var dots = steps.map(function (s, i) { return '<i class="' + (i === ob.i ? 'on' : i < ob.i ? 'done' : '') + '"></i>'; }).join('');
+    var cont = '<button class="btn primary block" data-act="ob-next">Continue</button>';
+    if (step === 'lang') {
+      body = '<div class="welcome-mark"><span class="logo-tile">ס</span><div><div class="wordmark" style="font-size:22px">Welcome to Sefaria</div><div class="small muted">Let’s set up your learning habit. About a minute.</div></div></div>' +
+        '<h2>How would you like to read texts?</h2><p class="lead">You can switch any time. The app’s menus stay in English.</p>' +
+        opt('lang', 'he', 'Hebrew', 'The original text', { sample: '<span class="he">בְּרֵאשִׁית בָּרָא אֱלֹהִים</span>' }) +
+        opt('lang', 'en', 'English', 'Translation only', { sample: '<span class="serif">When God began to create…</span>' }) +
+        opt('lang', 'bi', 'Both', 'Hebrew with English alongside', { sample: '<span class="he">בְּרֵאשִׁית בָּרָא</span><span class="serif">When God began to create…</span>' });
+    } else if (step === 'learn') {
+      body = '<h2>What are you learning?</h2><p class="lead">Pick any daily or weekly cycles. We’ll have today’s portion ready for you.</p>' +
+        CYCLE_ORDER.filter(function (k) { return !CYCLES[k].hidden || S.cycles.indexOf(k) >= 0; }).map(function (k) {
+          var c = CYCLES[k]; return opt('cycles', k, c.label, c.desc + ' · ' + c.mins, { swatch: CAT_COLOR[c.cat] }, true);
+        }).join('') +
+        opt('cycles', '__explore', 'Just exploring', 'No schedule yet — show me around', null, true);
+      cont = '<button class="btn primary block" data-act="ob-next">' + (S.cycles.length || S.exploring ? 'Continue' : 'Not sure? Ask the guide') + '</button>';
+    } else if (step === 'guide') {
+      body = '<h2>Not sure where to start?</h2><p class="lead">Tell our learning guide what you’re looking for.</p><div class="chat" id="chat"></div>';
+      foot = '<div class="chat-input"><input type="text" id="chatInput" placeholder="Ask anything…" autocomplete="off"><button data-act="chat-send" aria-label="Send">' + I.send + '</button></div>' +
+        '<button class="btn ghost block" data-act="ob-next" style="margin-top:6px">Continue</button>';
+    } else if (step === 'level') {
+      body = '<h2>How comfortable are you with these texts?</h2><p class="lead">This sets your default translation and commentary. Change it any time.</p>' +
+        opt('level', 'beginner', 'Beginner', 'New to this — translation first, with a guided commentary (Steinsaltz)') +
+        opt('level', 'intermediate', 'Intermediate', 'Some background — bilingual, with Rashi alongside') +
+        opt('level', 'advanced', 'Advanced', 'Comfortable in the original — Hebrew first, full commentary');
+    } else if (step === 'goal') {
+      var g = S.goal;
+      body = '<h2>Set a goal</h2><p class="lead">Small and steady beats big and rare. You can change this later.</p>' +
+        goalOpt('m5', '5 minutes a day', 'A gentle start', g.type === 'minutes' && g.minutes === 5) +
+        goalOpt('m10', '10 minutes a day', 'Most popular', g.type === 'minutes' && g.minutes === 10) +
+        goalOpt('m20', '20 minutes a day', 'A serious daily seder', g.type === 'minutes' && g.minutes === 20) +
+        goalOpt('berakhot', 'Finish Masechet Berakhot by Pesach', (function () { var h = nextHoliday(TODAY, 'Pesach'); return h ? fmtMed(h.date) + ' · about ' + Math.ceil(63 / Math.max(1, h.days / 7)) + ' dapim a week' : '63 dapim'; })(), g.type === 'finish' && g.book === 'Berakhot') +
+        goalOpt('custom', 'Custom goal', 'Write your own', g.type === 'custom') +
+        (g.type === 'custom' ? '<input type="text" data-f="goaltext" style="margin-top:10px" placeholder="e.g. Learn Tehillim with my father on Fridays" value="' + esc(g.text || '') + '">' : '');
+    } else if (step === 'remind') {
+      var r = S.reminders, nx = nextHoliday(TODAY), daf = calItem('Daf Yomi'), st = streak();
+      var w = hasLearning() && S.cycles.indexOf('daf') < 0 ? firstLearningForNotif() : null;
+      body = '<h2>Reminders that fit your day</h2><p class="lead">A gentle nudge at the time you choose. Quiet on Shabbat and chagim.</p>' +
+        '<div class="card" style="padding:8px 16px">' +
+        '<div class="time-row"><div><div class="t" style="font-weight:500">Remind me at</div><div class="small muted">Every learning day</div></div><input type="time" data-f="time" value="' + esc(r.time) + '"></div>' +
+        toggleRow('daily', 'Daily learning', 'Today’s portion, ready to go', r.daily) +
+        toggleRow('calendar', 'Calendar prompts', '“' + (nx ? nx.name + ' begins in ' + nx.days + ' days' : 'Sukkot begins in 3 days') + '”', r.calendar) +
+        toggleRow('social', 'Social prompts', '“Sarah finished Masechet Berakhot”', r.social) +
+        '<div style="padding:12px 0 8px"><div style="font-weight:500;margin-bottom:8px">How often</div><div class="seg" data-seg="freq">' +
+        [['daily', 'Every day'], ['weekdays', 'Weekdays'], ['three', '3× a week']].map(function (f) { return '<button data-v="' + f[0] + '" class="' + (r.freq === f[0] ? 'on' : '') + '">' + f[1] + '</button>'; }).join('') + '</div></div></div>' +
+        '<div class="widget-wrap"><div class="widget"><div class="w-k">' + esc(w ? CYCLES[S.cycles.filter(function (c) { return c !== 'parasha'; })[0]].label.replace(' · Tanakh', '') : 'Today’s Daf') + '</div>' +
+        '<div class="w-t">' + esc(w ? w.title.split(': ')[1] : (daf ? daf.displayValue.en : 'Bekhorot 12')) + '</div>' +
+        (daf && !w && S.lang !== 'en' ? '<div class="w-h">' + esc(daf.displayValue.he) + '</div>' : '') +
+        '<div class="w-f">' + I.flame + ' ' + (st > 1 ? st + '-day streak' : 'Start your streak') + '</div></div>' +
+        '<div><div style="font-weight:500">Home screen widget</div><div class="small muted" style="margin:4px 0 10px">Today’s learning and your streak, one tap away.</div>' +
+        '<button class="btn secondary sm" data-act="widget">Add widget</button></div></div>';
+      cont = '<button class="btn primary block" data-act="ob-next">Turn on reminders</button>';
+    } else if (step === 'signin') {
+      body = '<div class="signin-hero"><span class="logo-tile">ס</span><h2>Keep your learning with you</h2><p class="lead" style="margin:0">Free, and takes a few seconds.</p></div>' +
+        '<div class="card" style="padding:4px 16px">' +
+        '<div class="benefit"><span class="ic">' + I.sync + '</span><div><div class="t">Save your progress and sync with the web</div><div class="small muted">Pick up on sefaria.org right where you left off.</div></div></div>' +
+        '<div class="benefit"><span class="ic">' + I.chart + '</span><div><div class="t">Get access to tracking and sharing</div><div class="small muted">Streaks, goals, badges, and learning with friends.</div></div></div></div>';
+      foot = '<button class="btn primary block" data-act="signin">Sign in</button>' +
+        '<button class="btn secondary block" data-act="signin" style="margin-top:10px">Create account</button>' +
+        '<button class="btn ghost block" data-act="ob-next" style="margin-top:4px">Maybe later</button>';
+    }
+    ob.el.innerHTML = '<div class="ob-top"><button class="ob-back" data-act="ob-back" aria-label="Back" style="visibility:' + (ob.i ? 'visible' : 'hidden') + '">' + I.back + '</button>' +
+      '<div class="dots">' + dots + '</div><button class="skip" data-act="ob-skip">Skip</button></div>' +
+      '<div class="ob-body" id="obBody">' + body + '</div><div class="ob-foot">' + (foot || cont) + '</div>';
+    if (step === 'guide') startChat();
+  }
+  function goalOpt(v, t, s, on) {
+    return '<button class="opt' + (on ? ' on' : '') + '" data-goal="' + v + '"><span class="grow"><div class="o-t">' + t + '</div><div class="o-s">' + esc(s) + '</div></span><span class="check">' + I.check + '</span></button>';
+  }
+  function toggleRow(k, t, s, on) {
+    return '<div class="toggle-row"><div class="grow"><div class="t">' + t + '</div><div class="s">' + esc(s) + '</div></div><label class="switch"><input type="checkbox" data-toggle="' + k + '"' + (on ? ' checked' : '') + '><span></span></label></div>';
+  }
+  function onObClick(e) {
+    var a = e.target.closest('[data-act],[data-opt],[data-goal],[data-seg] button,[data-reply],[data-add]');
+    if (!a) return;
+    if (a.hasAttribute('data-opt')) {
+      var key = a.getAttribute('data-opt'), v = a.getAttribute('data-v');
+      if (key === 'cycles') {
+        if (v === '__explore') { S.exploring = !S.exploring; if (S.exploring) S.cycles = []; }
+        else { S.exploring = false; var i = S.cycles.indexOf(v); if (i >= 0) S.cycles.splice(i, 1); else S.cycles.push(v); }
+      } else S[key] = v;
+      save(); var sc = $('#obBody').scrollTop; renderOb(); $('#obBody').scrollTop = sc; $('#obBody').style.animation = 'none';
+      return;
+    }
+    if (a.hasAttribute('data-goal')) {
+      var gv = a.getAttribute('data-goal');
+      if (gv === 'm5') S.goal = { type: 'minutes', minutes: 5 };
+      if (gv === 'm10') S.goal = { type: 'minutes', minutes: 10 };
+      if (gv === 'm20') S.goal = { type: 'minutes', minutes: 20 };
+      if (gv === 'berakhot') S.goal = { type: 'finish', book: 'Berakhot', by: 'pesach', done: 0 };
+      if (gv === 'custom') S.goal = { type: 'custom', text: S.goal.text || '' };
+      save(); renderOb(); $('#obBody').style.animation = 'none';
+      return;
+    }
+    if (a.parentNode && a.parentNode.getAttribute && a.parentNode.getAttribute('data-seg') === 'freq') {
+      S.reminders.freq = a.getAttribute('data-v'); save(); $$('button', a.parentNode).forEach(function (b) { b.classList.toggle('on', b === a); });
+      return;
+    }
+    if (a.hasAttribute('data-reply')) { chatReply(a.getAttribute('data-reply')); return; }
+    if (a.hasAttribute('data-add')) {
+      var k = a.getAttribute('data-add');
+      if (S.cycles.indexOf(k) < 0) S.cycles.push(k);
+      S.exploring = false; save();
+      a.innerHTML = I.check + ' Added to my learning'; a.disabled = true; a.classList.remove('primary'); a.classList.add('secondary');
+      renderDots();
+      botSay('Done! I’ll have today’s ' + CYCLES[k].label + ' ready each morning. Anything else?', null, function () { showReplies(); });
+      return;
+    }
+    var act = a.getAttribute('data-act');
+    if (act === 'ob-next') obNext();
+    else if (act === 'ob-skip') obSkip();
+    else if (act === 'ob-back') { if (ob.i > 0) { ob.i--; renderOb(); } }
+    else if (act === 'signin') { S.signedIn = true; save(); toast('Signed in (demo)'); finishOnboarding(); }
+    else if (act === 'widget') toast('In the app, this adds a Sefaria widget to your home screen');
+    else if (act === 'chat-send') chatFree();
+  }
+  function renderDots() {
+    var steps = obSteps();
+    $('.dots', ob.el).innerHTML = steps.map(function (s, i) { return '<i class="' + (i === ob.i ? 'on' : i < ob.i ? 'done' : '') + '"></i>'; }).join('');
+  }
+  function onObChange(e) {
+    var t = e.target;
+    if (t.hasAttribute('data-toggle')) { S.reminders[t.getAttribute('data-toggle')] = t.checked; save(); }
+    if (t.getAttribute('data-f') === 'time' && t.value) { S.reminders.time = t.value; save(); }
+    if (t.getAttribute('data-f') === 'goaltext') { S.goal.text = t.value; save(); }
+    if (t.id === 'chatInput' && e.type === 'change') chatFree();
+  }
+
+  /* ---------- Scripted guide chat (no network calls) ---------- */
+  var REPLIES = [
+    { id: 'ethics', text: 'I want something short to learn each morning about Jewish ethics' },
+    { id: 'parasha', text: 'I’d like to follow the weekly Torah portion' },
+    { id: 'talmud', text: 'I’m curious about Talmud but don’t know where to begin' },
+    { id: 'surprise', text: 'Not sure yet — surprise me' }
+  ];
+  var ANSWERS = {
+    ethics: { say: 'Pirkei Avot — Ethics of the Fathers — is a great fit. It’s a collection of short teachings on how to live: kindness, humility, study, and community. One mishnah a day takes about two minutes.',
+      card: { add: 'avot', t: 'Pirkei Avot', s: 'One mishnah a day · ~2 min', c: 'var(--musar)', q: '“The world stands on three things: on Torah, on service, and on acts of lovingkindness.” — Avot 1:2' } },
+    parasha: { say: 'Following the parashah connects you with Jews everywhere reading the same portion each Shabbat. I’ll send it to you in small pieces through the week.',
+      card: { add: 'parasha', t: 'Parashat Hashavua', s: 'The weekly Torah portion · ~10 min a day', c: 'var(--tanakh)' } },
+    talmud: { say: 'Daf Yomi is a big commitment — about 45 minutes a day. Many people start with Mishnah Yomit instead: two short mishnayot a day, and it’s the foundation the Talmud builds on.',
+      card: { add: 'mishnah', t: 'Mishnah Yomit', s: 'Two mishnayot a day · ~10 min', c: 'var(--mishnah)' } },
+    surprise: { say: 'How about Tehillim? The Book of Psalms is divided into a monthly cycle — a few psalms a day, and the whole book every month. Beautiful to read, in Hebrew or English.',
+      card: { add: 'tehillim', t: 'Tehillim', s: 'The monthly cycle · ~15 min', c: 'var(--liturgy)' } }
+  };
+  function startChat() {
+    ob.chat = ob.chat || { used: {}, log: [] };
+    var chat = $('#chat');
+    if (ob.chat.log.length) { chat.innerHTML = ob.chat.log.join(''); $$('.replies', chat).forEach(function (r) { r.remove(); }); showReplies(true); return; }
+    botSay('Hi! I’m your Sefaria learning guide.', null, function () {
+      botSay('What brings you to Jewish learning? Pick one below, or type your own.', null, function () { showReplies(); });
+    });
+  }
+  function scrollChat() { var b = $('#obBody'); if (b) b.scrollTo({ top: b.scrollHeight, behavior: 'smooth' }); }
+  function pushChat(html) { var chat = $('#chat'); if (!chat) return; chat.insertAdjacentHTML('beforeend', html); ob.chat.log.push(html); scrollChat(); }
+  function botSay(text, card, then) {
+    var chat = $('#chat'); if (!chat) return;
+    var typing = document.createElement('div');
+    typing.className = 'bot-row';
+    typing.innerHTML = '<span class="logo-tile">ס</span><div class="msg bot typing"><i></i><i></i><i></i></div>';
+    chat.appendChild(typing); scrollChat();
+    setTimeout(function () {
+      typing.remove();
+      pushChat('<div class="bot-row"><span class="logo-tile">ס</span><div class="msg bot">' + esc(text) + '</div></div>');
+      if (card) {
+        var added = S.cycles.indexOf(card.add) >= 0;
+        pushChat('<div class="suggest-card" style="--c:' + card.c + '"><div class="top"><div class="t">' + esc(card.t) + '</div><div class="s">' + esc(card.s) + '</div>' +
+          (card.q ? '<blockquote>' + esc(card.q) + '</blockquote>' : '') + '</div>' +
+          '<div class="act"><button class="btn ' + (added ? 'secondary' : 'primary') + ' sm block" data-add="' + card.add + '"' + (added ? ' disabled' : '') + '>' + (added ? I.check + ' Added to my learning' : 'Add to my learning') + '</button></div></div>');
+      }
+      if (then) setTimeout(then, 250);
+    }, Math.min(1500, 650 + text.length * 6));
+  }
+  function showReplies(noAnim) {
+    var chat = $('#chat'); if (!chat) return;
+    var left = REPLIES.filter(function (r) { return !ob.chat.used[r.id]; });
+    var html = '<div class="replies">' + left.map(function (r) { return '<button class="reply" data-reply="' + r.id + '">' + esc(r.text) + '</button>'; }).join('') +
+      (Object.keys(ob.chat.used).length ? '<button class="reply" data-act="ob-next" style="border-style:dashed">That’s all for now →</button>' : '') + '</div>';
+    chat.insertAdjacentHTML('beforeend', html);
+    if (!noAnim) scrollChat();
+  }
+  function chatReply(id) {
+    var r = REPLIES.filter(function (x) { return x.id === id; })[0]; if (!r) return;
+    ob.chat.used[id] = 1;
+    $$('.replies', $('#chat')).forEach(function (x) { x.remove(); });
+    pushChat('<div class="msg me">' + esc(r.text) + '</div>');
+    var a = ANSWERS[id];
+    setTimeout(function () { botSay(a.say, a.card); }, 300);
+  }
+  function chatFree() {
+    var inp = $('#chatInput'); if (!inp || !inp.value.trim()) return;
+    var v = inp.value.trim(); inp.value = '';
+    $$('.replies', $('#chat')).forEach(function (x) { x.remove(); });
+    pushChat('<div class="msg me">' + esc(v) + '</div>');
+    var id = /ethic|moral|morning|short|avot|kind/i.test(v) ? 'ethics' : /parash|portion|torah|weekly/i.test(v) ? 'parasha' : /talmud|gemara|daf|mishn/i.test(v) ? 'talmud' : 'surprise';
+    ob.chat.used[id] = 1;
+    setTimeout(function () { botSay(ANSWERS[id].say, ANSWERS[id].card); }, 300);
+  }
+
+  /* ======================================================================
+     Tabs, events, orientation
+     ====================================================================== */
+  var currentTab = 'today';
+  function switchTab(t) {
+    currentTab = t;
+    // The reader is a screen pushed on top of Today, so Today stays lit in the tab bar.
+    $$('.tab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === (t === 'read' ? 'today' : t)); });
+    $$('.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + t); });
+    var app = $('#app'); ['today', 'goals', 'share', 'text', 'read'].forEach(function (x) { app.classList.toggle('tab-' + x, x === t); });
+    if (t !== 'share') shareOverride = null;
+    if (t === 'share') renderShare();
+    $('#main').scrollTop = 0;
+  }
+  function renderAll() {
+    $('#avatarBtn').innerHTML = S.signedIn ? 'M' : I.user;
+    renderToday(); renderGoals(); renderShare(); renderText(); renderReader();
+  }
+  var forcedRotate = false;
+  var mq = window.matchMedia('(orientation: landscape) and (max-height: 600px)');
+  function applyOrientation() { $('#app').classList.toggle('landscape', mq.matches || forcedRotate); }
+  if (mq.addEventListener) mq.addEventListener('change', applyOrientation); else if (mq.addListener) mq.addListener(applyOrientation);
+  window.addEventListener('resize', applyOrientation);
+
+  iconize(document);
+  $('#tabbar').addEventListener('click', function (e) { var b = e.target.closest('.tab'); if (b) switchTab(b.getAttribute('data-tab')); });
+  $('#avatarBtn').addEventListener('click', openSettings);
+  $('#rotateBtn').addEventListener('click', function () { forcedRotate = !forcedRotate; $('#app').classList.toggle('rotated', forcedRotate); applyOrientation(); });
+  $('#main').addEventListener('click', function (e) {
+    var rd = e.target.closest('[data-read]');
+    if (rd) { e.preventDefault(); openReader(TODAY_ITEMS[+rd.getAttribute('data-read')]); return; }
+    var a = e.target.closest('[data-act],[data-share],[data-seg] button,[data-pills] button,.verse,.sbs-row');
+    if (!a) return;
+    if (a.classList.contains('verse') || a.classList.contains('sbs-row')) {
+      // Text tab and reader each keep their own highlighted verse.
+      var panel = a.closest('.panel'), n = +a.getAttribute('data-v');
+      if (panel.id === 'panel-read') n = readHl = readHl === n ? null : n;
+      else n = hlVerse = hlVerse === n ? null : n;
+      $$('.verse,.sbs-row', panel).forEach(function (r) { r.classList.toggle('hl', +r.getAttribute('data-v') === n); });
+      return;
+    }
+    if (a.hasAttribute('data-share')) { doShare(a.getAttribute('data-share')); return; }
+    var seg = a.parentNode && a.parentNode.getAttribute && (a.parentNode.getAttribute('data-seg') || a.parentNode.getAttribute('data-pills'));
+    if (seg) {
+      var v = a.getAttribute('data-v');
+      if (seg === 'lang') { S.lang = v; save(); renderText(); renderReader(); renderToday(); return; }
+      if (seg === 'gtype') { draftGoal = v === 'minutes' ? { type: 'minutes', minutes: draftGoal.minutes || 10 } : v === 'finish' ? { type: 'finish', book: draftGoal.book || 'Berakhot', by: draftGoal.by || 'pesach', done: draftGoal.done || 0 } : { type: 'custom', text: draftGoal.text || '' }; renderGoals(); return; }
+      if (seg === 'minutes') { draftGoal.minutes = +v; renderGoals(); return; }
+      if (seg === 'by') { draftGoal.by = v; renderGoals(); return; }
+    }
+    var act = a.getAttribute('data-act');
+    if (act === 'learned') learnedToday();
+    else if (act === 'lock') openLock();
+    else if (act === 'siyum') openSiyum();
+    else if (act === 'retry') boot();
+    else if (act === 'reader-back') closeReader();
+    else if (act === 'reader-retry') openReader(READ.item);
+    else if (act === 'goal-edit') { editingGoal = true; draftGoal = clone(S.goal); renderGoals(); }
+    else if (act === 'goal-cancel') { editingGoal = false; renderGoals(); }
+    else if (act === 'goal-save') {
+      var f = $('#panel-goals');
+      $$('[data-f]', f).forEach(function (inp) { draftGoal[inp.getAttribute('data-f')] = inp.value; });
+      if (draftGoal.type === 'finish' && draftGoal.book !== S.goal.book) draftGoal.done = 0;
+      S.goal = draftGoal; editingGoal = false; save(); renderAll(); toast('Goal saved');
+    }
+    else if (act === 'native-share') doShare('native');
+    else if (act === 'cheer') toast('Sent a “yasher koach” to ' + a.getAttribute('data-name'));
+    else if (act === 'aa') { var sc = [1, 1.15, 1.3, 0.9], i = sc.indexOf(S.textScale || 1); S.textScale = sc[(i + 1) % sc.length]; save(); $$('#panel-text,#panel-read').forEach(function (p) { p.style.setProperty('--ts', S.textScale); }); }
+    else if (act === 'exit-sbs') { if (forcedRotate) { forcedRotate = false; $('#app').classList.remove('rotated'); applyOrientation(); } else if (currentTab === 'read') closeReader(); else switchTab('today'); }
+  });
+  $('#main').addEventListener('change', function (e) {
+    var t = e.target;
+    if (editingGoal && t.getAttribute('data-f') === 'book') { draftGoal.book = t.value; }
+    if (editingGoal && t.getAttribute('data-f') === 'byDate') { draftGoal.byDate = t.value; }
+  });
+
+  function boot() {
+    CAL_LOADING = true; CAL_ERR = null; PASSAGE = null; PASSAGE_ERR = null;
+    renderAll();
+    loadCalendar().then(function () {
+      renderAll();
+      if (ob && obSteps()[ob.i] === 'remind') renderOb();
+      return loadPassage();
+    }).then(function () { renderText(); });
+  }
+  var startTab = qs.get('tab');
+  switchTab(['today', 'goals', 'share', 'text'].indexOf(startTab) >= 0 ? startTab : 'today');
+  applyOrientation();
+  if (S.onboarded) seedDemoHistory();
+  boot();
+  if (!S.onboarded) startOnboarding();
+})();
+</script>
+</body>
+</html>
+{% endverbatim %}
