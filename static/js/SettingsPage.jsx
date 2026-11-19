@@ -4605,7 +4605,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
 
   const save = () => {
     setSaveError('');
-    const transPref = translationLanguages.length ? translationLanguage : undefined;
+    // No language chosen is sent as null. A stored "null" string counts as no choice.
+    const chosenTransPref = translationLanguage && translationLanguage !== 'null' ? translationLanguage : null;
+    const transPref = translationLanguages.length ? chosenTransPref : undefined;
     const profile = {
       settings: {
         email_notifications: emailNotifications,
@@ -4624,7 +4626,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
       profile.settings.library_assistant = libraryAssistant === 'true';
     }
     // see trans pref in cookie in case user is logged out
-    if (profile.settings.translation_language_preference !== undefined) {
+    if (profile.settings.translation_language_preference) {
       $.cookie('translation_language_preference', profile.settings.translation_language_preference, { path: '/' });
     }
     $.cookie('translation_language_preference_suggested', JSON.stringify(1), { path: '/' });
