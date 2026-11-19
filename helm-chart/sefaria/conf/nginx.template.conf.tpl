@@ -167,10 +167,23 @@ http {
   add_header x-sefaria-key-status $key_status always;
   add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
 {{ end }}
+  # A varnish restart drops every cached request: while the container is not listening,
+  # nginx answers 502 to reader and API traffic. The web tier answers the same requests
+  # uncached, so it is the last resort behind varnish. nginx uses it only while the
+  # varnish peer refuses connections, and marks that peer down for fail_timeout after
+  # one connect error, so a restart that takes seconds moves seconds of traffic.
   upstream varnishupstream {
     server ${VARNISH_HOST}:8040;
+    server ${WEB_HOST}:80 backup;
     keepalive 32;
   }
+
+  # Fail over to the backup peer on a connection-level failure only. A refused connection
+  # means the request never reached varnish, so it goes to the web tier once. nginx never
+  # repeats a POST, PATCH or LOCK whose request it already sent: for those methods it adds
+  # the non-idempotent flag before the next_upstream test (ngx_http_upstream_next), so a
+  # write is not applied twice.
+  proxy_next_upstream error;
 
   upstream elasticsearch_upstream {
     server ${SEARCH_HOST}:9200;
