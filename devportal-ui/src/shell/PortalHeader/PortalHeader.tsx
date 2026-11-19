@@ -4,7 +4,7 @@
 // and swapped for the redesigned header later (Q27). Live's inconsistencies are kept: "Voices at Sefaria"
 // in the links menu, "Voices on Sefaria" in the drawer, links to bare sefaria.org.
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react';
-import { DRAWER_LINKS, LINKS_MENU_ITEMS, PRIMARY_LINKS, type HeaderNavLink, type PortalHeaderTab } from './headerLinks';
+import { drawerLinks, linksMenuItems, PRIMARY_LINKS, type HeaderNavLink, type PortalHeaderTab } from './headerLinks';
 import styles from './PortalHeader.module.css';
 
 export type { PortalHeaderTab } from './headerLinks';
@@ -38,6 +38,7 @@ const MOBILE_SECTION_LABEL: Record<PortalHeaderTab, string> = {
   home: 'Home',
   docs: 'Docs',
   reference: 'API Reference',
+  gallery: 'Powered by Sefaria',
   contact: '',
 };
 
@@ -181,7 +182,7 @@ function LinksMenu() {
           <span className={styles.linksRegion} aria-hidden="true" data-visual-region="popover" />
           <div className={styles.linksLogo} />
           <div className={styles.linksBox}>
-            {LINKS_MENU_ITEMS.map((item) => (
+            {linksMenuItems().map((item) => (
               <a
                 key={item.href}
                 className={styles.linksItem}
@@ -234,7 +235,7 @@ function MobileMenu({ activeTab }: { activeTab: PortalHeaderTab | null }) {
         {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
         <div className={styles.drawerOverlay} onClick={() => setOpen(false)} />
         <div className={styles.drawer} data-visual-region="mobileNav">
-          {DRAWER_LINKS.map((link) => {
+          {drawerLinks().map((link) => {
             const active = link.tab !== undefined && link.tab === activeTab;
             return (
               <a
@@ -292,11 +293,22 @@ export function PortalHeader({ activeTab, subnav = null, sectionLabel: sectionLa
                   key={link.label}
                   className={styles.navLink}
                   data-visual={active ? 'navLinkActive' : 'navLink'}
+                  data-visual-deviation={link.deviation}
                   href={link.href}
                   aria-current={active ? 'page' : undefined}
+                  aria-label={link.shortLabel ? link.label : undefined}
                   {...linkTargetProps(link)}
                 >
-                  <span>{link.label}</span>
+                  {link.shortLabel ? (
+                    <>
+                      <span className={styles.navLabelFull}>{link.label}</span>
+                      <span className={styles.navLabelShort} aria-hidden="true">
+                        {link.shortLabel}
+                      </span>
+                    </>
+                  ) : (
+                    <span>{link.label}</span>
+                  )}
                 </a>
               );
             })}

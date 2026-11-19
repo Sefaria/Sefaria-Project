@@ -32,7 +32,7 @@ import type { RegionId } from './regions.ts';
 import type { Width } from './states.ts';
 
 export type DeviationId =
-  'D-1' | 'D-2' | 'D-3' | 'D-4' | 'D-5' | 'D-6' | 'D-7' | 'D-8' | 'D-9' | 'D-10' | 'D-11' | 'D-12' | 'D-13';
+  'D-1' | 'D-2' | 'D-3' | 'D-4' | 'D-5' | 'D-6' | 'D-7' | 'D-8' | 'D-9' | 'D-10' | 'D-11' | 'D-12' | 'D-13' | 'D-14';
 
 export type Treatment =
   | { kind: 'roboto-baseline' }
@@ -277,6 +277,15 @@ export const DEVIATIONS: readonly Deviation[] = [
     source: 'Brief §4.1; DECISIONS.md Q14',
     states: ['home', 'home_full'],
     treatments: [{ kind: 'region-threshold', region: 'homeHero', maxDiffRatio: 0.015 }],
+  },
+  {
+    // Product owner, 2026-11-19: the gallery lives on the portal, with its own header link. Taken out of the
+    // portal's layout, so the links after it are compared at live's positions.
+    id: 'D-14',
+    difference: 'Header: the "Projects Powered by Sefaria" link to the gallery (/powered-by)',
+    source: 'Product owner, 2026-11-19',
+    states: '*',
+    treatments: [{ kind: 'excise', local: '[data-visual-deviation="D-14"]', from: 'layout' }],
   },
 ];
 

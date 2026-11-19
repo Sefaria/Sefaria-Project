@@ -19,6 +19,7 @@ import json
 import logging
 from pathlib import Path
 from threading import Lock
+from urllib.parse import urlparse
 
 from django import template
 from django.conf import settings
@@ -37,15 +38,56 @@ PRERENDER_DIR = Path("prerender")
 PRERENDER_MANIFEST = PRERENDER_DIR / "manifest.json"
 DATA_ISLAND_ID = "dp-data"
 
-# The six primary links of the live header (research/site/SITE_ATLAS.md §2), for the fallback.
+# The primary links of the header (live's six, research/site/SITE_ATLAS.md §2, plus the gallery), for the fallback.
 HEADER_LINKS = (
     ("home", "Home", "/", False),
     ("docs", "Docs", "/docs", False),
     ("reference", "API Reference", "/reference", False),
+    ("gallery", "Projects Powered by Sefaria", "/powered-by", False),
     (None, "GitHub", "https://github.com/Sefaria/Sefaria-Project", True),
     (None, "Donate", "https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=HeaderDev", True),
     ("contact", "Get in Touch", "/page/contact-us", False),
 )
+
+
+# The other Sefaria sites the header links to (devportal-ui/src/shell/PortalHeader/headerLinks.ts PRODUCTION_SITE_LINKS),
+# as live links them. Another environment (a cauldron, a local server) links to its own, from DOMAIN_MODULES.
+PRODUCTION_SITE_LINKS = {
+    "library": "https://sefaria.org",
+    "voices": "https://voices.sefaria.org",
+    "developers": "https://developers.sefaria.org",
+}
+PRODUCTION_HOSTS = {"sefaria.org", "www.sefaria.org", "voices.sefaria.org", "developers.sefaria.org"}
+
+
+def site_links():
+    """{library, voices, developers}: this environment's addresses (DOMAIN_MODULES "en"), or production's as live
+    has them when the environment is production or does not configure the module."""
+    modules = (getattr(settings, "DOMAIN_MODULES", None) or {}).get("en") or {}
+    links = {}
+    for key, production in PRODUCTION_SITE_LINKS.items():
+        url = str(modules.get(key) or "").rstrip("/")
+        parsed = urlparse(url)
+        usable = parsed.scheme in ("http", "https") and parsed.hostname and parsed.hostname not in PRODUCTION_HOSTS
+        links[key] = url if usable else production
+    return links
+
+
+@register.simple_tag
+def devportal_site_links():
+    """The <html> attributes that hand site_links() to the header's script (headerLinks.ts siteLinks())."""
+    return format_html_join(" ", 'data-dp-{}-url="{}"', ((key, url) for key, url in site_links().items()))
+
+
+def localize_header(html):
+    """The prerendered header (built with production's addresses) with this environment's site links."""
+    links = site_links()
+    if links == PRODUCTION_SITE_LINKS:
+        return html
+    for key, production in PRODUCTION_SITE_LINKS.items():
+        html = html.replace(f'href="{production}"', str(format_html('href="{}"', links[key])))
+    library = PRODUCTION_SITE_LINKS["library"]
+    return html.replace(f'href="{library}/products"', str(format_html('href="{}/products"', links["library"])))
 
 
 def bundle_dir():
@@ -256,8 +298,10 @@ def devportal_header(payload, active_tab):
             token = (manifest.get("tokens") or {}).get("subnavLabel") or SUBNAV_LABEL_TOKEN
             html = html.replace(token, str(format_html("{}", payload["page"]["title"])))
     if html is None:
-        return devportal_prerendered("header", active_tab)
-    return mark_safe(html)  # noqa: S308 - our own build output; the only substitution is escaped
+        html = prerendered_html("header", key)
+        if html is None:
+            return devportal_prerendered("header", active_tab)
+    return mark_safe(localize_header(html))  # noqa: S308 - our own build output; the substitutions are escaped
 
 
 @register.simple_tag(takes_context=True)

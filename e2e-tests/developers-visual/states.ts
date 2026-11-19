@@ -699,6 +699,11 @@ export const STATES: readonly VisualState[] = [
     title: '/docs/powered-by-sefaria (HTML block)',
     path: '/docs/powered-by-sefaria',
     widths: ALL,
+    // Product owner, 2026-11-19: the page now redirects to the portal's gallery (/powered-by), so the portal has no
+    // page to compare with this baseline. HTML blocks stay covered by the Hebrew citation guide (P09).
+    excluded: Object.fromEntries(
+      ALL.map((w) => [w, 'The portal redirects this page to its gallery (/powered-by); P09 covers HTML blocks.'])
+    ) as Partial<Record<Width, string>>,
     regions: ['header', 'sidebar', 'headline', 'htmlBlock'],
     recipe: nothing,
   },

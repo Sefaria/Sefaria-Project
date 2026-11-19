@@ -155,7 +155,9 @@ def test_discord_buttons_in_hero_and_community_band(seeded):
     assert "dp-discord-button--secondary" in links[0][1]["class"]
     assert "dp-discord-button--primary" in links[1][1]["class"]
     assert tree.texts.count("Join our Discord") == 2
-    assert "to talk with other developers building on Sefaria." in tree.texts
+    # The community band: a heading, the body sentence without its link, then the button.
+    assert "Join the developer community" in tree.texts
+    assert "Talk with other developers building on Sefaria." in tree.texts
     assert len(tree.find(**{"data-visual-deviation": "D-10"})) == 2
     assert tree.find(**{"data-visual-region": "homeHero"})
     assert tree.find(**{"data-visual-region": "homeFooter"})

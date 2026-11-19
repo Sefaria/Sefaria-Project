@@ -97,27 +97,27 @@ test.describe('Developers Docs, English', () => {
 
   test('DEV-DOC-010: Prev/next follow the flattened sidebar order', async () => {
     const shell = pm.onDevelopersShell();
-    await shell.openPath('/docs/powered-by-sefaria');
+    await shell.openPath('/docs/linker');
     const order = await flattenedSidebarOrder(pm, 'docs');
-    const here = order.indexOf('/docs/powered-by-sefaria');
+    const here = order.indexOf('/docs/linker');
     const { previous, next } = await shell.prevNextLinks();
     expect(previous?.href).toBe(order[here - 1]);
-    expect(previous?.name).toBe("Previous Page: Welcome to Sefaria's Technical Documentation");
-    // The next page is the group's first child (Project Acceptance Criteria), not its next sibling.
+    expect(previous?.name).toBe('Previous Page: ElasticSearch Proxy API');
+    // The next page is the group's first child (Embed Linker v2), not its next sibling.
     expect(next?.href).toBe(order[here + 1]);
-    expect(next?.href).toBe('/docs/powered-by-sefaria-acceptance-criteria');
+    expect(next?.href).toBe('/docs/linker-v2');
   });
 
   // Live shows no prev/next on the welcome page (research/site/pages.json: "pagination": []), so start one later.
   test('DEV-DOC-011: Next goes to the next page and Previous comes back', async () => {
     const shell = pm.onDevelopersShell();
-    await shell.openPath('/docs/powered-by-sefaria');
+    await shell.openPath('/docs/linker');
     const { next } = await shell.prevNextLinks();
     expect(next).not.toBeNull();
     await shell.clickNext();
     await expect(page).toHaveURL(new RegExp(`${next!.href}$`), { timeout: t(15000) });
     await shell.clickPrevious();
-    await expect(page).toHaveURL(/\/docs\/powered-by-sefaria$/, { timeout: t(15000) });
+    await expect(page).toHaveURL(/\/docs\/linker$/, { timeout: t(15000) });
   });
 
   test('DEV-DOC-012: Prev/next skip external link items ("Sefaria GitHub")', async () => {

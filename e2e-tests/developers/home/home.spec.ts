@@ -107,7 +107,7 @@ test.describe('Developers Home, English', () => {
 
   test('DEV-HOME-013: The community band invites developers to Discord', async () => {
     expect(await pm.onDevelopersHome().communityBandText()).toBe(
-      'Join our Discord to talk with other developers building on Sefaria.'
+      'Join the developer community Talk with other developers building on Sefaria. Join our Discord'
     );
   });
 

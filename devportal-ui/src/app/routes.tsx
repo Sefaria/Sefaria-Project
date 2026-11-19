@@ -29,7 +29,7 @@ export function createRoutes(slots: PageSlots = PAGE_SLOTS, options: RouteOption
   const site = options.site ?? null;
   const gallery = createGalleryRoutes({
     // The gallery draws the portal header itself, between its skip link and its bar (PLAN §2.14 item 5).
-    header: <PortalHeader activeTab={null} />,
+    header: <PortalHeader activeTab="gallery" />,
     ga4Id: site?.ga4.gallery ?? null,
     // The shell renders the portal's one <ScrollRestoration>.
     scrollRestoration: false,

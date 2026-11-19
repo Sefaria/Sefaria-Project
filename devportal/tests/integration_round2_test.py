@@ -95,6 +95,9 @@ def test_pager_equals_live_on_every_docs_page(imported):  # noqa: ARG001
     mismatches = {}
     for entry in DOC_ENTRIES:
         path = _path(entry)
+        if path in pages.PAGE_ELSEWHERE:  # sent elsewhere on the portal on purpose (the gallery)
+            assert pages.resolve(path, ORIGIN)["kind"] == "redirect", path
+            continue
         payload = pages.resolve(path, ORIGIN)
         assert payload["kind"] == "doc", path
         expected = [{"t": link["t"], "h": unquote(link["h"])} for link in entry["pagination"]]

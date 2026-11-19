@@ -78,7 +78,8 @@ export const DOC_PAGES = {
   captionedImages: '/docs/the-disambiguator',
   table: '/docs/text-references',
   embeds: '/docs/sefaria-research-at-pyconn-2024',
-  htmlBlocks: '/docs/powered-by-sefaria',
+  // The Hebrew citation guide: /docs/powered-by-sefaria, which had the other HTML block, redirects to the gallery.
+  htmlBlocks: '/docs/איך-ליצור-מראי-מקורות-להפניה',
   hebrew: '/docs/איך-ליצור-מראי-מקורות-להפניה',
   hidden: '/docs/shape-api',
   deprecated: '/docs/linker-v2',

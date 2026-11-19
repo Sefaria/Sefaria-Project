@@ -37,10 +37,19 @@ def developers_url():
     return (url or DEFAULT_DEVELOPERS_URL).rstrip("/")
 
 
+def has_own_developer_portal():
+    """Whether this environment serves its own developer portal: a developers module whose host is not
+    production's (a cauldron, staging). Production's portal is ReadMe's until the cutover."""
+    domain_modules = getattr(settings, "DOMAIN_MODULES", None) or {}
+    url = domain_modules.get("en", {}).get(DEVELOPERS_MODULE)
+    return bool(url) and urlparse(url).hostname != urlparse(DEFAULT_DEVELOPERS_URL).hostname
+
+
 def powered_by_url():
     """The powered-by gallery's URL (`poweredByURL` prop): on the developer portal once
-    DEVPORTAL_CUTOVER_DONE is set, otherwise today's standalone site."""
-    if getattr(settings, "DEVPORTAL_CUTOVER_DONE", False):
+    DEVPORTAL_CUTOVER_DONE is set, or always in an environment with its own portal (a cauldron's /powered-by is that
+    cauldron's gallery); otherwise today's standalone site."""
+    if getattr(settings, "DEVPORTAL_CUTOVER_DONE", False) or has_own_developer_portal():
         return f"{developers_url()}/powered-by"
     return LEGACY_POWERED_BY_URL
 

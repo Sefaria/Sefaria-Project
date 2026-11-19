@@ -145,7 +145,7 @@ def test_missing_prerendered_file_falls_back_to_plain_markup(bundle, caplog):
     header = render('{% devportal_prerendered "header" tab %}', tab="reference")
     assert header.startswith('<header class="dp-header dp-header-fallback">')
     assert '<a href="/reference" aria-current="page">API Reference</a>' in header
-    assert header.count("<a ") == 7  # the logo and the six primary links
+    assert header.count("<a ") == 8  # the logo and the seven primary links
     assert "no prerendered header" in caplog.text
     no_tab = render('{% devportal_prerendered "header" tab %}', tab=None)
     assert "aria-current" not in no_tab
@@ -167,3 +167,52 @@ def test_data_island_is_json_script_with_the_nonce():
     body = html[html.index(">") + 1 : -len("</script>")]
     assert "<" not in body and ">" not in body and "&" not in body
     assert json.loads(body) == payload
+
+
+CAULDRON_MODULES = {
+    "en": {
+        "library": "https://www.rebuild.cauldron.sefaria.org",
+        "voices": "https://voices.rebuild.cauldron.sefaria.org",
+        "developers": "https://developers.rebuild.cauldron.sefaria.org",
+    }
+}
+PRODUCTION_MODULES = {
+    "en": {
+        "library": "https://www.sefaria.org",
+        "voices": "https://voices.sefaria.org",
+        "developers": "https://developers.sefaria.org",
+    }
+}
+HEADER_WITH_SITES = (
+    '<header><a href="https://sefaria.org">L</a><a href="https://voices.sefaria.org">V</a>'
+    '<a href="https://developers.sefaria.org">D</a><a href="https://sefaria.org/products">M</a></header>'
+)
+
+
+def test_site_links_are_this_environments_and_production_keeps_lives():
+    with override_settings(DOMAIN_MODULES=CAULDRON_MODULES):
+        assert devportal_assets.site_links() == {
+            "library": "https://www.rebuild.cauldron.sefaria.org",
+            "voices": "https://voices.rebuild.cauldron.sefaria.org",
+            "developers": "https://developers.rebuild.cauldron.sefaria.org",
+        }
+        assert render("{% devportal_site_links %}") == (
+            'data-dp-library-url="https://www.rebuild.cauldron.sefaria.org" '
+            'data-dp-voices-url="https://voices.rebuild.cauldron.sefaria.org" '
+            'data-dp-developers-url="https://developers.rebuild.cauldron.sefaria.org"'
+        )
+    for modules in (PRODUCTION_MODULES, {}, {"en": {"library": "javascript:alert(1)"}}):
+        with override_settings(DOMAIN_MODULES=modules):
+            assert devportal_assets.site_links() == devportal_assets.PRODUCTION_SITE_LINKS
+
+
+def test_prerendered_header_links_this_environments_sites(bundle):  # noqa: ARG001
+    with override_settings(DOMAIN_MODULES=CAULDRON_MODULES):
+        assert devportal_assets.localize_header(HEADER_WITH_SITES) == (
+            '<header><a href="https://www.rebuild.cauldron.sefaria.org">L</a>'
+            '<a href="https://voices.rebuild.cauldron.sefaria.org">V</a>'
+            '<a href="https://developers.rebuild.cauldron.sefaria.org">D</a>'
+            '<a href="https://www.rebuild.cauldron.sefaria.org/products">M</a></header>'
+        )
+    with override_settings(DOMAIN_MODULES=PRODUCTION_MODULES):
+        assert devportal_assets.localize_header(HEADER_WITH_SITES) == HEADER_WITH_SITES

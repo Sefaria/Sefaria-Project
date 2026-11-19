@@ -46,8 +46,14 @@ NOT_FOUND_TITLE = "404 Not Found"
 HOME_TITLE = "Sefaria"
 MAX_PATH = 2048
 
+# Docs pages whose content lives elsewhere on the portal: their sidebar entries link there, and the page's own
+# address redirects there. The Powered by Sefaria page only pointed to the gallery, which the portal now serves.
+# Its child pages, and its `.md`, stay as they are.
+PAGE_ELSEWHERE = {"/docs/powered-by-sefaria": "/powered-by"}
+
 # The built-in redirects of contract C9, in match order: (pattern, status, target template).
 BUILTIN_REDIRECTS = (
+    *((re.compile(f"^{re.escape(path)}/?$"), 302, target) for path, target in PAGE_ELSEWHERE.items()),
     (re.compile(r"^/docs$"), 301, "/docs/welcome"),
     (re.compile(r"^/docs/$"), 301, "/docs"),
     (re.compile(r"^/docs/getting-started$"), 301, "/docs/welcome"),
@@ -167,7 +173,9 @@ def _c3_item(node, ids):
         "id": ids.get((kind, node["slug"])),
         "kind": kind,
         "title": node["title"] or node["slug"],
-        "href": (node.get("link_url") or node["path"]) if kind == PageKind.LINK else node["path"],
+        "href": (node.get("link_url") or node["path"])
+        if kind == PageKind.LINK
+        else PAGE_ELSEWHERE.get(node["path"], node["path"]),
         "newTab": kind == PageKind.LINK and bool(node.get("new_tab")),
         "method": (node.get("method") or "get").lower() if kind == PageKind.ENDPOINT else None,
         "deprecated": bool(node.get("deprecated")),

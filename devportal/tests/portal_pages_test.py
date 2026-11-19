@@ -177,7 +177,7 @@ def test_html_page_embeds_the_payload_island_and_the_root(pages):
     html = response.content.decode()
     assert response.status_code == 200
     assert html.startswith("<!doctype html>")
-    assert '<html lang="en" dir="ltr" data-visual="html">' in html
+    assert '<html lang="en" dir="ltr" data-visual="html" data-dp-library-url=' in html
     assert "<title>Welcome to Sefaria&#x27;s Technical Documentation</title>" in html
     assert html.count('id="dp-root"') == 1 and html.count('id="dp-data"') == 1
     assert html.index('id="dp-root"') < html.index('id="dp-data"')

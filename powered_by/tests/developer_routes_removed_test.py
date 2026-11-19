@@ -81,9 +81,11 @@ def test_powered_by_goes_to_the_portal_gallery_after_cutover(path):
     assert redirect_for(path) == (301, "https://developers.sefaria.org/powered-by")
 
 
-@override_settings(DOMAIN_MODULES=CAULDRON, DEVPORTAL_CUTOVER_DONE=True)
-def test_powered_by_follows_the_configured_developers_host():
-    assert redirect_for("/powered-by") == (301, "https://developers.review.cauldron.sefaria.org/powered-by")
+@pytest.mark.parametrize("cutover", [False, True])
+def test_powered_by_follows_the_configured_developers_host(cutover):
+    # An environment with its own portal (a cauldron) sends /powered-by to its gallery, before the cutover too.
+    with override_settings(DOMAIN_MODULES=CAULDRON, DEVPORTAL_CUTOVER_DONE=cutover):
+        assert redirect_for("/powered-by") == (301, "https://developers.review.cauldron.sefaria.org/powered-by")
 
 
 @pytest.mark.parametrize("cutover", [False, True])

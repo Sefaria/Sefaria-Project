@@ -67,8 +67,15 @@
 </div>
 </section>
 {% endif %}
-<section class="dp-home__community" aria-label="Community" data-visual-deviation="D-10">
-<p class="dp-home__community-text"><a class="dp-discord-button dp-discord-button--primary" href="{{ discord.url }}" target="_blank" rel="noopener noreferrer" data-discord-cta="home_community">{{ discord.label }}</a> <span>{{ discord.body_after }}</span></p>
+<section class="dp-home__community" aria-labelledby="dp-home-community-title" data-visual-deviation="D-10">
+<div class="dp-home__community-card">
+<span class="dp-home__community-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" height="28" viewBox="0 -960 960 960" width="28" fill="currentColor" focusable="false"><path d="M280-240q-17 0-28.5-11.5T240-280v-80h520v-360h80q17 0 28.5 11.5T880-680v600L720-240H280ZM80-280v-560q0-17 11.5-28.5T120-880h520q17 0 28.5 11.5T680-840v360q0 17-11.5 28.5T640-440H240L80-280Zm520-240v-280H160v280h440Zm-440 0v-280 280Z"/></svg></span>
+<div class="dp-home__community-copy">
+<h2 class="dp-home__community-title" id="dp-home-community-title">{{ discord.heading }}</h2>
+<p class="dp-home__community-body">{{ discord.body }}</p>
+</div>
+<a class="dp-discord-button dp-discord-button--primary dp-home__community-button" href="{{ discord.url }}" target="_blank" rel="noopener noreferrer" data-discord-cta="home_community">{{ discord.label }}</a>
+</div>
 </section>
 <footer class="dp-home__newsletter" data-visual-region="homeFooter">
 <div class="dp-home__newsletter-container">

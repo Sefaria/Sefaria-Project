@@ -132,6 +132,21 @@
     border 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* A link with a short label shows it between 769 and 1279px (headerLinks.ts `shortLabel`). */
+.navLabelShort {
+  display: none;
+}
+
+@media (width <= 1279px) {
+  .navLabelFull {
+    display: none;
+  }
+
+  .navLabelShort {
+    display: inline;
+  }
+}
+
 .navLink:hover {
   border-color: rgb(255 255 255 / 10%);
   color: #fff;

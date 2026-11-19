@@ -19,3 +19,7 @@ devportal/contracts/fixtures/
 devportal/contracts/golden/
 # Visual-parity baselines and capture records (generated; byte-exact)
 e2e-tests/developers-visual/baselines/
+# Kept as master formats them: the API spec (the developer portal hashes its bytes) and the interface strings.
+# Prettier's JSON style would rewrite every line of them in any commit that stages them (a merge from master does).
+docs/openAPI.json
+static/js/sefaria/i18n/interface/*.json

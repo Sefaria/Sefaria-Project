@@ -614,19 +614,74 @@
   background-color: var(--surface-subtle);
 }
 
-.dp-home__community-text {
+/* A card: an icon, a heading with one line of copy, and the button at the end of the row. */
+.dp-home__community-card {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xlarge);
+  box-sizing: border-box;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--spacing-2xlarge) var(--spacing-3xlarge);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background-color: var(--surface-page);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 4%);
+}
+
+.dp-home__community-icon {
+  display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-small) var(--spacing-medium);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--surface-selected);
+  color: var(--action-primary);
+}
+
+.dp-home__community-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-xsmall);
+  min-width: 0;
+}
+
+.dp-home__community-title {
   margin: 0;
   color: var(--text-primary);
-  font: var(--text-en-system-body-regular);
+  font: var(--text-en-system-h3);
+  font-weight: 500;
+  line-height: 28px;
+}
 
-  /* Whole-pixel heights, so the band does not move the sections below it by a fraction of a pixel. */
+.dp-home__community-body {
+  margin: 0;
+  color: var(--text-secondary);
+  font: var(--text-en-system-body-regular);
   line-height: 24px;
-  text-align: center;
+}
+
+.dp-home__community-button {
+  flex-shrink: 0;
+}
+
+@media (width <= 640px) {
+  .dp-home__community {
+    padding: var(--spacing-2xlarge) var(--spacing-medium);
+  }
+
+  .dp-home__community-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--spacing-large);
+  }
+
+  .dp-home__community-button {
+    align-self: stretch;
+  }
 }
 
 /* ------------------------------------------------------------------ newsletter band and footer */

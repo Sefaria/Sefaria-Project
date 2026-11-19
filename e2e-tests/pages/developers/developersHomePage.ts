@@ -151,7 +151,7 @@ export class DevelopersHomePage extends HelperBase {
 
   /** The community band's heading and body text. */
   async communityBandText(): Promise<string> {
-    const band = this.main.getByRole('region', { name: 'Community' });
+    const band = this.main.getByRole('region', { name: 'Join the developer community' });
     await expect(band).toBeVisible({ timeout: t(10000) });
     return (await band.innerText()).replace(/\s+/g, ' ').trim();
   }

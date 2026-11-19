@@ -38,6 +38,16 @@ DISCORD_STRINGS = {
     DISCORD_BODY_KEY: "{join_discord_link} to talk with other developers building on Sefaria.",
 }
 DISCORD_LINK_PLACEHOLDER = "{join_discord_link}"
+COMMUNITY_HEADING = "Join the developer community"
+
+
+def community_body(after):
+    """The body sentence's text after the link as a sentence of its own: "to talk with …" -> "Talk with …"."""
+    text = after.strip()
+    if text.lower().startswith("to "):
+        text = text[3:]
+    return text[:1].upper() + text[1:]
+
 
 # The carousel's "All Sefaria-Powered Projects" button: the gallery now lives on this host (PLAN Phase 5).
 GALLERY_PATH = "/powered-by"
@@ -135,6 +145,9 @@ def home_context():
             "label": label,
             "body_before": before.strip(),
             "body_after": after.strip(),
+            # The homepage's community band: a heading, the body sentence without its link, and the button.
+            "heading": COMMUNITY_HEADING,
+            "body": community_body(after),
         },
         "gallery_path": GALLERY_PATH,
         "newsletter_url": NEWSLETTER_URL,

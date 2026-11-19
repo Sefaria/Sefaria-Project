@@ -3,6 +3,11 @@
   "origin": "https://developers.sefaria.org",
   "recordedAt": "2026-11-18T17:23:15Z",
   "deviations": {
+    "/docs/powered-by-sefaria": {
+      "status": 302,
+      "location": "/powered-by",
+      "reason": "The page only pointed to the Powered by Sefaria gallery, which the portal serves at /powered-by (product owner, 2026-11-19)."
+    },
     "/llms-full.txt": {
       "status": 200,
       "location": null,

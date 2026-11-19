@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import { afterEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 import type { HeaderTab } from '../../contracts';
@@ -12,10 +13,16 @@ const PRIMARY = [
   ['Home', '/', null],
   ['Docs', '/docs', null],
   ['API Reference', '/reference', null],
+  ['Projects Powered by Sefaria', '/powered-by', null],
   ['GitHub', 'https://github.com/Sefaria/Sefaria-Project', '_blank'],
   ['Donate', 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=HeaderDev', '_blank'],
   ['Get in Touch', '/page/contact-us', null],
 ] as const;
+
+/** A link's name: its aria-label (a link with a short label carries the full one there), else its text. */
+function accessibleName(link: HTMLElement) {
+  return link.getAttribute('aria-label') ?? link.textContent;
+}
 
 function primaryNav() {
   return screen.getByRole('navigation', { name: 'Primary navigation' });
@@ -37,10 +44,10 @@ describe('PortalHeader', () => {
     expect(logos[0]).toHaveAttribute('src', '/logo-developers-on-sefaria-white.svg');
   });
 
-  it("has live's six primary links with their targets", () => {
+  it("has live's six primary links, plus the gallery, with their targets", () => {
     render(<PortalHeader activeTab={null} />);
     const links = within(primaryNav()).getAllByRole('link');
-    expect(links.map((link) => link.textContent)).toEqual(PRIMARY.map(([label]) => label));
+    expect(links.map(accessibleName)).toEqual(PRIMARY.map(([label]) => label));
     for (const [label, href, target] of PRIMARY) {
       const link = within(primaryNav()).getByRole('link', { name: label });
       expect(link).toHaveAttribute('href', href);
@@ -57,13 +64,14 @@ describe('PortalHeader', () => {
     ['home', 'Home'],
     ['docs', 'Docs'],
     ['reference', 'API Reference'],
+    ['gallery', 'Projects Powered by Sefaria'],
     ['contact', 'Get in Touch'],
   ] as const)('marks the %s tab active', (tab, label) => {
     render(<PortalHeader activeTab={tab} />);
     const current = within(primaryNav())
       .getAllByRole('link')
       .filter((link) => link.getAttribute('aria-current') === 'page');
-    expect(current.map((link) => link.textContent)).toEqual([label]);
+    expect(current.map(accessibleName)).toEqual([label]);
   });
 
   it('marks no tab active when there is none', () => {
@@ -167,11 +175,51 @@ describe('PortalHeader', () => {
     });
   });
 
+  describe("this environment's sites", () => {
+    const html = document.documentElement;
+    afterEach(() => {
+      delete html.dataset.dpLibraryUrl;
+      delete html.dataset.dpVoicesUrl;
+      delete html.dataset.dpDevelopersUrl;
+    });
+
+    it('links the menu and the drawer to the addresses Django puts on <html>', async () => {
+      html.dataset.dpLibraryUrl = 'https://www.rebuild.cauldron.sefaria.org';
+      html.dataset.dpVoicesUrl = 'https://voices.rebuild.cauldron.sefaria.org';
+      html.dataset.dpDevelopersUrl = 'https://developers.rebuild.cauldron.sefaria.org';
+      const user = userEvent.setup();
+      render(<PortalHeader activeTab={null} />);
+      await user.click(screen.getByRole('button', { name: 'Toggle navigation menu' }));
+      expect(screen.getByRole('link', { name: 'Sefaria Library' })).toHaveAttribute(
+        'href',
+        'https://www.rebuild.cauldron.sefaria.org'
+      );
+      expect(screen.getByRole('link', { name: 'Voices on Sefaria' })).toHaveAttribute(
+        'href',
+        'https://voices.rebuild.cauldron.sefaria.org'
+      );
+      await user.click(screen.getByRole('button', { name: 'Toggle navigation menu' }));
+      await user.click(screen.getByRole('button', { name: /links/i }));
+      const menu = screen.getByRole('dialog', { name: 'Links menu' });
+      expect(
+        within(menu)
+          .getAllByRole('link')
+          .map((link) => link.getAttribute('href'))
+      ).toEqual([
+        'https://www.rebuild.cauldron.sefaria.org',
+        'https://voices.rebuild.cauldron.sefaria.org',
+        'https://developers.rebuild.cauldron.sefaria.org',
+        'https://www.rebuild.cauldron.sefaria.org/products',
+      ]);
+    });
+  });
+
   describe('mobile drawer', () => {
     const DRAWER = [
       ['Home', '/', null],
       ['Docs', '/docs', null],
       ['API Reference', '/reference', null],
+      ['Projects Powered by Sefaria', '/powered-by', null],
       ['GitHub', 'https://github.com/Sefaria/Sefaria-Project', '_blank'],
       ['Donate', 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=HeaderDev', '_blank'],
       ['Get in Touch', '/page/contact-us', null],
@@ -179,7 +227,7 @@ describe('PortalHeader', () => {
       ['Voices on Sefaria', 'https://voices.sefaria.org', '_blank'],
     ] as const;
 
-    it('toggles the drawer with its eight links and the logo, marking the active tab', async () => {
+    it('toggles the drawer with its nine links and the logo, marking the active tab', async () => {
       const user = userEvent.setup();
       const { container } = render(<PortalHeader activeTab="reference" />);
       const toggle = screen.getByRole('button', { name: 'Toggle navigation menu' });
@@ -195,7 +243,7 @@ describe('PortalHeader', () => {
         ...DRAWER,
         ['', '/', null],
       ]);
-      expect(within(links[8]!).getByRole('img', { name: 'Developers on Sefaria' })).toBeInTheDocument();
+      expect(within(links[9]!).getByRole('img', { name: 'Developers on Sefaria' })).toBeInTheDocument();
       expect(within(drawer).getByRole('link', { name: 'API Reference' })).toHaveAttribute('aria-current', 'page');
       expect(await axe(container)).toHaveNoViolations();
 

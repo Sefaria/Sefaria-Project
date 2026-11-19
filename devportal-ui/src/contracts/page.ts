@@ -14,7 +14,7 @@ import type {
 import type { SidebarTree } from './nav';
 
 /** Header tab shown as active. `contact` is "Get in Touch" (`/page/contact-us`). */
-export type HeaderTab = 'home' | 'docs' | 'reference' | 'contact';
+export type HeaderTab = 'home' | 'docs' | 'reference' | 'gallery' | 'contact';
 
 /** Site-wide settings the browser needs. Same on every page of one deploy. */
 export interface SiteConfig {

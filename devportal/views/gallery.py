@@ -240,7 +240,7 @@ def gallery_payload(
             "canonicalUrl": f"{_origin(request)}{canonical_path}",
             "markdownUrl": None,
         },
-        "header": {"activeTab": None},
+        "header": {"activeTab": "gallery"},
         "site": _site(request),
         "kind": "gallery",
         "view": view,

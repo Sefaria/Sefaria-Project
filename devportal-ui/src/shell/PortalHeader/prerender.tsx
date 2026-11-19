@@ -5,10 +5,17 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import type { PortalHeaderTab } from './headerLinks';
 import { NOT_FOUND_SECTION_LABEL, NOT_FOUND_SUBNAV_LABEL, PortalHeader } from './PortalHeader';
 
-/** Manifest key for a page with no active tab (the 404 page, the gallery, the editor). */
+/** Manifest key for a page with no active tab (the 404 page, the editor). */
 export const NO_TAB = 'none';
 export type HeaderVariantKey = PortalHeaderTab | typeof NO_TAB;
-export const HEADER_VARIANT_KEYS: readonly HeaderVariantKey[] = ['home', 'docs', 'reference', 'contact', NO_TAB];
+export const HEADER_VARIANT_KEYS: readonly HeaderVariantKey[] = [
+  'home',
+  'docs',
+  'reference',
+  'gallery',
+  'contact',
+  NO_TAB,
+];
 
 /**
  * Placeholder for the page title in the `-subnav` variants (pages with a sidebar show the ≤768px sub-nav

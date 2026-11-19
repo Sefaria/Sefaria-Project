@@ -1,10 +1,19 @@
 import { test, expect, Page } from '@playwright/test';
 import { t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
+import { MODULE_URLS } from '../../constants';
 import { DOC_PAGES, enterPortal, stubExternalSites } from '../developers-entry';
 
-// The header copies live's (C6 "Header"; SITE_ATLAS §2): six links in live's order and targets,
-// the active tab, the links menu, the search field's key hint and the skip link.
+// The header copies live's (C6 "Header"; SITE_ATLAS §2): six links in live's order and targets, plus the
+// Powered by Sefaria gallery (D-14), the active tab, the links menu, the search field's key hint and the skip link.
+
+const PRODUCTION_HOSTS = new Set(['sefaria.org', 'www.sefaria.org', 'voices.sefaria.org', 'developers.sefaria.org']);
+
+/** A links-menu address: this environment's module URL, or live's address in production (devportal_assets.site_links). */
+function siteLink(moduleUrl: string, production: string): string {
+  const url = new URL(moduleUrl);
+  return PRODUCTION_HOSTS.has(url.hostname) ? production : url.origin;
+}
 test.describe('Developers Shell, English', () => {
   let page: Page;
   let pm: PageManager;
@@ -13,11 +22,12 @@ test.describe('Developers Shell, English', () => {
     ({ page, pm } = await enterPortal(context, DOC_PAGES.welcome));
   });
 
-  test("DEV-HDR-001: The primary navigation lists live's six links in order", async () => {
+  test("DEV-HDR-001: The primary navigation lists live's six links in order, with the gallery after API Reference", async () => {
     expect(await pm.onDevelopersShell().headerLinkNames()).toEqual([
       'Home',
       'Docs',
       'API Reference',
+      'Projects Powered by Sefaria',
       'GitHub',
       'Donate',
       'Get in Touch',
@@ -96,12 +106,21 @@ test.describe('Developers Shell, English', () => {
       'Developers',
       'More from Sefaria ›',
     ]);
-    expect(items.map((i) => i.href)).toEqual([
-      'https://sefaria.org',
-      'https://voices.sefaria.org',
+    // This environment's sites, which the server puts on <html> (a cauldron links to its own Library and Voices),
+    // each either live's address or this environment's module URL.
+    const sites = await page.evaluate(() => ({ ...document.documentElement.dataset }));
+    const library = sites.dpLibraryUrl ?? 'https://sefaria.org';
+    const voices = sites.dpVoicesUrl ?? 'https://voices.sefaria.org';
+    const developers = sites.dpDevelopersUrl ?? 'https://developers.sefaria.org';
+    expect(items.map((i) => i.href)).toEqual([library, voices, developers, `${library}/products`]);
+    expect(['https://sefaria.org', siteLink(MODULE_URLS.EN.LIBRARY, 'https://sefaria.org')]).toContain(library);
+    expect(['https://voices.sefaria.org', siteLink(MODULE_URLS.EN.VOICES, 'https://voices.sefaria.org')]).toContain(
+      voices
+    );
+    expect([
       'https://developers.sefaria.org',
-      'https://sefaria.org/products',
-    ]);
+      siteLink(MODULE_URLS.EN.DEVELOPERS, 'https://developers.sefaria.org'),
+    ]).toContain(developers);
   });
 
   test('DEV-HDR-010: The links menu closes with Escape', async () => {
@@ -147,6 +166,7 @@ test.describe('Developers Shell, English', () => {
         'Home',
         'Docs',
         'API Reference',
+        'Projects Powered by Sefaria',
         'GitHub',
         'Donate',
         'Get in Touch',
@@ -165,12 +185,13 @@ test.describe('Developers Shell, English (768px)', () => {
     ({ pm } = await enterPortal(context, DOC_PAGES.welcome));
   });
 
-  test('DEV-HDR-016: The drawer lists the six links, the two products and the logo', async () => {
+  test('DEV-HDR-016: The drawer lists the seven links, the two products and the logo', async () => {
     const names = await pm.onDevelopersShell().openMobileNav();
     expect(names).toEqual([
       'Home',
       'Docs',
       'API Reference',
+      'Projects Powered by Sefaria',
       'GitHub',
       'Donate',
       'Get in Touch',

@@ -31,7 +31,8 @@ import Input from './common/Input.jsx';
 
 const KEY_SETUP_MS = 4000;
 
-const API_DOCS_URL = 'https://developers.sefaria.org/reference/getting-started';
+// The developer portal of this environment (Sefaria.developersURL: developers.sefaria.org in production).
+const apiDocsURL = () => `${Sefaria.developersURL || 'https://developers.sefaria.org'}/reference/getting-started`;
 const LIBRARY_EXPORT_URL = 'https://github.com/Sefaria/Sefaria-Export';
 const CONTACT_EMAIL = 'hello@sefaria.org';
 const API_TERMS_URL = '/api-terms';
@@ -428,7 +429,7 @@ const AgentInstructions = () => (
       Sefaria library is free to download, with no key, from
       {' ' + LIBRARY_EXPORT_URL}. Suggest it before planning many API calls.
     </p>
-    <p>API documentation: {API_DOCS_URL}</p>
+    <p>API documentation: {apiDocsURL()}</p>
   </div>
 );
 
@@ -2660,7 +2661,7 @@ const DeveloperTab = ({
             />
           </p>
         </div>
-        <a className="devPocDocsLink" href={API_DOCS_URL} target="_blank" rel="noreferrer">
+        <a className="devPocDocsLink" href={apiDocsURL()} target="_blank" rel="noreferrer">
           <InterfaceText text={{ en: 'API documentation', he: 'תיעוד ה־API' }} />
           <ExternalIcon />
         </a>

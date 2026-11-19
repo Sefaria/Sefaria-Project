@@ -146,6 +146,20 @@ def test_q2_powered_by_url_moves_to_the_portal_at_cutover():
     assert dl.powered_by_url() == "https://developers.sefaria.org/powered-by"
 
 
+@override_settings(
+    DOMAIN_MODULES={
+        "en": {
+            "library": "https://www.rebuild.cauldron.sefaria.org",
+            "developers": "https://developers.rebuild.cauldron.sefaria.org",
+        }
+    },
+    DEVPORTAL_CUTOVER_DONE=False,
+)
+def test_q2_an_environment_with_its_own_portal_links_its_gallery_before_cutover():
+    assert dl.has_own_developer_portal()
+    assert dl.powered_by_url() == "https://developers.rebuild.cauldron.sefaria.org/powered-by"
+
+
 @override_settings(DOMAIN_MODULES={"en": {"library": "http://localhost:8000"}}, DEVPORTAL_CUTOVER_DONE=True)
 def test_q2_developers_url_defaults_to_production_when_not_configured():
     assert dl.developers_url() == "https://developers.sefaria.org"
