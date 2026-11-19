@@ -176,6 +176,12 @@ def test_gallery_category_leaves_anything_else_as_it_is():
     assert answers.gallery_category(None) is None
 
 
+def test_gallery_reach_spells_out_proof_of_concept():
+    assert answers.gallery_reach("poc") == "None, it's mostly a proof of concept"
+    assert answers.gallery_reach("100") == "100"
+    assert answers.gallery_reach("") == ""
+
+
 @pytest.mark.django_db
 def test_contents_shows_category_labels_and_keeps_the_stored_ids():
     project = Project.objects.create(
@@ -183,7 +189,9 @@ def test_contents_shows_category_labels_and_keeps_the_stored_ids():
         project_link="https://ids.example.com",
         submission_source="developer_settings",
         project_category="learning,visualization",
+        project_reach="poc",
     )
+    assert project.contents()["project_reach"] == "None, it's mostly a proof of concept"
     assert project.contents()["project_category"] == "Learning & Study Tools, Visualization & Data Analysis"
     assert project.contents(authenticated=True)["project_category"] == (
         "Learning & Study Tools, Visualization & Data Analysis"

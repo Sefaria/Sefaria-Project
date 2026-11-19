@@ -165,6 +165,11 @@ def gallery_category(value):
     return ", ".join(GALLERY_CATEGORY_LABELS[token] for token in tokens)
 
 
+def gallery_reach(value):
+    """project_reach as the public gallery shows it. The external site finds "Proof of concept" by those words."""
+    return "None, it's mostly a proof of concept" if value == "poc" else value
+
+
 def append_notes(notes, lines, heading):
     """Staff notes with the note lines added under a heading; the notes unchanged when there are none."""
     if not lines:
