@@ -6619,14 +6619,6 @@ big {
     top: 47px;
     left: -50px;
 }
-/* Touch screens: a tap leaves :hover stuck on whatever ends up under the finger (e.g. after the
-   mobile Resources panel closes), so the Text display options tooltip would pop up. Mouse only. */
-@media (hover: none) {
-  .readerOptionsTooltip.tooltip-toggle::before,
-  .readerOptionsTooltip.tooltip-toggle::after {
-    display: none;
-  }
-}
 .rightButtons .readerOptions {
   vertical-align: middle;
 }
@@ -7869,64 +7861,8 @@ But not to use a display block directive that might break continuous mode for ot
   vertical-align: middle;
   margin-top: -2px;
 }
-/* Mobile web Resources panel: close button + drag-down-to-close (ConnectionsPanelHeader, sefaria/panelDrag.js).
-   The header is the drag handle; the grabber bar matches the Library Assistant's phone sheet.
+/* Mobile web Resources panel: close button (ConnectionsPanelHeader).
    Colors and sizes are Sefaria/design-system semantic tokens (static/design-system/semantic.css). */
-.singlePanel .readerControls.connectionsHeader {
-  touch-action: pan-x; /* vertical moves are the drag; the filter row still scrolls sideways */
-  user-select: none;
-  -webkit-user-select: none;
-}
-.connectionsPanelGrabber {
-  /* A button: tap to fill the page or go back to half height. 48x24 hit area (WCAG 2.5.8);
-     taller would cover the title. */
-  position: absolute;
-  top: 0;
-  left: 50%; /* physical, so translateX centres it in RTL too */
-  transform: translateX(-50%);
-  width: 48px;
-  height: 24px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: var(--spacing-xsmall) 0 0; /* bar sits close to the edge, so it doesn't crowd the title */
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  cursor: grab;
-  -webkit-tap-highlight-color: transparent;
-}
-.connectionsPanelGrabberBar {
-  display: block;
-  width: 36px; /* no size token for a grabber: Library Assistant's 36x5 */
-  height: 5px;
-  border-radius: 3px;
-  background-color: var(--icon-disabled); /* trying: lighter than --icon-muted */
-}
-.connectionsPanelGrabber:active .connectionsPanelGrabberBar {
-  background-color: var(--icon-muted);
-}
-@media (hover: hover) {
-  .connectionsPanelGrabber:hover .connectionsPanelGrabberBar {
-    background-color: var(--icon-muted);
-  }
-}
-.connectionsPanelGrabber:focus-visible {
-  outline: var(--border-width-thick) solid var(--border-strong);
-  outline-offset: calc(-1 * var(--border-width-thick));
-}
-/* Dragged up or tapped open: the panel fills the page */
-.readerApp.singlePanel .textList.singlePanel.expanded {
-  height: 100vh;
-  height: 100dvh;
-}
-/* Title and back link in the mobile header */
-.singlePanel .readerControls.connectionsHeader .connectionsHeaderTitle {
-  color: var(--text-secondary);
-}
-.dark .singlePanel .readerControls.connectionsHeader .connectionsHeaderTitle {
-  color: var(--light-grey);
-}
 /* Only the category filter row is long enough to run under the close button; padding the whole
    header instead would push the centered "Resources" title off center */
 .singlePanel .connectionsHeader .recentFilterSet.topFilters {
@@ -7970,12 +7906,6 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .dark .connectionsPanelClose {
   color: var(--light-grey);
-}
-/* While dragged, the panel lifts off the text: rounded top and an upward shadow */
-.textList.singlePanel.panelLifted {
-  border-radius: 6px 6px 0 0;
-  overflow: hidden;
-  box-shadow: 0 -1px 3px rgb(0 0 0 / 0.08), 0 -8px 32px rgb(0 0 0 / 0.22);
 }
 .connectionsPanel .flashMessage {
   font-size: 18px;

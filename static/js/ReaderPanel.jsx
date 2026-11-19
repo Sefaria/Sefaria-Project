@@ -56,7 +56,6 @@ class ReaderPanel extends Component {
       backButtonSettings: null,
       data: null,
       forceGuideOverlay: false,
-      connectionsExpanded: false, // mobile web: Resources panel dragged up to fill the page
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -104,10 +103,6 @@ class ReaderPanel extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
-    }
-    if (this.state.connectionsExpanded && this.state.mode !== 'TextAndConnections') {
-      // The Resources panel closed some other way (Back, a link): it reopens at half height
-      this.setState({ connectionsExpanded: false });
     }
     if ($('*:focus').length == 0 && this.props.multiPanel && $('body').hasClass('user-is-tabbing')) {
       const curPanel = $('.readerPanel')[$('.readerPanel').length - 1];
@@ -269,10 +264,6 @@ class ReaderPanel extends Component {
   closeConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({ highlightedRefs: [], mode: 'Text' });
-  }
-  setConnectionsExpanded(expanded) {
-    // UI only, so not through conditionalSetState: it isn't part of the URL or history
-    this.setState({ connectionsExpanded: expanded });
   }
   handleSheetClick(sheet, highlightedNode, highlightedRefsInSheet) {
     this.conditionalSetState({
@@ -925,8 +916,6 @@ class ReaderPanel extends Component {
           setWebPagesFilter={this.setWebPagesFilter}
           nodeRef={this.state.nodeRef}
           closeConectionsInPanel={this.closeConnectionsInPanel}
-          connectionsExpanded={this.state.connectionsExpanded}
-          setConnectionsExpanded={this.setConnectionsExpanded}
           handleSheetClick={this.handleSheetClick}
           openNav={this.openMenu.bind(null, 'navigation')}
           editNote={this.editNote}
