@@ -8,10 +8,13 @@ import { NotesList } from './NoteListing';
 import { SheetBlock, TextPassage } from './Story';
 import { LanguageToggleButton, LoadingMessage, InterfaceText } from './Misc';
 import Util from './sefaria/util';
+import { CurrentlyLearningHistory } from './CurrentlyLearning';
 
 const UserHistoryPanel = ({ menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal }) => {
   const [notes, setNotes] = useState(null);
+  const [historyView, setHistoryView] = useState('books'); // Currently Learning POC: 'books' | 'activity'
   const contentRef = useRef();
+  const showBooksToggle = menuOpen === 'history' && Sefaria.activeModule === 'library' && !!Sefaria._uid;
 
   useEffect(() => {
     if (menuOpen === 'notes' && Sefaria.activeModule === 'library') {
@@ -40,7 +43,7 @@ const UserHistoryPanel = ({ menuOpen, toggleLanguage, openDisplaySettings, openN
         className={'navTitleTab' + (menuOpen === 'saved' ? ' current' : '')}
         onKeyDown={(e) => Util.handleKeyboardClick(e)}
       >
-        <img src="/static/icons/bookmark.svg" alt={Sefaria._('common.saved')} />
+        <img src="/static/icons/lucide_star.svg" alt={Sefaria._('common.saved')} />
         <InterfaceText>common.saved</InterfaceText>
       </a>
       <a
@@ -49,7 +52,7 @@ const UserHistoryPanel = ({ menuOpen, toggleLanguage, openDisplaySettings, openN
         data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
         onKeyDown={(e) => Util.handleKeyboardClick(e)}
       >
-        <img src="/static/icons/clock.svg" alt={Sefaria._('common.history')} />
+        <img src="/static/icons/currently_learning_mdl.svg" alt={Sefaria._('common.history')} />
         <InterfaceText>common.history</InterfaceText>
       </a>
       {Sefaria.activeModule === 'library' && (
@@ -80,8 +83,28 @@ const UserHistoryPanel = ({ menuOpen, toggleLanguage, openDisplaySettings, openN
                 <LanguageToggleButton toggleLanguage={toggleLanguage} />
               )}
             </div>
+            {showBooksToggle && (
+              <div className="clViewToggle" role="group" aria-label={Sefaria._('common.history')}>
+                {[
+                  ['books', 'currently_learning.books'],
+                  ['activity', 'currently_learning.all_activity'],
+                ].map(([view, label]) => (
+                  <button
+                    key={view}
+                    type="button"
+                    className={'clViewToggleButton' + (historyView === view ? ' current' : '')}
+                    aria-pressed={historyView === view}
+                    onClick={() => setHistoryView(view)}
+                  >
+                    <InterfaceText>{label}</InterfaceText>
+                  </button>
+                ))}
+              </div>
+            )}
             {menuOpen === 'notes' ? (
               <NotesList notes={notes} onDeleteNote={(noteId) => setNotes(notes.filter((n) => n._id !== noteId))} />
+            ) : showBooksToggle && historyView === 'books' ? (
+              <CurrentlyLearningHistory />
             ) : (
               <UserHistoryList
                 store={store}

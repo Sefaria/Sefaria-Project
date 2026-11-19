@@ -23,6 +23,7 @@ import {
 import Util from './sefaria/util';
 import Button from './common/Button';
 import LibraryAssistantStar from './LibraryAssistantStar';
+import { CurrentlyLearningHeaderDropdown, CurrentlyLearningMobileButton } from './CurrentlyLearning';
 
 // The "✦ Library Assistant" pill in the header, just before search: opens the assistant widget
 const LibraryAssistantHeaderLink = () => {
@@ -306,7 +307,7 @@ const Header = (props) => {
   const librarySavedIcon = (
     <Button
       variant="icon-only"
-      icon="bookmarkset_outline_mdl"
+      icon="lucide_star_mdl"
       ariaLabel={Sefaria._('Saved items')}
       href="/saved"
       targetModule={Sefaria.LIBRARY_MODULE}
@@ -377,6 +378,8 @@ const Header = (props) => {
 
           {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : voicesNotificationIcon)}
 
+          {props.module === Sefaria.LIBRARY_MODULE && <CurrentlyLearningHeaderDropdown />}
+
           <ModuleSwitcher />
 
           {Sefaria._uid ? (
@@ -404,13 +407,14 @@ const Header = (props) => {
 
       <div className="mobileHeaderCenter">{Sefaria._siteSettings.TORAH_SPECIFIC && logo}</div>
 
-      {hasLanguageToggle ? (
-        <div className={props.firstPanel?.settings?.language + ' mobileHeaderLanguageToggle'}>
-          <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
-        </div>
-      ) : (
-        <div></div>
-      )}
+      <div className="mobileHeaderRight">
+        {hasLanguageToggle && (
+          <div className={props.firstPanel?.settings?.language + ' mobileHeaderLanguageToggle'}>
+            <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
+          </div>
+        )}
+        {props.module === Sefaria.LIBRARY_MODULE && <CurrentlyLearningMobileButton />}
+      </div>
     </>
   );
 
@@ -580,7 +584,7 @@ const MobileNavMenu = ({
               <>
                 <Button
                   variant="secondary"
-                  icon="bookmarkset_outline_mdl"
+                  icon="lucide_star_mdl"
                   alt={Sefaria._('header.bookmarks')}
                   href="/saved"
                   onClick={close}
@@ -600,7 +604,7 @@ const MobileNavMenu = ({
                 </a>
                 <Button
                   variant="secondary"
-                  icon="bookmarkset_outline_mdl"
+                  icon="lucide_star_mdl"
                   alt={Sefaria._('header.bookmarks')}
                   href="/saved"
                   onClick={close}

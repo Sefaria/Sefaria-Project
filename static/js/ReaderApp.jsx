@@ -44,6 +44,8 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import { io } from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import { MergeHistoryModal, WelcomeBackPrompt, FirstVisitPrompt } from './CurrentlyLearning';
+import { firstVisitShown, markFirstVisitShown, shouldShowFirstVisit } from './sefaria/currentlyLearning';
 import { shouldUseEditor } from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import AuthPage from './auth/AuthPage';
@@ -153,6 +155,7 @@ class ReaderApp extends Component {
       authSource: null,
     };
   }
+  closeFirstVisit = () => this.setState({ firstVisit: null });
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
   };
@@ -267,6 +270,12 @@ class ReaderApp extends Component {
 
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
+    // Currently Learning POC: move legacy cookie history to localStorage, then offer/merge device history.
+    Sefaria.initDeviceHistory();
+    if (!this.showCurrentlyLearningDemo()) {
+      this.maybeMergeDeviceHistory();
+      this.maybeWelcomeBack(); // must run before this visit's first save overwrites the saved place
+    }
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     if (Sefaria._uid) {
@@ -293,6 +302,7 @@ class ReaderApp extends Component {
     }
   }
   componentWillUnmount() {
+    clearTimeout(this._firstVisitTimer);
     window.removeEventListener('popstate', this.handlePopState);
     window.removeEventListener('resize', this.setPanelCap);
     window.removeEventListener('beforeprint', this.handlePrint);
@@ -1068,14 +1078,72 @@ class ReaderApp extends Component {
   checkPanelScrollIntentAndSaveRecent(state, n) {
     // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
     this.panelScrollIntentTimer = this.panelScrollIntentTimer || [];
-    this.panelScrollIntentTimer[n] = this.checkIntentTimer(this.panelScrollIntentTimer[n], () => {
-      if (!this.didPanelRefChange(state, this.state.panels[n])) {
-        //const ref  = (state.highlightedRefs && state.highlightedRefs.length) ? Sefaria.normRef(state.highlightedRefs) : (state.currentlyVisibleRef || state.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
-        //console.log("Firing last viewed " + ref + " in panel " + n);
-        this.saveLastPlace(this.state.panels[n], n);
-      }
-      this.panelScrollIntentTimer[n] = null;
-    });
+    this.panelScrollIntentTimer[n] = this.checkIntentTimer(
+      this.panelScrollIntentTimer[n],
+      () => {
+        if (!this.didPanelRefChange(state, this.state.panels[n])) {
+          this.saveLastPlace(this.state.panels[n], n);
+        }
+        this.panelScrollIntentTimer[n] = null;
+      },
+      this.historySaveDelay()
+    );
+  }
+  showCurrentlyLearningDemo() {
+    // POC only: ?clDemo=first|welcome|merge forces a prompt open, for reviewing them without the real triggers.
+    // The reader rewrites the URL before mount and drops unknown params, so read the URL the page loaded with.
+    const loadedUrl =
+      typeof window === 'undefined'
+        ? null
+        : window.performance?.getEntriesByType?.('navigation')?.[0]?.name || window.location.href;
+    const demo = loadedUrl && new URL(loadedUrl).searchParams.get('clDemo');
+    if (!['first', 'welcome', 'merge'].includes(demo)) return false;
+    this._clDemo = demo;
+    this._firstVisitDone = true; // keep the real first-visit trigger out of the way
+    const panel = this.state.panels[0];
+    const inText = panel && panel.refs && panel.refs.length && panel.mode !== 'Sheet';
+    const here = inText ? this.getHistoryObject(panel, false) : null;
+    const now = Math.floor(Date.now() / 1000);
+    if (demo === 'first' && here) {
+      this.setState({ firstVisit: here });
+    } else if (demo === 'welcome' && here) {
+      const saved = Sefaria.savedPlaceForBook(here.book);
+      const fallback = { ...here, ref: `${here.book} 1:1`, he_ref: null, time_stamp: now - 7200 };
+      this.setState({ welcomeBack: saved && saved.ref !== here.ref ? saved : fallback });
+    } else if (demo === 'merge') {
+      const books = Sefaria.deviceHistoryBooks();
+      const sample = [
+        { book: 'Pirkei Avot', ref: 'Pirkei Avot 2:4', he_ref: 'משנה אבות ב׳:ד׳', time_stamp: now - 3600 },
+        { book: 'Genesis', ref: 'Genesis 18:3', he_ref: 'בראשית י״ח:ג׳', time_stamp: now - 86400 },
+      ];
+      this.setState({ mergeHistoryBooks: books.length ? books : sample });
+    }
+    return true;
+  }
+  maybeMergeDeviceHistory() {
+    if (!Sefaria._uid || !Sefaria.is_history_enabled) return;
+    const books = Sefaria.deviceHistoryBooks();
+    if (!books.length) return;
+    if (Sefaria.history_merge_mode === 'auto') {
+      // Just signed up: everything read on this device comes along.
+      Sefaria.mergeDeviceHistory().then(() => Sefaria._notifyCurrentlyLearning());
+    } else {
+      this.setState({ mergeHistoryBooks: books });
+    }
+  }
+  maybeWelcomeBack() {
+    // Landed (from a link or search) in a book somewhere other than where the reader left off.
+    const panel = this.state.panels[0];
+    if (!panel || panel.menuOpen || !['Text', 'TextAndConnections'].includes(panel.mode)) return;
+    if (!panel.refs || !panel.refs.length) return;
+    const landed = panel.highlightedRefs && panel.highlightedRefs.length ? panel.highlightedRefs[0] : panel.refs[0];
+    const saved = Sefaria.welcomeBackFor(landed);
+    if (saved) this.setState({ welcomeBack: saved });
+  }
+  historySaveDelay() {
+    // Currently Learning POC: save on every settled ref change. Remote config can slow it back down.
+    const delay = Sefaria.remoteConfig?.readingHistory?.saveDelayMs;
+    return typeof delay === 'number' && delay >= 0 ? delay : 300;
   }
   checkIntentTimer(timer, cb, intentDelay) {
     intentDelay = intentDelay || 3000; // Number of milliseconds to demonstrate intent
@@ -2324,10 +2392,13 @@ class ReaderApp extends Component {
       sheet_owner = sheet.ownerName;
       sheet_title = sheet.title;
     } else {
+      // Currently Learning POC: save the exact segment at the reading line. TextColumn keeps
+      // highlightedRefs on that segment whether or not the sidebar is open; fall back to the
+      // section for refless opens until the reader scrolls.
       ref =
-        hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length
+        panel.highlightedRefs && panel.highlightedRefs.length
           ? Sefaria.normRef(panel.highlightedRefs)
-          : panel.currentlyVisibleRef || panel.refs.slice(-1)[0]; // Will currentlyVisibleRef ever not be available?
+          : panel.currentlyVisibleRef || panel.refs.slice(-1)[0];
     }
     const currVersions = panel.currVersions;
     const parsedRef = Sefaria.parseRef(ref);
@@ -2366,7 +2437,42 @@ class ReaderApp extends Component {
     if ((panel.mode !== 'Sheet' && !panel.refs.length) || panel.mode === 'Connections') {
       return;
     }
-    Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
+    const historyObject = this.getHistoryObject(panel, hasSidebar);
+    Sefaria.saveUserHistory(historyObject);
+    this.trackFirstVisit(panel, historyObject);
+  }
+  trackFirstVisit(panel, historyObject) {
+    // Currently Learning POC: once per device, after real reading (5 verses or 60s), never with another prompt.
+    if (this._firstVisitDone || !Sefaria.is_history_enabled) return;
+    if (firstVisitShown() || this.state.welcomeBack || this.state.mergeHistoryBooks) {
+      this._firstVisitDone = true;
+      return;
+    }
+    if (panel.mode === 'Sheet' || historyObject.secondary || !historyObject.book) return;
+    this._firstVisitRefs = this._firstVisitRefs || new Set();
+    this._firstVisitRefs.add(historyObject.ref);
+    this._firstVisitItem = historyObject;
+    if (!this._firstVisitStart) {
+      this._firstVisitStart = Date.now();
+      this._firstVisitTimer = setTimeout(() => this.maybeShowFirstVisit(), 60 * 1000 + 50);
+    }
+    this.maybeShowFirstVisit();
+  }
+  maybeShowFirstVisit() {
+    if (this._firstVisitDone || !this._firstVisitItem) return;
+    const panel = this.state.panels[0];
+    const reading = panel && !panel.menuOpen && ['Text', 'TextAndConnections'].includes(panel.mode);
+    const show = shouldShowFirstVisit({
+      shown: firstVisitShown(),
+      blocked: !reading || !!this.state.welcomeBack || !!this.state.mergeHistoryBooks,
+      distinctRefs: this._firstVisitRefs.size,
+      secondsReading: (Date.now() - this._firstVisitStart) / 1000,
+    });
+    if (!show) return;
+    this._firstVisitDone = true;
+    clearTimeout(this._firstVisitTimer);
+    markFirstVisitShown();
+    this.setState({ firstVisit: this._firstVisitItem });
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open
@@ -2798,6 +2904,35 @@ class ReaderApp extends Component {
       </div>
     ) : null;
 
+    const mergeHistoryModal = this.state.mergeHistoryBooks ? (
+      <MergeHistoryModal
+        books={this.state.mergeHistoryBooks}
+        demo={!!this._clDemo}
+        onDone={() => this.setState({ mergeHistoryBooks: null })}
+      />
+    ) : null;
+
+    const welcomeBackPrompt =
+      this.state.welcomeBack && !this.state.mergeHistoryBooks ? (
+        <WelcomeBackPrompt
+          item={this.state.welcomeBack}
+          onContinue={(url) => {
+            this.setState({ welcomeBack: null });
+            if (!this.openURL(url)) window.location.href = url;
+          }}
+          onStay={() => {
+            Sefaria.dismissWelcomeBack(this.state.welcomeBack.book);
+            this.setState({ welcomeBack: null });
+          }}
+          onLeave={() => this.setState({ welcomeBack: null })}
+        />
+      ) : null;
+
+    const firstVisitPrompt =
+      this.state.firstVisit && !this.state.mergeHistoryBooks && !this.state.welcomeBack ? (
+        <FirstVisitPrompt item={this.state.firstVisit} onClose={this.closeFirstVisit} />
+      ) : null;
+
     const signUpModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
@@ -2871,6 +3006,9 @@ class ReaderApp extends Component {
                   )}
                 </main>
                 {signUpModal}
+                {mergeHistoryModal}
+                {welcomeBackPrompt}
+                {firstVisitPrompt}
                 <CookiesNotification />
               </div>
               <BannerImpressionProbe />

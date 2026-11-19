@@ -44,6 +44,7 @@ import ReaderDisplayOptionsMenu from './ReaderDisplayOptionsMenu';
 import GuideOverlay from './GuideOverlay';
 import { shouldUseEditor } from './sefaria/sheetsUtils';
 import { DropdownMenu } from './common/DropdownMenu';
+import { CurrentlyLearningMobileButton } from './CurrentlyLearning';
 
 class ReaderPanel extends Component {
   constructor(props) {
@@ -1558,6 +1559,8 @@ class ReaderControls extends Component {
           {this.props.multiPanel ? <CloseButton onClick={this.props.closePanel} /> : null}
           {this.props.multiPanel ? null : <MenuButton onClick={this.props.openMobileNavMenu} />}
           <SaveButton placeholder={true} />
+          {/* Currently Learning POC: balances the extra button on the right so the title stays centered. */}
+          {this.props.multiPanel ? null : <SaveButton placeholder={true} />}
         </div>
       );
 
@@ -1567,6 +1570,7 @@ class ReaderControls extends Component {
       hideHeader || connectionsHeader ? null : (
         <div className="rightButtons">
           {this.props.showGuide && <GuideButton onShowGuide={this.props.showGuide} tooltip={true} />}
+          {this.props.multiPanel ? null : <CurrentlyLearningMobileButton />}
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}

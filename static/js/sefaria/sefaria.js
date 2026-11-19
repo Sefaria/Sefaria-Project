@@ -12,6 +12,7 @@ import Util from './util';
 import $ from './sefariaJquery';
 import { getCsrfToken } from './csrf';
 import FilterNode from './FilterNode';
+import * as CL from './currentlyLearning';
 import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
 
 let Sefaria = Sefaria || {
@@ -3248,6 +3249,7 @@ Sefaria = extend(Sefaria, {
         (data) => {
           // Insert new items to beginning of history
           Sefaria.userHistory.items = data.created.concat(Sefaria.userHistory.items);
+          Sefaria.currentlyLearningStale = true;
         }
       );
     } else {
@@ -3265,15 +3267,142 @@ Sefaria = extend(Sefaria, {
               })
           )
       ).then((new_hist_array) => {
-        const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-        const user_history_cookie = cookie('user_history');
-        const user_history = user_history_cookie ? JSON.parse(user_history_cookie) : [];
-        const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
-        cookie('user_history', JSON.stringify(trimmed), { path: '/' });
-        Sefaria.userHistory.items = trimmed;
+        // Currently Learning POC: logged-out history lives in localStorage (persistent) instead of
+        // the `user_history` session cookie, so the homepage teaser survives and can merge on sign-up.
+        let items = CL.readAnonHistory();
+        for (const h of new_hist_array.slice().reverse()) {
+          const { ref, he_ref, book, versions, language, time_stamp } = h;
+          items = CL.addHistoryItem(items, { ref, he_ref, book, versions, language, time_stamp });
+        }
+        CL.writeAnonHistory(items);
+        Sefaria.userHistory.items = items;
+        Sefaria._notifyCurrentlyLearning();
       });
     }
     Sefaria.last_place = history_item_array.filter((x) => !x.secondary).concat(Sefaria.last_place); // while technically we should remove dup. books, this list is only used on client
+  },
+  // ---- Currently Learning POC ----
+  currentlyLearning: null, // logged-in: {loaded, items, total} from SSR / API
+  currentlyLearningStale: false,
+  pinned_books: [],
+  history_merge_mode: null,
+  _currentlyLearningListeners: new Set(),
+  onCurrentlyLearningChange: function (fn) {
+    Sefaria._currentlyLearningListeners.add(fn);
+    return () => Sefaria._currentlyLearningListeners.delete(fn);
+  },
+  _notifyCurrentlyLearning: function () {
+    Sefaria._currentlyLearningListeners.forEach((fn) => fn());
+  },
+  anonCurrentlyLearning: function () {
+    // Device-only books for logged-out readers, newest first.
+    return CL.booksFromHistory(CL.readAnonHistory());
+  },
+  loadCurrentlyLearning: function (limit = 3, skip = 0) {
+    const params = new URLSearchParams({ limit, skip });
+    return fetch(`/api/profile/currently_learning?${params.toString()}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (skip === 0) {
+          Sefaria.currentlyLearning = { loaded: true, ...data };
+          Sefaria.currentlyLearningStale = false;
+        }
+        return data;
+      });
+  },
+  setBookPinned: function (book, pinned, limit = 3) {
+    return new Promise((resolve, reject) => {
+      $.post('/api/profile/currently_learning', { action: pinned ? 'pin' : 'unpin', book, limit })
+        .done((data) => {
+          if (data.error) return reject(data.error);
+          Sefaria.pinned_books = pinned
+            ? [book, ...Sefaria.pinned_books.filter((b) => b !== book)]
+            : Sefaria.pinned_books.filter((b) => b !== book);
+          Sefaria.currentlyLearning = { loaded: true, ...data };
+          Sefaria._notifyCurrentlyLearning();
+          resolve(data);
+        })
+        .fail(reject);
+    });
+  },
+  loadBookVisits: function (book, limit = 20) {
+    // Per-visit (per-dwell) history for one book.
+    if (!Sefaria._uid) {
+      return Promise.resolve(CL.visitsForBook(CL.readAnonHistory(), book).slice(0, limit));
+    }
+    const params = new URLSearchParams({ book, secondary: 0, saved: 0, limit });
+    return fetch(`/api/profile/user_history?${params.toString()}`).then((r) => r.json());
+  },
+  initDeviceHistory: function () {
+    // Client-only. Moves any legacy `user_history` cookie into localStorage, then exposes device
+    // history as Sefaria.userHistory for logged-out readers.
+    if (!Sefaria._inBrowser) return;
+    const legacy = $.cookie('user_history');
+    if (legacy) {
+      try {
+        let items = CL.readAnonHistory();
+        const old = JSON.parse(legacy).filter((x) => x && x.ref && x.book);
+        const seen = new Set(items.map((x) => `${x.ref}|${x.time_stamp}`));
+        items = items
+          .concat(old.filter((x) => !seen.has(`${x.ref}|${x.time_stamp}`)))
+          .sort((a, b) => b.time_stamp - a.time_stamp);
+        CL.writeAnonHistory(items);
+      } catch (e) {
+        // unreadable legacy cookie — drop it
+      }
+      $.removeCookie('user_history', { path: '/' });
+    }
+    if (!Sefaria._uid) {
+      Sefaria.userHistory = { loaded: true, items: CL.readAnonHistory() };
+    }
+  },
+  deviceHistoryBooks: function () {
+    return CL.booksFromHistory(CL.readAnonHistory());
+  },
+  mergeDeviceHistory: function (books = null) {
+    // Sends device history (optionally only `books`) to the account, then clears the device so a
+    // second account is never offered the same history. Resolves once saved.
+    const items = CL.readAnonHistory().filter((x) => !books || books.includes(x.book));
+    CL.clearAnonHistory();
+    if (!items.length) return Promise.resolve();
+    return new Promise((resolve) => {
+      $.post(
+        Sefaria.apiHost + '/api/profile/sync?no_return=1',
+        { user_history: JSON.stringify(items) }, // newest first; server applies oldest first
+        () => {
+          Sefaria.currentlyLearningStale = true;
+          resolve();
+        }
+      ).fail(() => resolve());
+    });
+  },
+  discardDeviceHistory: function () {
+    CL.clearAnonHistory();
+  },
+  savedPlaceForBook: function (book) {
+    // The reader's saved place in `book` as of page load (call before this visit's first save).
+    if (Sefaria._uid) {
+      return (Sefaria.last_place || []).find((x) => x.book === book && !x.secondary) || null;
+    }
+    return CL.booksFromHistory(CL.readAnonHistory()).find((x) => x.book === book) || null;
+  },
+  welcomeBackFor: function (landedRef) {
+    // Returns the saved place to offer, or null.
+    if (!Sefaria.is_history_enabled || !landedRef) return null;
+    const book = Sefaria.parseRef(landedRef).book;
+    const saved = book ? Sefaria.savedPlaceForBook(book) : null;
+    if (!saved) return null;
+    const ok = CL.shouldWelcomeBack({
+      saved,
+      savedSection: Sefaria.sectionRef(saved.ref, true),
+      landedSection: Sefaria.sectionRef(landedRef, true),
+      nowSeconds: Sefaria.util.epoch_time(),
+      dismissals: CL.welcomeBackDismissals(),
+    });
+    return ok ? saved : null;
+  },
+  dismissWelcomeBack: function (book) {
+    CL.recordWelcomeBackDismissal(book);
   },
   isNewVisitor: () => {
     if (!Sefaria._inBrowser) {
@@ -4436,6 +4565,9 @@ Sefaria.unpackBaseProps = function (props) {
     'saved',
     'userHistory',
     'last_place',
+    'currentlyLearning',
+    'pinned_books',
+    'history_merge_mode',
     'interfaceLang',
     'countryCode',
     'multiPanel',

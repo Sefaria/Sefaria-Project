@@ -1488,7 +1488,7 @@ InterfaceLanguageMenu.propTypes = {
 const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
 const getSaveButtonMessage = (selected) => (selected ? 'Remove' : 'Save');
 const getSaveButtonImage = (selected) => {
-  return selected ? '/static/icons/bookmark-filled.svg' : '/static/icons/bookmark.svg';
+  return selected ? '/static/icons/lucide_star_filled.svg' : '/static/icons/lucide_star.svg'; // Currently Learning POC: star (Favorite passages) instead of bookmark
 };
 const SaveButtonWithText = ({ historyObject }) => {
   const selected = isSaveButtonSelected(historyObject);

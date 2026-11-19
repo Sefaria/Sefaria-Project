@@ -17117,3 +17117,661 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* ---- Currently Learning POC ---- */
+.currentlyLearning {
+  margin: 0 0 40px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.currentlyLearning .clHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.currentlyLearning .clHeading {
+  /* Matches the "Browse the Library" title (.navTitle h1). */
+  margin: 0;
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500;
+  color: var(--dark-grey);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.currentlyLearning .clSubheading {
+  margin: 24px 0 8px;
+  font-size: var(--sans-serif-small-font-size);
+  font-weight: 400;
+  color: var(--medium-grey);
+  text-transform: none;
+}
+.currentlyLearning .clShowMore {
+  font-size: var(--sans-serif-small-font-size);
+  color: var(--inline-link-blue);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.currentlyLearning .clList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--lighter-grey);
+}
+.currentlyLearning .clRow {
+  border-bottom: 1px solid var(--lighter-grey);
+}
+.currentlyLearning .clRowMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+.currentlyLearning .clStripe {
+  width: 4px;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+.currentlyLearning .clRowText {
+  flex: 1;
+  min-width: 0;
+}
+.currentlyLearning .clBook {
+  margin: 0;
+  font-family: var(--english-serif-font-family);
+  font-size: var(--serif-body-font-size);
+  font-weight: 400;
+  color: var(--darkest-grey);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.interface-hebrew .currentlyLearning .clBook {
+  font-family: var(--hebrew-serif-font-family);
+}
+.currentlyLearning .clPlace {
+  margin: 2px 0 0;
+  font-size: var(--sans-serif-small-font-size);
+  color: var(--medium-grey);
+}
+.currentlyLearning .clActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.currentlyLearning .clIconButton,
+.clMergeModal .clIconButton {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 24px;
+  color: var(--dark-grey);
+}
+.currentlyLearning .clIconButton:hover,
+.clMergeModal .clIconButton:hover {
+  background: var(--lightest-grey);
+}
+.currentlyLearning .clIconButton:focus-visible,
+.clMergeModal .clIconButton:focus-visible,
+.clViewToggleButton:focus-visible,
+.clMergeOption input:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+.currentlyLearning .clIconButton img {
+  width: 20px;
+  height: 20px;
+}
+/* One pin control per row (Google Keep pattern): filled = pinned, always shown; outline = not pinned.
+   With a mouse, the outline only appears on row hover or keyboard focus; on touch it's always shown. */
+@media (hover: hover) {
+  .currentlyLearning .clRow .clPinButton:not(.pinned) {
+    opacity: 0;
+  }
+  /* Keyboard focus only (:focus-visible), so a mouse click doesn't leave the outline stuck on after unpinning. */
+  .currentlyLearning .clRow:hover .clPinButton,
+  .currentlyLearning .clRow:has(:focus-visible) .clPinButton {
+    opacity: 1;
+  }
+}
+.currentlyLearning .clExpandButton img {
+  transition: transform 0.15s ease;
+}
+.currentlyLearning .clExpandButton.expanded img {
+  transform: rotate(180deg);
+}
+a.sefaria-common-button.clContinue,
+button.sefaria-common-button.clContinue {
+  /* Text size matches the header Sign Up button (14px); min-height raised to meet 44px tap targets. */
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: var(--sans-serif-small-font-size);
+  white-space: nowrap;
+}
+a.sefaria-common-button.clContinue:focus-visible,
+button.sefaria-common-button.clContinue:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+.sefaria-common-button.clSecondary {
+  /* Library theme has no working secondary variant (its .secondary rule targets voices only). */
+  --theme-button-background: var(--white);
+  --theme-button-text: var(--sefaria-blue);
+  --theme-button-border: var(--light-grey);
+}
+.currentlyLearning .clVisits {
+  padding: 0 0 16px 16px;
+  font-size: var(--sans-serif-small-font-size);
+}
+.currentlyLearning .clVisitDayHeading {
+  margin: 8px 0 4px;
+  font-size: var(--sans-serif-small-font-size);
+  font-weight: 600;
+  color: var(--darkest-grey);
+  text-transform: none;
+}
+.currentlyLearning .clVisits ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.currentlyLearning .clVisits li {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--medium-grey);
+}
+.currentlyLearning .clVisits a {
+  color: var(--inline-link-blue);
+  padding: 6px 0;
+}
+.currentlyLearning .clVisitsMessage {
+  color: var(--medium-grey);
+  font-size: var(--sans-serif-small-font-size);
+  margin: 8px 0;
+}
+.currentlyLearning .clEmptyState {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 0;
+  background: var(--lightest-grey);
+  border: 1px dashed var(--light-grey);
+  border-top: none;
+}
+.currentlyLearning .clHeader + .clEmptyState {
+  border-top: 1px dashed var(--light-grey);
+}
+.currentlyLearning .clEmptyState .clStripe {
+  background: var(--lighter-grey);
+}
+.currentlyLearning .clEmptyTitle {
+  margin: 0;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-family: var(--english-serif-font-family);
+  font-size: var(--serif-body-font-size);
+  color: var(--dark-grey);
+}
+.currentlyLearning .clEmptyBody {
+  margin: 2px 0 0;
+  font-size: var(--sans-serif-small-font-size);
+  color: var(--dark-grey);
+}
+.currentlyLearning .clEmptyBody a {
+  color: var(--inline-link-blue);
+  text-decoration: underline;
+  /* Inline text links: WCAG 2.5.8 inline exception covers the small target. */
+}
+/* Homepage cards, left to right (from bookshelf-poc's "My bookshelf" grid). */
+.currentlyLearning .clCards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 1000px) {
+  .currentlyLearning .clCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.currentlyLearning .clCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 12px 16px 16px;
+  border: 1px solid var(--lighter-grey);
+  border-top: 4px solid var(--lighter-grey);
+  background: var(--white);
+}
+.currentlyLearning .clCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+}
+.currentlyLearning .clCard .clBook {
+  font-size: var(--serif-h3-font-size);
+  line-height: 1.25;
+  padding-top: 4px;
+  overflow-wrap: anywhere;
+}
+.currentlyLearning .clCard .clPinButton {
+  margin: -4px -12px 0 0;
+  flex-shrink: 0;
+}
+.interface-hebrew .currentlyLearning .clCard .clPinButton {
+  margin: -4px 0 0 -12px;
+}
+.currentlyLearning .clCard .clPlace {
+  margin: 4px 0 0;
+  font-size: var(--sans-serif-small-font-size);
+  color: var(--dark-grey);
+}
+.currentlyLearning .clCardWhen {
+  margin: 2px 0 0;
+  font-size: var(--sans-serif-small-font-size);
+  color: var(--medium-grey);
+}
+.currentlyLearning .clCard .clContinue {
+  margin-top: auto;
+}
+.currentlyLearning .clCard .clCardWhen + .clContinue,
+.currentlyLearning .clCard .clPlace + .clContinue {
+  margin-top: 16px;
+}
+@media (hover: hover) {
+  .currentlyLearning .clCard .clPinButton:not(.pinned) {
+    opacity: 0;
+  }
+  .currentlyLearning .clCard:hover .clPinButton,
+  .currentlyLearning .clCard:has(:focus-visible) .clPinButton {
+    opacity: 1;
+  }
+}
+.currentlyLearning .clSignUpCard {
+  justify-content: flex-start;
+  background: var(--lightest-grey);
+  border: 1px dashed var(--light-grey);
+  border-top: 4px solid var(--lighter-grey);
+}
+.currentlyLearning .clSignUpCard .clEmptyTitle {
+  padding-top: 4px;
+  font-size: var(--serif-h3-font-size);
+  line-height: 1.25;
+}
+.currentlyLearning .clSignUpCard .clEmptyBody {
+  margin-top: 8px;
+}
+/* Narrow screens: cards stack, one per row. */
+@media (max-width: 600px) {
+  .currentlyLearning .clCards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+.clMergeModal .clMergeActions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.currentlyLearning .clLoadMore {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+.clViewToggle {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--lighter-grey);
+  margin: 0 0 8px;
+}
+.clViewToggleButton {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0;
+  min-height: 44px;
+  font-size: var(--sans-serif-body-font-size);
+  font-family: var(--english-sans-serif-font-family);
+  color: var(--medium-grey);
+  cursor: pointer;
+}
+.clViewToggleButton.current {
+  color: var(--darkest-grey);
+  border-bottom-color: var(--darkest-grey);
+}
+/* Positioned like #interruptingMessageBox (same overlay + z-index), but a light card rather than the blue sign-up modal. */
+.clMergeModalBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+}
+.clMergeModalBox .clMergeModal {
+  position: relative;
+  max-width: 440px;
+  width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+  text-align: start;
+  box-sizing: border-box;
+  background-color: var(--white);
+  border: 1px solid var(--lighter-grey);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.clMergeModal .clMergeHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.clMergeModal .clMergeTitle {
+  margin: 8px 0 0;
+  font-size: var(--sans-serif-body-font-size);
+  font-weight: 600;
+  color: var(--darkest-grey);
+  text-transform: none;
+}
+.clMergeModal .clMergeClose {
+  margin: -4px -12px 0 0;
+}
+.clMergeModal .clMergeBody {
+  font-size: var(--sans-serif-small-font-size);
+  color: var(--dark-grey);
+  margin: 4px 0 8px;
+}
+.clMergeModal .clMergeList {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+.clMergeModal .clMergeOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: var(--sans-serif-small-font-size);
+}
+.clMergeModal .clMergeOption input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+}
+.clMergeModal .clBook {
+  font-family: var(--english-serif-font-family);
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--darkest-grey);
+}
+.clMergeModal .clPlace {
+  color: var(--medium-grey);
+}
+.clMergeModal .clMergeError {
+  color: var(--halakhah-red);
+  font-size: var(--sans-serif-small-font-size);
+  margin: 0 0 8px;
+}
+.clMergeModal .clMergeActions {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+@media (max-width: 600px) {
+  .currentlyLearning .clRowMain {
+    flex-wrap: wrap;
+  }
+  .currentlyLearning .clRowText {
+    flex-basis: calc(100% - 16px);
+  }
+  .currentlyLearning .clActions {
+    width: 100%;
+    padding-inline-start: 16px;
+  }
+  .currentlyLearning .clActions .clContinue {
+    flex: 1;
+  }
+}
+
+/* ---- Currently Learning POC: header entry point ---- */
+.clHeaderButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.header-icons .clHeaderButton {
+  width: 18px;
+  height: 18px;
+}
+.clHeaderButton img.button-icon {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+.clHeaderButton:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+/* Desktop dropdown: wider than the header's 200px menus to fit the list. */
+.interface-english .header .headerDropdownMenu.clHeaderDropdown .dropdownLinks-menu,
+.interface-hebrew .header .headerDropdownMenu.clHeaderDropdown .dropdownLinks-menu,
+.header .clHeaderDropdown .dropdownLinks-menu {
+  width: 480px;
+  min-width: 480px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.interface-english .header .clHeaderDropdown .dropdownLinks-menu {
+  right: 0;
+}
+.interface-hebrew .header .clHeaderDropdown .dropdownLinks-menu {
+  left: 0;
+}
+.clHeaderDropdown {
+  position: relative;
+}
+.clDropdownPanel {
+  padding: 16px 16px 8px;
+  cursor: default;
+}
+.clDropdownPanel .clHeading,
+.clSheet .clHeading {
+  margin: 0 0 8px;
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500;
+  color: var(--dark-grey);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.currentlyLearning.clPanelBody {
+  margin: 0;
+}
+.header .clDropdownPanel .clVisits a,
+.header .clDropdownPanel .clEmptyBody a,
+.header .clDropdownPanel .clPanelFooter a {
+  color: var(--inline-link-blue);
+}
+.header .clDropdownPanel a.sefaria-common-button.clContinue,
+.header .clDropdownPanel a.sefaria-common-button.clContinue * {
+  color: var(--theme-button-text);
+}
+.clPanelFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+.clPanelFooter a {
+  gap: 4px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--sans-serif-small-font-size);
+  color: var(--inline-link-blue);
+}
+/* Mobile header + reader bar */
+.mobileHeaderRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.clMobileButton.clIconButton {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+}
+.readerControls .rightButtons .clMobileButton {
+  margin: 0;
+}
+/* Mobile sheet: from the trailing edge, 85% wide */
+.clSheetBox {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+}
+.clSheetScrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  animation: clFadeIn 0.2s ease-out;
+}
+.clSheet {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 85%;
+  max-width: 420px;
+  background: var(--white);
+  overflow-y: auto;
+  padding: 8px 16px 24px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  animation: clSlideFromRight 0.25s ease-out;
+}
+.interface-hebrew .clSheet {
+  right: auto;
+  left: 0;
+  animation-name: clSlideFromLeft;
+}
+.clSheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.clSheet .clSheetHeader .clHeading {
+  margin: 0;
+}
+.clSheet .clIconButton {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  font-size: 24px;
+  color: var(--dark-grey);
+  cursor: pointer;
+}
+.clSheet .clSheetClose {
+  margin-inline-end: -12px;
+}
+/* The sheet is narrow at every size, so rows always stack their actions under the title. */
+.clSheet .currentlyLearning .clRowMain {
+  flex-wrap: wrap;
+}
+.clSheet .currentlyLearning .clRowText {
+  flex-basis: calc(100% - 16px);
+}
+.clSheet .currentlyLearning .clActions {
+  width: 100%;
+  padding-inline-start: 16px;
+  box-sizing: border-box;
+}
+.clSheet .currentlyLearning .clActions .clContinue {
+  flex: 1;
+}
+@keyframes clSlideFromRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes clSlideFromLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes clFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clSheet,
+  .interface-hebrew .clSheet {
+    animation: clFadeIn 0.2s ease-out;
+  }
+}
+
+/* ---- Currently Learning POC: Welcome back ---- */
+.clWelcome .clWelcomeActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.clWelcome .clWelcomeActions .clContinue {
+  width: 100%;
+}
+.clWelcome .clWelcomeFooter {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: var(--sans-serif-small-font-size);
+  color: var(--dark-grey);
+}
+.clWelcome .clWelcomeFooter a {
+  color: var(--inline-link-blue);
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  /* Bottom sheet on phones: thumb-reachable, leaves the text visible above. */
+  .clWelcomeBox {
+    align-items: flex-end;
+  }
+  .clWelcomeBox .clWelcome {
+    width: 100%;
+    max-width: none;
+    border-radius: 12px 12px 0 0;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+}

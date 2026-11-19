@@ -112,6 +112,9 @@ from . import abstract as abst
 logger = structlog.get_logger(__name__)
 
 MAX_SYNC_RESPONSE_HISTORY = 1000  # max recent history items returned by a single profile sync
+# Currently Learning POC: reading saves now fire on every settled segment. Consecutive saves in the same book
+# within this window update the newest row instead of inserting a new one, so one row ~= one "dwell".
+HISTORY_COALESCE_SECONDS = 60
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -181,10 +184,15 @@ class UserHistory(abst.AbstractMongoRecord):
                 attrs.update(field_updates)
         if update_last_place:
             temp = UserHistory().load({"uid": attrs["uid"], "book": attrs["book"], "last_place": True})
-            if temp is not None:
-                temp.last_place = False
-                temp.save()
-            attrs["last_place"] = True
+            if temp is not None and getattr(temp, "time_stamp", 0) > attrs.get("time_stamp", 0):
+                # Older item (e.g. merged from logged-out device history) must not steal last_place
+                # from a newer read of the same book.
+                attrs["last_place"] = False
+            else:
+                if temp is not None:
+                    temp.last_place = False
+                    temp.save()
+                attrs["last_place"] = True
 
         super().__init__(attrs=attrs)
 
@@ -279,6 +287,11 @@ class UserHistory(abst.AbstractMongoRecord):
             time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]
         )  # DEBUG: helpful to include this field for debugging
 
+        if action is None:
+            coalesced = UserHistory._coalesce_with_latest(uid, hist)
+            if coalesced is not None:
+                return coalesced
+
         saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
         uh = UserHistory(
             hist,
@@ -294,6 +307,39 @@ class UserHistory(abst.AbstractMongoRecord):
         return uh
 
     @staticmethod
+    def _coalesce_with_latest(uid, hist):
+        """
+        If the user's newest primary history row is in the same book and was read within
+        HISTORY_COALESCE_SECONDS of this one, move that row to the new ref/time instead of inserting.
+        Returns the updated UserHistory, or None if a new row should be created.
+        """
+        if hist.get("secondary") or hist.get("saved") or hist.get("book") == "Sheet":
+            return None
+        latest = UserHistorySet({"uid": uid, "secondary": False}, sort=[("time_stamp", -1)], limit=1).array()
+        if not latest:
+            return None
+        latest = latest[0]
+        new_ts = hist.get("time_stamp", 0)
+        if (
+            latest.book != hist["book"]
+            or getattr(latest, "saved", False)
+            or not latest.last_place
+            or new_ts < latest.time_stamp
+            or new_ts - latest.time_stamp > HISTORY_COALESCE_SECONDS
+        ):
+            return None
+        latest.ref = hist["ref"]
+        latest.he_ref = hist["he_ref"]
+        latest.time_stamp = new_ts
+        latest.server_time_stamp = hist["server_time_stamp"]
+        versions = hist.get("versions") if hasattr(hist.get("versions"), "items") else {}
+        latest.versions = {k: v for k, v in versions.items() if v is not None}
+        if "language" in hist:
+            latest.language = hist["language"]
+        latest.save()
+        return latest
+
+    @staticmethod
     def remove_history_item(uid, hist):
         hist["uid"] = uid
         uh = UserHistory(hist, load_existing=True)
@@ -303,6 +349,7 @@ class UserHistory(abst.AbstractMongoRecord):
     def get_user_history(
         uid=None,
         oref=None,
+        book=None,
         saved=None,
         secondary=None,
         last_place=None,
@@ -319,6 +366,8 @@ class UserHistory(abst.AbstractMongoRecord):
             regex_list = oref.context_ref().regex(as_list=True)
             ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
             query["$or"] = ref_clauses
+        if book is not None:
+            query["book"] = book
         if saved is not None:
             query["saved"] = saved
         query["is_sheet"] = sheets_only
@@ -510,6 +559,7 @@ class UserProfile:
         self.twitter = ""
         self.linkedin = ""
         self.pinned_sheets = []
+        self.pinned_books = []  # Currently Learning POC: [{"book": index title, "pinned_at": epoch secs}]
         self.last_sync_web = 0  # epoch time for last sync of web app
         self.profile_pic_url = ""
         self.profile_pic_url_small = ""
@@ -858,6 +908,7 @@ class UserProfile:
     def get_history(
         self,
         oref=None,
+        book=None,
         saved=None,
         secondary=None,
         sheets_only=False,
@@ -883,6 +934,7 @@ class UserProfile:
         return UserHistory.get_user_history(
             uid=self.id,
             oref=oref,
+            book=book,
             saved=saved,
             secondary=secondary,
             sheets_only=sheets_only,
@@ -892,6 +944,58 @@ class UserProfile:
             limit=limit,
             skip=skip,
         )
+
+    def set_book_pinned(self, book, pinned):
+        """Currently Learning POC: pin/unpin a book. Newest pin first."""
+        from sefaria.model.text import library
+
+        if pinned and library.get_index(book) is None:  # raises BookNameError on bad titles
+            return
+        books = [p for p in (self.pinned_books or []) if p.get("book") != book]
+        if pinned:
+            books.insert(0, {"book": book, "pinned_at": epoch_time()})
+        self.pinned_books = books
+
+    def currently_learning(self, limit=3, skip=0):
+        """
+        Currently Learning POC: one entry per book -- the book's last place -- with pinned books first
+        (newest pin first), then the most recently read other books.
+        """
+        from sefaria.model.text import library
+
+        if not self.settings.get("reading_history", True):
+            return {"items": [], "total": 0}
+        places = UserHistory.get_user_history(uid=self.id, secondary=False, last_place=True, serialized=True, limit=500)
+        by_book = {p["book"]: p for p in places}
+        pinned_titles = [p["book"] for p in (self.pinned_books or [])]
+        ordered = []
+        for title in pinned_titles:
+            item = by_book.get(title)
+            if item is None:
+                # Pinned but never read (shouldn't happen via UI) -- point at the start of the book.
+                try:
+                    oref = Ref(title).first_available_section_ref() or Ref(title)
+                    item = {
+                        "book": title,
+                        "ref": oref.normal(),
+                        "he_ref": oref.he_normal(),
+                        "versions": {},
+                        "time_stamp": 0,
+                    }
+                except Exception:
+                    continue
+            ordered.append(dict(item, pinned=True))
+        ordered += [dict(p, pinned=False) for p in places if p["book"] not in pinned_titles]
+        page = ordered[skip : skip + limit] if limit else ordered[skip:]
+        for item in page:
+            try:
+                idx = library.get_index(item["book"])
+                item["category"] = idx.categories[0] if idx.categories else ""
+                item["title"] = {"en": idx.get_title("en"), "he": idx.get_title("he")}
+            except Exception:
+                item["category"] = ""
+                item["title"] = {"en": item["book"], "he": item["book"]}
+        return {"items": page, "total": len(ordered)}
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
@@ -928,6 +1032,7 @@ class UserProfile:
             "linkedin": self.linkedin,
             "youtube": self.youtube,
             "pinned_sheets": self.pinned_sheets,
+            "pinned_books": self.pinned_books,
             "settings": self.settings,
             "version_preferences_by_corpus": self.version_preferences_by_corpus,
             "attr_time_stamps": self.attr_time_stamps,

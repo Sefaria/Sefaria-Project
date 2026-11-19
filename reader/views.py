@@ -379,6 +379,17 @@ def chatbot_access_props(request, profile):
     return props
 
 
+# Currently Learning POC: an account this new just signed up, so device history merges without asking.
+HISTORY_AUTO_MERGE_WINDOW = timedelta(minutes=15)
+
+
+def _history_merge_mode(user):
+    joined = getattr(user, "date_joined", None)
+    if joined is not None and timezone.now() - joined < HISTORY_AUTO_MERGE_WINDOW:
+        return "auto"
+    return "prompt"
+
+
 def base_props(request):
     """
     Returns a dictionary of props that all App pages get based on the request
@@ -421,6 +432,9 @@ def base_props(request):
             "last_place": profile.get_history(
                 last_place=True, secondary=False, sheets_only=sheets_only, serialized=True
             ),
+            # Currently Learning POC
+            "pinned_books": [p.get("book") for p in (profile.pinned_books or [])],
+            "history_merge_mode": _history_merge_mode(request.user),
         }
     else:
         user_data = {
@@ -444,6 +458,8 @@ def base_props(request):
             "notifications": [],
             "saved": {"loaded": False, "items": []},
             "last_place": [],
+            "pinned_books": [],
+            "history_merge_mode": None,
         }
     user_data.update(
         {
@@ -1664,6 +1680,7 @@ def texts_list(request):
         "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."
     )
     props = get_user_history_props(request)
+    props.update(get_currently_learning_props(request, limit=3))
     return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
 
@@ -1708,12 +1725,46 @@ def get_user_history_props(request):
     return {"userHistory": {"loaded": True, "items": uhistory}}
 
 
+def get_currently_learning_props(request, limit=3):
+    """Currently Learning POC: SSR data for logged-in users. Logged-out data lives in localStorage."""
+    if not request.user.is_authenticated or request.active_module == VOICES_MODULE:
+        return {"currentlyLearning": None}
+    data = UserProfile(user_obj=request.user).currently_learning(limit=limit)
+    return {"currentlyLearning": dict(data, loaded=True)}
+
+
+@catch_error_as_json
+def currently_learning_api(request):
+    """
+    Currently Learning POC.
+    GET  ?limit=&skip=        -> {"items": [{book, ref, he_ref, versions, time_stamp, pinned, category, title}], "total"}
+    POST action=pin|unpin, book -> same shape (first `limit` items) after updating pins
+    """
+    if not request.user.is_authenticated:
+        if request.method == "GET":
+            return jsonResponse({"items": [], "total": 0})
+        return jsonResponse({"error": _("You must be logged in to pin books.")})
+    profile = UserProfile(id=request.user.id)
+    limit = int(request.GET.get("limit", request.POST.get("limit", 3)))
+    skip = int(request.GET.get("skip", 0))
+    if request.method == "POST":
+        action = request.POST.get("action")
+        book = request.POST.get("book")
+        if action not in ("pin", "unpin") or not book:
+            return jsonResponse({"error": "Specify action=pin|unpin and book."})
+        profile.set_book_pinned(book, action == "pin")
+        profile.save()
+        return jsonResponse(profile.currently_learning(limit=limit, skip=0))
+    return jsonResponse(profile.currently_learning(limit=limit, skip=skip))
+
+
 @login_required
 def user_history_content(request):
     """
     Unified user history view that works for both library and sheets modules
     """
     props = get_user_history_props(request)
+    props.update(get_currently_learning_props(request, limit=20))
     title = get_page_title("My User History", module=request.active_module)
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
@@ -5190,6 +5241,7 @@ def user_history_api(request):
         return jsonResponse(
             user.get_history(
                 oref=oref,
+                book=request.GET.get("book") or None,
                 saved=saved,
                 secondary=secondary,
                 sheets_only=sheets_only,
