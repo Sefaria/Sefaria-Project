@@ -11,5 +11,10 @@
   "dependencies": {
     "@octokit/action": "^3.8.1",
     "@slack/webhook": "^6.0.0"
+  },
+  "overrides": {
+    "axios": "1.21.1",
+    "follow-redirects": "1.16.0",
+    "node-fetch": "2.6.7"
   }
 }

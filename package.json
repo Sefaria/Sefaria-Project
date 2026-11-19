@@ -94,7 +94,7 @@
     "@playwright/test": "^1.62.1",
     "@sefaria/design-system": "github:Sefaria/design-system#v1.1.0",
     "@sentry/react": "^7.57.0",
-    "body-parser": "^1.15.1",
+    "body-parser": "^1.20.9",
     "buffer": "^6.0.3",
     "cheerio": "^0.22.0",
     "classnames": "^2.2.5",
@@ -119,7 +119,7 @@
     "jquery-ui": "1.12.1",
     "jquery.cookie": "^1.4.1",
     "jquery.scrollto": "^2.1.2",
-    "js-cookie": "^2.2.1",
+    "js-cookie": "^3.0.7",
     "json-edit-react": "^1.30.2",
     "p-retry": "^7.0.0",
     "papaparse": "^5.5.3",
@@ -137,7 +137,7 @@
     "react-tag-autocomplete": "^6.1.0",
     "regenerator-runtime": "^0.13.7",
     "request": "^2.72.0",
-    "sanitize-html": "^1.16.3",
+    "sanitize-html": "2.18.1",
     "slate": "0.78.0",
     "slate-history": "0.66.0",
     "slate-hyperscript": "0.77.0",
@@ -161,8 +161,8 @@
     "@eslint/js": "^9.39.5",
     "@hebcal/core": "^3.33.2",
     "@mozilla/readability": "^0.4.1",
-    "@storybook/addon-docs": "10.0.2",
-    "@storybook/react-vite": "10.0.2",
+    "@storybook/addon-docs": "10.6.2",
+    "@storybook/react-vite": "10.6.2",
     "@types/node": "^22.15.2",
     "babel-loader": "^8.0.6",
     "babel-plugin-transform-remove-console": "^6.8.0",
@@ -182,13 +182,55 @@
     "prettier": "^3.9.10",
     "sass": "^1.89.1",
     "source-map-support": "^0.4.15",
-    "storybook": "10.0.2",
+    "storybook": "10.6.2",
     "style-loader": "^1.0.0",
     "stylelint": "^17.16.0",
     "stylelint-config-standard-scss": "^17.0.0",
     "webpack": "^5.60.0",
     "webpack-bundle-tracker": "^1.4.0",
     "webpack-cli": "^4.9.1"
+  },
+  "overrides": {
+    "express": {
+      "body-parser": "1.20.9",
+      "path-to-regexp": "0.1.13"
+    },
+    "concurrently": {
+      "shell-quote": "1.11.0"
+    },
+    "generic-names": {
+      "loader-utils": {
+        ".": "1.4.2",
+        "json5": "2.2.2"
+      }
+    },
+    "babel-core": {
+      "json5": "2.2.2"
+    },
+    "minimatch@^1.0.0": {
+      "brace-expansion": "1.1.21"
+    },
+    "patch-package": {
+      "tmp": "0.2.7"
+    },
+    "socket.io-client": {
+      "socket.io-parser": "4.2.7"
+    },
+    "engine.io-client": {
+      "ws": "8.21.0"
+    },
+    "form-data": "2.5.6",
+    "lodash": "4.18.1",
+    "proxy-addr": "2.0.8",
+    "brace-expansion@^1.1.0": "1.1.21",
+    "picomatch@^2.0.0": "2.3.2",
+    "cross-spawn@^6.0.0": "6.0.6",
+    "cross-spawn@^7.0.0": "7.0.6",
+    "semver@^5.0.0": "5.7.2",
+    "shortid": "2.2.17",
+    "cross-spawn@^5.0.0": "6.0.6",
+    "picomatch@^4.0.0": "4.0.4",
+    "ws@^5.0.0": "5.2.5"
   },
   "jest": {
     "setupFilesAfterEnv": [

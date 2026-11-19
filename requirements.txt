@@ -26,9 +26,9 @@ bleach==6.1.0
     # via -r ./requirements.txt
 tinycss2==1.5.1
     # via bleach[css]  # required by bleach.css_sanitizer (sefaria/sheets.py)
-boto3==1.16.6
+boto3==1.40.0
     # via -r ./requirements.txt
-botocore==1.19.63
+botocore==1.40.0
     # via
     #   boto3
     #   s3transfer
@@ -77,7 +77,7 @@ dill==0.3.9
     # via
     #   multiprocess
     #   pathos
-django==6.0.4
+django==6.0.8
     # via
     #   -r ./requirements.txt
     #   django-anymail
@@ -108,7 +108,7 @@ django-user-agents==0.4.0
     # via -r ./requirements.txt
 django-webpack-loader==3.1.1
     # via -r ./requirements.txt
-djangorestframework==3.15.2
+djangorestframework==3.18.2
     # via
     #   -r ./requirements.txt
     #   djangorestframework-simplejwt
@@ -178,7 +178,7 @@ html5lib==1.1
     # via
     #   -r ./requirements.txt
     #   bleach
-httplib2==0.18.1
+httplib2==0.32.0
     # via
     #   -r ./requirements.txt
     #   google-api-python-client
@@ -205,7 +205,7 @@ jsonpickle==1.4.1
     #   deepdiff
 kombu<5.6,>=5.5.2
     # via celery
-lxml==5.3.0
+lxml==6.1.0
     # via -r ./requirements.txt
 mailchimp==2.0.9
     # via -r ./requirements.txt
@@ -213,7 +213,7 @@ matplotlib-inline==0.1.7
     # via ipython
 multiprocess==0.70.17
     # via pathos
-oauthlib==3.2.2
+oauthlib==4.0.0
     # via requests-oauthlib
 p929==0.6.2
     # via -r ./requirements.txt
@@ -243,7 +243,7 @@ prompt-toolkit==3.0.50
     # via
     #   click-repl
     #   ipython
-protobuf==5.29.3
+protobuf==5.29.6
     # via
     #   google-api-core
     #   googleapis-common-protos
@@ -254,7 +254,7 @@ ptyprocess==0.7.0
 py==1.11.0
     # via pytest
 py2-py3-django-email-as-username==1.7.1
-pyasn1==0.6.1
+pyasn1==0.6.5
     # via
     #   pyasn1-modules
     #   rsa
@@ -316,7 +316,7 @@ roman==3.3
     # via -r ./requirements.txt
 rsa==4.9
     # via google-auth
-s3transfer==0.3.7
+s3transfer==0.13.1
     # via boto3
 sefaria-llm-interface @ git+https://github.com/Sefaria/LLM@v1.3.6#subdirectory=app/llm_interface
     # via -r ./requirements.txt
@@ -338,9 +338,9 @@ six==1.17.0
     #   google-resumable-media
     #   html5lib
     #   python-dateutil
-soupsieve==2.6
+soupsieve==2.8.4
     # via beautifulsoup4
-sqlparse==0.5.3
+sqlparse==0.6.0
     # via
     #   django
     #   django-debug-toolbar
@@ -377,7 +377,7 @@ unidecode==1.1.1
     # via -r ./requirements.txt
 uritemplate==3.0.1
     # via google-api-python-client
-urllib3==1.26.20
+urllib3==2.8.0
     # via
     #   botocore
     #   elastic-transport
@@ -398,17 +398,17 @@ wcwidth==0.2.13
 zipp==3.21.0
     # via importlib-metadata
 
-cryptography==42.0.7
+cryptography==48.0.1
 # Additional packages from master
 redis==5.2.1
 git+https://github.com/Sefaria/ne_span.git@v1.0.2
 levenshtein==0.27.1
 langchain-openai==0.2.14
 langchain-anthropic==0.3.22
-langchain-core==0.3.83
+langchain-core==0.3.85
 langchain-community==0.3.31
-langsmith==0.4.4
-setuptools==69.5.1
+langsmith==0.8.18
+setuptools==78.1.1
 Pympler==1.1
 kubernetes==31.0.0
 ruff==0.17.0
