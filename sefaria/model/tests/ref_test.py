@@ -373,6 +373,14 @@ class Test_Ref:
         with pytest.raises(InputError):
             Ref("Leviticus 15:3 - 15:1")
 
+    def test_falsy_tref_is_rejected(self):
+        # A posted user-history item can carry an empty or null ref. Ref() used to return an
+        # object with no index_node for a falsy tref, and the first reader of that attribute
+        # (UserHistory.save_history_item's he_normal()) then raised AttributeError.
+        for bad_tref in ("", None, 0):
+            with pytest.raises(InputError):
+                Ref(bad_tref)
+
     def test_to_section_segment(self):
         r = Ref("Leviticus 15")
         s = Ref("Leviticus 16:3")

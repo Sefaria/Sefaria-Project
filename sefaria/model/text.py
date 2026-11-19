@@ -2498,6 +2498,13 @@ class Ref(metaclass=RefCacheType):
                 setattr(self, key, value)
             self.tref = self.normal()
             self._validate()
+        else:
+            # A Ref is built from a tref or an _obj, and nothing else. A falsy tref (an empty
+            # string, None, 0) reaches here and would otherwise return a Ref with no
+            # index_node, which later raises AttributeError from the first reader of that
+            # attribute. Reject it as the unusable ref it is, like every other ref that
+            # cannot be understood.
+            raise InputError(f"Couldn't understand ref '{tref}'")
 
     def __init_ref_pointer_vars(self):
         self._normal = None
