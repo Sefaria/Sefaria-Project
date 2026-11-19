@@ -32,7 +32,9 @@ const bdd = (device: 'desktop' | 'mobile') =>
     outputDir: `.features-gen/${device}`,
     // A feature line with no step definition fails generation and prints a ready-to-paste
     // snippet. That is the "red" state an engineer starts from (see feature-specs/README.md).
-    missingSteps: 'fail-on-gen',
+    // Locally, BDD_MISSING_STEPS=skip-scenario generates the scenarios whose steps all exist, so a
+    // feature can be built one scenario at a time. CI never sets it.
+    missingSteps: (process.env.BDD_MISSING_STEPS as 'fail-on-gen' | 'skip-scenario' | undefined) ?? 'fail-on-gen',
     tags: device === 'mobile' ? `${ALWAYS_EXCLUDED} and @mobile` : `${ALWAYS_EXCLUDED} and not @mobile`,
   });
 

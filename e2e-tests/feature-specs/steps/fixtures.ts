@@ -11,7 +11,12 @@ import { BROWSER_SETTINGS, LANGUAGES } from '../../globals';
 import { MODULE_URLS } from '../../constants';
 import { PageManager } from '../../pages/pageManager';
 
-export type Who = 'logged out' | 'logged in';
+/**
+ * 'developer' and 'new developer' are the Developer Settings test accounts (globals.ts,
+ * BROWSER_SETTINGS.enDevUser / enDevNewUser): one with its developer profile saved, one with
+ * no profile and an unconfirmed email.
+ */
+export type Who = 'logged out' | 'logged in' | 'developer' | 'new developer';
 export type Module = 'Library' | 'Voices';
 
 /**
@@ -55,8 +60,13 @@ export class Visitor {
       await hideAllModalsAndPopups(this._page);
       return this._page;
     }
-    if (this.who === 'logged in') {
-      const profile = this.lang === LANGUAGES.HE ? BROWSER_SETTINGS.heUser : BROWSER_SETTINGS.enUser;
+    const profile = {
+      'logged in': this.lang === LANGUAGES.HE ? BROWSER_SETTINGS.heUser : BROWSER_SETTINGS.enUser,
+      developer: this.lang === LANGUAGES.HE ? BROWSER_SETTINGS.heDevUser : BROWSER_SETTINGS.enDevUser,
+      'new developer': BROWSER_SETTINGS.enDevNewUser,
+      'logged out': undefined,
+    }[this.who];
+    if (profile) {
       this._page = await goToPageWithUser(this.context, url, profile);
     } else {
       this._page = await goToPageWithLang(this.context, url, this.lang);
