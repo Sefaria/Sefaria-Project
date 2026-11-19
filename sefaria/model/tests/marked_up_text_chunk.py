@@ -2,13 +2,15 @@ from copy import deepcopy
 from types import SimpleNamespace
 
 import pytest
-from sefaria.system.database import db as mongo_db
+
 from sefaria.model.marked_up_text_chunk import (
     LinkerOutput,
     MarkedUpTextChunk,
 )
-from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.model.text import Ref
+from sefaria.system.database import db as mongo_db
+from sefaria.system.exceptions import DuplicateRecordError, InputError
+
 pytestmark = pytest.mark.django_db
 
 MARKED_UP_TEXT_CHUNKS_DATA = [
@@ -34,7 +36,7 @@ MARKED_UP_TEXT_CHUNKS_DATA = [
                 "text": "Job 26:11",
                 "type": "citation",
                 "ref": "Job 26:11",
-            }
+            },
         ],
     },
     {
@@ -110,18 +112,19 @@ def marked_up_chunks():
         objs.append(obj)
 
     yield {
-        "objects": objs,     # the live objects we saved
-        "payloads": payloads # the canonical input they were built from
+        "objects": objs,  # the live objects we saved
+        "payloads": payloads,  # the canonical input they were built from
     }
 
     # 3) Tear-down – remove every object we created
     for o in objs:
         o.delete()
 
+
 class TestMarkedUpTextChunk:
     def test_inserted_records_match_input(self, marked_up_chunks):
-        objs  = marked_up_chunks["objects"]
-        input = { (p["ref"], p["versionTitle"], p["language"]): p for p in marked_up_chunks["payloads"] }
+        objs = marked_up_chunks["objects"]
+        input = {(p["ref"], p["versionTitle"], p["language"]): p for p in marked_up_chunks["payloads"]}
 
         for obj in objs:
             k = (obj.ref, obj.versionTitle, obj.language)
@@ -201,11 +204,13 @@ class TestMarkedUpTextChunk:
                 "spans": [{"charRange": [0, 1], "text": "x", "type": "citation", "ref": "Exodus 1:1"}],
             }
             for collection in collections:
-                collection.insert_many([
-                    {**base_doc, "ref": target_ref, "language": "en"},
-                    {**base_doc, "ref": target_ref, "language": "he"},
-                    {**base_doc, "ref": other_ref, "language": "en"},
-                ])
+                collection.insert_many(
+                    [
+                        {**base_doc, "ref": target_ref, "language": "en"},
+                        {**base_doc, "ref": target_ref, "language": "he"},
+                        {**base_doc, "ref": other_ref, "language": "en"},
+                    ]
+                )
 
             MarkedUpTextChunk.process_version_title_change(
                 SimpleNamespace(title="Genesis", language="en"),
@@ -213,16 +218,26 @@ class TestMarkedUpTextChunk:
                 new=new_title,
             )
 
-            assert mongo_db.marked_up_text_chunks.count_documents({
-                "ref": target_ref,
-                "language": "en",
-                "versionTitle": new_title,
-            }) == 1
-            assert mongo_db.linker_output.count_documents({
-                "ref": target_ref,
-                "language": "en",
-                "versionTitle": old_title,
-            }) == 1
+            assert (
+                mongo_db.marked_up_text_chunks.count_documents(
+                    {
+                        "ref": target_ref,
+                        "language": "en",
+                        "versionTitle": new_title,
+                    }
+                )
+                == 1
+            )
+            assert (
+                mongo_db.linker_output.count_documents(
+                    {
+                        "ref": target_ref,
+                        "language": "en",
+                        "versionTitle": old_title,
+                    }
+                )
+                == 1
+            )
 
             LinkerOutput.process_version_title_change(
                 SimpleNamespace(title="Genesis", language="en"),
@@ -231,21 +246,36 @@ class TestMarkedUpTextChunk:
             )
 
             for collection in collections:
-                assert collection.count_documents({
-                    "ref": target_ref,
-                    "language": "en",
-                    "versionTitle": new_title,
-                }) == 1
-                assert collection.count_documents({
-                    "ref": target_ref,
-                    "language": "he",
-                    "versionTitle": old_title,
-                }) == 1
-                assert collection.count_documents({
-                    "ref": other_ref,
-                    "language": "en",
-                    "versionTitle": old_title,
-                }) == 1
+                assert (
+                    collection.count_documents(
+                        {
+                            "ref": target_ref,
+                            "language": "en",
+                            "versionTitle": new_title,
+                        }
+                    )
+                    == 1
+                )
+                assert (
+                    collection.count_documents(
+                        {
+                            "ref": target_ref,
+                            "language": "he",
+                            "versionTitle": old_title,
+                        }
+                    )
+                    == 1
+                )
+                assert (
+                    collection.count_documents(
+                        {
+                            "ref": other_ref,
+                            "language": "en",
+                            "versionTitle": old_title,
+                        }
+                    )
+                    == 1
+                )
         finally:
             for collection in collections:
                 collection.delete_many(cleanup_query)

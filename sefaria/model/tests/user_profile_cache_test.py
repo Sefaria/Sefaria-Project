@@ -5,6 +5,7 @@ when a save is broadcast to other servers.
 These run save() against a stub DB (no Mongo, no Postgres), so they need no
 database fixtures.
 """
+
 import time
 
 import pytest
@@ -12,16 +13,15 @@ import pytest
 from sefaria.model import user_profile as up
 from sefaria.model.user_profile import UserProfile, public_user_data_cache
 
-
 FAKE_UID = 999999999
 
 
-class _FakeProfiles(object):
-    def replace_one(self, query, doc, upsert=False):
+class _FakeProfiles:
+    def update_one(self, query, update, upsert=False):
         pass
 
 
-class _FakeDB(object):
+class _FakeDB:
     def __init__(self):
         self.profiles = _FakeProfiles()
 
@@ -29,14 +29,15 @@ class _FakeDB(object):
 @pytest.fixture
 def profile(monkeypatch):
     """A UserProfile whose save() writes to a stub DB and skips the cascades."""
-    p = UserProfile.__new__(UserProfile)   # bypass __init__, which hits both DBs
+    p = UserProfile.__new__(UserProfile)  # bypass __init__, which hits both DBs
     p.id = FAKE_UID
-    p._id = "fake-mongo-id"                # truthy -> save() takes the replace_one path
+    p._id = "fake-mongo-id"  # truthy -> save() takes the update_one path
     p.bio = ""
     p._name_updated = False
     p._process_remove_history = False
     p._public_data_updated = False
-    monkeypatch.setattr(p, "to_mongo_dict", lambda: {})
+    # save() pops the donor fields to write them with $setOnInsert, so the stub dict must have them.
+    monkeypatch.setattr(p, "to_mongo_dict", lambda: dict.fromkeys(up.DONOR_FIELDS_SAVE_WRITES_ONLY_ON_PROFILE_CREATION))
     monkeypatch.setattr(up, "db", _FakeDB())
 
     yield p
@@ -65,6 +66,7 @@ def test_expired_entry_is_dropped(profile):
 #
 # profile_sync_api saves a profile on every reading-history sync, so a save is
 # broadcast only when a field that public_user_data() exposes has changed.
+
 
 def _flag_after_update(updates):
     """Run UserProfile.update() over a bare profile and report the broadcast flag."""
@@ -113,9 +115,7 @@ def test_update_empty_ignores_fields_it_skips():
 
 def test_save_broadcasts_only_when_flagged(profile, monkeypatch):
     published = []
-    monkeypatch.setattr(
-        UserProfile, "_publish_public_data_invalidation",
-        lambda self: published.append(self.id))
+    monkeypatch.setattr(UserProfile, "_publish_public_data_invalidation", lambda self: published.append(self.id))
 
     profile._public_data_updated = False
     profile.save()
@@ -127,7 +127,7 @@ def test_save_broadcasts_only_when_flagged(profile, monkeypatch):
     assert profile._public_data_updated is False, "flag must reset so it fires once"
 
 
-class _FakeRedis(object):
+class _FakeRedis:
     def __init__(self):
         self.store = {}
 

@@ -99,19 +99,23 @@ def _skipped_detail(skipped_other_state, skipped_different_workflow):
     """Build the detail list for every skipped (non-already-done) story: id, workflow_id, workflow_state_id, and reason."""
     detail = []
     for story in skipped_different_workflow:
-        detail.append({
-            "id": story.get("id"),
-            "workflow_id": story.get("workflow_id"),
-            "workflow_state_id": story.get("workflow_state_id"),
-            "reason": "different_workflow",
-        })
+        detail.append(
+            {
+                "id": story.get("id"),
+                "workflow_id": story.get("workflow_id"),
+                "workflow_state_id": story.get("workflow_state_id"),
+                "reason": "different_workflow",
+            }
+        )
     for story in skipped_other_state:
-        detail.append({
-            "id": story.get("id"),
-            "workflow_id": story.get("workflow_id"),
-            "workflow_state_id": story.get("workflow_state_id"),
-            "reason": "other_state",
-        })
+        detail.append(
+            {
+                "id": story.get("id"),
+                "workflow_id": story.get("workflow_id"),
+                "workflow_state_id": story.get("workflow_state_id"),
+                "reason": "other_state",
+            }
+        )
     detail.sort(key=lambda d: (d["id"] is None, d["id"]))
     return detail
 
@@ -150,12 +154,22 @@ def main():
 
     token = os.environ.get("SHORTCUT_API_TOKEN")
     if not args.dry_run and not token:
-        die("SHORTCUT_API_TOKEN is not set. Refusing to mutate Shortcut stories without it. "
-            "Use --dry-run to preview without a token.")
+        die(
+            "SHORTCUT_API_TOKEN is not set. Refusing to mutate Shortcut stories without it. "
+            "Use --dry-run to preview without a token."
+        )
 
     to_transition, already_done, skipped_other_state, skipped_different_workflow = classify_stories(
-        stories, args.workflow_id, args.from_state_id, args.done_state_id,
+        stories,
+        args.workflow_id,
+        args.from_state_id,
+        args.done_state_id,
     )
+
+    # Open "Post-deploy:" checklist items keep a story in Deploy Ready; reconcile_deploy_ready.py
+    # moves it to Done on a later release, once they're ticked.
+    held = [s for s in to_transition if s.get("post_deploy_items")]
+    to_transition = [s for s in to_transition if not s.get("post_deploy_items")]
 
     if args.dry_run:
         for story in to_transition:
@@ -187,6 +201,7 @@ def main():
         "skipped_different_workflow": _ids(skipped_different_workflow),
         "skipped_detail": skipped_detail,
         "failed": sorted(failed, key=lambda x: (x is None, x)),
+        "held_post_deploy": _ids(held),
         "hydrated": hydrated,
         "unresolved_story_ids": sorted(unresolved_story_ids),
     }
@@ -199,10 +214,11 @@ def main():
             f"reason={d['reason']})"
             for d in skipped_detail
         ]
-        if transitioned:
+        if transitioned or held:
             warn(
                 f"{len(skipped_detail)} shipped stor{'y was' if len(skipped_detail) == 1 else 'ies were'} "
-                f"skipped (not already Done) alongside {len(transitioned)} that DID transition: "
+                f"skipped (not already Done) alongside {len(transitioned)} that DID transition "
+                f"and {len(held)} held for post-deploy steps: "
                 f"{skipped_ids_and_context}. Verify these are intentionally on a different "
                 "workflow/state before assuming they're covered."
             )

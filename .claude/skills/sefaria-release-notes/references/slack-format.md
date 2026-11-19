@@ -2,16 +2,16 @@
 
 ## Rules — strictly no raw Markdown
 
-| Want | Write | NOT |
-|------|-------|-----|
-| Bold | `*text*` | `**text**` |
-| Italic | `_text_` | `*text*` |
-| Link | `<https://url\|display text>` | `[text](url)` or bare URL |
-| Bullet | `•` | `-` or `*` |
-| Section header | `*Header text*` (bold, on its own line) | `## Header` |
-| Horizontal rule | _(blank line between sections)_ | `---` |
-| Inline code | `` `code` `` | (same — this works fine) |
-| Emoji | `:emoji_name:` | (same) |
+| Want            | Write                                   | NOT                       |
+| --------------- | --------------------------------------- | ------------------------- |
+| Bold            | `*text*`                                | `**text**`                |
+| Italic          | `_text_`                                | `*text*`                  |
+| Link            | `<https://url\|display text>`           | `[text](url)` or bare URL |
+| Bullet          | `•`                                     | `-` or `*`                |
+| Section header  | `*Header text*` (bold, on its own line) | `## Header`               |
+| Horizontal rule | _(blank line between sections)_         | `---`                     |
+| Inline code     | `` `code` ``                            | (same — this works fine)  |
+| Emoji           | `:emoji_name:`                          | (same)                    |
 
 **Never use** `##`, `###`, `---`, `**`, or `[text](url)` — these render as literal characters in Slack.
 
@@ -47,6 +47,7 @@ PR <https://github.com/Sefaria/Sefaria-Project/pull/XXXX|#XXXX>
 If `release_date` is `null`, drop the `*Deployed:* <date> | ` prefix and start the line with `*Range:*` instead — never fabricate a date.
 
 **Per-item format:**
+
 ```
 • <SC_URL|sc-XXXXX> — *Title*
 PR <GH_URL|#XXXX>
@@ -94,19 +95,19 @@ If `release_date` is `null`, drop the `Deployed <date>` line entirely rather tha
 
 ## Translation Guide (tech → plain language)
 
-| Technical term | Plain language |
-|----------------|----------------|
-| Django upgrade | Web framework upgrade |
-| Postgres / PostgreSQL | Database |
-| Elasticsearch | Search index |
-| Helm / chart | Infrastructure configuration |
-| MCP tool | AI assistant capability |
-| CSRF | Security configuration |
-| preprod / staging | Testing environment |
-| CI/CD | Deployment pipeline |
-| PR #XXXX | (omit — use the feature name instead) |
-| sc-XXXXX | (omit — use the story name) |
-| commit SHA | (omit) |
+| Technical term        | Plain language                        |
+| --------------------- | ------------------------------------- |
+| Django upgrade        | Web framework upgrade                 |
+| Postgres / PostgreSQL | Database                              |
+| Elasticsearch         | Search index                          |
+| Helm / chart          | Infrastructure configuration          |
+| MCP tool              | AI assistant capability               |
+| CSRF                  | Security configuration                |
+| preprod / staging     | Testing environment                   |
+| CI/CD                 | Deployment pipeline                   |
+| PR #XXXX              | (omit — use the feature name instead) |
+| sc-XXXXX              | (omit — use the story name)           |
+| commit SHA            | (omit)                                |
 
 ---
 

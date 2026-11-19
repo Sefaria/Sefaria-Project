@@ -1,4 +1,5 @@
 """Shared reindex phase helpers used by the cronjob CLI and orchestrator."""
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -8,6 +9,7 @@ REINDEX_TYPES = ("text", "sheet")
 
 def clear_index_queue():
     from sefaria.search import clear_index_queue as _clear
+
     return _clear()
 
 
@@ -83,4 +85,6 @@ def run_reindex_finalize_all(debug=False, sheet_catch_up_timestamp=None, clear_q
         try:
             clear_index_queue()
         except Exception as e:
-            logger.error(f"Clearing index queue failed after alias swaps already committed - continuing, not re-raising: {e}")
+            logger.error(
+                f"Clearing index queue failed after alias swaps already committed - continuing, not re-raising: {e}"
+            )

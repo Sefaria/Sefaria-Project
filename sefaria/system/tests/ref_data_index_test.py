@@ -9,6 +9,7 @@ That is ~1.6e12 document examinations, so a single pymongo batch far exceeds
 socketTimeoutMS (300s) and the weekly reindex dies with
 pymongo.errors.NetworkTimeout before it ever reaches Elasticsearch.
 """
+
 import inspect
 
 from sefaria.system import database
@@ -29,7 +30,7 @@ def _registered_indices():
         elif src[end] == "]":
             depth -= 1
             if depth == 0:
-                return eval(src[i:end + 1], {"pymongo": __import__("pymongo")})
+                return eval(src[i : end + 1], {"pymongo": __import__("pymongo")})
     raise AssertionError("could not parse the indices list")
 
 
@@ -42,8 +43,5 @@ def test_ref_data_ref_index_is_registered():
         "per upsert and guarantees a NetworkTimeout on the weekly reindex"
     )
 
-    ref_indexed = any(
-        col == "ref_data" and args and args[0] == "ref"
-        for col, args, _kwargs in indices
-    )
+    ref_indexed = any(col == "ref_data" and args and args[0] == "ref" for col, args, _kwargs in indices)
     assert ref_indexed, "ref_data needs a plain ascending index on `ref`"

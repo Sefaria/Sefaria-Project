@@ -58,7 +58,9 @@ def parse_args() -> argparse.Namespace:
         help=f"Column to search. Default: {DEFAULT_QUERY_COLUMN!r}. Use {RAW_QUERY_COLUMN!r} for raw queries.",
     )
     parser.add_argument("--limit", type=int, default=10, help="Number of semantic results per query. Default: 10")
-    parser.add_argument("--linked-ref-limit", type=int, default=10, help="Number of linker results per query. Default: 10")
+    parser.add_argument(
+        "--linked-ref-limit", type=int, default=10, help="Number of linker results per query. Default: 10"
+    )
     parser.add_argument(
         "--no-linked-refs",
         action="store_true",
@@ -201,10 +203,7 @@ def row_texts(
         if language == "he":
             he_text = inline_text
             he_source = "knn_search"
-        elif language == "en":
-            en_text = inline_text
-            en_source = "knn_search"
-        elif not en_text:
+        elif language == "en" or not en_text:
             en_text = inline_text
             en_source = "knn_search"
 
@@ -232,16 +231,18 @@ def iter_output_rows(
             en_text, he_text, en_source, he_source = row_texts(
                 result, kind, session, args, text_cache, text_normalizers
             )
-            rows.append({
-                "query": query,
-                "ref result": result.get("ref", ""),
-                "linker_or_semantic": kind,
-                "distance (if semantic)": result_distance(result) if kind == "semantic" else "",
-                "en text": en_text,
-                "he text": he_text,
-                "en text source": en_source,
-                "he text source": he_source,
-            })
+            rows.append(
+                {
+                    "query": query,
+                    "ref result": result.get("ref", ""),
+                    "linker_or_semantic": kind,
+                    "distance (if semantic)": result_distance(result) if kind == "semantic" else "",
+                    "en text": en_text,
+                    "he text": he_text,
+                    "en text source": en_source,
+                    "he text source": he_source,
+                }
+            )
     return rows
 
 
@@ -251,12 +252,14 @@ def main() -> None:
     text_normalizers = get_text_normalizers(args)
 
     session = requests.Session()
-    session.headers.update({
-        "Authorization": f"Bearer {args.auth_token}",
-        "Content-Type": "application/json",
-        # Inlined so the script runs without the repo on sys.path; keep in sync with sefaria/constants/http.py.
-        "User-Agent": "Sefaria/scripts",
-    })
+    session.headers.update(
+        {
+            "Authorization": f"Bearer {args.auth_token}",
+            "Content-Type": "application/json",
+            # Inlined so the script runs without the repo on sys.path; keep in sync with sefaria/constants/http.py.
+            "User-Agent": "Sefaria/scripts",
+        }
+    )
     text_cache: dict[str, tuple[str, str]] = {}
 
     with args.input.open(newline="", encoding="utf-8-sig") as input_file:

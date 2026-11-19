@@ -58,12 +58,8 @@ class ProfileApiIgnoresDonorFieldsTest(TestCase):
                 )
                 stored_before = self.stored_profile().get(field, "<absent>")
 
-                self.post_profile(
-                    {field: forged_value, "settings": {"interface_language": "hebrew"}}
-                )
+                self.post_profile({field: forged_value, "settings": {"interface_language": "hebrew"}})
 
                 stored_after = self.stored_profile()
-                self.assertEqual(
-                    stored_after.get("settings", {}).get("interface_language"), "hebrew"
-                )
+                self.assertEqual(stored_after.get("settings", {}).get("interface_language"), "hebrew")
                 self.assertEqual(stored_after.get(field, "<absent>"), stored_before)

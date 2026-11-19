@@ -1,17 +1,16 @@
 import json
-import re
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
-from reader.conftest import create_test_user, make_profile_missing_la_setting, purge_test_profiles
-from sefaria.system.context_processors import chatbot_user_token
-from reader.views import chatbot_access_props
+from reader.conftest import create_test_user, make_profile_missing_la_setting, page_props, purge_test_profiles
 from reader.models import UserExperimentSettings, _set_user_experiments
+from reader.views import chatbot_access_props
 from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.context_processors import chatbot_user_token
 from sefaria.system.database import db
 
 
@@ -104,13 +103,17 @@ class ProfileSyncApiTest(LibraryAssistantUserTestCase):
     """
     /api/profile/sync is the mobile app's settings write path — also public.
     """
+
     url = "/api/profile/sync"
 
     def sync_settings(self, settings, time_stamp=1):
         self.client.force_login(self.user)
-        return self.client.post(self.url, {
-            "settings": json.dumps({**settings, "time_stamp": time_stamp}),
-        })
+        return self.client.post(
+            self.url,
+            {
+                "settings": json.dumps({**settings, "time_stamp": time_stamp}),
+            },
+        )
 
     def test_posted_string_false_is_not_truthy(self):
         self.sync_settings({SETTING_KEY: "false"})
@@ -170,39 +173,36 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
 
 class AccountSettingsPageTest(LibraryAssistantUserTestCase):
     """
-    The toggle is available to every logged-in user and renders the effective value.
+    The toggle is available to every logged-in user, and the settings page renders the
+    effective value into its props.
     """
+
     url = "/settings/account"
 
-    def get_page(self):
+    def account_props(self):
         self.client.force_login(self.user)
-        return self.client.get(self.url).content.decode("utf-8")
+        html = self.client.get(self.url).content.decode("utf-8")
+        return page_props(html)["initialAccountSettings"]
 
-    def assertToggleShows(self, html, on):
-        section = html.split('id="libraryAssistantSetting"', 1)[1]
-        checked = re.search(r'data-value=true[^>]*aria-checked="(true|false)"', section)
-        self.assertIsNotNone(checked, "Library Assistant toggle not found on the page")
-        self.assertEqual(checked.group(1) == "true", on)
-
-    def test_toggle_is_rendered_without_any_enrollment(self):
-        self.assertIn('id="libraryAssistantSetting"', self.get_page())
+    def test_toggle_value_is_in_the_page_props(self):
+        self.assertIn("libraryAssistantEnabled", self.account_props())
 
     def test_never_enrolled_user_sees_off(self):
         make_profile_missing_la_setting(self.user)
 
-        self.assertToggleShows(self.get_page(), on=False)
+        self.assertIs(self.account_props()["libraryAssistantEnabled"], False)
 
     def test_legacy_enrolled_user_sees_on(self):
         self.enroll_in_experiments(True)
         make_profile_missing_la_setting(self.user)
 
-        self.assertToggleShows(self.get_page(), on=True)
+        self.assertIs(self.account_props()["libraryAssistantEnabled"], True)
 
     def test_setting_beats_legacy_enrollment_in_the_rendered_value(self):
         self.enroll_in_experiments(True)
         library_assistant.set_enabled(self.user, False)
 
-        self.assertToggleShows(self.get_page(), on=False)
+        self.assertIs(self.account_props()["libraryAssistantEnabled"], False)
 
 
 class LoggedOutVisitorTest(TestCase):

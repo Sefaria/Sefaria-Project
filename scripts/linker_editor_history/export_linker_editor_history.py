@@ -2,10 +2,12 @@
 Export linker_editor_history entries to a JSON file, for replay against another environment
 via replay_linker_editor_history.py.
 """
+
 import argparse
 import json
 
 import django
+
 django.setup()
 
 from tqdm import tqdm

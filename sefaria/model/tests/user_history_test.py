@@ -1,58 +1,76 @@
+import pymongo
 import pytest
+
 from sefaria.model.user_profile import UserHistory, UserHistorySet
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-def make_uh(uid=0, ref="Genesis 1:1", he_ref="בראשית א:א", versions=None, time_stamp=0, server_time_stamp=0, last_place=False, book="Genesis", saved=False, secondary=False):
-    versions = versions or {
-        "he": "blah",
-        "en": "blah"
-    }
-    uh = UserHistory({
-        "uid": uid,
-        "ref": ref,
-        "he_ref": he_ref,
-        "versions": versions,
-        "time_stamp": time_stamp,
-        "server_time_stamp": server_time_stamp,
-        "last_place": last_place,
-        "book": book,
-        "saved": saved,
-        "secondary": secondary        
-    })
+
+def make_uh(
+    uid=0,
+    ref="Genesis 1:1",
+    he_ref="בראשית א:א",
+    versions=None,
+    time_stamp=0,
+    server_time_stamp=0,
+    last_place=False,
+    book="Genesis",
+    saved=False,
+    secondary=False,
+):
+    versions = versions or {"he": "blah", "en": "blah"}
+    uh = UserHistory(
+        {
+            "uid": uid,
+            "ref": ref,
+            "he_ref": he_ref,
+            "versions": versions,
+            "time_stamp": time_stamp,
+            "server_time_stamp": server_time_stamp,
+            "last_place": last_place,
+            "book": book,
+            "saved": saved,
+            "secondary": secondary,
+        }
+    )
     uh.save()
     return uh
 
-@pytest.fixture(scope='module')
+
+@pytest.fixture(scope="module")
 def uh_secondary_item():
     uh = make_uh(secondary=True)
     yield uh
     uh.delete()
+
 
 def test_saved_with_secondary_item(uh_secondary_item):
     """
     Ephraim found bug where saved flag can get attached to secondary item that was created immediately before saving
     This tests for this case
     """
-    uh = UserHistory.save_history_item(0, {
-        "ref": "Genesis 1:1",
-        "versions": {
-            "he": "blah",
-            "en": "blah"
+    uh = UserHistory.save_history_item(
+        0,
+        {
+            "ref": "Genesis 1:1",
+            "versions": {"he": "blah", "en": "blah"},
+            "saved": True,
+            "last_place": True,
+            "secondary": False,
+            "time_stamp": 1,
+            "server_time_stamp": 1,
+            "action": "add_saved",
         },
-        "saved": True,
-        "last_place": True,
-        "secondary": False,
-        "time_stamp": 1,
-        "server_time_stamp": 1,
-        "action": "add_saved"
-    })
+    )
     assert uh_secondary_item._id != uh._id
     assert not uh.secondary
     uh.delete()
 
+
 def test_validation_for_saved_and_secondary():
     with pytest.raises(InputError):
         make_uh(saved=True, secondary=True)
+
 
 SYNC_UID = -1  # negative, so it can't be a real user
 
@@ -62,8 +80,15 @@ def sync_history():
     """
     Ten plain reads at server_time_stamp 1..10, with saved and last_place items among the oldest.
     """
-    items = [make_uh(uid=SYNC_UID, ref=f"Genesis 1:{i}", time_stamp=i, server_time_stamp=i,
-                     saved=(i == 1), last_place=(i == 2)) for i in range(1, 11)]
+    # get_sync_items hints the (uid, server_time_stamp) index. ensure_indices() registers it but
+    # nothing runs that in the CI sandbox, and a hint on a missing index is an error, not a slow query.
+    db.user_history.create_index([("uid", pymongo.ASCENDING), ("server_time_stamp", pymongo.ASCENDING)])
+    items = [
+        make_uh(
+            uid=SYNC_UID, ref=f"Genesis 1:{i}", time_stamp=i, server_time_stamp=i, saved=(i == 1), last_place=(i == 2)
+        )
+        for i in range(1, 11)
+    ]
     yield items
     UserHistorySet({"uid": SYNC_UID}).delete(bulk_delete=True)
 
@@ -99,9 +124,11 @@ def test_sync_delta_includes_unsaved(sync_history):
 
 @pytest.fixture
 def two_books_history():
-    items = [make_uh(uid=SYNC_UID, ref="Genesis 1:1", book="Genesis", time_stamp=1, last_place=True),
-             make_uh(uid=SYNC_UID, ref="Exodus 2:1", book="Exodus", time_stamp=2, last_place=True),
-             make_uh(uid=SYNC_UID, ref="Exodus 1:1", book="Exodus", time_stamp=3)]
+    items = [
+        make_uh(uid=SYNC_UID, ref="Genesis 1:1", book="Genesis", time_stamp=1, last_place=True),
+        make_uh(uid=SYNC_UID, ref="Exodus 2:1", book="Exodus", time_stamp=2, last_place=True),
+        make_uh(uid=SYNC_UID, ref="Exodus 1:1", book="Exodus", time_stamp=3),
+    ]
     yield items
     UserHistorySet({"uid": SYNC_UID}).delete(bulk_delete=True)
 

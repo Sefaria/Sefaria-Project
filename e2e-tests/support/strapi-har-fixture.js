@@ -7,13 +7,13 @@
  * body, so any change to the query in static/js/context.js invalidated all fourteen recordings at
  * once, and re-recording meant reconstructing each scenario's Strapi publish state.
  *
- * This module documents how the recordings were made and how replay coped with per-sandbox
- * origins; the .har files themselves stay committed, frozen, purely as human-readable reference.
+ * This module documents how the recordings were made (replay on per-sandbox origins goes through
+ * the shared support/har-replay.js); the .har files themselves stay committed, frozen, purely as human-readable reference.
  */
 
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
+import { existsSync } from 'fs';
 import path from 'path';
+import { harPathForBaseURL } from './har-replay.js';
 
 const FIXTURES_DIR = path.join(__dirname, '../fixtures');
 
@@ -21,49 +21,10 @@ const FIXTURES_DIR = path.join(__dirname, '../fixtures');
 const STRAPI_URL_GLOB = '**/api/strapi/**';
 
 /**
- * Write a replay-only copy whose request URLs use the sandbox under test.
- *
- * Playwright matches HAR entries against the complete request URL. The committed recordings were
- * made at http://localhost:8000, while CI sets SANDBOX_URL to its per-commit nginx host (and may
- * include a path such as /texts). `routeFromHAR`'s `url` option only filters intercepted requests;
- * it does not rewrite HAR entries. Replacing just the origin keeps the recorded path, query and
- * POST body intact while allowing the same fixture to replay against any sandbox.
- */
-function replayHarForSandboxOrigin(harPath) {
-  if (!process.env.SANDBOX_URL) return { path: harPath, temporary: false };
-
-  const sandboxOrigin = new URL(process.env.SANDBOX_URL).origin;
-  const har = JSON.parse(readFileSync(harPath, 'utf8'));
-  let changed = false;
-
-  for (const entry of har.log?.entries || []) {
-    if (!entry.request?.url) continue;
-    const recordedUrl = new URL(entry.request.url);
-    if (recordedUrl.origin === sandboxOrigin) continue;
-    entry.request.url = new URL(
-      `${recordedUrl.pathname}${recordedUrl.search}${recordedUrl.hash}`,
-      `${sandboxOrigin}/`,
-    ).href;
-    changed = true;
-  }
-
-  if (!changed) return { path: harPath, temporary: false };
-
-  // A worker runs one test at a time, and separate workers have separate PIDs, so this remains
-  // race-free even when several tests replay the same scenario at full parallelism.
-  const temporaryPath = path.join(tmpdir(), `sefaria-strapi-${process.pid}-${path.basename(harPath)}`);
-  writeFileSync(temporaryPath, JSON.stringify(har), 'utf8');
-  return { path: temporaryPath, temporary: true };
-}
-
-/**
  * Route the Strapi GraphQL-cache call through a HAR fixture for deterministic CI replay.
  *
- * This mirrors the newsletter suite's `support/har-fixture.js`. It is deliberately a
- * standalone Strapi-specific copy (hardcoded to the Strapi URL glob) rather than a shared,
- * generalized helper: the newsletter PR that introduced the pattern has not merged yet, so
- * we avoid touching a helper that lives on another branch. Once both land, the two can be
- * folded into one helper that takes the URL glob as an argument.
+ * This mirrors the newsletter suite's `support/har-fixture.js`, hardcoded to the Strapi URL
+ * glob. Both share support/har-replay.js, which points the recording at the sandbox's host.
  *
  * The app fetches all banners/modals/sidebar ads from a single same-origin endpoint,
  *   POST /api/strapi/graphql-cache?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
@@ -146,9 +107,13 @@ export async function routeWithStrapiHarFixture(context, fixtureName) {
     });
   }
 
-  const replayHar = isRecording ? { path: harPath, temporary: false } : replayHarForSandboxOrigin(harPath);
+  // Recording writes back to the committed file; replay uses a copy pointed at SANDBOX_URL's host.
+  const replayPath =
+    isRecording || !process.env.SANDBOX_URL
+      ? harPath
+      : harPathForBaseURL(context, harPath, process.env.SANDBOX_URL);
 
-  await context.routeFromHAR(replayHar.path, {
+  await context.routeFromHAR(replayPath, {
     url: STRAPI_URL_GLOB,
     notFound: 'fallthrough', // → falls through to the guard above, NOT to the network
     update: isRecording,
@@ -160,18 +125,6 @@ export async function routeWithStrapiHarFixture(context, fixtureName) {
     // Record only what replay needs, keeping the fixtures small and reviewable.
     updateMode: 'minimal',
   });
-
-  if (replayHar.temporary) {
-    // routeFromHAR has loaded the file by this point, but retain it for the context's lifetime in
-    // case Playwright needs it again while serving a later reload.
-    context.once('close', () => {
-      try {
-        unlinkSync(replayHar.path);
-      } catch (error) {
-        if (error.code !== 'ENOENT') throw error;
-      }
-    });
-  }
 
   return { unmatched, served, replaying: !isRecording };
 }

@@ -2,20 +2,29 @@
  * The mobile menu's Library Assistant item: shown only when ReaderApp renders the widget,
  * and it opens the widget through the `chatbot:open` document event.
  */
-jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: {
-  LIBRARY_MODULE: 'library',
-  VOICES_MODULE: 'voices',
-  _: (k) => k,
-  _v: ({ en }) => en,
-  _uid: null,
-  interfaceLang: 'english',
-  _siteSettings: { HELP_CENTER_URLS: { EN_US: '/help', HE: '/help' } },
-}}));
-jest.mock('../sefaria/util', () => ({ __esModule: true, default: {
-  handleKeyboardClick: (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); }
+jest.mock('../sefaria/sefaria', () => ({
+  __esModule: true,
+  default: {
+    LIBRARY_MODULE: 'library',
+    VOICES_MODULE: 'voices',
+    _: (k) => k,
+    _v: ({ en }) => en,
+    _uid: null,
+    interfaceLang: 'english',
+    _siteSettings: { HELP_CENTER_URLS: { EN_US: '/help', HE: '/help' } },
   },
-}}));
+}));
+jest.mock('../sefaria/util', () => ({
+  __esModule: true,
+  default: {
+    handleKeyboardClick: (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.currentTarget.click();
+      }
+    },
+  },
+}));
 jest.mock('../HeaderAutocomplete', () => ({ HeaderAutocomplete: () => null }));
 jest.mock('../ProfilePic', () => ({ ProfilePic: () => null }));
 jest.mock('../common/Button', () => ({ __esModule: true, default: ({ children }) => children }));
@@ -32,12 +41,22 @@ import { MobileNavMenu } from '../Header';
 
 describe('MobileNavMenu Library Assistant item', () => {
   let container;
-  beforeEach(() => { container = document.createElement('div'); document.body.appendChild(container); });
-  afterEach(() => { ReactDOM.unmountComponentAtNode(container); container.remove(); });
-
-  const render = (props) => act(() => {
-    ReactDOM.render(<MobileNavMenu visible={true} module="library" openURL={() => {}} close={() => {}} {...props} />, container);
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
   });
+  afterEach(() => {
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+  });
+
+  const render = (props) =>
+    act(() => {
+      ReactDOM.render(
+        <MobileNavMenu visible={true} module="library" openURL={() => {}} close={() => {}} {...props} />,
+        container
+      );
+    });
   const item = () => container.querySelector('a.libraryAssistantMenuItem');
 
   it('is absent unless the assistant is on the page', () => {
@@ -47,7 +66,7 @@ describe('MobileNavMenu Library Assistant item', () => {
 
   it('sits above Learning Schedules, with the ✦ as its icon', () => {
     render({ libraryAssistant: true });
-    const labels = [...container.querySelectorAll('a')].map(a => a.textContent);
+    const labels = [...container.querySelectorAll('a')].map((a) => a.textContent);
     expect(labels.indexOf('header.library_assistant')).toBe(labels.indexOf('header.learning_schedules') - 1);
   });
 
@@ -58,7 +77,9 @@ describe('MobileNavMenu Library Assistant item', () => {
     render({ libraryAssistant: true, close });
 
     const click = new MouseEvent('click', { bubbles: true, cancelable: true });
-    act(() => { item().dispatchEvent(click); });
+    act(() => {
+      item().dispatchEvent(click);
+    });
 
     expect(close).toHaveBeenCalled();
     expect(onOpen).toHaveBeenCalledTimes(1);
@@ -68,12 +89,17 @@ describe('MobileNavMenu Library Assistant item', () => {
     document.removeEventListener('chatbot:open', onOpen);
   });
 
-  it.each([['Space', ' '], ['Enter', 'Enter']])('opens the widget with the %s key, like a button', (_, key) => {
+  it.each([
+    ['Space', ' '],
+    ['Enter', 'Enter'],
+  ])('opens the widget with the %s key, like a button', (_, key) => {
     const onOpen = jest.fn();
     document.addEventListener('chatbot:open', onOpen);
     render({ libraryAssistant: true });
 
-    act(() => { item().dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })); });
+    act(() => {
+      item().dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    });
 
     expect(onOpen).toHaveBeenCalledTimes(1);
     document.removeEventListener('chatbot:open', onOpen);

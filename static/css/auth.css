@@ -17,10 +17,7 @@
 }
 .sefaria-auth-page {
   position: absolute;
-  top: var(--header-offset);
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: var(--header-offset) 0 0 0;
   overflow-y: auto;
   box-sizing: border-box;
   display: flex;
@@ -47,7 +44,7 @@
   width: 100%;
   max-width: 640px;
   min-height: 480px;
-  background: #ffffff;
+  background: #fff;
   border-radius: 16px;
   padding: 56px 24px;
   gap: 32px;
@@ -140,7 +137,7 @@
   border-radius: 50%;
   animation: sefaria-auth-spin 0.8s linear infinite;
 }
-.sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header):not(.sefaria-auth-card-sub) {
+.sefaria-auth-card > :not(.sefaria-auth-card-back, .sefaria-auth-card-header, .sefaria-auth-card-sub) {
   width: 100%;
   max-width: 348px;
 }
@@ -240,7 +237,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: #ffffff;
+  background-color: #fff;
   border: 1.5px solid var(--sefaria-blue);
   border-radius: 4px;
   color: #121212;

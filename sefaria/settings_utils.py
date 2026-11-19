@@ -1,10 +1,13 @@
+import re
+from urllib.parse import urlsplit
+
+import sentry_sdk
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.http import Http404
-import sentry_sdk
-from urllib.parse import urlsplit
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.types import Event, Hint
 from sentry_sdk.utils import iter_event_frames
+
 from remote_config import remoteConfigCache
 from remote_config.keys import SENTRY_CONFIG_JSON
 
@@ -13,6 +16,28 @@ IGNORED_EXCEPTIONS = (
     PermissionDenied,
     SuspiciousOperation,
 )
+
+# The prefix may be percent-encoded, as in a URL, and so may any byte of the body: the body is a run of letters, digits
+# and percent-encoded bytes (% and two hex digits). The prefix may also be double-encoded (sfr%255F), and the key must
+# not continue a longer name ("newsfr_campaign2024" is not a key): it starts the string or follows a character that is
+# not a letter, digit or underscore, or an encoded byte such as %3D.
+API_KEY_RE = re.compile(
+    r"(?i)(?:(?<![A-Za-z0-9_])|(?<=%[0-9A-Fa-f]{2}))"
+    r"(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[A-Za-z0-9]|%[0-9A-Fa-f]{2})+"
+)
+API_KEY_REPLACEMENT = "sfr_[Filtered]"
+
+
+def scrub_api_keys(value):
+    """Replaces Sefaria API key values (sfr_...) in every string of a Sentry event."""
+    if isinstance(value, str):
+        return API_KEY_RE.sub(API_KEY_REPLACEMENT, value)
+    if isinstance(value, dict):
+        return {scrub_api_keys(k): scrub_api_keys(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return type(value)(scrub_api_keys(v) for v in value)
+    return value
+
 
 # Custom secret-bearing headers that send_default_pii=False does not strip: the Salesforce
 # webhook's shared secret and the Svix signature. Stored lowercase; compared against name.lower().
@@ -41,9 +66,9 @@ def remove_webhook_secrets_and_payloads(event: Event) -> Event:
         request.pop("headers")
 
     celery_job = (event.get("extra") or {}).get("celery-job")
-    is_donor_task = (
-        isinstance(celery_job, dict) and celery_job.get("task_name") == DONOR_TASK_NAME
-    ) or event.get("transaction") == DONOR_TASK_NAME
+    is_donor_task = (isinstance(celery_job, dict) and celery_job.get("task_name") == DONOR_TASK_NAME) or event.get(
+        "transaction"
+    ) == DONOR_TASK_NAME
     if is_donor_task and isinstance(celery_job, dict):
         celery_job.pop("args", None)
         celery_job.pop("kwargs", None)
@@ -53,7 +78,9 @@ def remove_webhook_secrets_and_payloads(event: Event) -> Event:
     # the same rule as unfilterable headers above. Passing it to urlsplit would raise instead,
     # and Sentry silently drops an event whose before_send raises. No url at all (a Celery
     # event) is not a webhook request.
-    is_webhook_request = urlsplit(url).path.startswith(WEBHOOK_URL_PATH_PREFIX) if isinstance(url, str) else url is not None
+    is_webhook_request = (
+        urlsplit(url).path.startswith(WEBHOOK_URL_PATH_PREFIX) if isinstance(url, str) else url is not None
+    )
     if is_webhook_request or is_donor_task:
         # The Sentry Django integration can attach the parsed request body to an error event. A
         # Classy payload carries card, account, billing-address and phone fields that must never
@@ -75,6 +102,10 @@ def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
     """
 
     def before_send(event, hint):
+        event = filter_event(event, hint)
+        return scrub_api_keys(event) if event is not None else None
+
+    def filter_event(event, hint):
         if "exception" not in event:
             # Drop non-exception events (messages/log records).
             return None
@@ -99,7 +130,8 @@ def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
 
     def before_send_transaction(event: Event, hint: Hint) -> Event:
         # Sentry calls this hook with (event, hint), unlike our one-argument scrub function.
-        return remove_webhook_secrets_and_payloads(event)
+        event = remove_webhook_secrets_and_payloads(event)
+        return scrub_api_keys(event) if event is not None else None
 
     sentry_config = remoteConfigCache.get(SENTRY_CONFIG_JSON) or {}
     sample_rate = sentry_config.get("sample_rate", 0.01)

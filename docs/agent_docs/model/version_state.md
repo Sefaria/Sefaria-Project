@@ -1,12 +1,15 @@
 # VersionState
+
 > Source: `sefaria/model/version_state.py`
 
 ## Purpose
+
 VersionState tracks text availability and completion statistics for every Index in the database. It maintains per-language (English, Hebrew) and aggregate counts of which segments exist, what percentage of a text is available, and what the "shape" of a text looks like. There is exactly one VersionState record per Index, stored in the `vstate` MongoDB collection.
 
 ## Key Classes
 
 ### VersionState
+
 - **Inherits**: `AbstractMongoRecord`, `AbstractSchemaContent`
 - **Collection**: `vstate`
 - **Role**: One-to-one companion record for each Index. Stores a `content` tree that mirrors the Index's schema structure, with leaf nodes containing per-language availability masks, counts, and percentages.
@@ -26,11 +29,13 @@ VersionState tracks text availability and completion statistics for every Index 
   - `_node_count(snode, lang)` -- Counts available segments by summing boolean masks across all Versions for a given language. Returns `JaggedIntArray`.
 
 ### VersionStateSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Collection**: `vstate`
 - **Role**: Standard set class for querying multiple VersionState records.
 
 ### StateNode
+
 - **Inherits**: `object` (plain class, not a Mongo record)
 - **Collection**: N/A
 - **Role**: Lightweight read-only wrapper around a single node's portion of a VersionState's `content` tree. Provides convenient accessors for availability data without loading the entire VersionState content.
@@ -46,7 +51,9 @@ VersionState tracks text availability and completion statistics for every Index 
   - `get_untranslated_count_by_unit(unit)` / `get_translated_count_by_unit(unit)` -- Convenience methods for translation stats.
 
 ## Content Structure (Leaf Nodes)
+
 Each leaf node in `content` contains:
+
 ```
 {
   "_en": {
@@ -66,6 +73,7 @@ Each leaf node in `content` contains:
 ```
 
 ## Non-Obvious Patterns
+
 - **One-to-one with Index**: VersionState overrides default init/load behavior. Constructing `VersionState("Genesis")` either loads the existing record or creates + refreshes + saves a new one. The `is_new_state` flag distinguishes these cases.
 - **Schema tree mirroring**: The `content` dict mirrors the Index schema tree exactly. For simple texts it has `_en`/`_he`/`_all` at the top level. For complex texts (e.g., Pesach Haggadah), it nests by schema node keys down to the leaf JaggedArrayNodes.
 - **Zero-mask padding**: When computing per-language `availableTexts`, the code pads with a zero-mask derived from the `_all` union. This ensures all languages have the same shape array, even if one language has sections the other doesn't.
@@ -74,6 +82,7 @@ Each leaf node in `content` contains:
 - **Legacy/unused fields**: Several fields (`sparseness`, `textComplete`, `completenessPercent`) are noted as unused outside this file or legacy. They persist on records but have TODO markers for removal.
 
 ## Relationships
+
 - **Depends on**:
   - `text` (Index, IndexSet, VersionSet, AbstractIndex, AbstractSchemaContent, library, Ref)
   - `abstract` (AbstractMongoRecord, AbstractMongoSet)
@@ -92,6 +101,7 @@ Each leaf node in `content` contains:
   - **Index delete** -> `process_index_delete_in_version_state`: deletes the vstate record directly via `db.vstate.delete_one()`
 
 ## Common Tasks
+
 - **Check text availability**: `StateNode(title="Genesis").var("en", "percentAvailable")`
 - **Get available segment mask**: `StateNode(title="Genesis").ja("en")` returns a JaggedIntArray
 - **Rebuild stats after text import**: `VersionState("Genesis").refresh()`

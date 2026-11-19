@@ -1,8 +1,12 @@
-import django
 import argparse
+
+import django
+
 django.setup()
+from datetime import datetime, timedelta
+
 from pymongo import DeleteOne
-from datetime import timedelta, datetime
+
 from sefaria.model import *
 from sefaria.system.database import db
 
@@ -18,9 +22,13 @@ def delete_django_cache_items_since_last_updated(days_since_last_updated: int) -
     db.django_cache.bulk_write([DeleteOne({"data.url": webpage.url}) for webpage in webpage_set])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("days_since_last_updated", type=int, help="Delete all Django cache linker responses for responses whose webpages haven't been updated since X days")
+    parser.add_argument(
+        "days_since_last_updated",
+        type=int,
+        help="Delete all Django cache linker responses for responses whose webpages haven't been updated since X days",
+    )
     args = parser.parse_args()
     print(f"Deleting Django cache linker responses last updated more than {args.days_since_last_updated} days ago")
     delete_django_cache_items_since_last_updated(args.days_since_last_updated)

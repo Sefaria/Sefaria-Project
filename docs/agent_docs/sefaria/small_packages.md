@@ -1,4 +1,5 @@
 # Sefaria Small Packages
+
 > Sources: `sefaria/client/`, `sefaria/gauth/`, `sefaria/celery_setup/`, `sefaria/constants/`, `sefaria/site/`, `sefaria/sefaria_tasks_interace/`
 
 ## Purpose
@@ -10,6 +11,7 @@ A collection of small, focused packages that handle cross-cutting concerns: HTTP
 ### `sefaria/client/` -- Internal HTTP Client & Response Utilities
 
 **`client/util.py`** -- Response helpers used by Django views:
+
 - `jsonResponse(data, callback, status)` -- serializes data to JSON `HttpResponse`; auto-calls `.contents()` on AbstractMongoRecord objects; converts `_id` to string and datetime fields to ISO format. Supports JSONP via optional `callback`.
 - `jsonpResponse(data, callback)` -- wraps JSON in a JavaScript callback
 - `celeryResponse(task_id, sub_task_ids)` -- returns a 202 Accepted response with task tracking IDs
@@ -17,6 +19,7 @@ A collection of small, focused packages that handle cross-cutting concerns: HTTP
 - `read_webpack_bundle(config_name)` -- reads a webpack bundle file from disk, handling both relative paths and full CDN URLs in production
 
 **`client/wrapper.py`** -- Formats model objects for the frontend client:
+
 - `format_link_object_for_client(link, with_text, ref, pos)` -- transforms a `Link` model object into the dict format expected by the reader UI; includes commentary metadata, version info, merged source attribution, and text content
 - `format_note_object_for_client(note)` -- formats user notes for display alongside links
 - `format_object_for_client(obj)` -- dispatcher for Link or Note objects
@@ -28,9 +31,11 @@ A collection of small, focused packages that handle cross-cutting concerns: HTTP
 Implements a two-step OAuth 2.0 flow for Google API access (currently used only for Google Drive export of source sheets).
 
 **`gauth/decorators.py`:**
+
 - `@gauth_required(scope, ajax)` -- decorator that checks if the user has valid Google credentials stored in their `UserProfile.gauth_token`. If credentials exist but are expired, attempts refresh. If no credentials or refresh fails, redirects to OAuth flow (or returns 401 for AJAX).
 
 **`gauth/views.py`:**
+
 - `index(request)` -- Step 1: initiates OAuth flow by redirecting to Google's authorization URL
 - `auth_return(request)` -- Step 2: handles the callback, exchanges authorization code for credentials, stores them in the user's profile. Preserves existing refresh tokens if the new response lacks one.
 - `GAUTH_ERROR_CODES` -- recognized OAuth error types: `access_denied`, `invalid_grant`, `scope_mismatch`
@@ -39,15 +44,18 @@ Implements a two-step OAuth 2.0 flow for Google API access (currently used only 
 ### `sefaria/celery_setup/` -- Async Task Queue Configuration
 
 **`celery_setup/app.py`:**
+
 - Creates the Celery application instance (`app = Celery('sefaria')`)
 - Auto-discovers tasks in `sefaria.helper.llm`, `sefaria.helper.linker`, `sefaria.helper.crm`
 - Results expire after 1800 seconds (30 minutes)
 
 **`celery_setup/config.py`:**
+
 - `CeleryQueue` enum with `TASKS`, `LLM` and `FIND_REFS` queue names (read from `settings.CELERY_QUEUES`). `FIND_REFS` carries the interactive `/api/find-refs` (linker) tasks and is consumed by dedicated workers (chart value `tasks.findRefs`) so bulk linking jobs on `TASKS` can't starve it; the shared tasks workers also consume it as overflow. Where `findRefs` isn't configured it falls back to the `TASKS` queue. The view enqueues these tasks with `expires=60` and the task has `soft_time_limit=60`, matching the linker client's ~60s polling window.
 - `generate_config_from_env()` -- builds Celery config from Django settings, supporting both direct Redis and Redis Sentinel
 
 **`celery_setup/generate_config.py`:**
+
 - `generate_config(redis_config, sentinel_config)` -- produces the broker/result-backend URL config. When Sentinel is configured, the broker URL points at the Sentinel headless Service hostname, which kombu resolves on each connection. The `RedisConfig` / `SentinelConfig` dataclasses live in `sefaria/system/redis_sentinel.py`.
 
 ### `sefaria/constants/model.py` -- Model Constants
@@ -62,9 +70,11 @@ Implements a two-step OAuth 2.0 flow for Google API access (currently used only 
 A dynamic import layer that loads site-specific settings and URL patterns based on the `SITE_PACKAGE` Django setting.
 
 **`site/site_settings.py`:**
+
 - Dynamically imports `SITE_SETTINGS` dict from `{SITE_PACKAGE}.site_settings`. This dict contains site-specific configuration like `TORAH_SPECIFIC` (controls whether calendar features are active) and `HELP_CENTER_REDIRECTS`.
 
 **`site/urls.py`:**
+
 - Dynamically imports `site_urlpatterns` from `{SITE_PACKAGE}.urls`, allowing different URL routing per deployment.
 
 ### `sefaria/sefaria_tasks_interace/` -- History Change Data Contracts
@@ -72,6 +82,7 @@ A dynamic import layer that loads site-specific settings and URL patterns based 
 Note: the directory name contains a typo ("interace" instead of "interface").
 
 **`history_change.py`:**
+
 - `AbstractHistoryChange` -- base dataclass with `uid` (user ID) and `method` ("API" or "Site")
 - `LinkChange(AbstractHistoryChange)` -- adds `raw_link: dict`
 - `VersionChange(AbstractHistoryChange)` -- adds `raw_version: dict`, `patch: bool`, `skip_links: bool`, `count_after: int`
@@ -102,27 +113,35 @@ These are data transfer objects used to pass structured change information betwe
 ## Common Tasks
 
 **Return a JSON response from a view:**
+
 ```python
 from sefaria.client.util import jsonResponse
+
 return jsonResponse({"status": "ok"})
 return jsonResponse({"error": "not found"}, status=404)
 ```
 
 **Get formatted links for a text ref:**
+
 ```python
 from sefaria.client.wrapper import get_links
+
 links = get_links("Genesis 1:1", with_text=True)
 ```
 
 **Use the Celery app to define a task:**
+
 ```python
 from sefaria.celery_setup.app import app
+
+
 @app.task
 def my_task():
     pass
 ```
 
 **Check allowed HTML tags for text content:**
+
 ```python
 from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
 # Use with bleach or custom sanitizer

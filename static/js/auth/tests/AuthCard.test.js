@@ -18,11 +18,15 @@ let container = null;
 function mount(props) {
   container = document.createElement('div');
   document.body.appendChild(container);
-  act(() => { ReactDOM.render(React.createElement(AuthCard, props), container); });
+  act(() => {
+    ReactDOM.render(React.createElement(AuthCard, props), container);
+  });
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }

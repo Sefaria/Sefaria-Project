@@ -44,15 +44,21 @@ let container = null;
 function mount(props) {
   container = document.createElement('div');
   document.body.appendChild(container);
-  act(() => { ReactDOM.render(React.createElement(AuthPage, props), container); });
+  act(() => {
+    ReactDOM.render(React.createElement(AuthPage, props), container);
+  });
 }
 
 const shownView = () => container.querySelector('[data-view]').getAttribute('data-view');
 
-beforeEach(() => { jest.clearAllMocks(); });
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 afterEach(() => {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 });
@@ -73,7 +79,6 @@ describe('AuthPage initialView', () => {
     const [flowId] = fireFlowStarted.mock.calls[0];
     expect(fireMethodChosen).toHaveBeenCalledWith(flowId, expect.any(String), 'email');
     expect(fireProcessStarted).toHaveBeenCalledWith(flowId, expect.any(String));
-    expect(fireFlowStarted.mock.invocationCallOrder[0])
-      .toBeLessThan(fireMethodChosen.mock.invocationCallOrder[0]);
+    expect(fireFlowStarted.mock.invocationCallOrder[0]).toBeLessThan(fireMethodChosen.mock.invocationCallOrder[0]);
   });
 });

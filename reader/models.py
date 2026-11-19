@@ -32,6 +32,7 @@ def _set_user_experiments(user, value):
     settings.save(update_fields=["experiments"])
 
     from sefaria.model.user_profile import UserProfile
+
     profile = UserProfile(id=user.id)
     profile.experiments = experiments_enabled
     profile.save()

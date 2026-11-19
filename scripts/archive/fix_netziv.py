@@ -1,20 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 Fix problematic version of HaNetziv
 - Merge Hanetziv and HaEmek Davar - name "Ha'amak Davar"
 - Rename version of Hanetziv on Genesis
 """
 
-import sys
 # noinspection PyUnresolvedReferences
 import os
+import sys
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 
 from sefaria.texts import *
-
 
 old = "Hanetziv on Genesis"
 new = "Ha'amak Davar on Genesis"

@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.92.3"
+      version: "0.95.0"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project-helm-repo
@@ -30,7 +30,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.11.1"
+        tag: "v7.16.2"
       resources:
         web:
           resources:
@@ -54,7 +54,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v7.11.1"
+        tag: "v7.16.2"
       resources:
         requests:
           memory: "400Mi"
@@ -74,10 +74,50 @@ spec:
       alpnProtocols:
         - h2
         - http/1.1
+    # API Key Program authService (Phase 1). Ships disabled: merging this must not change what this environment runs.
+    # The block must exist here: deploy-static.yaml writes authService.image.tag into whichever env file is deploying, and
+    # without a repository here the chart default (a development-registry repo, where release tags do not exist) would be used.
+    authService:
+      # Flip to true only after staging is deliberately included in the rollout. Before flipping, two things must be true:
+      #  1. A release has run first: deploy-static.yaml writes authService.image.tag, and that tag must exist in the registry.
+      #     Flipping enabled alone fails rendering (image.tag is empty and required).
+      #  2. The Secret auth-service-registry (key AUTH_PG_DSN) in this release's namespace (default; no targetNamespace) names
+      #     staging's database. Infrastructure has one in dev/cluster-1/spec/default. Its DSN is encrypted, but infrastructure
+      #     #694 titled its last change "point auth-service-registry at Django's sefaria_auth registry", while staging's Django
+      #     writes to sefariastaging (postgres.db below). If the DSN does name sefaria_auth, the auth service would load another
+      #     database's keys: decrypt and check it, then repoint it or give staging its own Secret, before enabling.
+      # Staging rehearses every prod step first (Yotam, 2026-11-18): on in observe, with its own registry Secret.
+      enabled: true
+      # enforce: /api/knn-search (the chart's gatedPaths) needs a registered sfr_ key in x-api-key, and an unknown or
+      # revoked sfr_ key gets 401 on that path; a website-restricted key used from another origin gets 403 on any path.
+      # Back to observe to stop denying.
+      mode: enforce
+      replicaCount: 1
+      image:
+        # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
+        repository: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
+        tag: "v7.16.2"
+      extAuth:
+        # Fail open: if the auth service is down or slower than the timeout, the request goes through as the anonymous tier.
+        failOpen: true
+        timeout: 200ms
+      postgres:
+        secrets:
+          dsn:
+            # Staging's own registry: sefariastaging as auth_service_reader_staging (infrastructure#722). The shared
+            # auth-service-registry names the cauldrons' sefaria_auth and must not be used here.
+            ref: auth-service-registry-staging
+            key: AUTH_PG_DSN
+      rateLimit:
+        # Needs the controller rateLimit backend (infrastructure repo) first.
+        enabled: false
+      nginxLogFields: true
+      monitoring:
+        enabled: true
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v7.11.1"
+        tag: "v7.16.2"
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
@@ -124,6 +164,10 @@ spec:
         ref: backup-manager
     localSettings:
       DEBUG: true
+      # API keys phase 1, R5 of the staging rehearsal: the developer settings tab and its routes, for staff (is_staff) only.
+      # Staging's database is restored from prod every Sunday, so projects and keys made here do not survive the week.
+      DEVELOPER_SETTINGS_ENABLED: "True"
+      DEVELOPER_SETTINGS_STAFF_ONLY: "True"
       DOMAIN_LANGUAGE:
         "https://sefariastaging.org": "english"
         "https://voices.sefariastaging.org": "english"
