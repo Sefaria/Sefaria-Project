@@ -1,65 +1,83 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { chatbotApiBaseUrl, laSettings } from './chatbotApi';
+import { InterfaceText } from './Misc';
+import Input from './common/Input.jsx';
+import ToggleSwitch from './common/ToggleSwitch.jsx';
+import { useDialogKeys } from './SettingsPage.jsx';
 
 // The Library Assistant tab of Settings. The assistant's on/off is a Sefaria profile setting;
 // Instructions and Profile live in the assistant's own service and are read and written over HTTP
-// with the same signed user token the widget gets. English strings only, until Weblate.
+// with the same signed user token the widget gets (chatbotApi.laSettings).
+//
+// Design: Penina, 2026-11-18/19 (design/personalized-responses), built on Yotam's POC data layer. Every change
+// saves on its own; the page header says "Saving changes…", then "Changes saved". Styled with
+// @sefaria/design-system semantic tokens (s2.css, "Library Assistant settings" block). English strings only,
+// until Weblate.
+//
+// ?la_mock=1 (not in production) swaps the server for an in-memory one, to look at the design without the
+// personalization server.
 const MAX_TEXT = 300;
 
 const STRINGS = {
-  title: 'Library Assistant',
-  on: 'On',
-  off: 'Off',
-  saveSetting: 'Save assistant setting',
-  about:
-    'The Library Assistant can adapt its answers to how you learn. Instructions are yours to write. The Profile is written by the assistant from your questions; you can turn it off, clear it, or tell the assistant what to change.',
-  turnOn: 'Turn the Library Assistant on to use personalization.',
+  title: 'Library Assistant Settings',
+  assistant: 'Library Assistant',
+  saving: 'Saving changes…',
+  saved: 'Changes saved',
+  notSaved: 'Changes not saved',
+  personalized: 'Personalized answers',
+  personalizedAbout:
+    'The assistant can tailor its answers to you, based on what it learns about you and the instructions you give it. You can control both below.',
+  learnMore: 'Learn more',
+  newTab: ' (opens in a new tab)',
+  turnOn: 'Turn on the Library Assistant to activate personalized answers.',
   loading: 'Loading…',
-  instructions: 'Instructions',
-  instructionsPlaceholder: 'Tell LA the way you like to work',
-  saveInstructions: 'Save instructions',
   profile: 'Profile',
-  profileEmpty: 'LA will remember things about you as you move forward in your Sefaria career.',
+  profileAbout: 'This information is gathered by the assistant from your questions. Sensitive details are never saved.',
+  profileEmpty: 'As you use the Library Assistant, it will start to remember things about you and record them here.',
+  justUpdated: 'Just updated',
   clear: 'Clear profile',
-  clearConfirm: 'Clear your Profile? This cannot be undone.',
-  clearYes: 'Yes, clear',
+  clearTitle: 'Clear your profile?',
+  clearText:
+    'The assistant forgets everything it has learned about you and starts again from your next question. This can’t be undone.',
   cancel: 'Cancel',
-  editTitle: 'Tell LA what to change',
-  send: 'Send',
-  processing: 'Processing…',
+  editLabel: 'Want to make changes to your profile? Tell the assistant what to change.',
+  update: 'Update profile',
+  updating: 'Updating…',
+  instructions: 'Your instructions',
+  instructionsAbout: 'The Library Assistant will keep these in mind as it responds to you.',
+  instructionsPlaceholder:
+    'For example: Answer in English, keep it short, and show the Hebrew source with a translation.',
+  tooLong: `Keep it to ${MAX_TEXT} characters. Longer instructions aren’t saved.`,
   testing: 'Testing tools',
+  testingNote: 'These tools appear only on test deployments.',
   runNow: 'Run now',
   dreamNow: 'Dream now',
   updateEvery: 'Update after every message',
   plainResponse: 'Include non-personalized response',
   health: 'Job health',
   checkHealth: 'Check job health',
-  notAvailable: 'Personalization is not available here.',
-  notAvailableNoPreview:
-    'Personalization is not available here. Open the test link you were sent; this page is not connected to the personalization test server.',
-  jobsHour: 'Profile updates this hour',
-  jobRunning: 'Job running',
-  jobParked: 'Paused after repeated failures',
-  recentRuns: 'Recent runs',
-  signIn: 'Reload the page to sign in again.',
-  quota: 'Too many changes. Try again in a while.',
-  jobQuota: 'Hourly limit reached. Try again later.',
-  unreachable: 'Could not reach the Library Assistant. Try again.',
-  tryAgain: 'Try again',
-  settingFailed: 'Could not save the setting. Try again.',
-  personalization: 'Personalization',
-  settingDescription: 'Turn the assistant on or off for your account.',
-  instructionsDescription: 'Standing instructions that shape how the assistant answers you. You write these.',
-  profileDescription: 'What the assistant has learned about how you learn. It writes this from your questions.',
-  testingNote: 'These tools appear only on test deployments.',
   runNowHelp: 'Runs one Profile update now, from recent questions, to test a change without waiting.',
   dreamNowHelp: 'Runs the deeper Profile update now, over a wider set of questions, to check the full pass.',
   updateEveryHelp: 'Updates the Profile after every message instead of on the usual schedule, to watch changes land.',
   plainResponseHelp: 'Adds an answer without personalization to each reply, to compare it with the personalized one.',
   checkHealthHelp:
     'Shows when each Profile job last ran and wrote, and whether it is paused, for when updates seem to stop.',
-  backToLearning: 'Back to Learning',
+  jobsHour: 'Profile updates this hour',
+  jobRunning: 'Job running',
+  jobParked: 'Paused after repeated failures',
+  recentRuns: 'Recent runs',
+  notAvailable: 'Personalization is not available here.',
+  notAvailableNoPreview:
+    'Personalization is not available here. Open the test link you were sent; this page is not connected to the personalization test server.',
+  signIn: 'Reload the page to sign in again.',
+  quota: 'Too many changes. Try again in a while.',
+  jobQuota: 'Hourly limit reached. Try again later.',
+  unreachable: 'Could not reach the Library Assistant. Try again.',
+  tryAgain: 'Try again',
+  settingFailed: 'Could not save the setting. Try again.',
 };
+
+const T = ({ children }) => <InterfaceText text={{ en: children, he: children }} />;
 
 // A page with no preview server is one whose API base is not a `*.ai-server.coolifydev.sefaria.org` preview.
 export const isPreviewBase = (base) => {
@@ -70,15 +88,13 @@ export const isPreviewBase = (base) => {
   }
 };
 
-// The Back to Learning target: only a same-site path (starts with one slash, no backslash) is kept.
-export const safeReturnPath = (raw) =>
-  typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//') && !raw.includes('\\') ? raw : '/';
-
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const MAX_RUNS = 10;
 // The first read gives up after this long, so a server that never answers ends in an error with
 // Try again, not an endless "Loading…".
 export const LOAD_TIMEOUT_MS = 15000;
+// Instructions save themselves this long after typing stops (and on leaving the field).
+export const INSTRUCTIONS_SAVE_MS = 800;
 
 // A Run now / Dream now result in plain words, then the codes testers can quote.
 const RUN_STATUS = {
@@ -118,130 +134,38 @@ const formatTime = (value) => {
   const date = new Date(value);
   return isNaN(date)
     ? String(value)
-    : date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      });
+    : date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 };
+const PROFILE_AUTHOR = { la: 'the assistant', you_la: 'the assistant, at your request' };
+const lastUpdated = (updatedAt, by) =>
+  updatedAt ? `Last updated ${formatTime(updatedAt)}${by ? ` by ${by}` : ''}` : 'Never updated';
 
-const lastUpdated = (updatedAt, by) => {
-  if (!updatedAt) return 'Last updated: Never';
-  return `Last updated: ${formatTime(updatedAt)}${by ? ` by ${by}` : ''}`;
-};
-
-const PROFILE_AUTHOR = { la: 'LA', you_la: 'You/LA' };
-
-// The Profile is markdown-ish text: "# Heading" lines and paragraphs under them. Rendered as headings and
-// paragraphs of plain text nodes (never as HTML).
-const parseProfile = (text) => {
-  const blocks = [];
-  let lines = [];
-  const flush = () => {
-    if (lines.length) blocks.push({ type: 'p', text: lines.join('\n') });
-    lines = [];
-  };
-  text.split('\n').forEach((line) => {
+// The Profile is markdown-ish text: "# Heading" lines and paragraphs under them. Rendered as plain text
+// nodes (never as HTML).
+export const parseSections = (text) => {
+  const sections = [];
+  let current = null;
+  (text || '').split('\n').forEach((line) => {
     const heading = /^\s*#{1,6}\s+(.*\S)\s*$/.exec(line);
     if (heading) {
-      flush();
-      blocks.push({ type: 'h', text: heading[1] });
-    } else if (line.trim() === '') {
-      flush();
-    } else {
-      lines.push(line);
+      current = { heading: heading[1], body: [] };
+      sections.push(current);
+    } else if (line.trim()) {
+      if (!current) {
+        current = { heading: null, body: [] };
+        sections.push(current);
+      }
+      current.body.push(line.trim());
     }
   });
-  flush();
-  return blocks;
+  return sections.map((s) => ({ ...s, body: s.body.join(' ') }));
 };
-
-const ProfileText = ({ text }) => (
-  <div className="laProfileText">
-    {text ? (
-      parseProfile(text).map((block, i) =>
-        block.type === 'h' ? (
-          <h4 key={i} className="laProfileHeading">
-            {block.text}
-          </h4>
-        ) : (
-          <p key={i} className="laProfileBody">
-            {block.text}
-          </p>
-        )
-      )
-    ) : (
-      <p className="laMuted">{STRINGS.profileEmpty}</p>
-    )}
-  </div>
-);
-
-const isRtl = (el) =>
-  (typeof document !== 'undefined' && (document.dir === 'rtl' || document.documentElement.dir === 'rtl')) ||
-  (!!el && typeof window !== 'undefined' && window.getComputedStyle(el).direction === 'rtl');
-
-// Follows the WAI-ARIA radio group pattern: one tab stop per group, arrows move and select and wrap
-// at the ends (Left/Right flipped in RTL), Space/Enter select. Busy uses aria-disabled so that focus
-// stays on the control.
-const OnOffGroup = ({ on, onSelect, disabled, labelledBy, optionAttrs }) => {
-  const refs = useRef([]);
-  const values = [true, false];
-  const tabbable = on === false ? 1 : 0;
-  const select = (i) => {
-    if (!disabled && values[i] !== on) onSelect(values[i]);
-  };
-  const onKeyDown = (e, i) => {
-    if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter') {
-      e.preventDefault();
-      select(i);
-      return;
-    }
-    const rtl = isRtl(e.currentTarget);
-    const steps = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1, ArrowDown: 1, ArrowUp: -1 };
-    const step = steps[e.key];
-    if (!step) return;
-    e.preventDefault();
-    if (disabled) return;
-    const next = (i + step + values.length) % values.length;
-    if (refs.current[next]) refs.current[next].focus();
-    select(next);
-  };
-  return (
-    <div className="toggleSet toggleSetToggleBox blueStyle doubleOption" role="radiogroup" aria-labelledby={labelledBy}>
-      {values.map((value, i) => (
-        <button
-          key={String(value)}
-          ref={(el) => {
-            refs.current[i] = el;
-          }}
-          type="button"
-          role="radio"
-          className={`toggleOption${on === value ? ' on' : ''}`}
-          aria-checked={on === value}
-          aria-disabled={disabled ? 'true' : undefined}
-          tabIndex={i === tabbable ? 0 : -1}
-          onClick={() => select(i)}
-          onKeyDown={(e) => onKeyDown(e, i)}
-          {...optionAttrs(value)}
-        >
-          {value ? STRINGS.on : STRINGS.off}
-        </button>
-      ))}
-    </div>
-  );
+// The first section whose text changed, or that is new, between two Profiles (for "Just updated").
+const changedHeading = (before, after) => {
+  const old = new Map(parseSections(before).map((s) => [s.heading, s.body]));
+  const hit = parseSections(after).find((s) => old.get(s.heading) !== s.body);
+  return hit ? hit.heading : null;
 };
-
-const OnOff = ({ on, onChange, toggleName, disabled, labelledBy, title }) => (
-  <OnOffGroup
-    on={on}
-    onSelect={onChange}
-    disabled={disabled}
-    labelledBy={labelledBy}
-    optionAttrs={(value) => ({ 'data-toggle': on === value ? undefined : toggleName, title })}
-  />
-);
 
 // Whether a server reply is a usable State: everything the panel reads on render must be there.
 const isState = (res) =>
@@ -255,106 +179,232 @@ const isState = (res) =>
 // A refused edit may come back without a State; anything else must be one.
 const acceptEdit = (res) => isState(res) || (!!res && !!res.edit && res.edit.status === 'refused');
 
-const readInitialEnabled = (prop) => {
-  if (typeof prop === 'boolean') return prop;
-  const el = typeof document !== 'undefined' ? document.getElementById('libraryAssistantSettings') : null;
-  return !!el && el.getAttribute('data-library-assistant-enabled') === 'true';
-};
+/* ---------- ?la_mock=1: an in-memory server, for looking at the design ---------- */
 
-const AssistantSwitch = ({ initial }) => {
-  const [saved] = useState(initial);
-  const [value, setValue] = useState(initial);
-  const [error, setError] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const inFlight = useRef(false);
-  const mounted = useRef(true);
-  useEffect(
-    () => () => {
-      mounted.current = false;
-    },
-    []
-  );
-  const fail = (message) => {
-    inFlight.current = false;
-    if (!mounted.current) return;
-    setSaving(false);
-    setError(message);
-  };
-  const save = () => {
-    if (value === saved || inFlight.current) return;
-    inFlight.current = true;
-    setSaving(true);
-    setError(null);
-    // jQuery, so the page's CSRF setup applies; the endpoint takes a form field named "json".
-    const request = $.post(
-      '/api/profile',
-      { json: JSON.stringify({ settings: { library_assistant: value } }) },
-      (data) => {
-        if (data && data.error) {
-          fail(data.error);
-          return;
-        }
-        // A fresh page mints a fresh token (and the widget script) for the new setting.
-        window.location.reload();
+const PRODUCTION_HOSTS = /(^|\.)sefaria\.org(\.il)?$/;
+// Read once, when the script loads: the app rewrites the address bar (dropping the query) before the tab renders.
+const MOCK = (() => {
+  try {
+    const host = window.location.hostname;
+    if (PRODUCTION_HOSTS.test(host) && !/cauldron/.test(host)) return false;
+    return new URLSearchParams(window.location.search).get('la_mock') === '1';
+  } catch (e) {
+    return false;
+  }
+})();
+const isMock = () => MOCK;
+const MOCK_PROFILE = [
+  '# How you learn',
+  'You like short answers that quote the source first and explain it in a few sentences.',
+  "# What you're studying",
+  'You are comparing how Rambam and Ramban read the same verses in Genesis.',
+  '# What you write',
+  'You write a short d’var Torah every week for your community newsletter.',
+].join('\n');
+let mockState = null;
+const mockLaSettings = (action, body = {}) =>
+  new Promise((resolve) => {
+    const now = new Date().toISOString();
+    if (!mockState) {
+      mockState = {
+        instructions: { text: '', enabled: true, updatedAt: null },
+        profile: { text: MOCK_PROFILE, enabled: true, updatedAt: '2026-11-17T14:14:00', updatedBy: 'la' },
+        labEnabled: true,
+        testing: { updateEveryMessage: false, showPlainResponse: true, jobState: { hourUsed: 2, hourLimit: 20 } },
+      };
+    }
+    const s = mockState;
+    let out = s;
+    if (action === 'toggle') s[body.target] = { ...s[body.target], enabled: body.enabled };
+    if (action === 'set_instructions') s.instructions = { ...s.instructions, text: body.text, updatedAt: now };
+    if (action === 'clear_profile') s.profile = { ...s.profile, text: '', updatedAt: now, updatedBy: 'you_la' };
+    if (action === 'set_testing') s.testing = { ...s.testing, ...body };
+    if (action === 'edit_profile') {
+      if (/\b(prefer|only)\b.*\b(commentar|rashi|ramban|rambam)/i.test(body.request)) {
+        out = {
+          edit: {
+            status: 'refused',
+            reason:
+              'Preferring some commentaries over others belongs in your instructions, where you choose the words.',
+          },
+        };
+      } else {
+        s.profile = {
+          ...s.profile,
+          text: `${s.profile.text}${s.profile.text ? '\n' : ''}# Also\nYou told the assistant: ${body.request}`,
+          updatedAt: now,
+          updatedBy: 'you_la',
+        };
+        out = { ...s, edit: { status: 'applied' } };
       }
-    );
-    if (request && request.fail) request.fail(() => fail(STRINGS.settingFailed));
-  };
-  return (
-    <section id="libraryAssistantSetting" className="section laCard">
-      <h2 id="laSettingTitle" className="laCardTitle">
-        {STRINGS.title}
-      </h2>
-      <p className="laDescription">{STRINGS.settingDescription}</p>
-      <div className="laSwitchRow">
-        <OnOffGroup
-          on={value}
-          onSelect={setValue}
-          disabled={saving}
-          labelledBy="laSettingTitle"
-          optionAttrs={(v) => ({ 'data-la-value': String(v) })}
-        />
-        <button type="button" className="button small blue" aria-disabled={saving ? 'true' : undefined} onClick={save}>
-          {STRINGS.saveSetting}
-        </button>
-      </div>
-      {error && (
-        <p className="laMessage laError" role="alert">
-          {error}
+    }
+    if (action === 'run_now') out = { ...s, run: { status: 'no_change', reason: 'no_new_prompts' } };
+    if (action === 'health') out = { jobs: [{ name: 'session', lastRunAt: now, lastWriteAt: now, parked: false }] };
+    setTimeout(() => resolve(JSON.parse(JSON.stringify(out))), action === 'edit_profile' ? 900 : 400);
+  });
+
+/* ---------- Pieces ---------- */
+
+/* A label (and a helper line) with its control at the end of the row: developer settings' "Limit to your website" row. */
+const SwitchRow = ({ name, label, hint, on, onChange, disabled }) => (
+  <div className="laSwitchRow">
+    <div className="laSwitchText">
+      <span className="laSwitchLabel" id={`${name}-label`}>
+        <T>{label}</T>
+      </span>
+      {hint ? (
+        <p className="laHint" id={`${name}-hint`}>
+          <T>{hint}</T>
         </p>
-      )}
-    </section>
+      ) : null}
+    </div>
+    <ToggleSwitch name={name} isChecked={!!on} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
+  </div>
+);
+
+const ToolRow = ({ name, label, hint, children }) => (
+  <div className="laSwitchRow">
+    <div className="laSwitchText">
+      <span className="laSwitchLabel" id={`${name}-label`}>
+        <T>{label}</T>
+      </span>
+      <p className="laHint" id={`${name}-hint`}>
+        <T>{hint}</T>
+      </p>
+    </div>
+    {children}
+  </div>
+);
+
+/* A card title with its switch on the same row: the title is the switch's label. */
+const CardHead = ({ name, title, hint, on, disabled, onChange }) => (
+  <div className="laCardHead">
+    <div className="laCardHeadText">
+      <h3 className="laCardTitle" id={`${name}-label`}>
+        <T>{title}</T>
+      </h3>
+      {hint ? (
+        <p className="laHint" id={`${name}-hint`}>
+          <T>{hint}</T>
+        </p>
+      ) : null}
+    </div>
+    {onChange ? (
+      <ToggleSwitch name={name} isChecked={!!on} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
+    ) : null}
+  </div>
+);
+
+const Counter = ({ length }) => (
+  <span className={'laCount' + (length > MAX_TEXT ? ' laCountOver' : '')} aria-live="polite">
+    {`${length} / ${MAX_TEXT}`}
+  </span>
+);
+
+/* Top right of the page header, where developer settings has its links. Nothing until the first change. */
+const SaveStatus = ({ saving, saved }) => (
+  <p
+    className={'laSaveStatus' + (saved === 'fail' && !saving ? ' laSaveStatusFail' : '')}
+    role="status"
+    aria-live="polite"
+  >
+    {saving ? (
+      <>
+        <span className="laSpinner" aria-hidden="true" />
+        <T>{STRINGS.saving}</T>
+      </>
+    ) : saved === 'fail' ? (
+      <T>{STRINGS.notSaved}</T>
+    ) : saved ? (
+      <>
+        <svg className="laSavedIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+        <T>{STRINGS.saved}</T>
+      </>
+    ) : null}
+  </p>
+);
+
+/* Developer settings' delete dialog: the same keys and focus (Cancel first, Escape closes). */
+const ClearDialog = ({ onClear, onCancel }) => {
+  const cancelRef = useRef(null);
+  useDialogKeys(cancelRef, onCancel);
+  return (
+    <div
+      className="devPocModalStage laDialogStage"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="laClearTitle"
+      aria-describedby="laClearText"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onCancel();
+        }
+      }}
+    >
+      <section className="laDialog">
+        <h3 id="laClearTitle">
+          <T>{STRINGS.clearTitle}</T>
+        </h3>
+        <p id="laClearText">
+          <T>{STRINGS.clearText}</T>
+        </p>
+        <div className="laDialogActions">
+          <button type="button" className="laButton laButtonDanger" onClick={onClear}>
+            <T>{STRINGS.clear}</T>
+          </button>
+          <button type="button" className="laButton laButtonSecondary" ref={cancelRef} onClick={onCancel}>
+            <T>{STRINGS.cancel}</T>
+          </button>
+        </div>
+      </section>
+    </div>
   );
 };
 
-const Personalization = ({ base, token }) => {
+/* ---------- Personalization: Profile, Instructions, Testing tools ---------- */
+
+const Personalization = ({ base, token, off, onSaving }) => {
+  const mock = isMock();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState('');
+  const savedDraft = useRef('');
   const [confirmClear, setConfirmClear] = useState(false);
   const [editRequest, setEditRequest] = useState('');
-  const [editResult, setEditResult] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [refusal, setRefusal] = useState(null);
+  const [changed, setChanged] = useState(null);
   const [runResult, setRunResult] = useState(null);
   const [health, setHealth] = useState(null);
   const mounted = useRef(true);
+  const saveTimer = useRef(null);
   useEffect(
     () => () => {
       mounted.current = false;
+      clearTimeout(saveTimer.current);
     },
     []
   );
 
   // Runs one action. On success returns the response; `accept` says what a usable reply looks like
-  // (a State by default). On failure, or a reply that is not usable, sets the message, leaves the
-  // form as it was and returns null.
+  // (a State by default). On failure, or a reply that is not usable, sets the message and returns null.
+  // Every action but the reads counts as a save for the header's status.
   const call = useCallback(
     async (action, body, accept = isState, onQuota) => {
+      const saves = action !== 'get' && action !== 'health';
       setError(null);
       setBusy(true);
+      if (saves) onSaving(1);
+      let ok = false;
       try {
-        const res = await laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : {});
+        const res = mock
+          ? await mockLaSettings(action, body)
+          : await laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : {});
         if (!accept(res)) throw new Error('unexpected response');
+        ok = true;
         return res;
       } catch (e) {
         // `onQuota`: a caller with its own result area shows the hourly limit there, not as the page error
@@ -364,14 +414,11 @@ const Personalization = ({ base, token }) => {
         return null;
       } finally {
         if (mounted.current) setBusy(false);
+        if (saves) onSaving(-1, ok ? 'ok' : 'fail');
       }
     },
-    [base, token]
+    [base, token, mock, onSaving]
   );
-
-  const applyState = (res) => {
-    if (mounted.current && isState(res)) setData(res);
-  };
 
   const [loadAttempt, setLoadAttempt] = useState(0);
   useEffect(() => {
@@ -381,6 +428,7 @@ const Personalization = ({ base, token }) => {
       if (cancelled || !res) return;
       setData(res);
       setDraft(res.instructions.text || '');
+      savedDraft.current = res.instructions.text || '';
     })();
     return () => {
       cancelled = true;
@@ -389,27 +437,38 @@ const Personalization = ({ base, token }) => {
 
   const act = async (action, body, accept, onQuota) => {
     const res = await call(action, body, accept, onQuota);
-    applyState(res);
+    if (mounted.current && isState(res)) setData(res);
     return res;
   };
 
-  const saveInstructions = async () => {
-    const res = await act('set_instructions', { text: draft });
-    if (!res || !mounted.current) return;
-    setDraft(res.instructions.text || '');
+  const saveDraft = (text) => {
+    clearTimeout(saveTimer.current);
+    if (text === savedDraft.current || text.length > MAX_TEXT) return;
+    savedDraft.current = text;
+    act('set_instructions', { text });
   };
-  const clearProfile = async () => {
-    setConfirmClear(false);
-    await act('clear_profile');
+  const onDraft = (text) => {
+    setDraft(text);
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => saveDraft(text), INSTRUCTIONS_SAVE_MS);
   };
   const sendEdit = async () => {
-    setEditResult(STRINGS.processing);
-    const res = await act('edit_profile', { request: editRequest }, acceptEdit);
+    const request = editRequest.trim();
+    if (!request || busy || off) return;
+    const before = data.profile.text;
+    setEditing(true);
+    setRefusal(null);
+    setChanged(null);
+    const res = await act('edit_profile', { request }, acceptEdit);
     if (!mounted.current) return;
-    if (!res) return setEditResult(null);
-    const refused = res.edit && res.edit.status === 'refused';
-    setEditResult(refused ? res.edit.reason : res.profile.text || '');
-    if (res.edit && res.edit.status === 'applied') setEditRequest('');
+    setEditing(false);
+    if (!res) return;
+    if (res.edit && res.edit.status === 'refused') {
+      setRefusal(res.edit.reason);
+      return;
+    }
+    setEditRequest('');
+    setChanged(changedHeading(before, res.profile.text));
   };
   const runNow = async (kind) => {
     setRunResult(null);
@@ -422,270 +481,374 @@ const Personalization = ({ base, token }) => {
   };
 
   if (!data) {
-    return (
-      <>
-        {error ? (
-          <div className="laCard">
-            <p className="laMessage laError" role="alert">
-              {error}
-            </p>
-            <div className="laActions">
-              <button
-                type="button"
-                className="button small"
-                disabled={busy}
-                onClick={() => setLoadAttempt((n) => n + 1)}
-              >
-                {STRINGS.tryAgain}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <p className="laMuted">{STRINGS.loading}</p>
-        )}
-      </>
+    return error ? (
+      <div className="laCard">
+        <p className="laMessage laError" role="alert">
+          {error}
+        </p>
+        <div className="laActions">
+          <button
+            type="button"
+            className="laButton laButtonSecondary"
+            disabled={busy}
+            onClick={() => setLoadAttempt((n) => n + 1)}
+          >
+            <T>{STRINGS.tryAgain}</T>
+          </button>
+        </div>
+      </div>
+    ) : (
+      <p className="laHint">
+        <T>{STRINGS.loading}</T>
+      </p>
     );
   }
 
   const { instructions, profile, testing } = data;
-  const overLimit = draft.length > MAX_TEXT;
+  const sections = parseSections(profile.text);
+  const over = draft.length > MAX_TEXT;
+  const profileOn = profile.enabled && !off;
+  const instructionsOn = instructions.enabled && !off;
   return (
     <>
-      {error && (
+      {error ? (
         <p className="laMessage laError" role="alert">
           {error}
         </p>
-      )}
+      ) : null}
 
-      <div className="laBlock laCard" id="profile">
-        <h3 id="laProfileTitle" className="laCardTitle">
-          {STRINGS.profile}
-        </h3>
-        <p className="laDescription">{STRINGS.profileDescription}</p>
-        <ProfileText text={profile.text} />
-        <OnOff
-          on={profile.enabled}
-          toggleName="profile"
-          labelledBy="laProfileTitle"
-          disabled={busy}
+      {/* Profile first: it changes without the user doing anything, and it is what the chat's "Configure here" link
+          comes to check. */}
+      <section className="laCard" id="profile" aria-labelledby="laProfile-label">
+        <CardHead
+          name="laProfile"
+          title={STRINGS.profile}
+          hint={STRINGS.profileAbout}
+          on={profileOn}
+          disabled={off || busy}
           onChange={(enabled) => act('toggle', { target: 'profile', enabled })}
         />
-        <div className="laUpdated">{lastUpdated(profile.updatedAt, PROFILE_AUTHOR[profile.updatedBy])}</div>
-        {confirmClear ? (
-          <div role="alertdialog" className="laConfirm">
-            <p>{STRINGS.clearConfirm}</p>
-            <div className="laActions">
-              <button type="button" className="button small blue" disabled={busy} onClick={clearProfile}>
-                {STRINGS.clearYes}
-              </button>
-              <button type="button" className="button small transparent" onClick={() => setConfirmClear(false)}>
-                {STRINGS.cancel}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="laActions">
-            <button type="button" className="button small transparent" onClick={() => setConfirmClear(true)}>
-              {STRINGS.clear}
-            </button>
-          </div>
-        )}
-        <h4 id="laEditTitle" className="laSubheading">
-          {STRINGS.editTitle}
-        </h4>
-        <textarea
-          className="sefaria-input-control laTextarea laEditRequest"
-          aria-labelledby="laEditTitle"
-          rows={2}
-          maxLength={MAX_TEXT}
-          value={editRequest}
-          onChange={(e) => setEditRequest(e.target.value)}
-        />
-        <div className="laActions">
-          <button type="button" className="button small blue" disabled={busy || !editRequest.trim()} onClick={sendEdit}>
-            {STRINGS.send}
-          </button>
-        </div>
-        {editResult && (
-          <div className="laMessage laEditResult" role="status">
-            {editResult}
-          </div>
-        )}
-      </div>
-
-      <div className="laBlock laCard" id="instructions">
-        <h3 id="laInstructionsTitle" className="laCardTitle">
-          {STRINGS.instructions}
-        </h3>
-        <p className="laDescription">{STRINGS.instructionsDescription}</p>
-        <textarea
-          className="sefaria-input-control laTextarea laInstructions"
-          aria-labelledby="laInstructionsTitle"
-          rows={4}
-          value={draft}
-          placeholder={STRINGS.instructionsPlaceholder}
-          onChange={(e) => setDraft(e.target.value)}
-        />
-        <div
-          className={`laInstructionsCount${overLimit ? ' laError' : ''}`}
-          aria-live="polite"
-        >{`${draft.length} / ${MAX_TEXT}`}</div>
-        <OnOff
-          on={instructions.enabled}
-          toggleName="instructions"
-          labelledBy="laInstructionsTitle"
-          disabled={busy}
-          onChange={(enabled) => act('toggle', { target: 'instructions', enabled })}
-        />
-        <div className="laActions">
-          <button type="button" className="button small blue" disabled={overLimit || busy} onClick={saveInstructions}>
-            {STRINGS.saveInstructions}
-          </button>
-        </div>
-        <div className="laUpdated">{lastUpdated(instructions.updatedAt, 'You')}</div>
-      </div>
-
-      {data.labEnabled && (
-        <div className="laBlock laCard laCardTools" id="testing-tools">
-          <h3 className="laCardTitle">{STRINGS.testing}</h3>
-          <p className="laDescription">{STRINGS.testingNote}</p>
-          <div className="laActions">
-            <button
-              type="button"
-              className="button small"
-              disabled={busy}
-              title={STRINGS.runNowHelp}
-              onClick={() => runNow('session')}
-            >
-              {STRINGS.runNow}
-            </button>
-            <button
-              type="button"
-              className="button small"
-              disabled={busy}
-              title={STRINGS.dreamNowHelp}
-              onClick={() => runNow('dream')}
-            >
-              {STRINGS.dreamNow}
-            </button>
-          </div>
-          <p className="laDescription laHelper">{STRINGS.runNowHelp}</p>
-          <p className="laDescription laHelper">{STRINGS.dreamNowHelp}</p>
-          {runResult && (
-            <div className="laMessage laRunResult" role="status">
-              {runResult}
+        {/* Off: what's under the switch is grayed, so it's clear it isn't in effect. */}
+        <div className={'laBody' + (profileOn ? '' : ' laBodyOff')}>
+          {sections.length ? (
+            <ul className="laProfileList">
+              {sections.map((s, i) => (
+                <li key={i} className="laProfileItem">
+                  {s.heading ? <h4 className="laProfileHeading">{s.heading}</h4> : null}
+                  <p className="laProfileBody">{s.body}</p>
+                  {changed && s.heading === changed ? (
+                    <span className="laBadge">
+                      <T>{STRINGS.justUpdated}</T>
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="laEmpty">
+              <p className="laProfileBody">
+                <T>{STRINGS.profileEmpty}</T>
+              </p>
             </div>
           )}
-          <div className="laTestRow">
-            <span className="laTestLabel" id="laUpdateEveryLabel">
-              {STRINGS.updateEvery}
-            </span>
-            <OnOff
-              on={!!testing.updateEveryMessage}
-              toggleName="updateEveryMessage"
-              labelledBy="laUpdateEveryLabel"
-              disabled={busy}
-              title={STRINGS.updateEveryHelp}
-              onChange={(updateEveryMessage) => act('set_testing', { updateEveryMessage })}
-            />
-          </div>
-          <p className="laDescription laHelper">{STRINGS.updateEveryHelp}</p>
-          <div className="laTestRow">
-            <span className="laTestLabel" id="laPlainResponseLabel">
-              {STRINGS.plainResponse}
-            </span>
-            <OnOff
-              on={!!testing.showPlainResponse}
-              toggleName="showPlainResponse"
-              labelledBy="laPlainResponseLabel"
-              disabled={busy}
-              title={STRINGS.plainResponseHelp}
-              onChange={(showPlainResponse) => act('set_testing', { showPlainResponse })}
-            />
-          </div>
-          <p className="laDescription laHelper">{STRINGS.plainResponseHelp}</p>
-          <div className="laHealthRow">
-            <strong>{STRINGS.health}</strong>
+          {/* Clear profile sits with what it clears: under the profile, beside when it was last updated. */}
+          <div className="laProfileMetaRow">
+            <p className="laMeta">{lastUpdated(profile.updatedAt, PROFILE_AUTHOR[profile.updatedBy])}</p>
             <button
               type="button"
-              className="button small transparent"
-              disabled={busy}
-              title={STRINGS.checkHealthHelp}
-              onClick={checkHealth}
+              className="laButton laButtonDangerSecondary"
+              disabled={off || busy || !sections.length}
+              onClick={() => setConfirmClear(true)}
             >
-              {STRINGS.checkHealth}
+              <T>{STRINGS.clear}</T>
             </button>
           </div>
-          <p className="laDescription laHelper">{STRINGS.checkHealthHelp}</p>
+          <div className="laEdit">
+            <Input
+              id="laEdit"
+              label={STRINGS.editLabel}
+              multiline
+              rows={2}
+              maxLength={MAX_TEXT}
+              value={editRequest}
+              disabled={off}
+              onChange={(e) => setEditRequest(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendEdit();
+                }
+              }}
+              error={refusal}
+            />
+            <div className="laActions">
+              <button
+                type="button"
+                className="laButton laButtonPrimary"
+                aria-disabled={busy || off || !editRequest.trim() ? 'true' : undefined}
+                onClick={sendEdit}
+              >
+                <T>{editing ? STRINGS.updating : STRINGS.update}</T>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="laCard" id="instructions" aria-labelledby="laInstructions-label">
+        <CardHead
+          name="laInstructions"
+          title={STRINGS.instructions}
+          hint={STRINGS.instructionsAbout}
+          on={instructionsOn}
+          disabled={off || busy}
+          onChange={(enabled) => act('toggle', { target: 'instructions', enabled })}
+        />
+        <div className={'laBody' + (instructionsOn ? '' : ' laBodyOff')}>
+          <Input
+            id="laInstructionsText"
+            multiline
+            rows={4}
+            aria-labelledby="laInstructions-label"
+            placeholder={STRINGS.instructionsPlaceholder}
+            value={draft}
+            disabled={off}
+            onChange={(e) => onDraft(e.target.value)}
+            onBlur={() => saveDraft(draft)}
+            error={over ? STRINGS.tooLong : null}
+            fieldAddon={<Counter length={draft.length} />}
+          />
+          <p className="laMeta">{lastUpdated(instructions.updatedAt, instructions.updatedAt && 'you')}</p>
+        </div>
+      </section>
+
+      {data.labEnabled ? (
+        <section className="laCard laCardTools" id="testing-tools" aria-labelledby="laTools">
+          <div className="laCardHeadText">
+            <h3 className="laCardTitle" id="laTools">
+              <T>{STRINGS.testing}</T>
+            </h3>
+            <p className="laHint">
+              <T>{STRINGS.testingNote}</T>
+            </p>
+          </div>
+          <ToolRow name="laRunNow" label={STRINGS.runNow} hint={STRINGS.runNowHelp}>
+            <button
+              type="button"
+              className="laButton laButtonSecondary"
+              aria-describedby="laRunNow-hint"
+              disabled={busy || off}
+              onClick={() => runNow('session')}
+            >
+              <T>{STRINGS.runNow}</T>
+            </button>
+          </ToolRow>
+          <ToolRow name="laDreamNow" label={STRINGS.dreamNow} hint={STRINGS.dreamNowHelp}>
+            <button
+              type="button"
+              className="laButton laButtonSecondary"
+              aria-describedby="laDreamNow-hint"
+              disabled={busy || off}
+              onClick={() => runNow('dream')}
+            >
+              <T>{STRINGS.dreamNow}</T>
+            </button>
+          </ToolRow>
+          {runResult ? (
+            <p className="laMessage laRunResult" role="status">
+              {runResult}
+            </p>
+          ) : null}
+          <SwitchRow
+            name="laEvery"
+            label={STRINGS.updateEvery}
+            hint={STRINGS.updateEveryHelp}
+            on={!!testing.updateEveryMessage && !off}
+            disabled={off || busy}
+            onChange={(updateEveryMessage) => act('set_testing', { updateEveryMessage })}
+          />
+          <SwitchRow
+            name="laPlain"
+            label={STRINGS.plainResponse}
+            hint={STRINGS.plainResponseHelp}
+            on={!!testing.showPlainResponse && !off}
+            disabled={off || busy}
+            onChange={(showPlainResponse) => act('set_testing', { showPlainResponse })}
+          />
+          <ToolRow name="laHealth" label={STRINGS.health} hint={STRINGS.checkHealthHelp}>
+            <button
+              type="button"
+              className="laButton laButtonSecondary"
+              aria-describedby="laHealth-hint"
+              disabled={busy || off}
+              onClick={checkHealth}
+            >
+              <T>{STRINGS.checkHealth}</T>
+            </button>
+          </ToolRow>
+          {health ? (
+            <div className="laMessage laHealthResult" role="status">
+              {health.map((j) => (
+                <div key={j.name}>
+                  {`${j.name}: last run ${j.lastRunAt || 'never'}, last write ${j.lastWriteAt || 'never'}${
+                    j.parked ? ' (parked)' : ''
+                  }`}
+                </div>
+              ))}
+            </div>
+          ) : null}
           {isPlainObject(testing.jobState) &&
-            typeof testing.jobState.hourUsed === 'number' &&
-            typeof testing.jobState.hourLimit === 'number' && (
-              <div className="laJobState">
-                <div>{`${STRINGS.jobsHour}: ${testing.jobState.hourUsed} of ${testing.jobState.hourLimit}`}</div>
-                {typeof testing.jobState.lockHeld === 'boolean' && (
-                  <div>{`${STRINGS.jobRunning}: ${testing.jobState.lockHeld ? 'yes' : 'no'}`}</div>
-                )}
-                {typeof testing.jobState.parked === 'boolean' && (
-                  <div>{`${STRINGS.jobParked}: ${testing.jobState.parked ? 'yes' : 'no'}`}</div>
-                )}
-              </div>
-            )}
-          {Array.isArray(testing.recentRuns) && testing.recentRuns.some(isPlainObject) && (
-            <div className="laRuns">
+          typeof testing.jobState.hourUsed === 'number' &&
+          typeof testing.jobState.hourLimit === 'number' ? (
+            <div className="laMessage laJobState">
+              <div>{`${STRINGS.jobsHour}: ${testing.jobState.hourUsed} of ${testing.jobState.hourLimit}`}</div>
+              {typeof testing.jobState.lockHeld === 'boolean' ? (
+                <div>{`${STRINGS.jobRunning}: ${testing.jobState.lockHeld ? 'yes' : 'no'}`}</div>
+              ) : null}
+              {typeof testing.jobState.parked === 'boolean' ? (
+                <div>{`${STRINGS.jobParked}: ${testing.jobState.parked ? 'yes' : 'no'}`}</div>
+              ) : null}
+            </div>
+          ) : null}
+          {Array.isArray(testing.recentRuns) && testing.recentRuns.some(isPlainObject) ? (
+            <div className="laMessage laRuns">
               <strong>{STRINGS.recentRuns}</strong>
               {testing.recentRuns
                 .filter(isPlainObject)
                 .slice(0, MAX_RUNS)
                 .map((run, i) => (
                   <div className="laRunsRow" key={`${String(run.startedAt)}-${i}`}>
-                    {`${formatTime(run.startedAt)} · ${String(run.trigger)} · ${String(run.window)} · ${String(run.status)}${
-                      run.reason ? `: ${String(run.reason)}` : ''
-                    }`}
+                    {`${formatTime(run.startedAt)} · ${String(run.trigger)} · ${String(run.window)} · ${String(
+                      run.status
+                    )}${run.reason ? `: ${String(run.reason)}` : ''}`}
                   </div>
                 ))}
             </div>
-          )}
-          {health && (
-            <div className="laHealthResult">
-              {health.map((j) => (
-                <div key={j.name}>
-                  {`${j.name}: last run ${j.lastRunAt || 'never'}, last write ${j.lastWriteAt || 'never'}${j.parked ? ' (parked)' : ''}`}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+          ) : null}
+        </section>
+      ) : null}
+
+      {confirmClear ? (
+        <ClearDialog
+          onCancel={() => setConfirmClear(false)}
+          onClear={async () => {
+            setConfirmClear(false);
+            setChanged(null);
+            await act('clear_profile');
+          }}
+        />
+      ) : null}
     </>
   );
 };
 
+/* ---------- The tab ---------- */
+
 const LibraryAssistantSettings = (props) => {
   const base = chatbotApiBaseUrl(props);
   const token = props.chatbot_user_token;
-  const hasAccess = !!(token && base);
-  const from = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('from');
+  const hasAccess = isMock() || !!(token && base);
+  const [assistantOn, setAssistantOn] = useState(!!props.libraryAssistantEnabled);
+  const [settingError, setSettingError] = useState(null);
+  const [pending, setPending] = useState(0);
+  const [saved, setSaved] = useState(false);
+  const inFlight = useRef(false);
+  // `result`: 'ok' or 'fail' when a save ends. The header shows the last save's result.
+  const onSaving = useCallback((delta, result) => {
+    setPending((n) => Math.max(0, n + delta));
+    if (result) setSaved(result);
+  }, []);
+
+  // The assistant's on/off is a Sefaria profile setting. It saves at once, then the page reloads: a fresh page
+  // mints a fresh token (and the widget script) for the new setting (Yotam's POC).
+  const setAssistant = (on) => {
+    if (inFlight.current) return;
+    if (isMock()) {
+      setAssistantOn(on);
+      setSaved('ok');
+      return;
+    }
+    inFlight.current = true;
+    setAssistantOn(on);
+    setSettingError(null);
+    onSaving(1);
+    const fail = () => {
+      inFlight.current = false;
+      onSaving(-1, 'fail');
+      setAssistantOn(!on);
+      setSettingError(STRINGS.settingFailed);
+    };
+    // jQuery, so the page's CSRF setup applies; the endpoint takes a form field named "json".
+    const request = $.post(
+      '/api/profile',
+      { json: JSON.stringify({ settings: { library_assistant: on } }) },
+      (data) => {
+        if (data && data.error) {
+          fail();
+          return;
+        }
+        window.location.reload();
+      }
+    );
+    if (request && request.fail) request.fail(fail);
+  };
+
+  const off = !assistantOn;
   return (
-    <div className="libraryAssistantSettings">
-      <a className="button small" href={safeReturnPath(from)}>
-        {STRINGS.backToLearning}
-      </a>
-      <AssistantSwitch initial={readInitialEnabled(props.libraryAssistantEnabled)} />
-      <section id="personalization" className="section laSection">
-        <div className="laCard laIntro">
-          <h2 className="laSectionTitle">{STRINGS.personalization}</h2>
-          <p id="about-personalization" className="laSectionAbout">
-            {STRINGS.about}
+    <div className="devPocPage laTabPage">
+      <div className="laSettings">
+        <header className="laPageHeader">
+          <h1>
+            <T>{STRINGS.title}</T>
+          </h1>
+          <SaveStatus saving={pending > 0} saved={saved} />
+        </header>
+
+        <section className="laCard" id="libraryAssistantSetting" aria-labelledby="laAssistant-label">
+          <SwitchRow
+            name="laAssistant"
+            label={STRINGS.assistant}
+            on={assistantOn}
+            disabled={inFlight.current}
+            onChange={setAssistant}
+          />
+          {settingError ? (
+            <p className="laMessage laError" role="alert">
+              {settingError}
+            </p>
+          ) : null}
+        </section>
+
+        {/* Assistant off: the note on top, everything under it grayed and out of reach. */}
+        {off ? (
+          <p className="laOffNote">
+            <T>{STRINGS.turnOn}</T>
           </p>
-        </div>
-        {hasAccess ? (
-          <Personalization base={base} token={token} />
-        ) : (
-          <div className="laCard">
-            <p className="laMuted">{STRINGS.turnOn}</p>
+        ) : null}
+        <div id="personalization" className={'laGroup' + (off ? ' laGroupOff' : '')} inert={off ? 'true' : undefined}>
+          <div className="laSectionHead">
+            <h2 className="laH2">
+              <T>{STRINGS.personalized}</T>
+            </h2>
+            <p className="laHint">
+              <T>{STRINGS.personalizedAbout}</T>{' '}
+              <a className="laLink" href="/help" target="_blank" rel="noopener noreferrer">
+                <T>{STRINGS.learnMore}</T>
+                <span className="sr-only">{STRINGS.newTab}</span>
+              </a>
+            </p>
           </div>
-        )}
-      </section>
+          {hasAccess ? (
+            <Personalization base={base} token={token} off={off} onSaving={onSaving} />
+          ) : (
+            <section className="laCard">
+              <p className="laHint">
+                <T>{off ? STRINGS.turnOn : STRINGS.notAvailableNoPreview}</T>
+              </p>
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

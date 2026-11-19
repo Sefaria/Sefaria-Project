@@ -103,7 +103,7 @@ const clickAndSettle = async (element) => {
   });
 };
 
-const developerPanel = () => container.querySelectorAll('.settingsPanel')[1];
+const developerPanel = () => container.querySelector('.settingsPanel[data-tab="developer"]');
 const buttonNamed = (root, name) =>
   Array.from(root.querySelectorAll('button')).find((b) => b.textContent.trim() === name);
 
@@ -123,16 +123,20 @@ afterEach(() => {
 });
 
 describe('settings tabs', () => {
-  it('shows both tabs to a user who never opened developer settings', () => {
+  it('shows every tab to a user who never opened developer settings', () => {
     mount('account');
     const links = Array.from(container.querySelectorAll('nav.settingsNav a'));
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/settings/account', '/settings/developer']);
+    expect(links.map((a) => a.getAttribute('href'))).toEqual([
+      '/settings/account',
+      '/settings/library-assistant',
+      '/settings/developer',
+    ]);
     expect(links[0].getAttribute('aria-current')).toBe('page');
   });
 
   it('keeps developer settings out of the account tab', () => {
     mount('account');
-    const accountPanel = container.querySelectorAll('.settingsPanel')[0];
+    const accountPanel = container.querySelector('.settingsPanel[data-tab="account"]');
     expect(accountPanel.querySelector('#developerSettings')).toBeNull();
     expect(accountPanel.textContent).not.toContain('Get started');
   });
@@ -140,15 +144,17 @@ describe('settings tabs', () => {
   it('has no developer tab or agent instructions where developer settings are off', () => {
     mount('account', null);
     const links = Array.from(container.querySelectorAll('nav.settingsNav a'));
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/settings/account']);
-    expect(container.querySelectorAll('.settingsPanel').length).toBe(1);
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/settings/account', '/settings/library-assistant']);
+    expect(container.querySelector('.settingsPanel[data-tab="developer"]')).toBeNull();
     expect(container.querySelector('[data-agent-instructions]')).toBeNull();
   });
 
   it('gates the developer tab behind Get started', () => {
     mount('developer');
     expect(buttonNamed(developerPanel(), 'Get started')).toBeTruthy();
-    expect(container.querySelectorAll('nav.settingsNav a')[1].getAttribute('aria-current')).toBe('page');
+    expect(container.querySelector('nav.settingsNav a[href="/settings/developer"]').getAttribute('aria-current')).toBe(
+      'page'
+    );
   });
 });
 
@@ -1206,7 +1212,7 @@ describe('developer settings after Back', () => {
     );
     remount();
     expect(lastRequest()).toMatchObject({ url: '/api/developer/state', method: 'GET' });
-    expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(2);
+    expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(3);
     // nothing cached is shown until the server has confirmed the session
     expect(developerPanel().textContent).not.toContain('Daf Tracker');
 
@@ -1224,7 +1230,7 @@ describe('developer settings after Back', () => {
       remount();
       await flush();
     });
-    expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(1);
+    expect(container.querySelectorAll('nav.settingsNav a')).toHaveLength(2);
     expect(global.fetch).not.toHaveBeenCalled();
   });
 });

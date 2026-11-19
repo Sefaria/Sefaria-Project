@@ -1192,6 +1192,7 @@ class ReaderPanel extends Component {
           initialDeveloper={this.state.developer}
           setTab={this.setSettingsTab.bind(this)}
           setProjectId={this.setDeveloperProjectId.bind(this)}
+          chatbot={this.props.chatbot}
         />
       );
     } else if (this.state.menuOpen === 'modtools') {

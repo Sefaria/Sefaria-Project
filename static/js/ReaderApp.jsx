@@ -37,7 +37,6 @@ import {
   MobileAppPage,
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
-import LibraryAssistantSettings from './LibraryAssistantSettings';
 import { chatbotApiBaseUrl } from './chatbotApi';
 import { SignUpModal, InterruptingMessage, Banner, CookiesNotification } from './Misc';
 import Button from './common/Button';
@@ -739,6 +738,9 @@ class ReaderApp extends Component {
               hist.title = Sefaria.getPageTitle('Developer Settings');
               hist.url =
                 'settings/developer' + (state.developerProjectId ? '/projects/' + state.developerProjectId : '');
+            } else if (state.settingsTab === 'library-assistant') {
+              hist.title = Sefaria.getPageTitle('Library Assistant Settings');
+              hist.url = 'settings/library-assistant';
             } else {
               hist.title = Sefaria.getPageTitle('Account Settings');
               hist.url = 'settings/account';
@@ -2765,6 +2767,11 @@ class ReaderApp extends Component {
       panels.push(
         <div className={classes} style={style} key={key}>
           <ReaderPanel
+            chatbot={{
+              chatbot_version: this.props.chatbot_version,
+              chatbot_api_base_url: this.props.chatbot_api_base_url,
+              chatbot_user_token: this.props.chatbot_user_token,
+            }}
             openPanelAt={this.openPanelAt}
             updateSearchState={updateSearchState}
             resetSearchFilters={resetSearchFilters}
@@ -2994,5 +3001,4 @@ export {
   NewsletterPage,
   MobileAppPage,
   UpdatesPanel,
-  LibraryAssistantSettings,
 };

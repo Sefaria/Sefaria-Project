@@ -129,8 +129,8 @@ const advance = async (ms) => {
   });
 };
 
-const accountPanel = () => container.querySelectorAll('.settingsPanel')[0];
-const developerPanel = () => container.querySelectorAll('.settingsPanel')[1];
+const accountPanel = () => container.querySelector('.settingsPanel[data-tab="account"]');
+const developerPanel = () => container.querySelector('.settingsPanel[data-tab="developer"]');
 const buttonNamed = (root, name) =>
   Array.from(root.querySelectorAll('button')).find((b) => b.textContent.trim() === name);
 const noWebsiteDialog = () => container.querySelector('[aria-labelledby="devPocNoWebsiteTitle"]');

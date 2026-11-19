@@ -25,6 +25,7 @@ import {
   websiteOrigin,
 } from './developerSettingsApi';
 import Input from './common/Input.jsx';
+import LibraryAssistantSettings from './LibraryAssistantSettings.jsx';
 
 /* Account and developer settings, one page with a tab per settings section. The developer tab
    reads and writes the account's projects and API keys through developerSettingsApi.js. */
@@ -256,7 +257,7 @@ const FOCUSABLE =
 
 /* A modal dialog: focus moves in on open and back to where it was on close, Tab stays inside,
    and Escape closes it. */
-const useDialogKeys = (focusRef, onEscape) => {
+export const useDialogKeys = (focusRef, onEscape) => {
   useEffect(() => {
     const opener = typeof document !== 'undefined' ? document.activeElement : null;
     if (focusRef.current) {
@@ -301,8 +302,14 @@ const useDialogKeys = (focusRef, onEscape) => {
 /* One entry per settings section. A new section is an entry here, a panel in
    SettingsPage, and a URL in urls_library.py and ReaderApp's history. */
 const SETTINGS_TABS = [
-  { tab: 'account', url: '/settings/account', label: { en: 'Account Settings', he: 'הגדרות חשבון' } },
-  { tab: 'developer', url: '/settings/developer', label: { en: 'Developer Settings', he: 'הגדרות מפתחים' } },
+  { tab: 'account', url: '/settings/account', label: { en: 'Account', he: 'חשבון' } },
+  /* Library Assistant settings (Penina, 2026-11-19): the nav names the tabs only, under its "Settings" title. */
+  {
+    tab: 'library-assistant',
+    url: '/settings/library-assistant',
+    label: { en: 'Library Assistant', he: 'עוזר הספרייה' },
+  },
+  { tab: 'developer', url: '/settings/developer', label: { en: 'Developer', he: 'מפתחים' } },
 ];
 
 /* Lucide circle-user-round and code-xml. */
@@ -318,8 +325,15 @@ const SETTINGS_TAB_ICONS = {
     <path key="c" d="m14.5 4-5 16" />,
   ],
 };
+/* The assistant's own ✦ (ai-chatbot's Ask button and window header), not a Lucide icon: same meaning, same mark. */
+const LA_SPARKLE =
+  'M12 0C12.6 6.6 17.4 11.4 24 12C17.4 12.6 12.6 17.4 12 24C11.4 17.4 6.6 12.6 0 12C6.6 11.4 11.4 6.6 12 0Z';
 const SettingsTabIcon = ({ tab }) =>
-  SETTINGS_TAB_ICONS[tab] ? (
+  tab === 'library-assistant' ? (
+    <svg className="settingsNavIcon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d={LA_SPARKLE} />
+    </svg>
+  ) : SETTINGS_TAB_ICONS[tab] ? (
     <svg
       className="settingsNavIcon"
       viewBox="0 0 24 24"
@@ -3179,23 +3193,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
           </React.Fragment>
         ) : null}
 
-        {/* The Library Assistant is a plain user setting, shown to every logged-in user. Its
-            value is the effective one: users who are on through the pre-migration rule carry
-            no setting key yet. */}
-        <SettingSection
-          id="libraryAssistantSetting"
-          label={<InterfaceText text={{ en: 'Library Assistant', he: 'עוזר הספרייה' }} />}
-        >
-          <SettingToggle
-            optionClass="doubleOption"
-            value={libraryAssistant}
-            onChange={setLibraryAssistant}
-            options={[
-              { value: 'true', content: <InterfaceText text={{ en: 'On', he: 'פעיל' }} /> },
-              { value: 'false', content: <InterfaceText text={{ en: 'Off', he: 'כבוי' }} /> },
-            ]}
-          />
-        </SettingSection>
+        {/* The Library Assistant switch moved to its own tab (Penina with Mickey, 2026-11-16). */}
 
         <div id="username-change" className="section">
           <label className="control-elem">
@@ -3321,7 +3319,7 @@ const CONFIRMATION_LINK_MS = 3 * 24 * 60 * 60 * 1000;
 const SETUP_MS = 1200;
 const ARRIVAL_HIGHLIGHT_MS = 2400;
 
-const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTab, setProjectId }) => {
+const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTab, setProjectId, chatbot = {} }) => {
   const [restored] = useState(() => !accountSettings);
   const [settings, setSettings] = useState(() => (restored ? latestSettings.account : accountSettings));
   const [hasDeveloper] = useState(() => !!(restored ? latestSettings.developer : initialDeveloper));
@@ -3679,6 +3677,9 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         onSessionEnded={endSession}
       />
     ),
+    'library-assistant': (
+      <LibraryAssistantSettings {...chatbot} libraryAssistantEnabled={settings.libraryAssistantEnabled} />
+    ),
     developer: !verified ? (
       <div className="devPocPage">
         {verifyFailed ? (
@@ -3731,7 +3732,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
             <SettingsNav tabs={tabs} tab={tab} highlightTab={arrivalHighlight ? tab : null} onSelect={setTab} />
             <div className="settingsPanels">
               {tabs.map((t) => (
-                <div key={t.tab} className="settingsPanel" hidden={tab !== t.tab}>
+                <div key={t.tab} className="settingsPanel" data-tab={t.tab} hidden={tab !== t.tab}>
                   {panels[t.tab]}
                 </div>
               ))}
