@@ -162,6 +162,8 @@ class TextRequestAdapter:
         vstate = StateNode(oref.index.title).versionState
         next_ref = oref.next_section_ref(vstate=vstate)
         prev_ref = oref.prev_section_ref(vstate=vstate)
+        # None when neither this ref nor any following section holds text.
+        first_available_ref = oref.first_available_section_ref()
         self.return_obj.update(
             {
                 "ref": oref.normal(),
@@ -170,7 +172,7 @@ class TextRequestAdapter:
                 "toSections": oref.normal_toSections(),
                 "sectionRef": oref.section_ref().normal(),
                 "heSectionRef": oref.section_ref().he_normal(),
-                "firstAvailableSectionRef": oref.first_available_section_ref().normal(),
+                "firstAvailableSectionRef": first_available_ref.normal() if first_available_ref else None,
                 "isSpanning": oref.is_spanning(),
                 "next": next_ref.normal() if next_ref else None,
                 "prev": prev_ref.normal() if prev_ref else None,
