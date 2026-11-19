@@ -10,9 +10,9 @@ Decided by Sarah (2026-11-19): the detail this drops is not kept in a column. Th
 answer that matches no option, is added to the staff-only notes; the endpoint lists are dropped (D41: usage comes
 from key traffic). The reverse does nothing.
 
-Release order: this ships in a release after the one whose Project.contents() turns ids back into labels
-(gallery_category, gallery_reach). Preprod runs migrations on prod's database while prod still serves the previous
-release, so that release must already translate the ids this writes.
+Accepted risk (Sarah, 2026-11-19): preprod runs this on prod's shared database while prod still serves the
+previous release, whose Project.contents() returns the ids as stored. Until prod deploys, the gallery shows migrated
+projects under the wrong category and without "proof of concept". It ships in one release anyway.
 
 Rows already in the new format are left as they are, so running it again changes nothing. updated_at is not
 touched (bulk_update skips auto_now), so the gallery's dates stay the submitters'. Visibility, owner and
