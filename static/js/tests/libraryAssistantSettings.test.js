@@ -114,7 +114,9 @@ describe('LibraryAssistantSettings', () => {
 
   it('with no token or no API base explains it and makes no call', async () => {
     await render({ chatbot_user_token: null });
-    expect(q('#personalization').textContent).toContain('Personalization is not available here.');
+    expect(q('#personalization').textContent).toContain(
+      'Your personalized answers settings will show here the next time you open this page.'
+    );
     unmount();
     await render({ chatbot_api_base_url: null });
     expect(global.fetch).not.toHaveBeenCalled();
@@ -202,7 +204,7 @@ describe('LibraryAssistantSettings', () => {
   it('counts characters and does not save over 300', async () => {
     await render();
     await type(q('#laInstructionsText'), 'x'.repeat(301));
-    expect(q('.laCount').textContent).toBe('301 / 300');
+    expect(q('#instructions .laCount').textContent).toBe('301 / 300');
     expect(q('#instructions').textContent).toContain('Keep it to 300 characters.');
     await act(async () => Simulate.blur(q('#laInstructionsText')));
     await flush();
@@ -266,6 +268,26 @@ describe('LibraryAssistantSettings', () => {
     expect(items[1].textContent).toContain('Just updated');
     expect(items[0].textContent).not.toContain('Just updated');
     expect(q('#laEdit').value).toBe('');
+  });
+
+  it('locks the edit field while the Profile is off', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, enabled: false } })));
+    await render();
+    expect(q('#laEdit').disabled).toBe(true);
+    expect(byText('button', 'Update profile').getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('shows the 300-character limit on the edit request', async () => {
+    await render();
+    await type(q('#laEdit'), 'Shorter answers');
+    expect(q('#profile .laCount').textContent).toBe('15 / 300');
+    expect(q('#laEdit').getAttribute('maxlength')).toBe('300');
+  });
+
+  it('lets the text direction follow what is typed, for Hebrew', async () => {
+    await render();
+    expect(q('#laEdit').getAttribute('dir')).toBe('auto');
+    expect(q('#laInstructionsText').getAttribute('dir')).toBe('auto');
   });
 
   it('hides the testing tools unless labEnabled', async () => {
@@ -336,7 +358,7 @@ describe('LibraryAssistantSettings', () => {
     expect(q('#profile')).not.toBeNull();
   });
 
-  it('turning the assistant off posts the setting and shows Saving changes', async () => {
+  it('turning the assistant off posts the setting, with no reload', async () => {
     await render();
     await check(q('#laAssistant'), false);
     expect(global.$.post).toHaveBeenCalledTimes(1);
@@ -344,6 +366,10 @@ describe('LibraryAssistantSettings', () => {
     expect(url).toBe('/api/profile');
     expect(JSON.parse(data.json)).toEqual({ settings: { library_assistant: false } });
     expect(q('.laSaveStatus').textContent).toBe('Saving changes…');
+    const [, , done] = global.$.post.mock.calls[0];
+    await act(async () => done({}));
+    expect(q('.laSaveStatus').textContent).toBe('Changes saved');
+    expect(q('#laAssistant').checked).toBe(false);
   });
 
   it('a failed assistant save says so and puts the switch back', async () => {

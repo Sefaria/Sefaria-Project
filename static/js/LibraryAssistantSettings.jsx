@@ -67,6 +67,7 @@ const STRINGS = {
   jobParked: 'Paused after repeated failures',
   recentRuns: 'Recent runs',
   notAvailable: 'Personalization is not available here.',
+  onWithoutToken: 'Your personalized answers settings will show here the next time you open this page.',
   notAvailableNoPreview:
     'Personalization is not available here. Open the test link you were sent; this page is not connected to the personalization test server.',
   signIn: 'Reload the page to sign in again.',
@@ -193,6 +194,18 @@ const MOCK = (() => {
   }
 })();
 const isMock = () => MOCK;
+// Also read at load: the chat's "Configure here" links to #personalization, "Learn more" to #about-personalization.
+const INITIAL_HASH = (() => {
+  try {
+    return window.location.hash;
+  } catch (e) {
+    return '';
+  }
+})();
+const scrollToId = (id) => {
+  const el = typeof document !== 'undefined' && document.getElementById(id);
+  if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start' });
+};
 const MOCK_PROFILE = [
   '# How you learn',
   'You like short answers that quote the source first and explain it in a few sentences.',
@@ -435,6 +448,15 @@ const Personalization = ({ base, token, off, onSaving }) => {
     };
   }, [call, loadAttempt]);
 
+  // Arriving from the chat's "Configure here" (#personalization) lands on the Profile (Penina, 2026-11-19).
+  const scrolled = useRef(false);
+  useEffect(() => {
+    if (!data || scrolled.current) return;
+    scrolled.current = true;
+    if (INITIAL_HASH === '#personalization' || INITIAL_HASH === '#profile') scrollToId('profile');
+    if (INITIAL_HASH === '#about-personalization') scrollToId('about-personalization');
+  }, [data]);
+
   const act = async (action, body, accept, onQuota) => {
     const res = await call(action, body, accept, onQuota);
     if (mounted.current && isState(res)) setData(res);
@@ -454,7 +476,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
   };
   const sendEdit = async () => {
     const request = editRequest.trim();
-    if (!request || busy || off) return;
+    if (!request || busy || off || !data.profile.enabled) return;
     const before = data.profile.text;
     setEditing(true);
     setRefusal(null);
@@ -571,7 +593,9 @@ const Personalization = ({ base, token, off, onSaving }) => {
               rows={2}
               maxLength={MAX_TEXT}
               value={editRequest}
-              disabled={off}
+              disabled={!profileOn}
+              dir="auto"
+              fieldAddon={<Counter length={editRequest.length} />}
               onChange={(e) => setEditRequest(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -585,7 +609,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
               <button
                 type="button"
                 className="laButton laButtonPrimary"
-                aria-disabled={busy || off || !editRequest.trim() ? 'true' : undefined}
+                aria-disabled={busy || !profileOn || !editRequest.trim() ? 'true' : undefined}
                 onClick={sendEdit}
               >
                 <T>{editing ? STRINGS.updating : STRINGS.update}</T>
@@ -613,6 +637,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
             placeholder={STRINGS.instructionsPlaceholder}
             value={draft}
             disabled={off}
+            dir="auto"
             onChange={(e) => onDraft(e.target.value)}
             onBlur={() => saveDraft(draft)}
             error={over ? STRINGS.tooLong : null}
@@ -759,8 +784,9 @@ const LibraryAssistantSettings = (props) => {
     if (result) setSaved(result);
   }, []);
 
-  // The assistant's on/off is a Sefaria profile setting. It saves at once, then the page reloads: a fresh page
-  // mints a fresh token (and the widget script) for the new setting (Yotam's POC).
+  // The assistant's on/off is a Sefaria profile setting. It saves at once, with no page reload (Penina, 2026-11-19).
+  // ⚠ For engineering: the widget on the page, and the user token personalization needs, follow the setting only
+  // from the next page load. Turned on from off, this page has no token yet (see `onWithoutToken`).
   const setAssistant = (on) => {
     if (inFlight.current) return;
     if (isMock()) {
@@ -787,7 +813,8 @@ const LibraryAssistantSettings = (props) => {
           fail();
           return;
         }
-        window.location.reload();
+        inFlight.current = false;
+        onSaving(-1, 'ok');
       }
     );
     if (request && request.fail) request.fail(fail);
@@ -830,7 +857,7 @@ const LibraryAssistantSettings = (props) => {
             <h2 className="laH2">
               <T>{STRINGS.personalized}</T>
             </h2>
-            <p className="laHint">
+            <p className="laHint" id="about-personalization">
               <T>{STRINGS.personalizedAbout}</T>{' '}
               <a className="laLink" href="/help" target="_blank" rel="noopener noreferrer">
                 <T>{STRINGS.learnMore}</T>
@@ -843,7 +870,7 @@ const LibraryAssistantSettings = (props) => {
           ) : (
             <section className="laCard">
               <p className="laHint">
-                <T>{off ? STRINGS.turnOn : STRINGS.notAvailableNoPreview}</T>
+                <T>{off ? STRINGS.turnOn : !token ? STRINGS.onWithoutToken : STRINGS.notAvailableNoPreview}</T>
               </p>
             </section>
           )}
