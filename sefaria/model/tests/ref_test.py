@@ -18,6 +18,17 @@ class Test_Ref:
         assert Ref("Exo.3.21")
         assert Ref("1Ch.") == Ref("1 Chronicles")
 
+    def test_empty_ref_normal_raises_input_error(self):
+        # A ref built from an empty/None title has no index node; normalizing it
+        # must raise InputError (not AttributeError) so callers treat it as bad input.
+        for empty in ("", None, {}, []):
+            ref = Ref(empty)
+            assert ref.index_node is None
+            with pytest.raises(InputError):
+                ref.normal()
+            with pytest.raises(InputError):
+                ref.he_normal()
+
     def test_normal_form_is_identifcal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
         assert Ref("Shabbat 32b").normal() == "Shabbat 32b"
