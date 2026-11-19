@@ -15,6 +15,7 @@ from django.views.decorators.http import require_http_methods
 from sefaria.client.util import jsonResponse
 from sefaria.system.decorators import catch_error_as_json
 
+from .formstack_answers import append_notes, convert_category, convert_reach, convert_tools
 from .models import ApiProject, Project, SubmissionSource, TechnicalExperience
 
 REQUIRED_FIELDS = ("project_name", "project_link")
@@ -353,6 +354,26 @@ def _formstack_signature_ok(request):
     return hmac.compare_digest(f"sha256={digest}", sent)
 
 
+def _convert_to_publish_form_format(cleaned):
+    """
+    Save categories, tools and monthly users in the new publish form's format (ids), the format migration 0014
+    converted the older rows to, so the form reopens a Formstack submission and the gallery reads one format.
+    What doesn't fit (the text typed under "Other") goes to the staff-only notes.
+    """
+    lines = []
+    if "project_category" in cleaned:
+        cleaned["project_category"], category_lines = convert_category(cleaned["project_category"])
+        lines += category_lines
+    if "sefaria_tools_used" in cleaned:
+        cleaned["sefaria_tools_used"], tool_lines = convert_tools(cleaned["sefaria_tools_used"])
+        lines += tool_lines
+    if "project_reach" in cleaned:
+        cleaned["project_reach"] = convert_reach(cleaned["project_reach"])
+    notes = append_notes(cleaned.get("notes"), lines, "Formstack answers that didn't fit the new form:")
+    if notes:
+        cleaned["notes"] = notes
+
+
 def _powered_by_post(request):
     if not _formstack_signature_ok(request):  ## BEFORE json.loads
         return jsonResponse({"error": "Unauthorized"}, status=401)
@@ -371,6 +392,7 @@ def _powered_by_post(request):
     if error:
         return jsonResponse({"error": error}, status=400)
 
+    _convert_to_publish_form_format(cleaned)
     cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
     cleaned.setdefault("submission_date", timezone.now())
     # Consent is assumed; a submitter who explicitly asks not to be published never is.
