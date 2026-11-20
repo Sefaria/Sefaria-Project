@@ -257,15 +257,25 @@ class ConnectionsPanel extends Component {
     );
   }
   async setCurrentVersions() {
+    if (Sefaria.isSheetRef(this.props.srefs[0])) {
+      // A sheet is a virtual node with no text versions, so the version based texts API has
+      // nothing to answer for it. The panel needs no version data for a sheet.
+      this.setState({ currObjectVersions: { en: null, he: null }, sectionRef: this.sectionRef() });
+      return;
+    }
     const data = await this.getData();
     let currentLanguage = this.props.masterPanelLanguage;
     if (currentLanguage === 'bilingual') {
       currentLanguage = 'hebrew';
     }
-    if (!data || data.error) {
-      this.setState({
-        currObjectVersions: { en: null, he: null },
-      });
+    if (!data || data.error || !data.versions || !data.versions.length) {
+      // Responses with no versions are valid (the API reports the asked versions as missing).
+      // Stop here: getPrimaryAndTranslationFromVersions() reads versions[0] and throws on [].
+      if (data && data.error) {
+        console.warn('ConnectionsPanel: text API error for', this.props.srefs[0], data.error);
+      }
+      this.setState({ currObjectVersions: { en: null, he: null }, sectionRef: this.sectionRef() });
+      return;
     }
     const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(data.versions);
     this.setState({

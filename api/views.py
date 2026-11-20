@@ -85,7 +85,8 @@ class Text(View):
             data = text_manager.get_versions_for_query()
             data = self._handle_warnings(data)
 
-        except Exception as e:
+        except InputError as e:
+            # The caller asked for something this API rejects, such as a version that does not exist.
             return jsonResponse({"error": str(e)}, status=400)
 
         return jsonResponse(data)

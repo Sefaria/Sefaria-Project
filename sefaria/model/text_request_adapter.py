@@ -159,7 +159,13 @@ class TextRequestAdapter:
         oref = self.oref
         # Share one VersionState fetch between next/prev instead of each independently loading
         # its own (next_section_ref/prev_section_ref each hit the DB when vstate isn't passed).
-        vstate = StateNode(oref.index.title).versionState
+        # A virtual node (a Sheet, a lexicon entry) keeps its content on the node and has no
+        # version state of its own, so a VersionState lookup on its schema node raises
+        # AttributeError (SheetLibraryNode has no version_address). RefView skips it the same way.
+        vstate = None if oref.index_node.is_virtual else StateNode(oref.index.title).versionState
+        # first_available_section_ref() has no virtual-node path and can return None for a Sheet,
+        # which is already the section the caller asked for.
+        first_available_ref = oref.section_ref() if oref.index_node.is_virtual else oref.first_available_section_ref()
         next_ref = oref.next_section_ref(vstate=vstate)
         prev_ref = oref.prev_section_ref(vstate=vstate)
         self.return_obj.update(
@@ -170,7 +176,7 @@ class TextRequestAdapter:
                 "toSections": oref.normal_toSections(),
                 "sectionRef": oref.section_ref().normal(),
                 "heSectionRef": oref.section_ref().he_normal(),
-                "firstAvailableSectionRef": oref.first_available_section_ref().normal(),
+                "firstAvailableSectionRef": first_available_ref.normal(),
                 "isSpanning": oref.is_spanning(),
                 "next": next_ref.normal() if next_ref else None,
                 "prev": prev_ref.normal() if prev_ref else None,
@@ -273,8 +279,8 @@ class TextRequestAdapter:
 
         # Define text modification functions based on return format
         text_modification_funcs = []
-        if self.return_format == "wrap_all_entities":
-            # Check for links and load segment refs only once
+        if self.return_format == "wrap_all_entities" and not self.oref.index_node.is_virtual:
+            # Check for links and load segment refs only once. A virtual node has no segment refs.
             shared_data["all_segment_refs"] = self.oref.all_segment_refs()
 
             query = self.oref.ref_regex_query()
