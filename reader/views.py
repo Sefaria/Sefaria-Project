@@ -5860,6 +5860,7 @@ def entity_search_api(request):
     return jsonResponse(results, callback=callback)
 
 
+@catch_error_as_json
 @csrf_exempt
 def search_path_filter(request, book_title):
     oref = Ref(book_title)
