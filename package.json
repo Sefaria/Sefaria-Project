@@ -229,7 +229,7 @@
     "semver@^5.0.0": "5.7.2",
     "shortid": "2.2.17",
     "cross-spawn@^5.0.0": "6.0.6",
-    "picomatch@^4.0.0": "4.0.4",
+    "picomatch@^4.0.0": "4.0.7",
     "ws@^5.0.0": "5.2.5"
   },
   "jest": {
@@ -239,7 +239,27 @@
     "testEnvironment": "jsdom",
     "testPathIgnorePatterns": [
       "<rootDir>/e2e-tests/"
-    ]
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(sanitize-html|htmlparser2|domhandler|domutils|dom-serializer|domelementtype|entities)/)"
+    ],
+    "transform": {
+      "^.+\\.[cm]?[jt]sx?$": [
+        "babel-jest",
+        {
+          "babelrc": false,
+          "configFile": false,
+          "presets": [
+            "@babel/env",
+            "@babel/react"
+          ],
+          "compact": false
+        }
+      ]
+    },
+    "moduleNameMapper": {
+      "^entities/(decode|escape)$": "<rootDir>/node_modules/sanitize-html/node_modules/entities/dist/$1.js"
+    }
   },
   "babel": {
     "presets": [
