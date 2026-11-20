@@ -70,7 +70,20 @@ def text():
 
 @pytest.fixture
 def version(index, text):
-    v = Version({"language": "en", "title": "test", "versionSource": "", "versionTitle": "test", "chapter": text})
+    v = Version(
+        {
+            "language": "en",
+            "actualLanguage": "en",
+            "languageFamilyName": "english",
+            "direction": "ltr",
+            "isSource": False,
+            "isPrimary": True,
+            "title": "test",
+            "versionSource": "",
+            "versionTitle": "test",
+            "chapter": text,
+        }
+    )
     return v
 
 
@@ -89,7 +102,7 @@ def test_invalid_version(version):
 
 @pytest.fixture
 def textchunck(text, index):
-    t = Ref("test").text("en", "test")
+    t = Ref("test").text("en", "test", direction="ltr")
     t.text = text
     t.save()
     index.versionState().refresh()

@@ -2399,7 +2399,7 @@ def texts_api(request, tref):
 @csrf_exempt
 def complete_version_api(request):
 
-    def internal_do_post():
+    def internal_do_post(request):
         skip_links = bool(int(request.POST.get("skip_links", 0)))
         count_after = int(request.POST.get("count_after", 0))
         version_change = VersionChange(
@@ -2446,9 +2446,9 @@ def complete_version_api(request):
             return jsonResponse({"error": "Unrecognized API key."})
     else:
         method = None
-        internal_do_post = csrf_protect(internal_do_post())
+        internal_do_post = staff_member_required(csrf_protect(internal_do_post))
 
-    return internal_do_post()
+    return internal_do_post(request)
 
 
 @catch_error_as_json

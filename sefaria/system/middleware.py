@@ -24,7 +24,11 @@ from sefaria.constants.model import LIBRARY_MODULE
 from sefaria.model.user_profile import UserProfile
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
-from sefaria.utils.chatbot import MCP_TOKEN_AUDIENCE, get_user_id_from_chatbot_user_token
+from sefaria.utils.chatbot import (
+    MCP_TOKEN_AUDIENCE,
+    get_user_id_from_chatbot_user_token,
+    is_usable_chatbot_user_id_secret,
+)
 from sefaria.utils.domains_and_languages import (
     current_domain_lang,
     get_cookie_domain,
@@ -426,6 +430,10 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
       chatbot's MCP server for a user who signed in at /api/mcp/authorize. Accepted only on
       MCP_ROUTES, the sheet API calls its tools make, and on MCP_ADMIN_ROUTES for staff only.
       CSRF is skipped, since a browser never attaches this header on its own.
+
+    Chatbot tokens are only honoured when CHATBOT_USER_ID_SECRET is set to a usable value (not
+    missing, not the example placeholder and, outside DEBUG, not the insecure default); otherwise the middleware logs a critical message at
+    startup and leaves chatbot-token requests unauthenticated.
     """
 
     ADMIN_PATH_PREFIX = "/api/admin/"
@@ -438,6 +446,13 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
         ("GET", re.compile(r"^/api/admin/topic-prompts/?$")),
         ("PATCH", re.compile(r"^/api/admin/topic-prompts/[^/]+/?$")),
     )
+
+    def __init__(self, get_response=None):
+        super().__init__(get_response)
+        if not is_usable_chatbot_user_id_secret(getattr(settings, "CHATBOT_USER_ID_SECRET", None)):
+            logger.critical(
+                "CHATBOT_USER_ID_SECRET is missing or the insecure default; X-Session-ID authentication is disabled"
+            )
 
     def process_request(self, request):
         if getattr(request, "user", None) and request.user.is_authenticated:

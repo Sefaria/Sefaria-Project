@@ -186,7 +186,8 @@ ACTIVECAMPAIGN_ACCOUNT_NAME = None
 MANAGERS = ADMINS
 
 SECRET_KEY = "insert your long random secret key here !"
-CHATBOT_USER_ID_SECRET = "insert your chatbot user id secret here"
+# Read from the environment so no real secret lives in this file; unset disables chatbot user tokens.
+CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET")
 # Secret shared with the AI chatbot for MCP sign-in, and the chatbot callback URLs it may
 # redirect to (e.g. ["http://localhost:8001/oauth/sefaria/callback"]). None disables MCP sign-in.
 MCP_TOKEN_SECRET = None

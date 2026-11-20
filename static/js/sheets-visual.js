@@ -1,4 +1,4 @@
-/* global bgColor:writable, i:writable, launchOffset:writable, marginOffset:writable, saveFlashShown:writable, toJson:writable, visibleSources:writable, zoomScale:writable */
+/* global sheetsSanitize:readonly, bgColor:writable, i:writable, launchOffset:writable, marginOffset:writable, saveFlashShown:writable, toJson:writable, visibleSources:writable, zoomScale:writable */
 $('#container').css({
   width: $('body').css('width'),
   height: $('body').css('height'),
@@ -167,21 +167,27 @@ $('.sheetItem')
     }
 
     if ($(this).hasClass('mediaWrapper')) {
-      var mediaSource =
-        visibleSources[$(this).prevAll('.sheetItem').length + $(this).prevAll('.outsideBiWrapper').length].media;
+      // Match by node id: a source whose media was dropped at render has no element, so position is unreliable.
+      var mediaNode = $(this).attr('data-node');
+      var mediaSourceEntry = visibleSources.find(function (source) {
+        return String(source.node) === mediaNode;
+      });
+      var mediaSource = mediaSourceEntry ? mediaSourceEntry.media : undefined;
       var mediaLink;
+      var parsedMedia = sheetsSanitize.parseMediaUrl(mediaSource);
+      var mediaSrc = parsedMedia ? sheetsSanitize.escapeHtml(parsedMedia.url) : '';
 
-      if (mediaSource.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-        mediaLink = '<img class="addedMedia" src="' + mediaSource + '" />';
-      } else if (mediaSource.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0&amp;showinfo=0$/i) != null) {
+      if (parsedMedia && parsedMedia.kind === 'image') {
+        mediaLink = '<img class="addedMedia" src="' + mediaSrc + '" />';
+      } else if (parsedMedia && parsedMedia.kind === 'youtube') {
         mediaLink =
-          '<div class="videoWrapper"><iframe width="560" height="315" src=' +
-          mediaSource +
-          ' frameborder="0" allowfullscreen></iframe></div>';
-      } else if (mediaSource.match(/\.(mp3)$/i) != null) {
+          '<div class="videoWrapper"><iframe width="560" height="315" src="' +
+          mediaSrc +
+          '" frameborder="0" allowfullscreen></iframe></div>';
+      } else if (parsedMedia && parsedMedia.kind === 'audio') {
         mediaLink =
           '<audio src="' +
-          mediaSource +
+          mediaSrc +
           '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
       } else {
         mediaLink = '';
