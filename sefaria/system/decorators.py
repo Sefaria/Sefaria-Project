@@ -15,6 +15,36 @@ logger = structlog.get_logger(__name__)
 
 from sefaria.settings import FAIL_GRACEFULLY
 
+# The exceptions the project answers as caller input error. InputError is the parent of
+# the model-layer "bad input" family (BookNameError, PartialRefInputError,
+# SheetNotFoundError, DictionaryEntryNotFoundError, ...). MissingKeyError and
+# SluggedMongoRecordMissingError report a request for data that is not there.
+INPUT_ERROR_TYPES = (exps.InputError, exps.MissingKeyError, exps.SluggedMongoRecordMissingError)
+
+# The answer the contract gives a classified error.
+INPUT_ERROR_JSON = "json"  # an {"error": message} body, status 200
+INPUT_ERROR_NOT_FOUND = "not_found"  # Django's 404 answer
+
+
+def classify_input_error(exception):
+    """Return the answer the input-error contract gives `exception`, or None for a system fault.
+
+    This is the single definition of what the project treats as caller input error, shared by
+    the view decorators and by `sefaria.system.middleware.ErrorBoundaryMiddleware`. A None
+    answer means the caller must let the exception through: a system fault has to stay visible
+    as a 500, not be turned into an error body.
+    """
+    if isinstance(exception, Http404):
+        return INPUT_ERROR_NOT_FOUND
+    if isinstance(exception, INPUT_ERROR_TYPES):
+        return INPUT_ERROR_JSON
+    return None
+
+
+def input_error_json_response(exception, request):
+    """Build the JSON error body that answers a classified input error."""
+    return jsonResponse({"error": str(exception)}, callback=request.GET.get("callback", None))
+
 
 # TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.
 def json_response_decorator(func):
@@ -40,13 +70,15 @@ def catch_error_as_json(func):
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
-        except exps.InputError as e:
-            logger.warning(
-                f"An exception occurred processing request for '{args[0].path}' while running {func.__name__}. Caught as JSON",
-                exc_info=True,
-            )
+        except Exception as e:
+            if classify_input_error(e) != INPUT_ERROR_JSON:
+                raise
             request = args[0]
-            return jsonResponse({"error": str(e)}, callback=request.GET.get("callback", None))
+            logger.warning(
+                f"An exception occurred processing request for '{request.path}' while running {func.__name__}. Caught as JSON",
+                exc_info=e,
+            )
+            return input_error_json_response(e, request)
         return result
 
     return wrapper
@@ -61,20 +93,23 @@ def catch_error_as_http(func):
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
-        except exps.InputError:
-            logger.warning(
-                f"An exception occurred processing request for '{args[0].path}' while running {func.__name__}. Caught as HTTP",
-                exc_info=True,
-            )
-            raise Http404
-        except Http404:
-            raise
         except Exception as e:
+            request = args[0]
+            answer = classify_input_error(e)
+            if answer == INPUT_ERROR_NOT_FOUND:
+                raise
+            if answer == INPUT_ERROR_JSON:
+                logger.warning(
+                    f"An exception occurred processing request for '{request.path}' while running {func.__name__}. Caught as HTTP",
+                    exc_info=e,
+                )
+                raise Http404
             logger.exception(
-                f"An exception occurred processing request for '{args[0].path}' while running {func.__name__}. Caught as HTTP"
+                f"An exception occurred processing request for '{request.path}' while running {func.__name__}. Caught as HTTP",
+                exc_info=e,
             )
             return render(
-                args[0], "static/generic.html", {"content": f"There was an error processing your request: {str(e)}"}
+                request, "static/generic.html", {"content": f"There was an error processing your request: {str(e)}"}
             )
         return result
 

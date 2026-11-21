@@ -12,7 +12,7 @@ from urllib.parse import quote, urljoin, urlparse
 import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse, HttpResponsePermanentRedirect, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponsePermanentRedirect, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import resolve
 from django.utils import translation
@@ -24,6 +24,12 @@ from sefaria.constants.model import LIBRARY_MODULE
 from sefaria.model.user_profile import UserProfile
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
+from sefaria.system.decorators import (
+    INPUT_ERROR_JSON,
+    INPUT_ERROR_NOT_FOUND,
+    classify_input_error,
+    input_error_json_response,
+)
 from sefaria.utils.chatbot import MCP_TOKEN_AUDIENCE, get_user_id_from_chatbot_user_token
 from sefaria.utils.domains_and_languages import (
     current_domain_lang,
@@ -572,6 +578,43 @@ class ProfileMiddleware(MiddlewareMixin):
 
             response = HttpResponse("<pre>%s</pre>" % io.getvalue())
         return response
+
+
+class ErrorBoundaryMiddleware:
+    """
+    Applies the project's input-error contract to every view, decorated or not.
+
+    The contract (`sefaria.system.decorators.classify_input_error`) answers a caller input
+    error with an {"error": message} JSON body on API paths and with HTTP 404 elsewhere.
+    Reachable only per view before this boundary existed, so a view that forgot the
+    decorator answered 500 for input the project already knows how to classify. An
+    exception the classifier does not name is a system fault: this middleware returns
+    None and Django keeps its 500 handling for it.
+
+    Registered inside django_structlog's RequestMiddleware in MIDDLEWARE, so the warning
+    it logs carries the request's structlog context.
+    """
+
+    JSON_PATH_PREFIXES = ("/api/", "/_api/")
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        answer = classify_input_error(exception)
+        if answer is None or answer == INPUT_ERROR_NOT_FOUND:
+            # A system fault must stay a 500, and a 404 is already the answer Django gives.
+            return None
+        logger.warning(
+            f"An exception occurred processing request for '{request.path}'. Caught at the error boundary",
+            exc_info=exception,
+        )
+        if request.path.startswith(self.JSON_PATH_PREFIXES):
+            return input_error_json_response(exception, request)
+        raise Http404
 
 
 class MaxRSSMiddleware:
