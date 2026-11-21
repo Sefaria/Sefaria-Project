@@ -1,11 +1,14 @@
 """Unit tests for pure-logic functions in reindex_orchestrator.
 Uses importlib to exec_module so heavy imports (kubernetes, django) are never triggered
 — they live inside main() only."""
+
 import importlib.util
+import itertools
 import pathlib
+import sys
+import types
 
 import pytest
-
 
 spec = importlib.util.spec_from_file_location(
     "reindex_orchestrator",
@@ -87,18 +90,10 @@ def test_build_shard_job_manifest():
 
     # envFrom is propagated
     assert "envFrom" in container
-    env_from_secret_names = [
-        ef["secretRef"]["name"]
-        for ef in container["envFrom"]
-        if "secretRef" in ef
-    ]
+    env_from_secret_names = [ef["secretRef"]["name"] for ef in container["envFrom"] if "secretRef" in ef]
     assert "elastic-admin-secret" in env_from_secret_names
 
-    env_from_configmap_names = [
-        ef["configMapRef"]["name"]
-        for ef in container["envFrom"]
-        if "configMapRef" in ef
-    ]
+    env_from_configmap_names = [ef["configMapRef"]["name"] for ef in container["envFrom"] if "configMapRef" in ef]
     assert "local-settings-staging" in env_from_configmap_names
 
     # volumes are propagated to pod spec
@@ -145,10 +140,8 @@ def test_main_rebuilds_entities_after_the_text_sheet_cutover():
     import pathlib as _pathlib
 
     src = _pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
-    fn = next(n for n in ast.parse(src).body
-              if isinstance(n, ast.FunctionDef) and n.name == "main")
-    called = [n.func.id for n in ast.walk(fn)
-              if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)]
+    fn = next(n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef) and n.name == "main")
+    called = [n.func.id for n in ast.walk(fn) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)]
 
     assert "run_reindex_entities" in called, (
         "orchestrator main() must rebuild the entity indices; without it topic/book/"
@@ -158,6 +151,42 @@ def test_main_rebuilds_entities_after_the_text_sheet_cutover():
         "entities must run AFTER the text/sheet alias swap, so an entity failure costs "
         "a re-run of entity indexing rather than the whole reindex"
     )
+
+
+def test_main_cleans_failed_reindex_targets_on_failed_barrier_and_timeout():
+    """Static check because main() imports django/kubernetes at runtime.
+
+    The failure branches must clean up the target index created by init before exiting,
+    while still leaving the alias unchanged.
+    """
+    import ast
+    import pathlib as _pathlib
+
+    src = _pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
+    fn = next(n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef) and n.name == "main")
+    branches = {
+        compare.comparators[0].value: node
+        for node in ast.walk(fn)
+        if isinstance(node, ast.If)
+        for compare in [node.test]
+        if (
+            isinstance(compare, ast.Compare)
+            and isinstance(compare.left, ast.Name)
+            and compare.left.id == "barrier_state"
+            and isinstance(compare.comparators[0], ast.Constant)
+        )
+    }
+    for state in ("failed", "timeout"):
+        branch_calls = [
+            n.func.id for n in ast.walk(branches[state]) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+        ]
+        branch_attr_calls = [
+            n.func.attr
+            for n in ast.walk(branches[state])
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+        ]
+        assert "cleanup_after_init_failure" in branch_calls
+        assert "exit" in branch_attr_calls
 
 
 def test_build_shard_job_manifest_marks_pods_unsafe_to_evict():
@@ -334,10 +363,12 @@ class _FakeJobStatus:
 
 def test_run_barrier_loop_returns_complete_when_all_shards_succeed():
     spec.loader.exec_module(orch)
-    statuses = iter([
-        _FakeJobStatus(succeeded=6, failed=0, completed_indexes="0-5"),
-        _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
-    ])
+    statuses = iter(
+        [
+            _FakeJobStatus(succeeded=6, failed=0, completed_indexes="0-5"),
+            _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
+        ]
+    )
     sleeps = []
     state, incomplete = orch.run_barrier_loop(
         read_job_status=lambda: next(statuses),
@@ -359,9 +390,11 @@ def test_run_barrier_loop_returns_failed_on_backoff_exhaustion():
         type = "Failed"
         status = "True"
 
-    statuses = iter([
-        _FakeJobStatus(succeeded=5, failed=3, conditions=[_FailedCondition()], completed_indexes="0-4"),
-    ])
+    statuses = iter(
+        [
+            _FakeJobStatus(succeeded=5, failed=3, conditions=[_FailedCondition()], completed_indexes="0-4"),
+        ]
+    )
     state, incomplete = orch.run_barrier_loop(
         read_job_status=lambda: next(statuses),
         shard_count=8,
@@ -435,6 +468,334 @@ def test_parse_shard_resources_accepts_valid_shape(monkeypatch):
     assert result == {"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}
 
 
+class _FakeIndexClient:
+    def __init__(self, live_alias_pairs=()):
+        self.live_alias_pairs = set(live_alias_pairs)
+
+    def exists_alias(self, index, name):
+        return (index, name) in self.live_alias_pairs
+
+
+_GIB = 1024**3
+
+
+class _FakeEsClient:
+    """Stands in for search.es_client: canned _cluster/health and _cat/allocation responses."""
+
+    def __init__(self, health, allocation):
+        self.cluster = types.SimpleNamespace(health=lambda: health)
+        self.cat = types.SimpleNamespace(allocation=lambda **kwargs: allocation)
+        self.options_calls = []
+
+    def options(self, **kwargs):
+        # elasticsearch-py 8 returns a client copy with per-request options; the disk guard
+        # uses it for a short timeout and no retries.
+        self.options_calls.append(kwargs)
+        return self
+
+
+class _FakeSearchModule:
+    def __init__(self, names_by_type, live_alias_pairs=(), health=None, allocation=None):
+        self.names_by_type = names_by_type
+        self.index_client = _FakeIndexClient(live_alias_pairs)
+        healthy_allocation = [{"node": "es-data-0", "disk.avail": str(100 * _GIB), "disk.percent": "30"}]
+        self.es_client = _FakeEsClient(
+            health if health is not None else {"status": "green", "number_of_data_nodes": 1},
+            allocation if allocation is not None else healthy_allocation,
+        )
+        self.deleted = []
+
+    def get_new_and_current_index_names(self, type, debug=False):
+        return self.names_by_type[type]
+
+    def _assert_not_shared_index(self, alias, type):
+        if alias in ("text", "sheet", "topic", "book", "category"):
+            raise ValueError("shared alias")
+
+    def clear_index(self, index_name):
+        self.deleted.append(index_name)
+
+
+def test_cleanup_failed_reindex_targets_deletes_only_unaliased_targets(monkeypatch):
+    spec.loader.exec_module(orch)
+    search = _FakeSearchModule(
+        {
+            "text": {
+                "new": "sefariastaging_text-a",
+                "current": "sefariastaging_text-b",
+                "alias": "sefariastaging_text",
+            },
+            "sheet": {
+                "new": "sefariastaging_sheet-a",
+                "current": "sefariastaging_sheet-b",
+                "alias": "sefariastaging_sheet",
+            },
+        }
+    )
+
+    deleted = orch.cleanup_failed_reindex_targets(
+        index_types=("text", "sheet"),
+        search_module=search,
+        log_fn=lambda level, msg: None,
+    )
+
+    assert deleted == ["sefariastaging_text-a", "sefariastaging_sheet-a"]
+    assert search.deleted == deleted
+
+
+def test_cleanup_failed_reindex_targets_never_deletes_live_alias_target():
+    spec.loader.exec_module(orch)
+    search = _FakeSearchModule(
+        {
+            "text": {
+                "new": "sefariastaging_text-a",
+                "current": "sefariastaging_text-b",
+                "alias": "sefariastaging_text",
+            },
+        },
+        live_alias_pairs={("sefariastaging_text-a", "sefariastaging_text")},
+    )
+    logged = []
+
+    deleted = orch.cleanup_failed_reindex_targets(
+        index_types=("text",),
+        search_module=search,
+        log_fn=lambda level, msg: logged.append((level, msg)),
+    )
+
+    assert deleted == []
+    assert search.deleted == []
+    assert any("live alias" in msg for level, msg in logged)
+
+
+def test_cleanup_failed_reindex_targets_never_deletes_shared_text_or_sheet_aliases():
+    spec.loader.exec_module(orch)
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text", "current": "text-b", "alias": "text"},
+            "sheet": {"new": "sheet", "current": "sheet-b", "alias": "sheet"},
+        }
+    )
+
+    deleted = orch.cleanup_failed_reindex_targets(
+        index_types=("text", "sheet"),
+        search_module=search,
+        log_fn=lambda level, msg: None,
+    )
+
+    assert deleted == []
+    assert search.deleted == []
+
+
+def _fake_sefaria_search(monkeypatch, search):
+    """
+    Replace sefaria.search for orch.main(). The orchestrator does `import sefaria.search as ...`, which
+    reads the `search` attribute of the already-imported `sefaria` package before sys.modules, so
+    once any earlier test has imported the real module, patching sys.modules alone isn't enough.
+    """
+    import sefaria
+
+    monkeypatch.setitem(sys.modules, "sefaria.search", search)
+    monkeypatch.setattr(sefaria, "search", search, raising=False)
+
+
+def test_main_cleans_partial_init_failure_without_deleting_current(monkeypatch):
+    spec.loader.exec_module(orch)
+
+    class FakeApiException(Exception):
+        def __init__(self, status, reason=""):
+            super().__init__(status)
+            self.status = status
+            self.reason = reason
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            raise FakeApiException(404, "not found")
+
+    class FakeVersionApi:
+        def get_code(self):
+            return types.SimpleNamespace(git_version="v1.28.0")
+
+    search = _FakeSearchModule(
+        {
+            "text": {
+                "new": "sefariastaging_text-target",
+                "current": "sefariastaging_text-current",
+                "alias": "sefariastaging_text",
+            },
+            "sheet": {
+                "new": "sefariastaging_sheet-current",
+                "current": "sefariastaging_sheet-current",
+                "alias": "sefariastaging_sheet",
+            },
+        },
+        live_alias_pairs={("sefariastaging_sheet-current", "sefariastaging_sheet")},
+    )
+    pipeline = types.ModuleType("scripts.scheduled.reindex_pipeline")
+    pipeline.REINDEX_TYPES = ("text", "sheet")
+    pipeline.run_reindex_entities = lambda debug=False: None
+    pipeline.run_reindex_finalize_all = lambda **kwargs: None
+
+    def raise_after_text_target_created(debug=False):
+        raise RuntimeError("sheet init failed")
+
+    pipeline.run_reindex_init_all = raise_after_text_target_created
+
+    monkeypatch.setitem(sys.modules, "django", types.SimpleNamespace(setup=lambda: None))
+    monkeypatch.setitem(
+        sys.modules,
+        "kubernetes",
+        types.SimpleNamespace(
+            client=types.SimpleNamespace(
+                BatchV1Api=lambda: FakeBatch(),
+                VersionApi=lambda: FakeVersionApi(),
+                exceptions=types.SimpleNamespace(ApiException=FakeApiException),
+            ),
+            config=types.SimpleNamespace(load_incluster_config=lambda: None),
+        ),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "sefaria.pagesheetrank",
+        types.SimpleNamespace(update_pagesheetrank=lambda: None),
+    )
+    monkeypatch.setitem(sys.modules, "scripts.scheduled.reindex_pipeline", pipeline)
+    _fake_sefaria_search(monkeypatch, search)
+    monkeypatch.setenv("K8S_NAMESPACE", "default")
+    monkeypatch.setenv("SHARD_JOB_IMAGE", "sefaria:test")
+    monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}')
+
+    with pytest.raises(RuntimeError, match="sheet init failed"):
+        orch.main()
+
+    assert search.deleted == ["sefariastaging_text-target"]
+    assert "sefariastaging_text-current" not in search.deleted
+    assert "sefariastaging_sheet-current" not in search.deleted
+
+
+def _mock_main_services(monkeypatch, search, batch, finalize):
+    class FakeApiException(Exception):
+        def __init__(self, status, reason=""):
+            super().__init__(status)
+            self.status = status
+            self.reason = reason
+
+    class FakeVersionApi:
+        def get_code(self):
+            return types.SimpleNamespace(git_version="v1.28.0")
+
+    pipeline = types.ModuleType("scripts.scheduled.reindex_pipeline")
+    pipeline.REINDEX_TYPES = ("text", "sheet")
+    pipeline.run_reindex_init_all = lambda debug=False: None
+    pipeline.run_reindex_finalize_all = finalize
+    pipeline.run_reindex_entities = lambda debug=False: None
+
+    monkeypatch.setitem(sys.modules, "django", types.SimpleNamespace(setup=lambda: None))
+    monkeypatch.setitem(
+        sys.modules,
+        "kubernetes",
+        types.SimpleNamespace(
+            client=types.SimpleNamespace(
+                BatchV1Api=lambda: batch,
+                VersionApi=lambda: FakeVersionApi(),
+                exceptions=types.SimpleNamespace(ApiException=FakeApiException),
+            ),
+            config=types.SimpleNamespace(load_incluster_config=lambda: None),
+        ),
+    )
+    monkeypatch.setitem(sys.modules, "sefaria.pagesheetrank", types.SimpleNamespace(update_pagesheetrank=lambda: None))
+    monkeypatch.setitem(sys.modules, "scripts.scheduled.reindex_pipeline", pipeline)
+    _fake_sefaria_search(monkeypatch, search)
+    monkeypatch.setenv("K8S_NAMESPACE", "default")
+    monkeypatch.setenv("SHARD_JOB_IMAGE", "sefaria:test")
+    monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}')
+    return FakeApiException
+
+
+def test_main_preserves_live_text_when_sheet_finalize_fails(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append(("delete_job", propagation_policy))
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append(("create_job",))
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        }
+    )
+
+    def finalize(**kwargs):
+        # Text's alias has moved to its target before sheet finalization raises.
+        search.names_by_type["text"] = {
+            "new": "text-old",
+            "current": "text-target",
+            "alias": "isolated-text",
+        }
+        search.index_client.live_alias_pairs.add(("text-target", "isolated-text"))
+        raise RuntimeError("sheet finalize failed")
+
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, finalize)
+    monkeypatch.setattr(orch, "run_barrier_loop", lambda **kwargs: ("complete", []))
+
+    with pytest.raises(RuntimeError, match="sheet finalize failed"):
+        orch.main()
+
+    assert "text-target" not in search.deleted
+    assert "sheet-target" in search.deleted
+    assert events == [("delete_job", "Background"), ("create_job",), ("delete_job", "Foreground")]
+
+
+@pytest.mark.parametrize("job_stopped", [False, True])
+def test_main_timeout_cleans_only_after_confirmed_job_stop(monkeypatch, job_stopped):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append(("delete_job", propagation_policy))
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append(("create_job",))
+
+    class FakeSearch(_FakeSearchModule):
+        def clear_index(self, index_name):
+            events.append(("clear_index", index_name))
+            super().clear_index(index_name)
+
+    search = FakeSearch(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        }
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    monkeypatch.setattr(orch, "run_barrier_loop", lambda **kwargs: ("timeout", [0]))
+
+    def stop_job(*args, **kwargs):
+        events.append(("stop_job", kwargs.get("propagation_policy")))
+        return True if kwargs.get("propagation_policy") == "Background" else job_stopped
+
+    monkeypatch.setattr(orch, "delete_stale_shard_job", stop_job)
+
+    with pytest.raises(SystemExit):
+        orch.main()
+
+    assert ("stop_job", "Foreground") in events
+    assert search.deleted == (["text-target", "sheet-target"] if job_stopped else [])
+    if job_stopped:
+        assert events.index(("stop_job", "Foreground")) < events.index(("clear_index", "text-target"))
+
+
 class _FakeApiException(Exception):
     def __init__(self, status):
         super().__init__(status)
@@ -443,6 +804,7 @@ class _FakeApiException(Exception):
 
 class _FakeBatch:
     """Records calls; raises per-method from a script of outcomes."""
+
     def __init__(self, delete_outcome=None, status_outcomes=()):
         self.calls = []
         self._delete_outcome = delete_outcome
@@ -467,8 +829,10 @@ def test_delete_stale_shard_job_returns_true_when_no_prior_job():
     spec.loader.exec_module(orch)
     batch = _FakeBatch(delete_outcome=_FakeApiException(404))
     logged = []
-    assert orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException,
-                                       sleep_fn=lambda s: None, log_fn=logged.append) is True
+    assert (
+        orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, sleep_fn=lambda s: None, log_fn=logged.append)
+        is True
+    )
     assert batch.calls == ["delete"]
     assert "No stale shard job to delete" in logged[0]
 
@@ -485,8 +849,9 @@ def test_delete_stale_shard_job_gives_up_without_raising():
     spec.loader.exec_module(orch)
     batch = _FakeBatch(status_outcomes=[None] * 3)
     logged = []
-    result = orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, attempts=3,
-                                         sleep_fn=lambda s: None, log_fn=logged.append)
+    result = orch.delete_stale_shard_job(
+        batch, "j", "ns", _FakeApiException, attempts=3, sleep_fn=lambda s: None, log_fn=logged.append
+    )
     assert result is False
     assert "did not confirm" in logged[0]
 
@@ -501,8 +866,543 @@ def test_delete_stale_shard_job_propagates_forbidden():
 def test_orchestrator_only_reads_jobs_through_granted_rbac_verbs():
     """The Role grants `get` on jobs/status only; a bare jobs read 403s in-cluster."""
     import re as _re
+
     src = pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
     code = "\n".join(line for line in src.splitlines() if not line.lstrip().startswith("#"))
     assert not _re.search(r"\.read_namespaced_job\(", code)
     rbac = pathlib.Path("helm-chart/sefaria/templates/rbac/reindex-orchestrator-rbac.yaml").read_text()
     assert '"jobs/status"' in rbac
+
+
+def _data_node_row(node="es-data-0", avail=50 * _GIB, percent=40):
+    return {"node": node, "shards": "10", "disk.avail": str(avail), "disk.percent": str(percent)}
+
+
+def test_preflight_passes_when_green_and_every_data_node_has_headroom():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 2},
+        [_data_node_row("es-0"), _data_node_row("es-1")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert problems == []
+
+
+def test_preflight_flags_non_green_cluster_status():
+    spec.loader.exec_module(orch)
+    for status in ("yellow", "red"):
+        problems = orch.check_reindex_preflight(
+            {"status": status, "number_of_data_nodes": 1},
+            [_data_node_row()],
+            min_free_bytes=20 * _GIB,
+            max_disk_percent=75,
+        )
+        assert len(problems) == 1
+        assert status in problems[0]
+
+
+def test_preflight_flags_missing_cluster_status():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"number_of_data_nodes": 1},
+        [_data_node_row()],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "status" in problems[0]
+
+
+def test_preflight_flags_node_below_minimum_free_bytes():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 2},
+        [_data_node_row("es-0", avail=5 * _GIB), _data_node_row("es-1")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "es-0" in problems[0]
+    assert "free" in problems[0]
+
+
+def test_preflight_flags_node_above_maximum_disk_percent():
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 1},
+        [_data_node_row("es-1", percent=91)],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "es-1" in problems[0]
+    assert "91" in problems[0]
+
+
+def test_preflight_threshold_boundaries_pass():
+    """Exactly min free bytes and exactly max percent are still acceptable."""
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 1},
+        [_data_node_row(avail=20 * _GIB, percent=75)],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert problems == []
+
+
+def test_preflight_ignores_unassigned_and_nodeless_rows():
+    spec.loader.exec_module(orch)
+    rows = [
+        {"node": "UNASSIGNED", "shards": "3", "disk.avail": None, "disk.percent": None},
+        {"node": None, "shards": "0", "disk.avail": None, "disk.percent": None},
+        _data_node_row(),
+    ]
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 1},
+        rows,
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert problems == []
+
+
+def test_preflight_flags_allocation_missing_a_data_node_that_health_reports():
+    """A node absent from _cat/allocation would never be watched by the disk guard, which is
+    seeded from the pre-flight rows: refuse instead of starting a build on a partial view."""
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 3},
+        [_data_node_row("es-0"), _data_node_row("es-1")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "2 of 3" in problems[0]
+
+
+@pytest.mark.parametrize("count", [None, "3", True, -1])
+def test_preflight_flags_unknown_data_node_count(count):
+    spec.loader.exec_module(orch)
+    health = {"status": "green"}
+    if count is not None:
+        health["number_of_data_nodes"] = count
+    problems = orch.check_reindex_preflight(
+        health,
+        [_data_node_row("es-0")],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "number_of_data_nodes" in problems[0]
+
+
+@pytest.mark.parametrize("rows", [None, [], [{"node": "UNASSIGNED", "shards": "3"}], [{"node": None}]])
+def test_preflight_fails_closed_when_no_data_node_is_reported(rows):
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 1},
+        rows,
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "no data nodes" in problems[0]
+
+
+def test_preflight_accepts_string_numbers_and_reports_null_disk_values():
+    """ES _cat returns strings with bytes=b. A data node whose disk numbers are null cannot
+    prove headroom, so it is a problem rather than a silent pass."""
+    spec.loader.exec_module(orch)
+    ok = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 1},
+        [{"node": "es-0", "disk.avail": "21474836480", "disk.percent": "74"}],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert ok == []
+
+    unknown = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 1},
+        [{"node": "es-1", "disk.avail": None, "disk.percent": None}],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(unknown) == 1
+    assert "es-1" in unknown[0]
+
+
+@pytest.mark.parametrize(
+    "avail, percent",
+    [
+        ("nan", "50"),
+        ("inf", "50"),
+        ("-1", "50"),
+        ("21474836480", "nan"),
+        ("21474836480", "inf"),
+        ("21474836480", "101"),
+    ],
+)
+def test_preflight_treats_non_finite_or_impossible_disk_values_as_unknown(avail, percent):
+    """float() accepts 'nan' and 'inf', and NaN compares False against every limit, so these
+    readings would pass silently unless they are treated as unknown."""
+    spec.loader.exec_module(orch)
+    problems = orch.check_reindex_preflight(
+        {"status": "green", "number_of_data_nodes": 1},
+        [{"node": "es-0", "disk.avail": avail, "disk.percent": percent}],
+        min_free_bytes=20 * _GIB,
+        max_disk_percent=75,
+    )
+    assert len(problems) == 1
+    assert "unknown" in problems[0]
+
+
+def test_main_preflight_failure_raises_before_any_job_or_index_change(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append("delete_job")
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append("create_job")
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        },
+        health={"status": "red"},
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    pipeline = sys.modules["scripts.scheduled.reindex_pipeline"]
+    monkeypatch.setattr(pipeline, "run_reindex_init_all", lambda debug=False: events.append("init"))
+    monkeypatch.setenv("REINDEX_PREFLIGHT_SKIP", "")
+
+    with pytest.raises(RuntimeError, match="pre-flight"):
+        orch.main()
+
+    assert events == []
+    assert search.deleted == []
+
+
+def test_main_preflight_skip_env_lets_reindex_proceed(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append("create_job")
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        },
+        health={"status": "red"},
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    pipeline = sys.modules["scripts.scheduled.reindex_pipeline"]
+    monkeypatch.setattr(pipeline, "run_reindex_init_all", lambda debug=False: events.append("init"))
+    monkeypatch.setattr(orch, "run_barrier_loop", lambda **kwargs: ("complete", []))
+    monkeypatch.setenv("REINDEX_PREFLIGHT_SKIP", "true")
+
+    orch.main()
+
+    assert events == ["init", "create_job"]
+
+
+# --- in-flight disk abort ---------------------------------------------------------------
+
+
+def _alloc(node, percent):
+    return {"node": node, "disk.percent": str(percent), "disk.avail": "1000"}
+
+
+def test_disk_abort_reasons_names_nodes_at_or_over_the_limit():
+    spec.loader.exec_module(orch)
+    rows = [_alloc("es-0", 40), _alloc("es-1", 85), _alloc("es-2", 91), {"node": "UNASSIGNED"}]
+    reasons = orch.disk_abort_reasons(rows, max_disk_percent=85)
+    assert len(reasons) == 2
+    assert "es-1" in reasons[0] and "es-2" in reasons[1]
+
+
+def test_disk_abort_reasons_ignores_unknown_numbers():
+    # A missing number must not abort a multi-hour build; the pre-flight already refuses unknowns.
+    spec.loader.exec_module(orch)
+    rows = [{"node": "es-0", "disk.percent": None}, _alloc("es-1", 40)]
+    assert orch.disk_abort_reasons(rows, max_disk_percent=85) == []
+
+
+def test_run_barrier_loop_aborts_when_disk_check_reports_a_problem():
+    spec.loader.exec_module(orch)
+    statuses = iter(
+        [
+            _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+            _FakeJobStatus(succeeded=2, failed=0, completed_indexes="0-1"),
+        ]
+    )
+    checks = iter([[], ["node es-2 disk is 88% full"]])
+    logs = []
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=itertools.count().__next__,
+        log_fn=logs.append,
+        check_abort=lambda: next(checks),
+    )
+    assert state == "aborted"
+    assert incomplete == [2, 3, 4, 5, 6, 7]
+    assert any("es-2" in line for line in logs)
+
+
+def test_run_barrier_loop_keeps_waiting_when_disk_check_errors():
+    # ES briefly unreachable is not a reason to throw away the build; the shard deadline still bounds it.
+    spec.loader.exec_module(orch)
+    statuses = iter(
+        [
+            _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+            _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
+        ]
+    )
+
+    def flaky():
+        raise ConnectionError("refused")
+
+    state, _ = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=itertools.count().__next__,
+        log_fn=lambda msg: None,
+        check_abort=flaky,
+    )
+    assert state == "complete"
+
+
+@pytest.mark.parametrize("raw", ["nan", "inf", "-inf", "101", "0", "-5", "abc", ""])
+def test_parse_abort_disk_percent_rejects_values_that_disable_the_guard(raw):
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError):
+        orch.parse_abort_disk_percent(raw)
+
+
+def test_parse_disk_percent_names_the_env_var_it_rejects():
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError, match="REINDEX_PREFLIGHT_MAX_DISK_PERCENT"):
+        orch.parse_abort_disk_percent("nan", name="REINDEX_PREFLIGHT_MAX_DISK_PERCENT")
+
+
+def test_parse_abort_disk_percent_accepts_a_real_percentage():
+    spec.loader.exec_module(orch)
+    assert orch.parse_abort_disk_percent("85") == 85.0
+    assert orch.parse_abort_disk_percent(" 92.5 ") == 92.5
+
+
+def test_disk_abort_reasons_raises_when_no_node_reports_numbers():
+    # No usable number on any node is a failed observation, not an all-clear.
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons([{"node": "es-0", "disk.percent": None}, {"node": "UNASSIGNED"}], 85)
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons([], 85)
+
+
+def test_run_barrier_loop_aborts_when_disk_checks_keep_failing_past_the_grace_period():
+    spec.loader.exec_module(orch)
+    statuses = iter([_FakeJobStatus(succeeded=0, failed=0, completed_indexes=None)] * 5)
+    clock = iter([0.0, 0.0, 100.0, 100.0, 400.0, 400.0, 700.0, 700.0, 701.0])
+
+    def always_fails():
+        raise ConnectionError("refused")
+
+    logs = []
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=clock.__next__,
+        log_fn=logs.append,
+        check_abort=always_fails,
+        abort_check_grace_seconds=600,
+    )
+    assert state == "aborted"
+    assert incomplete == list(range(8))
+    assert any("no successful disk check" in line for line in logs)
+
+
+# --- per-node freshness (DiskGuard) -------------------------------------------------------
+
+
+def test_disk_abort_reasons_treats_nan_and_out_of_range_as_missing():
+    spec.loader.exec_module(orch)
+    rows = [{"node": "es-0", "disk.percent": "NaN"}, {"node": "es-1", "disk.percent": "150"}]
+    with pytest.raises(ValueError):
+        orch.disk_abort_reasons(rows, 85)
+
+
+def test_disk_guard_aborts_when_one_node_stays_unobserved_past_grace():
+    # Two healthy nodes must not hide a third that stopped reporting.
+    spec.loader.exec_module(orch)
+    clock = iter([0.0, 300.0, 601.0])
+    guard = orch.DiskGuard(
+        max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__, expected_nodes=["es-0", "es-1", "es-2"]
+    )
+    partial = [_alloc("es-0", 40), _alloc("es-1", 41), {"node": "es-2", "disk.percent": None}]
+    assert guard.check(partial) == []
+    reasons = guard.check(partial)
+    assert len(reasons) == 1 and "es-2" in reasons[0]
+
+
+def test_disk_guard_tolerates_a_short_gap_and_watches_nodes_that_vanish():
+    spec.loader.exec_module(orch)
+    clock = iter([0.0, 100.0, 200.0, 900.0])
+    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=clock.__next__)
+    full = [_alloc("es-0", 40), _alloc("es-1", 41)]
+    assert guard.check(full) == []  # learns es-0, es-1 at t=100
+    assert guard.check([_alloc("es-0", 42)]) == []  # es-1 missing for 100 s: fine
+    reasons = guard.check([_alloc("es-0", 43)])  # es-1 missing since t=100: 800 s
+    assert len(reasons) == 1 and "es-1" in reasons[0]
+
+
+def test_disk_guard_reports_threshold_breaches():
+    spec.loader.exec_module(orch)
+    guard = orch.DiskGuard(max_disk_percent=85, grace_seconds=600, now_fn=itertools.count().__next__)
+    reasons = guard.check([_alloc("es-0", 40), _alloc("es-1", 90)])
+    assert len(reasons) == 1 and "es-1" in reasons[0] and "90%" in reasons[0]
+
+
+# --- pre-flight minimum free space and abort reasons ------------------------------------
+
+
+@pytest.mark.parametrize("raw", ["-1", "-0.5", "0", "nan", "inf", "-inf", "abc", ""])
+def test_parse_preflight_min_free_gb_rejects_values_that_disable_the_check(raw):
+    # A minimum of zero or below makes `avail < min_free_bytes` always False, so every node
+    # would pass the absolute free-space check no matter how full it is.
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError, match="REINDEX_PREFLIGHT_MIN_FREE_GB"):
+        orch.parse_preflight_min_free_gb(raw)
+
+
+def test_parse_preflight_min_free_gb_accepts_a_real_size():
+    spec.loader.exec_module(orch)
+    assert orch.parse_preflight_min_free_gb("12") == 12.0
+    assert orch.parse_preflight_min_free_gb(" 7.5 ") == 7.5
+
+
+def test_main_rejects_a_negative_min_free_before_any_job_or_index_change(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append("delete_job")
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append("create_job")
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        }
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    pipeline = sys.modules["scripts.scheduled.reindex_pipeline"]
+    monkeypatch.setattr(pipeline, "run_reindex_init_all", lambda debug=False: events.append("init"))
+    monkeypatch.setenv("REINDEX_PREFLIGHT_SKIP", "")
+    monkeypatch.setenv("REINDEX_PREFLIGHT_MIN_FREE_GB", "-1")
+
+    with pytest.raises(ValueError, match="REINDEX_PREFLIGHT_MIN_FREE_GB"):
+        orch.main()
+
+    assert events == []
+    assert search.deleted == []
+
+
+def test_run_barrier_loop_records_why_it_aborted():
+    spec.loader.exec_module(orch)
+    reasons = []
+    state, _ = orch.run_barrier_loop(
+        read_job_status=lambda: _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=itertools.count().__next__,
+        log_fn=lambda msg: None,
+        check_abort=lambda: ["node es-2 has reported no disk usage for 700s (limit 600s)"],
+        abort_reasons=reasons,
+    )
+    assert state == "aborted"
+    assert reasons == ["node es-2 has reported no disk usage for 700s (limit 600s)"]
+
+
+def test_run_barrier_loop_records_why_it_aborted_after_failed_checks():
+    spec.loader.exec_module(orch)
+    reasons = []
+
+    def failing_check():
+        raise ConnectionError("es unreachable")
+
+    state, _ = orch.run_barrier_loop(
+        read_job_status=lambda: _FakeJobStatus(succeeded=0, failed=0, completed_indexes=None),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=itertools.count(step=100).__next__,
+        log_fn=lambda msg: None,
+        check_abort=failing_check,
+        abort_check_grace_seconds=600,
+        abort_reasons=reasons,
+    )
+    assert state == "aborted"
+    assert len(reasons) == 1 and "no successful disk check" in reasons[0] and "es unreachable" in reasons[0]
+
+
+def test_main_abort_error_names_the_reason(monkeypatch, caplog):
+    # The disk guard also aborts when a node goes silent, so "aborted at 85% disk" alone can be wrong.
+    spec.loader.exec_module(orch)
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            pass
+
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+            "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+        }
+    )
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    reason = "node es-1 has reported no disk usage for 650s (limit 600s)"
+
+    def aborting_barrier(**kwargs):
+        kwargs["abort_reasons"].append(reason)
+        return "aborted", [3]
+
+    monkeypatch.setattr(orch, "run_barrier_loop", aborting_barrier)
+    monkeypatch.setattr(orch, "delete_stale_shard_job", lambda *args, **kwargs: True)
+
+    with caplog.at_level("ERROR"), pytest.raises(SystemExit):
+        orch.main()
+
+    errors = [r.getMessage() for r in caplog.records if r.levelname == "ERROR"]
+    assert any(reason in message for message in errors)

@@ -29,7 +29,9 @@ const shouldShowLandyWelcome = () => {
 const markLandyWelcomeSeen = () => {
   try {
     localStorage.setItem(SEEN_KEY, "1");
-  } catch (e) {}
+  } catch (e) {
+    // storage blocked: shouldShowLandyWelcome() then never shows it anyway
+  }
 };
 
 const calendarUrl = (title) => {

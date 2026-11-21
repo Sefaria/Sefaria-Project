@@ -158,6 +158,24 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends curl unzip
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
       - name: setup helm

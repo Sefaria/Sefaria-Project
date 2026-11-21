@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Which ai-chatbot PR preview a request uses (?chatbot_version=<PR#>).
 """

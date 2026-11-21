@@ -1,8 +1,11 @@
 # JavaScript Data & Utility Layer
+
 > Sources: `static/js/sefaria/sefaria.js` (~4011 lines), `static/js/sefaria/util.js` (~1551 lines), `static/js/sefaria/strings.js` (~853 lines), `static/js/sefaria/hebrew.js`, `static/js/sefaria/search.js`, `static/js/sefaria/searchState.js`
 
 ## Purpose
+
 The `static/js/sefaria/` directory contains the client-side data layer -- the JavaScript equivalent of the Python model layer. The central `Sefaria` object is a global singleton (attached to `window.Sefaria`) that serves as:
+
 - An API client for all backend endpoints
 - A client-side cache for texts, refs, versions, links, topics, sheets, collections, and more
 - A ref parser and normalizer (mirroring Python's `Ref` class)
@@ -13,6 +16,7 @@ The `static/js/sefaria/` directory contains the client-side data layer -- the Ja
 ### `sefaria.js` -- The `Sefaria` Namespace Object
 
 **Initialization flow:**
+
 1. Module defines `Sefaria` with defaults (`toc: []`, `books: []`, `booksDict: {}`, etc.)
 2. Extended via `Sefaria = extend(Sefaria, { ... })` with all methods
 3. `Sefaria.setup()` runs immediately on import:
@@ -27,6 +31,7 @@ The `static/js/sefaria/` directory contains the client-side data layer -- the Ja
    - Calls `Sefaria.getBackgroundData()` to fetch additional data from `/api/background-data`
 
 **Ref handling (oldest code in the codebase):**
+
 - `parseRef(q)` -- client-side ref parsing without server round-trip. Depends on `booksDict`. Returns `{book, index, sections, toSections, ref}` or `{error}`. Results are cached in `_parseRef`.
 - `makeRef(q)` -- reverse of `parseRef`; builds a URL-formatted ref string from a parsed ref object
 - `normRef(ref)` -- normalizes a ref string (underscores for spaces, dots for section separators)
@@ -37,6 +42,7 @@ The `static/js/sefaria/` directory contains the client-side data layer -- the Ja
 - `isRef(ref)`, `isSheetRef(ref)` -- ref type checks
 
 **Text data API & caching:**
+
 - `_texts` -- primary cache keyed by ref+version settings
 - `_refmap` -- maps simple ref keys to versioned cache keys
 - `getText(ref, settings)` -- returns a Promise. Checks `_texts` cache first; on miss, fetches from `/api/v3/texts/{ref}` (via `_textUrl`). Saves result with `_saveText`.
@@ -47,6 +53,7 @@ The `static/js/sefaria/` directory contains the client-side data layer -- the Ja
 - `makeSegments(data)` -- converts raw text data into an array of segment objects with `ref`, `en`, `he`, `number`
 
 **Other data caches (all follow the get/cache pattern):**
+
 - `_versions`, `_saveVersions()`, `_makeVersions()` -- text version metadata
 - `_links`, `_linkSummaries` -- inter-text links
 - `_index`, `_indexDetails` -- book index metadata
@@ -60,13 +67,16 @@ The `static/js/sefaria/` directory contains the client-side data layer -- the Ja
 - `_profiles` -- user profile data
 
 **API pattern:**
+
 - `_ApiPromise(url)` -- wraps fetch/AJAX calls with caching, returns a Promise
 - Most getters follow: check cache -> return cached -> fetch from API -> save to cache -> return
 
 **SSR/cache reset:**
+
 - `resetCache()` -- clears all `_` prefixed caches. Used in server-side rendering contexts to prevent cross-request data leaks.
 
 **Attached sub-modules:**
+
 ```
 Sefaria.util    = Util;       // from util.js
 Sefaria.hebrew  = Hebrew;     // from hebrew.js
@@ -74,6 +84,7 @@ Sefaria.track   = Track;      // from track.js (analytics)
 Sefaria.palette = palette;    // from palette.js (category colors)
 Sefaria.search  = new Search(...);  // from search.js
 ```
+
 Strings from `strings.js` are merged directly into Sefaria via `Sefaria = extend(Sefaria, Strings)`.
 
 ### `util.js` -- The `Util` Class (~1551 lines)
@@ -81,14 +92,17 @@ Strings from `strings.js` are merged directly into Sefaria via `Sefaria = extend
 A static utility class. Key methods:
 
 **DOM & UI:**
+
 - `scrollIntoViewIfNeeded(target, options)` -- scrolls element into viewport if not visible
 - `selectElementContents(el)` -- selects text in an element for copy
 
 **URL & Version handling:**
+
 - `encodeVtitle(vtitle)` / `decodeVtitle(vtitle)` -- encode/decode version titles for URLs
 - `getUrlVersionsParams(currVersions, i)` -- builds URL query params for version selection
 
 **Date & Time:**
+
 - `localeDate(dateString)` -- locale-aware date formatting (en-US or he-Hebr-IL)
 - `createTimeZoneAgnosticDate(dateString)` -- parses date string to noon UTC to avoid timezone shifts
 - `hebrewCalendarDateStr(dateObjStr)` -- Gregorian to Hebrew calendar date using `@hebcal/core`
@@ -96,17 +110,20 @@ A static utility class. Key methods:
 - `epoch_time()` -- current epoch time in UTC
 
 **Data manipulation:**
+
 - `clone(obj, prepareForSerialization)` -- deep clone that handles `Date`, `Array`, `Object`, and objects with `.clone()` methods (like `SearchState`, `FilterNode`)
 - `throttle(func, limit)` -- function throttling
 - `zip(...rows)` -- Python-style zip for arrays
 - `object_equals(a, b)` -- shallow object equality
 
 **Text processing:**
+
 - `htmlToText(html)` -- strips HTML preserving basic structure
 - `cleanHTML(html)` -- sanitizes HTML with allowed tags/attributes list
 - `stripImgs(s)` -- removes `<img>` tags from HTML
 
 **Prototype extensions** (via `setupPrototypes()`):
+
 - `String.prototype.toFirstCapital()` -- capitalizes first letter
 - `String.prototype.stripHtml()` -- removes HTML tags
 - `String.prototype.escapeHtml()` -- escapes HTML entities
@@ -126,6 +143,7 @@ Imports the translation maps from JSON (`static/js/sefaria/i18n/`, editable in W
 - `_i18nInterfaceStrings` -- `{en, he}` maps of stable keyed IDs (e.g. `header.log_in`) to display text, loaded from `i18n/interface/{en,he}.json`. IDs are namespaced either generally (`common.cancel`) or by the component that owns them (`follow_button.follow`). Every key is an ID -- never English text; the ID is the stable key so English copy can change without orphaning translations. `en.json` values are also the runtime English display text.
 
 **Translation function** (on `Sefaria`):
+
 - `Sefaria._(inputStr)` -- the main i18n function. If `inputStr` matches the keyed-ID shape (`/^[a-z0-9_]+(\.[a-z0-9_]+)+$/`), it resolves through `_i18nInterfaceStrings` in both languages (Hebrew falls back to English, then to the ID). Non-ID strings are data values (categories, book titles, license names): in English they pass through unchanged; in Hebrew they fall back through Hebrew terms -> pipe-separated compound strings -> original string.
 - `Sefaria._v(langOptions)` -- takes `{en: "...", he: "..."}` and returns the correct one for current interface language
 - `Sefaria._r(inputRef)` -- returns Hebrew or English ref based on interface language
@@ -188,18 +206,24 @@ An immutable-style state class for search parameters:
 ## Common Tasks
 
 **Adding a new API data getter:**
+
 1. Add a cache: `Sefaria._myData = {};`
 2. Add a getter method on the `Sefaria` object:
    ```javascript
-   Sefaria.getMyData = function(key) {
-     if (key in Sefaria._myData) { return Promise.resolve(Sefaria._myData[key]); }
-     return Sefaria._ApiPromise(`/api/my-data/${key}`)
-       .then(data => { Sefaria._myData[key] = data; return data; });
+   Sefaria.getMyData = function (key) {
+     if (key in Sefaria._myData) {
+       return Promise.resolve(Sefaria._myData[key]);
+     }
+     return Sefaria._ApiPromise(`/api/my-data/${key}`).then((data) => {
+       Sefaria._myData[key] = data;
+       return data;
+     });
    };
    ```
 3. If the data should be SSR-hydrated, also handle it in `unpackDataFromProps()` and include it in `resetCache()`
 
 **Adding a new translatable UI string:**
+
 1. Pick a keyed ID, `<namespace>.<slug>` — namespace is the component/file (snake_case) or `common` for shared strings (e.g. `header.log_in`)
 2. Add the ID with its English text to `static/js/sefaria/i18n/interface/en.json` and the Hebrew to `static/js/sefaria/i18n/interface/he.json` (both required; `static/js/sefaria/tests/strings.test.js` enforces parity)
 3. Use `Sefaria._("your_namespace.your_slug")` or `<InterfaceText>your_namespace.your_slug</InterfaceText>` in component code
@@ -207,10 +231,12 @@ An immutable-style state class for search parameters:
 5. For strings whose value is only known at runtime (language names, license names, connection modes), map the runtime value to an ID at the call site (see `Sefaria.translateISOLanguageName`, `Sefaria.translateLicense`, `CONNECTION_MODE_STRING_IDS` in `constants.js`); values with no ID fall back to the terms dictionary or pass through untranslated
 
 **Adding a new Hebrew numeral format:**
+
 1. Add encoding/decoding methods to `Hebrew` class in `hebrew.js`
 2. If it's an address type used in book tables of contents, also handle it in `Sefaria.getSectionStringByAddressType()` in `sefaria.js`
 
 **Debugging data issues:**
+
 - Open browser console and inspect `window.Sefaria` directly
 - Check caches: `Sefaria._texts`, `Sefaria._index`, `Sefaria._topics`, etc.
 - Test ref parsing: `Sefaria.parseRef("Genesis 1:1")`

@@ -31,89 +31,170 @@ const HELP_CONTENT = (
   <>
     <h3>What This Tool Does</h3>
     <p>
-      This tool edits <strong>Version metadata</strong> across multiple texts simultaneously.
-      A "Version" in Sefaria represents a specific translation or edition of a text
-      (e.g., "Kehati" commentary on Mishnah, or "JPS 1917" translation of Tanakh).
+      This tool edits <strong>Version metadata</strong> across multiple texts simultaneously. A &quot;Version&quot; in
+      Sefaria represents a specific translation or edition of a text (e.g., &quot;Kehati&quot; commentary on Mishnah, or
+      &quot;JPS 1917&quot; translation of Tanakh).
     </p>
     <p>
-      Use this tool when you need to update the same metadata fields across many versions
-      that share a common version title. For example, updating the license information
-      for all "Kehati" versions, or adding source URLs for all "Torat Emet 357" texts.
+      Use this tool when you need to update the same metadata fields across many versions that share a common version
+      title. For example, updating the license information for all &quot;Kehati&quot; versions, or adding source URLs
+      for all &quot;Torat Emet 357&quot; texts.
     </p>
 
     <h3>How It Works</h3>
     <ol>
-      <li><strong>Search:</strong> Enter the exact version title (case-sensitive) to find all texts with matching versions.</li>
-      <li><strong>Select:</strong> Choose which texts to update. All are selected by default.</li>
-      <li><strong>Edit:</strong> Fill in only the fields you want to change. Empty fields are ignored.</li>
-      <li><strong>Save:</strong> Click "Update" to apply changes to all selected versions.</li>
+      <li>
+        <strong>Search:</strong> Enter the exact version title (case-sensitive) to find all texts with matching
+        versions.
+      </li>
+      <li>
+        <strong>Select:</strong> Choose which texts to update. All are selected by default.
+      </li>
+      <li>
+        <strong>Edit:</strong> Fill in only the fields you want to change. Empty fields are ignored.
+      </li>
+      <li>
+        <strong>Save:</strong> Click &quot;Update&quot; to apply changes to all selected versions.
+      </li>
     </ol>
 
     <h3>Available Fields</h3>
     <p>
-      <strong>Note:</strong> The version title you searched for is used to identify which versions to update.
-      To rename a version title across many texts, use the Rename action at the bottom of this tool.
+      <strong>Note:</strong> The version title you searched for is used to identify which versions to update. To rename
+      a version title across many texts, use the Rename action at the bottom of this tool.
     </p>
     <table className="field-table">
       <thead>
-        <tr><th>Field</th><th>Description</th></tr>
+        <tr>
+          <th>Field</th>
+          <th>Description</th>
+        </tr>
       </thead>
       <tbody>
-        <tr><td><code>versionTitleInHebrew</code></td><td>Hebrew version of the title for Hebrew interface</td></tr>
-        <tr><td><code>versionSource</code></td><td>URL where the original text was sourced from (must be valid URL)</td></tr>
-        <tr><td><code>license</code></td><td>Copyright/license type (e.g., "Public Domain", "CC-BY")</td></tr>
-        <tr><td><code>status</code></td><td>"locked" prevents non-staff from editing; empty/unset allows edits</td></tr>
-        <tr><td><code>priority</code></td><td>Display priority (higher = shown first). Use decimal values like 1.5</td></tr>
-        <tr><td><code>digitizedBySefaria</code></td><td>Whether Sefaria digitized this version (true/false)</td></tr>
-        <tr><td><code>isPrimary</code></td><td>Whether this is the primary version for this language (true/false)</td></tr>
-        <tr><td><code>isSource</code></td><td>Whether this is a source text, not a translation (true/false)</td></tr>
-        <tr><td><code>direction</code></td><td>Text direction: "rtl" or "ltr"</td></tr>
-        <tr><td><code>versionNotes</code></td><td>English notes about this version (shown to users)</td></tr>
-        <tr><td><code>versionNotesInHebrew</code></td><td>Hebrew notes about this version</td></tr>
-        <tr><td><code>purchaseInformationURL</code></td><td>Link to purchase the physical book</td></tr>
-        <tr><td><code>purchaseInformationImage</code></td><td>Image URL for the purchase link</td></tr>
+        <tr>
+          <td>
+            <code>versionTitleInHebrew</code>
+          </td>
+          <td>Hebrew version of the title for Hebrew interface</td>
+        </tr>
+        <tr>
+          <td>
+            <code>versionSource</code>
+          </td>
+          <td>URL where the original text was sourced from (must be valid URL)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>license</code>
+          </td>
+          <td>Copyright/license type (e.g., &quot;Public Domain&quot;, &quot;CC-BY&quot;)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>status</code>
+          </td>
+          <td>&quot;locked&quot; prevents non-staff from editing; empty/unset allows edits</td>
+        </tr>
+        <tr>
+          <td>
+            <code>priority</code>
+          </td>
+          <td>Display priority (higher = shown first). Use decimal values like 1.5</td>
+        </tr>
+        <tr>
+          <td>
+            <code>digitizedBySefaria</code>
+          </td>
+          <td>Whether Sefaria digitized this version (true/false)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>isPrimary</code>
+          </td>
+          <td>Whether this is the primary version for this language (true/false)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>isSource</code>
+          </td>
+          <td>Whether this is a source text, not a translation (true/false)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>direction</code>
+          </td>
+          <td>Text direction: &quot;rtl&quot; or &quot;ltr&quot;</td>
+        </tr>
+        <tr>
+          <td>
+            <code>versionNotes</code>
+          </td>
+          <td>English notes about this version (shown to users)</td>
+        </tr>
+        <tr>
+          <td>
+            <code>versionNotesInHebrew</code>
+          </td>
+          <td>Hebrew notes about this version</td>
+        </tr>
+        <tr>
+          <td>
+            <code>purchaseInformationURL</code>
+          </td>
+          <td>Link to purchase the physical book</td>
+        </tr>
+        <tr>
+          <td>
+            <code>purchaseInformationImage</code>
+          </td>
+          <td>Image URL for the purchase link</td>
+        </tr>
       </tbody>
     </table>
 
     <h3>Clearing Fields</h3>
     <p>
-      Each field has a "Clear this field" checkbox below it.
-      When checked, that field will be completely removed from all selected versions (not set to empty string).
+      Each field has a &quot;Clear this field&quot; checkbox below it. When checked, that field will be completely
+      removed from all selected versions (not set to empty string).
     </p>
     <p>
-      <strong>Use this when:</strong> You want to remove a field entirely from multiple versions.
-      For example, removing outdated <code>purchaseInformationURL</code> links from all versions in a series.
+      <strong>Use this when:</strong> You want to remove a field entirely from multiple versions. For example, removing
+      outdated <code>purchaseInformationURL</code> links from all versions in a series.
     </p>
     <p>
-      <strong>Note:</strong> When a field is marked for clearing, its input is disabled and any value you entered is ignored.
-      The field will be deleted from the database, not set to an empty value.
+      <strong>Note:</strong> When a field is marked for clearing, its input is disabled and any value you entered is
+      ignored. The field will be deleted from the database, not set to an empty value.
     </p>
 
     <h3>Delete Versions</h3>
     <p>
-      The "Delete Versions" button <strong>permanently deletes</strong> the selected versions
-      from the database. The underlying text content, version metadata, and associated records
-      (notifications, search index entries, etc.) are all removed. <strong>This action cannot be undone.</strong>
+      The &quot;Delete Versions&quot; button <strong>permanently deletes</strong> the selected versions from the
+      database. The underlying text content, version metadata, and associated records (notifications, search index
+      entries, etc.) are all removed. <strong>This action cannot be undone.</strong>
     </p>
     <p>
-      To protect against accidental deletion, a confirmation dialog requires you to retype the
-      exact version title before the delete button becomes active.
+      To protect against accidental deletion, a confirmation dialog requires you to retype the exact version title
+      before the delete button becomes active.
     </p>
 
     <div className="warning">
       <strong>Important Notes:</strong>
       <ul>
-        <li>Version titles are <strong>case-sensitive</strong>. "Kehati" and "kehati" are different.</li>
+        <li>
+          Version titles are <strong>case-sensitive</strong>. &quot;Kehati&quot; and &quot;kehati&quot; are different.
+        </li>
         <li>URL fields are validated. Invalid URLs will prevent saving.</li>
         <li>Clearing a field removes it entirely from the database (not set to empty string).</li>
-        <li>Setting <code>status: "locked"</code> prevents non-staff users from editing the version.</li>
+        <li>
+          Setting <code>status: &quot;locked&quot;</code> prevents non-staff users from editing the version.
+        </li>
         <li>Changes are applied immediately to production data. There is no undo.</li>
       </ul>
     </div>
 
     <h3>Common Use Cases</h3>
     <ul>
-      <li>Adding license information to a publisher's versions</li>
+      <li>Adding license information to a publisher&apos;s versions</li>
       <li>Setting source URLs for versions missing attribution</li>
       <li>Deleting outdated or duplicate versions in bulk</li>
       <li>Updating priority to control which version displays first</li>
@@ -129,23 +210,23 @@ const FIELD_GROUPS = [
   {
     id: 'identification',
     header: 'Version Identification',
-    fields: ['versionTitleInHebrew']  // versionTitle is the search key, not editable
+    fields: ['versionTitleInHebrew'], // versionTitle is the search key, not editable
   },
   {
     id: 'source',
     header: 'Source & License',
-    fields: ['versionSource', 'license', 'purchaseInformationURL', 'purchaseInformationImage']
+    fields: ['versionSource', 'license', 'purchaseInformationURL', 'purchaseInformationImage'],
   },
   {
     id: 'metadata',
     header: 'Metadata',
-    fields: ['status', 'priority', 'digitizedBySefaria', 'isPrimary', 'isSource', 'direction']
+    fields: ['status', 'priority', 'digitizedBySefaria', 'isPrimary', 'isSource', 'direction'],
   },
   {
     id: 'notes',
     header: 'Notes',
-    fields: ['versionNotes', 'versionNotesInHebrew']
-  }
+    fields: ['versionNotes', 'versionNotesInHebrew'],
+  },
 ];
 
 /**
@@ -183,15 +264,15 @@ const REQUIRED_FIELDS = new Set(['versionSource', 'isSource', 'isPrimary', 'dire
 const getFieldValidationError = (field, value) => {
   const isUrlField = URL_FIELDS.includes(field);
   if (isUrlField && value && !isValidUrl(value)) {
-    return "Please enter a valid URL (e.g., https://example.com)";
+    return 'Please enter a valid URL (e.g., https://example.com)';
   }
   return null;
 };
 
 const BulkVersionEditor = () => {
   // Search state
-  const [vtitle, setVtitle] = useState("");
-  const [lang, setLang] = useState("");
+  const [vtitle, setVtitle] = useState('');
+  const [lang, setLang] = useState('');
   const [searched, setSearched] = useState(false);
 
   // Results state
@@ -205,16 +286,16 @@ const BulkVersionEditor = () => {
   const [fieldsToClear, setFieldsToClear] = useState(new Set());
 
   // UI state
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showRenameConfirm, setShowRenameConfirm] = useState(false);
-  const [renameNewTitle, setRenameNewTitle] = useState("");
-  const [renameConfirmText, setRenameConfirmText] = useState("");
+  const [renameNewTitle, setRenameNewTitle] = useState('');
+  const [renameConfirmText, setRenameConfirmText] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   /**
    * Clear search and reset state
@@ -225,15 +306,15 @@ const BulkVersionEditor = () => {
     setUpdates({});
     setValidationErrors({});
     setFieldsToClear(new Set());
-    setMsg("");
+    setMsg('');
     setSearched(false);
     setShowRenameConfirm(false);
-    setRenameNewTitle("");
-    setRenameConfirmText("");
+    setRenameNewTitle('');
+    setRenameConfirmText('');
     setRenaming(false);
     setDeleting(false);
     setShowDeleteConfirm(false);
-    setDeleteConfirmText("");
+    setDeleteConfirmText('');
   }, []);
 
   /**
@@ -260,15 +341,15 @@ const BulkVersionEditor = () => {
       const resultIndices = data.indices || [];
       const resultMetadata = data.metadata || {};
       // Combine indices and metadata into single array of objects
-      const combinedIndices = resultIndices.map(title => ({
+      const combinedIndices = resultIndices.map((title) => ({
         title,
-        categories: resultMetadata[title]?.categories
+        categories: resultMetadata[title]?.categories,
       }));
       setIndices(combinedIndices);
       setPick(new Set(resultIndices)); // Pre-select all (Set of title strings)
-      setMsg(""); // Clear loading message - result count shown in IndexSelector header
+      setMsg(''); // Clear loading message - result count shown in IndexSelector header
     } catch (error) {
-      setMsg({ type: MESSAGE_TYPES.ERROR, message: `Error: ${error.message || "Failed to load indices"}` });
+      setMsg({ type: MESSAGE_TYPES.ERROR, message: `Error: ${error.message || 'Failed to load indices'}` });
       setIndices([]);
       setPick(new Set());
     } finally {
@@ -282,7 +363,7 @@ const BulkVersionEditor = () => {
    */
   const handleFieldChange = useCallback((field, value) => {
     // Store the field value (remove if empty)
-    setUpdates(prev => {
+    setUpdates((prev) => {
       const next = { ...prev };
       if (value) {
         next[field] = value;
@@ -294,7 +375,7 @@ const BulkVersionEditor = () => {
 
     // Validate and update error state
     const errorMessage = getFieldValidationError(field, value);
-    setValidationErrors(prev => {
+    setValidationErrors((prev) => {
       const next = { ...prev };
       if (errorMessage) {
         next[field] = errorMessage;
@@ -310,7 +391,7 @@ const BulkVersionEditor = () => {
    * When checked, field will be cleared (removed) from all selected versions
    */
   const handleClearToggle = useCallback((field, checked) => {
-    setFieldsToClear(prev => {
+    setFieldsToClear((prev) => {
       const next = new Set(prev);
       if (checked) {
         next.add(field);
@@ -322,12 +403,12 @@ const BulkVersionEditor = () => {
 
     // When clearing, remove any pending updates for this field
     if (checked) {
-      setUpdates(prev => {
+      setUpdates((prev) => {
         const next = { ...prev };
         delete next[field];
         return next;
       });
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const next = { ...prev };
         delete next[field];
         return next;
@@ -351,7 +432,7 @@ const BulkVersionEditor = () => {
       const payload = {
         versionTitle: vtitle,
         indices: Array.from(pick),
-        ...extraPayload
+        ...extraPayload,
       };
 
       const data = await Sefaria.apiRequestWithBody(url, null, payload);
@@ -359,22 +440,34 @@ const BulkVersionEditor = () => {
       const failureCount = data.failures?.length || 0;
       const total = successCount + failureCount;
 
-      if (data.status === "ok") {
-        console.log("Bulk edit succeeded", { url, successCount, total, payload, data });
+      if (data.status === 'ok') {
+        console.log('Bulk edit succeeded', { url, successCount, total, payload, data });
         setMsg({ type: MESSAGE_TYPES.SUCCESS, message: getSuccessMsg(successCount) });
         if (onSuccess) onSuccess();
-      } else if (data.status === "partial") {
-        const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        console.warn("Bulk edit partially succeeded", { url, successCount, failureCount, total, failures: data.failures, payload, data });
+      } else if (data.status === 'partial') {
+        const failureList = data.failures.map((f) => `• ${f.index}: ${f.error}`).join('\n');
+        console.warn('Bulk edit partially succeeded', {
+          url,
+          successCount,
+          failureCount,
+          total,
+          failures: data.failures,
+          payload,
+          data,
+        });
         setMsg({ type: MESSAGE_TYPES.WARNING, message: getPartialMsg(successCount, total, failureList) });
       } else {
-        const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
-        console.error("Bulk edit failed", { url, failureCount, total, failures: data.failures, payload, data });
+        const failureList = data.failures?.map((f) => `• ${f.index}: ${f.error}`).join('\n') || 'Unknown error';
+        console.error('Bulk edit failed', { url, failureCount, total, failures: data.failures, payload, data });
         setMsg({ type: MESSAGE_TYPES.ERROR, message: getErrorMsg(failureCount, failureList) });
       }
     } catch (error) {
-      const errorMsg = error.message || "Unknown error";
-      console.error("Bulk edit request threw an error", { url, payload: { versionTitle: vtitle, indices: Array.from(pick), ...extraPayload }, error });
+      const errorMsg = error.message || 'Unknown error';
+      console.error('Bulk edit request threw an error', {
+        url,
+        payload: { versionTitle: vtitle, indices: Array.from(pick), ...extraPayload },
+        error,
+      });
       setMsg({ type: MESSAGE_TYPES.ERROR, message: `Error: ${errorMsg}` });
     } finally {
       setSaving(false);
@@ -395,7 +488,7 @@ const BulkVersionEditor = () => {
 
     // Convert boolean string values to actual booleans for the API
     const processedUpdates = { ...updates };
-    ['digitizedBySefaria', 'isPrimary', 'isSource'].forEach(field => {
+    ['digitizedBySefaria', 'isPrimary', 'isSource'].forEach((field) => {
       if (processedUpdates[field] === 'true') {
         processedUpdates[field] = true;
       } else if (processedUpdates[field] === 'false') {
@@ -404,7 +497,7 @@ const BulkVersionEditor = () => {
     });
 
     // Add cleared fields with null value (backend will delete them)
-    fieldsToClear.forEach(field => {
+    fieldsToClear.forEach((field) => {
       processedUpdates[field] = null;
     });
 
@@ -430,7 +523,7 @@ const BulkVersionEditor = () => {
     if (!pick.size) return;
 
     setShowDeleteConfirm(false);
-    setDeleteConfirmText("");
+    setDeleteConfirmText('');
     setMsg({ type: MESSAGE_TYPES.INFO, message: 'Deleting versions...' });
 
     const extraPayload = lang ? { language: lang } : {};
@@ -470,7 +563,7 @@ const BulkVersionEditor = () => {
     if (!newTitleTrimmed || newTitleTrimmed === vtitle.trim()) return;
 
     setShowRenameConfirm(false);
-    setRenameConfirmText("");
+    setRenameConfirmText('');
     setRenaming(true);
     setSaving(true);
 
@@ -493,48 +586,48 @@ const BulkVersionEditor = () => {
           versionTitle: vtitle,
           newVersionTitle: newTitleTrimmed,
           index: indexTitle,
-          ...(lang ? { language: lang } : {})
+          ...(lang ? { language: lang } : {}),
         };
         try {
           const response = await Sefaria.apiRequestWithBody(url, null, payload);
           if (response.task_id) {
             successes.push(indexTitle);
-          } else if (response.status === "ok") {
+          } else if (response.status === 'ok') {
             successes.push(indexTitle);
           } else {
-            failures.push({ index: indexTitle, error: response.error || "Rename failed" });
+            failures.push({ index: indexTitle, error: response.error || 'Rename failed' });
           }
         } catch (error) {
-          failures.push({ index: indexTitle, error: error.message || "Unknown error" });
+          failures.push({ index: indexTitle, error: error.message || 'Unknown error' });
         }
       }
 
       const successCount = successes.length;
       const failureCount = failures.length;
-      const slackReminder = "Check #engineering-signal in Slack for background task results.";
+      const slackReminder = 'Check #engineering-signal in Slack for background task results.';
 
       if (failureCount === 0) {
-        console.log("Rename queued", { url, successCount, total, successes });
+        console.log('Rename queued', { url, successCount, total, successes });
         setMsg({ type: MESSAGE_TYPES.SUCCESS, message: `Queued ${successCount} renames.\n\n${slackReminder}` });
-        setRenameNewTitle("");
+        setRenameNewTitle('');
       } else if (successCount > 0) {
-        const failureList = failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        console.warn("Rename partially queued", { url, successCount, failureCount, total, failures });
+        const failureList = failures.map((f) => `• ${f.index}: ${f.error}`).join('\n');
+        console.warn('Rename partially queued', { url, successCount, failureCount, total, failures });
         setMsg({
           type: MESSAGE_TYPES.WARNING,
-          message: `Queued ${successCount}/${total} renames.\n\nQueueing failed:\n${failureList}\n\n${slackReminder}`
+          message: `Queued ${successCount}/${total} renames.\n\nQueueing failed:\n${failureList}\n\n${slackReminder}`,
         });
       } else {
-        const failureList = failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        console.error("Rename queueing failed", { url, failureCount, total, failures });
+        const failureList = failures.map((f) => `• ${f.index}: ${f.error}`).join('\n');
+        console.error('Rename queueing failed', { url, failureCount, total, failures });
         setMsg({ type: MESSAGE_TYPES.ERROR, message: `All ${failureCount} renames failed to queue:\n${failureList}` });
       }
     } catch (error) {
       // The per-index loop catches expected request failures; this guards against an
       // unexpected error in the surrounding orchestration so the user isn't left with a
       // stale progress message and no feedback.
-      console.error("Rename aborted unexpectedly", { url, total, error });
-      setMsg({ type: MESSAGE_TYPES.ERROR, message: `Rename aborted: ${error.message || "Unknown error"}` });
+      console.error('Rename aborted unexpectedly', { url, total, error });
+      setMsg({ type: MESSAGE_TYPES.ERROR, message: `Rename aborted: ${error.message || 'Unknown error'}` });
     } finally {
       setSaving(false);
       setRenaming(false);
@@ -547,7 +640,7 @@ const BulkVersionEditor = () => {
    */
   const renderField = (fieldName) => {
     const meta = VERSION_FIELD_METADATA[fieldName];
-    const value = updates[fieldName] || "";
+    const value = updates[fieldName] || '';
     const error = validationErrors[fieldName];
     const hasError = !!error;
     const isRequired = REQUIRED_FIELDS.has(fieldName);
@@ -555,65 +648,62 @@ const BulkVersionEditor = () => {
 
     return (
       <div key={fieldName} className={`fieldGroup ${hasError ? 'hasError' : ''}`}>
-        <label>
-          {meta.label}:
-        </label>
+        <label>{meta.label}:</label>
 
-        {meta.help && (
-          <div className="fieldHelp">{meta.help}</div>
-        )}
+        {meta.help && <div className="fieldHelp">{meta.help}</div>}
 
-        {meta.type === "select" && meta.options ? (
+        {meta.type === 'select' && meta.options ? (
           <select
             className="dlVersionSelect fieldInput"
             value={value}
-            onChange={e => handleFieldChange(fieldName, e.target.value)}
-            style={{ direction: meta.dir || "ltr" }}
+            onChange={(e) => handleFieldChange(fieldName, e.target.value)}
+            style={{ direction: meta.dir || 'ltr' }}
             disabled={isClearing}
           >
-            {meta.options.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            {meta.options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </select>
-        ) : meta.type === "textarea" ? (
+        ) : meta.type === 'textarea' ? (
           <textarea
             className="fieldInput"
             placeholder={meta.placeholder}
             value={value}
-            onChange={e => handleFieldChange(fieldName, e.target.value)}
-            style={{ direction: meta.dir || "ltr" }}
+            onChange={(e) => handleFieldChange(fieldName, e.target.value)}
+            style={{ direction: meta.dir || 'ltr' }}
             rows={3}
             disabled={isClearing}
           />
-        ) : meta.type === "number" ? (
+        ) : meta.type === 'number' ? (
           <input
             className="dlVersionSelect fieldInput"
             type="number"
             placeholder={meta.placeholder}
             value={value}
-            onChange={e => handleFieldChange(fieldName, e.target.value)}
+            onChange={(e) => handleFieldChange(fieldName, e.target.value)}
             step="0.1"
             disabled={isClearing}
           />
         ) : (
           <input
             className="dlVersionSelect fieldInput"
-            type={URL_FIELDS.includes(fieldName) ? "url" : "text"}
+            type={URL_FIELDS.includes(fieldName) ? 'url' : 'text'}
             placeholder={meta.placeholder}
             value={value}
-            onChange={e => handleFieldChange(fieldName, e.target.value)}
-            style={{ direction: meta.dir || "ltr" }}
+            onChange={(e) => handleFieldChange(fieldName, e.target.value)}
+            style={{ direction: meta.dir || 'ltr' }}
             disabled={isClearing}
           />
         )}
 
-        {hasError && (
-          <div className="fieldError">{error}</div>
-        )}
+        {hasError && <div className="fieldError">{error}</div>}
 
         {isRequired ? (
           <div className="clearFieldOption requiredFieldNote">
-            This field is required on every Version and cannot be cleared.  However, you don't need to specify a new value.
+            This field is required on every Version and cannot be cleared. However, you don&apos;t need to specify a new
+            value.
           </div>
         ) : (
           <div className="clearFieldOption">
@@ -621,11 +711,9 @@ const BulkVersionEditor = () => {
               <input
                 type="checkbox"
                 checked={isClearing}
-                onChange={e => handleClearToggle(fieldName, e.target.checked)}
+                onChange={(e) => handleClearToggle(fieldName, e.target.checked)}
               />
-              <span className="clearFieldLabel">
-                Clear this field
-              </span>
+              <span className="clearFieldLabel">Clear this field</span>
             </label>
           </div>
         )}
@@ -658,20 +746,14 @@ const BulkVersionEditor = () => {
   };
 
   const currentMessage = getValidationState();
-  const isButtonDisabled = saving || hasValidationErrors ||
-    (currentMessage?.type === MESSAGE_TYPES.WARNING);
+  const isButtonDisabled = saving || hasValidationErrors || currentMessage?.type === MESSAGE_TYPES.WARNING;
 
   return (
-    <ModToolsSection
-      title="Bulk Edit Version Metadata"
-      titleHe="עריכת גרסאות בכמות"
-      helpContent={HELP_CONTENT}
-    >
+    <ModToolsSection title="Bulk Edit Version Metadata" titleHe="עריכת גרסאות בכמות" helpContent={HELP_CONTENT}>
       {/* Info box */}
       <div className="infoBox">
-        <strong>How it works:</strong> Enter a version title to find all texts with matching versions.
-        Select which texts to update, fill in the fields you want to change, then save.
-        Only filled-in fields will be modified.
+        <strong>How it works:</strong> Enter a version title to find all texts with matching versions. Select which
+        texts to update, fill in the fields you want to change, then save. Only filled-in fields will be modified.
       </div>
 
       {/* Search description */}
@@ -686,26 +768,25 @@ const BulkVersionEditor = () => {
           type="text"
           placeholder="e.g., 'Torat Emet 357'"
           value={vtitle}
-          onChange={e => setVtitle(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && load()}
+          onChange={(e) => setVtitle(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && load()}
         />
-        <button
-          className="modtoolsButton"
-          onClick={() => load()}
-          disabled={loading || !vtitle.trim()}
-        >
-          {loading ? <><span className="loadingSpinner" />Searching...</> : "Search"}
+        <button className="modtoolsButton" onClick={() => load()} disabled={loading || !vtitle.trim()}>
+          {loading ? (
+            <>
+              <span className="loadingSpinner" />
+              Searching...
+            </>
+          ) : (
+            'Search'
+          )}
         </button>
       </div>
 
       {/* Language filter - inline row */}
       <div className="filterRow">
         <label>Filter by language:</label>
-        <select
-          className="dlVersionSelect"
-          value={lang}
-          onChange={e => setLang(e.target.value)}
-        >
+        <select className="dlVersionSelect" value={lang} onChange={(e) => setLang(e.target.value)}>
           <option value="">All languages</option>
           <option value="he">Hebrew only</option>
           <option value="en">English only</option>
@@ -715,11 +796,7 @@ const BulkVersionEditor = () => {
       {/* Clear button - centered */}
       {searched && (
         <div className="clearSearchRow">
-          <button
-            className="modtoolsButton secondary"
-            onClick={clearSearch}
-            type="button"
-          >
+          <button className="modtoolsButton secondary" onClick={clearSearch} type="button">
             Clear Search
           </button>
         </div>
@@ -728,20 +805,15 @@ const BulkVersionEditor = () => {
       {/* No results message */}
       {searched && !loading && indices.length === 0 && (
         <div className="noResults">
-          <strong>No texts found with version "{vtitle}"</strong>
-          Please verify the exact version title. Version titles are case-sensitive
-          and must match exactly (e.g., "Torat Emet 357" not "torat emet").
+          <strong>No texts found with version &quot;{vtitle}&quot;</strong>
+          Please verify the exact version title. Version titles are case-sensitive and must match exactly (e.g.,
+          &quot;Torat Emet 357&quot; not &quot;torat emet&quot;).
         </div>
       )}
 
       {/* Index selector */}
       {indices.length > 0 && (
-        <IndexSelector
-          indices={indices}
-          selectedIndices={pick}
-          onSelectionChange={setPick}
-          label="texts"
-        />
+        <IndexSelector indices={indices} selectedIndices={pick} onSelectionChange={setPick} label="texts" />
       )}
 
       {/* Field inputs grouped by section */}
@@ -751,12 +823,10 @@ const BulkVersionEditor = () => {
             Edit fields for {pick.size} selected {pick.size === 1 ? 'text' : 'texts'}:
           </div>
 
-          {FIELD_GROUPS.map(group => (
+          {FIELD_GROUPS.map((group) => (
             <div key={group.id} className="fieldGroupSection">
               <div className="fieldGroupHeader">{group.header}</div>
-              <div className="fieldGroupGrid">
-                {group.fields.map(fieldName => renderField(fieldName))}
-              </div>
+              <div className="fieldGroupGrid">{group.fields.map((fieldName) => renderField(fieldName))}</div>
             </div>
           ))}
 
@@ -767,10 +837,10 @@ const BulkVersionEditor = () => {
               <ul>
                 {Object.entries(updates).map(([k, v]) => (
                   <li key={k}>
-                    <strong>{VERSION_FIELD_METADATA[k]?.label || k}:</strong> "{v}"
+                    <strong>{VERSION_FIELD_METADATA[k]?.label || k}:</strong> &quot;{v}&quot;
                   </li>
                 ))}
-                {Array.from(fieldsToClear).map(field => (
+                {Array.from(fieldsToClear).map((field) => (
                   <li key={`clear-${field}`} className="clearItem">
                     <strong>{VERSION_FIELD_METADATA[field]?.label || field}:</strong> <em>(clear)</em>
                   </li>
@@ -785,7 +855,9 @@ const BulkVersionEditor = () => {
               <strong>Please fix validation errors before saving:</strong>
               <ul>
                 {Object.entries(validationErrors).map(([field, error]) => (
-                  <li key={field}>{VERSION_FIELD_METADATA[field]?.label || field}: {error}</li>
+                  <li key={field}>
+                    {VERSION_FIELD_METADATA[field]?.label || field}: {error}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -796,15 +868,16 @@ const BulkVersionEditor = () => {
 
           {/* Save button */}
           <div className="actionRow">
-            <button
-              className="modtoolsButton"
-              onClick={save}
-              disabled={isButtonDisabled}
-            >
+            <button className="modtoolsButton" onClick={save} disabled={isButtonDisabled}>
               {saving ? (
-                (!renaming && !deleting)
-                  ? <><span className="loadingSpinner" />Saving...</>
-                  : `Save Changes`
+                !renaming && !deleting ? (
+                  <>
+                    <span className="loadingSpinner" />
+                    Saving...
+                  </>
+                ) : (
+                  `Save Changes`
+                )
               ) : (
                 `Save Changes`
               )}
@@ -818,22 +891,23 @@ const BulkVersionEditor = () => {
             <div className="dangerBox">
               <strong>Rename Version (i.e. Change Version Title)</strong>
               <p className="sectionDescription">
-                This action will ONLY change the version title. It will NOT change the version source, license, or any other metadata. If confirmed, this action will change the version title from <code>{vtitle}</code> to a new title for the
-                <strong> {pick.size}</strong> selected text{pick.size === 1 ? '' : 's'}. This action is applied immediately and cannot be undone.
+                This action will ONLY change the version title. It will NOT change the version source, license, or any
+                other metadata. If confirmed, this action will change the version title from <code>{vtitle}</code> to a
+                new title for the
+                <strong> {pick.size}</strong> selected text{pick.size === 1 ? '' : 's'}. This action is applied
+                immediately and cannot be undone.
               </p>
               <p className="sectionDescription">
-                Affected texts: {Array.from(pick).slice(0, 5).join(", ")}
+                Affected texts: {Array.from(pick).slice(0, 5).join(', ')}
                 {pick.size > 5 && ` and ${pick.size - 5} more...`}
               </p>
 
-              <p className="sectionDescription">
-                New version title:
-              </p>
+              <p className="sectionDescription">New version title:</p>
               <input
                 className="dlVersionSelect"
                 type="text"
                 value={renameNewTitle}
-                onChange={e => setRenameNewTitle(e.target.value)}
+                onChange={(e) => setRenameNewTitle(e.target.value)}
                 placeholder="Enter new version title"
                 disabled={saving}
               />
@@ -845,7 +919,7 @@ const BulkVersionEditor = () => {
                 className="dlVersionSelect"
                 type="text"
                 value={renameConfirmText}
-                onChange={e => setRenameConfirmText(e.target.value)}
+                onChange={(e) => setRenameConfirmText(e.target.value)}
                 placeholder={vtitle}
                 disabled={saving}
               />
@@ -866,7 +940,7 @@ const BulkVersionEditor = () => {
                   className="modtoolsButton secondary"
                   onClick={() => {
                     setShowRenameConfirm(false);
-                    setRenameConfirmText("");
+                    setRenameConfirmText('');
                   }}
                   disabled={saving}
                 >
@@ -884,7 +958,14 @@ const BulkVersionEditor = () => {
                 disabled={saving}
                 type="button"
               >
-                {renaming ? <><span className="loadingSpinner" />Renaming...</> : "Rename Version (i.e. Change Version Title)"}
+                {renaming ? (
+                  <>
+                    <span className="loadingSpinner" />
+                    Renaming...
+                  </>
+                ) : (
+                  'Rename Version (i.e. Change Version Title)'
+                )}
               </button>
             </div>
           )}
@@ -896,11 +977,12 @@ const BulkVersionEditor = () => {
             <div className="dangerBox">
               <strong>Permanently Delete Versions</strong>
               <p className="sectionDescription">
-                This will <strong>permanently delete {pick.size}</strong> version{pick.size === 1 ? '' : 's'} from the database.
-                The underlying text content, version metadata, and associated records will be removed. <strong>This action cannot be undone.</strong>
+                This will <strong>permanently delete {pick.size}</strong> version{pick.size === 1 ? '' : 's'} from the
+                database. The underlying text content, version metadata, and associated records will be removed.{' '}
+                <strong>This action cannot be undone.</strong>
               </p>
               <p className="sectionDescription">
-                Affected texts: {Array.from(pick).slice(0, 5).join(", ")}
+                Affected texts: {Array.from(pick).slice(0, 5).join(', ')}
                 {pick.size > 5 && ` and ${pick.size - 5} more...`}
               </p>
               <p className="sectionDescription">
@@ -910,7 +992,7 @@ const BulkVersionEditor = () => {
                 className="dlVersionSelect"
                 type="text"
                 value={deleteConfirmText}
-                onChange={e => setDeleteConfirmText(e.target.value)}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder={vtitle}
                 disabled={saving}
               />
@@ -920,13 +1002,20 @@ const BulkVersionEditor = () => {
                   onClick={deleteVersions}
                   disabled={saving || deleteConfirmText !== vtitle}
                 >
-                  {deleting ? <><span className="loadingSpinner" />Deleting...</> : "Yes, Delete Versions"}
+                  {deleting ? (
+                    <>
+                      <span className="loadingSpinner" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Yes, Delete Versions'
+                  )}
                 </button>
                 <button
                   className="modtoolsButton secondary"
                   onClick={() => {
                     setShowDeleteConfirm(false);
-                    setDeleteConfirmText("");
+                    setDeleteConfirmText('');
                   }}
                   disabled={saving}
                 >

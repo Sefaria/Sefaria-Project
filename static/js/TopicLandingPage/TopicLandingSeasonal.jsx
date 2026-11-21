@@ -1,8 +1,8 @@
 import React from 'react';
-import {TopicLandingCalendar} from "./TopicLandingCalendar";
-import {useState, useEffect} from "react";
-import Sefaria from "../sefaria/sefaria";
-import {InterfaceText} from "../Misc";
+import { TopicLandingCalendar } from './TopicLandingCalendar';
+import { useState, useEffect } from 'react';
+import Sefaria from '../sefaria/sefaria';
+import { InterfaceText } from '../Misc';
 import Util from '../sefaria/util';
 
 const createDisplayDateMessage = (displayDatePrefix, link, secondaryTopicTitleString, displayDateSuffix) => {
@@ -18,7 +18,9 @@ const createDisplayDateMessage = (displayDatePrefix, link, secondaryTopicTitleSt
         >
           {secondaryTopicTitleString}
         </a>
-      ) : ''}{' '}
+      ) : (
+        ''
+      )}{' '}
       {displayDateSuffix ?? ''}
     </>
   );
@@ -48,8 +50,7 @@ const useSeasonalTopic = () => {
 };
 
 export const TopicLandingSeasonal = () => {
-
-    const {
+  const {
     title,
     description,
     link,
@@ -61,59 +62,67 @@ export const TopicLandingSeasonal = () => {
     secondaryTopicSlug,
     isLoading,
   } = useSeasonalTopic();
-    if (isLoading) return null;
-  const displayDateMessageEn = createDisplayDateMessage(displayDatePrefix, link, secondaryTopicTitle?.en, displayDateSuffix);
-  const displayDateMessageHe = createDisplayDateMessage(displayDatePrefix, link, secondaryTopicTitle?.he, displayDateSuffix);
-  const enDateFormat = new Intl.DateTimeFormat("en", {
-    month: "long",
-    day: "numeric",
-    });
-  const heDateFormat = new Intl.DateTimeFormat("he", {
-    month: "long",
-    day: "numeric",
+  if (isLoading) return null;
+  const displayDateMessageEn = createDisplayDateMessage(
+    displayDatePrefix,
+    link,
+    secondaryTopicTitle?.en,
+    displayDateSuffix
+  );
+  const displayDateMessageHe = createDisplayDateMessage(
+    displayDatePrefix,
+    link,
+    secondaryTopicTitle?.he,
+    displayDateSuffix
+  );
+  const enDateFormat = new Intl.DateTimeFormat('en', {
+    month: 'long',
+    day: 'numeric',
+  });
+  const heDateFormat = new Intl.DateTimeFormat('he', {
+    month: 'long',
+    day: 'numeric',
   });
 
-  const formattedDateEn = secondaryTopicSlug  && enDateFormat.formatRange(displayStartDate, displayEndDate);
+  const formattedDateEn = secondaryTopicSlug && enDateFormat.formatRange(displayStartDate, displayEndDate);
   const formattedDateHe = secondaryTopicSlug && heDateFormat.formatRange(displayStartDate, displayEndDate);
-  const learnMorePrompt = {en: `Learn more about ${title?.en} ›`,
-      he:`${Sefaria._("topic_landing_seasonal.learn_more_about")} ${title?.he} ›`};
-  const exploreCalendarPrompt = "Explore the Jewish Calendar";
+  const learnMorePrompt = {
+    en: `Learn more about ${title?.en} ›`,
+    he: `${Sefaria._('topic_landing_seasonal.learn_more_about')} ${title?.he} ›`,
+  };
+  const exploreCalendarPrompt = 'Explore the Jewish Calendar';
 
-
-    return (
-      <div className='topic-landing-seasonal' data-anl-feature_name="Calendar">
-        <TopicLandingCalendar
-            header={<InterfaceText>common.on_the_jewish_calendar</InterfaceText>}
-            title={title}
-            description={description}
-            link={link}
-        />
-        <div className="learn-more-prompt">
-            <a href={link}
-               data-anl-link_type="topic"
-               data-anl-text={learnMorePrompt.en}
-               data-anl-event="navto_topic:click"
-            >
-                <InterfaceText text={learnMorePrompt}/>
-            </a>
+  return (
+    <div className="topic-landing-seasonal" data-anl-feature_name="Calendar">
+      <TopicLandingCalendar
+        header={<InterfaceText>common.on_the_jewish_calendar</InterfaceText>}
+        title={title}
+        description={description}
+        link={link}
+      />
+      <div className="learn-more-prompt">
+        <a href={link} data-anl-link_type="topic" data-anl-text={learnMorePrompt.en} data-anl-event="navto_topic:click">
+          <InterfaceText text={learnMorePrompt} />
+        </a>
+      </div>
+      <div className="seasonal-bottom-section">
+        <div className="display-date-message">
+          <InterfaceText text={{ en: displayDateMessageEn, he: displayDateMessageHe }} />
         </div>
-        <div className="seasonal-bottom-section">
-            <div className="display-date-message">
-                <InterfaceText text={{en: displayDateMessageEn, he: displayDateMessageHe}}/>
-            </div>
-            <div className='display-date'>
-                <InterfaceText text={{en: formattedDateEn, he: formattedDateHe}}/>
-            </div>
-            <div className="explore-calendar-prompt">
-                <a href='/topics/category/jewish-calendar2'
-                   data-anl-link_type="category"
-                   data-anl-text={exploreCalendarPrompt}
-                   data-anl-event="navto_topic:click"
-                >
-                    <InterfaceText>topic_landing_seasonal.explore_the_jewish_calendar</InterfaceText>
-                </a>
-            </div>
+        <div className="display-date">
+          <InterfaceText text={{ en: formattedDateEn, he: formattedDateHe }} />
+        </div>
+        <div className="explore-calendar-prompt">
+          <a
+            href="/topics/category/jewish-calendar2"
+            data-anl-link_type="category"
+            data-anl-text={exploreCalendarPrompt}
+            data-anl-event="navto_topic:click"
+          >
+            <InterfaceText>topic_landing_seasonal.explore_the_jewish_calendar</InterfaceText>
+          </a>
         </div>
       </div>
-    );
+    </div>
+  );
 };

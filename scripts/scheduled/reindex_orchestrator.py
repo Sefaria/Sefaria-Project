@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 """Reindex orchestrator: init -> Indexed Job (N shards) -> finalize.
 Runs as the weekly CronJob. Holds no ES/Mongo connection during the shard phase."""
+
 import json
+import logging
+import math
 import os
 import sys
 import time
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +15,7 @@ MONGO_POD_ANTI_AFFINITY = {
     "podAntiAffinity": {
         "requiredDuringSchedulingIgnoredDuringExecution": [
             {
-                "labelSelector": {
-                    "matchExpressions": [
-                        {"key": "app", "operator": "In", "values": ["mongo"]}
-                    ]
-                },
+                "labelSelector": {"matchExpressions": [{"key": "app", "operator": "In", "values": ["mongo"]}]},
                 "topologyKey": "kubernetes.io/hostname",
             }
         ]
@@ -29,7 +27,17 @@ SHARD_ENV_KEYS = (
     "SEARCH_PORT",
     "SEARCH_PATH",
     "SEARCH_SSL_ENABLE",
-    "REDIS_HOST",
+    # Shards boot Django, so they need the same Redis/Sentinel settings as this pod.
+    "REDIS_URL",
+    "REDIS_PORT",
+    "REDIS_PASSWORD",
+    "SENTINEL_HEADLESS_URL",
+    "SENTINEL_PASSWORD",
+    "SENTINEL_TRANSPORT_OPTS",
+    "SENTINEL_MASTER_SET",
+    "DEFAULT_CACHE_DB_NUM",
+    "SHARED_CACHE_DB_NUM",
+    "GENCACHE_REDIS_DB_NUM",
     "NODEJS_HOST",
     "VARNISH_HOST",
 )
@@ -98,17 +106,24 @@ def build_shard_env_from(
 
 
 def build_shard_job_manifest(
-    name, namespace, image, shard_count, command,
-    env=None, env_from=None, volumes=None, volume_mounts=None, resources=None, affinity=None,
+    name,
+    namespace,
+    image,
+    shard_count,
+    command,
+    env=None,
+    env_from=None,
+    volumes=None,
+    volume_mounts=None,
+    resources=None,
+    affinity=None,
     active_deadline_seconds=None,
 ):
     """Build a batch/v1 Indexed Job manifest as a plain dict.
     Pure function — no I/O, no imports beyond builtins.
     """
     if resources is None:
-        raise ValueError(
-            "shard resources are required; set SHARD_RESOURCES / Helm shardResources"
-        )
+        raise ValueError("shard resources are required; set SHARD_RESOURCES / Helm shardResources")
     container = {
         "name": "reindex-shard",
         "image": image,
@@ -212,16 +227,122 @@ def incomplete_shard_indexes(completed_indexes_str, shard_count):
     return sorted(set(range(shard_count)) - completed)
 
 
+def parse_abort_disk_percent(raw, name="REINDEX_ABORT_DISK_PERCENT"):
+    """Parse a disk-percent limit env var (`name`). Anything that is not a finite number in
+    (0, 100] raises ValueError: float() accepts 'nan', 'inf' and '101', and each would
+    silently turn the disk guard off."""
+    value = float(str(raw).strip())
+    if not math.isfinite(value) or not 0 < value <= 100:
+        raise ValueError(f"{name} must be a number in (0, 100], got {raw!r}")
+    return value
+
+
+def parse_preflight_min_free_gb(raw, name="REINDEX_PREFLIGHT_MIN_FREE_GB"):
+    """Parse the pre-flight minimum free space per node, in GiB. Anything that is not a finite
+    number above 0 raises ValueError: a minimum of 0 or below makes every node pass the absolute
+    free-space check however full it is, and float() also accepts 'nan' and 'inf'."""
+    try:
+        value = float(str(raw).strip())
+    except ValueError:
+        value = math.nan
+    if not math.isfinite(value) or value <= 0:
+        raise ValueError(f"{name} must be a number above 0, got {raw!r}")
+    return value
+
+
+def _disk_percent(row):
+    """A node's disk.percent if it is a real reading (finite, 0-100), else None."""
+    percent = _as_number(row.get("disk.percent"))
+    if percent is None or not math.isfinite(percent) or not 0 <= percent <= 100:
+        return None
+    return percent
+
+
+def _data_node_rows(allocation_rows):
+    for row in allocation_rows or []:
+        node = row.get("node")
+        if node and node != "UNASSIGNED":
+            yield node, row
+
+
+def disk_abort_reasons(allocation_rows, max_disk_percent):
+    """Reasons to abort a running build: data nodes at or over `max_disk_percent` disk used.
+
+    `allocation_rows` is the parsed GET _cat/allocation?format=json body. Unlike the
+    pre-flight, a node with missing numbers is skipped, not reported: a gap in one poll is
+    not worth throwing away hours of indexing. If no data node reports a usable number the
+    observation proves nothing, so it raises ValueError and the caller counts a failed check.
+    Pure function.
+    """
+    reasons = []
+    observed = 0
+    for node, row in _data_node_rows(allocation_rows):
+        percent = _disk_percent(row)
+        if percent is not None:
+            observed += 1
+        if percent is not None and percent >= max_disk_percent:
+            reasons.append(f"node {node} disk is {percent:.0f}% full, at or above the {max_disk_percent}% abort limit")
+    if observed == 0:
+        raise ValueError("_cat/allocation reported no data node disk usage")
+    return reasons
+
+
+class DiskGuard:
+    """Per-node disk watch for the barrier loop.
+
+    Every data node it has ever seen (or was given in `expected_nodes`, e.g. from the
+    pre-flight) must report a real reading at least once per `grace_seconds`; a node that
+    goes quiet, or drops out of _cat/allocation, is reported once its gap passes the grace.
+    Healthy nodes cannot hide a silent one. Raises ValueError (via disk_abort_reasons) when
+    no node reports at all, so the barrier's own no-observation grace applies.
+    """
+
+    def __init__(self, max_disk_percent, grace_seconds, now_fn=time.monotonic, expected_nodes=()):
+        self.max_disk_percent = max_disk_percent
+        self.grace_seconds = grace_seconds
+        self.now_fn = now_fn
+        start = now_fn()
+        self.last_seen = dict.fromkeys(expected_nodes, start)
+
+    def check(self, allocation_rows):
+        now = self.now_fn()
+        reasons = disk_abort_reasons(allocation_rows, self.max_disk_percent)
+        for node, row in _data_node_rows(allocation_rows):
+            if _disk_percent(row) is not None:
+                self.last_seen[node] = now
+            else:
+                self.last_seen.setdefault(node, now)
+        for node, seen in sorted(self.last_seen.items()):
+            gap = now - seen
+            if gap >= self.grace_seconds:
+                reasons.append(f"node {node} has reported no disk usage for {gap:.0f}s (limit {self.grace_seconds}s)")
+        return reasons
+
+
 def run_barrier_loop(
-    read_job_status, shard_count, timeout_seconds,
-    poll_interval_seconds=60, sleep_fn=time.sleep, now_fn=time.monotonic, log_fn=None,
+    read_job_status,
+    shard_count,
+    timeout_seconds,
+    poll_interval_seconds=60,
+    sleep_fn=time.sleep,
+    now_fn=time.monotonic,
+    log_fn=None,
+    check_abort=None,
+    abort_check_grace_seconds=600,
+    abort_reasons=None,
 ):
     """Poll the shard Job until it reaches a terminal state or the barrier timeout elapses.
 
     `read_job_status` is a zero-arg callable returning the Job's `.status` object (as
     returned by `BatchV1Api.read_namespaced_job_status(...).status`).
 
-    Returns (state, incomplete_indexes) where state is one of 'complete', 'failed', 'timeout'.
+    Returns (state, incomplete_indexes) where state is one of 'complete', 'failed', 'timeout',
+    'aborted'. `check_abort`, if given, is a zero-arg callable run on every poll that returns a
+    list of reasons to stop now (e.g. a data node's disk nearing flood stage); a non-empty list
+    returns 'aborted'. If it raises, the error is logged and the loop keeps waiting, but only
+    for `abort_check_grace_seconds` without a successful check: after that it returns
+    'aborted', because writers must not run unwatched until the shard deadline.
+    `abort_reasons`, if given, is a list that receives the reasons for an 'aborted' result.
     This loop used to be an unbounded `while True`, which meant a wedged shard (no crash, no
     log output, doc count frozen) held the barrier - and therefore the CronJob's
     concurrencyPolicy: Forbid slot - forever. The timeout here is a backstop behind the shard
@@ -231,6 +352,7 @@ def run_barrier_loop(
     log = log_fn or (lambda msg: logger.info(msg))
     start = now_fn()
     deadline = start + timeout_seconds
+    last_good_check = start
     while True:
         st = read_job_status()
         status = {"succeeded": st.succeeded or 0, "failed": st.failed or 0}
@@ -238,9 +360,7 @@ def run_barrier_loop(
             c.type == "Failed" and c.status == "True" for c in st.conditions
         )
         state = job_terminal_state(status, shard_count, backoff_exhausted)
-        completed_indexes_str = (
-            getattr(st, "completed_indexes", None) or getattr(st, "completedIndexes", None)
-        )
+        completed_indexes_str = getattr(st, "completed_indexes", None) or getattr(st, "completedIndexes", None)
         incomplete = incomplete_shard_indexes(completed_indexes_str, shard_count)
         elapsed = now_fn() - start
         log(
@@ -251,13 +371,44 @@ def run_barrier_loop(
             return "complete", []
         if state == "failed":
             return "failed", incomplete
+        if check_abort is not None:
+            try:
+                reasons = check_abort()
+                last_good_check = now_fn()
+            except Exception as exc:
+                unwatched = now_fn() - last_good_check
+                if unwatched >= abort_check_grace_seconds:
+                    reason = (
+                        f"no successful disk check for {unwatched:.0f}s "
+                        f"(limit {abort_check_grace_seconds}s); last error: {exc}"
+                    )
+                    log(f"abort: {reason}")
+                    if abort_reasons is not None:
+                        abort_reasons.append(reason)
+                    return "aborted", incomplete
+                log(f"abort check could not run, continuing ({unwatched:.0f}s unwatched): {exc}")
+                reasons = []
+            if reasons:
+                for reason in reasons:
+                    log(f"abort: {reason}")
+                if abort_reasons is not None:
+                    abort_reasons.extend(reasons)
+                return "aborted", incomplete
         if now_fn() >= deadline:
             return "timeout", incomplete
         sleep_fn(poll_interval_seconds)
 
 
-def delete_stale_shard_job(batch, job_name, namespace, api_exception_cls,
-                           attempts=30, sleep_fn=time.sleep, log_fn=None):
+def delete_stale_shard_job(
+    batch,
+    job_name,
+    namespace,
+    api_exception_cls,
+    attempts=30,
+    sleep_fn=time.sleep,
+    log_fn=None,
+    propagation_policy="Background",
+):
     """Delete a prior shard Job and wait until it is actually gone.
 
     Returns True once the Job is confirmed absent (or never existed), False if it still
@@ -276,11 +427,13 @@ def delete_stale_shard_job(batch, job_name, namespace, api_exception_cls,
     warn = log_fn or (lambda msg: logger.warning(msg))
     note = log_fn or (lambda msg: logger.info(msg))
     try:
-        batch.delete_namespaced_job(job_name, namespace, propagation_policy="Background")
+        batch.delete_namespaced_job(job_name, namespace, propagation_policy=propagation_policy)
     except api_exception_cls as exc:
         if exc.status == 404:
-            note(f"No stale shard job to delete; it never existed, or ttlSecondsAfterFinished "
-                 f"already removed it - job_name: {job_name}")
+            note(
+                f"No stale shard job to delete; it never existed, or ttlSecondsAfterFinished "
+                f"already removed it - job_name: {job_name}"
+            )
             return True
         raise
     for _ in range(attempts):
@@ -309,7 +462,11 @@ def parse_shard_resources():
         parsed = json.loads(raw)
     except json.JSONDecodeError as e:
         raise RuntimeError(f"Could not parse SHARD_RESOURCES: {e}") from e
-    if not isinstance(parsed, dict) or not parsed.get("requests", {}).get("memory") or not parsed.get("limits", {}).get("memory"):
+    if (
+        not isinstance(parsed, dict)
+        or not parsed.get("requests", {}).get("memory")
+        or not parsed.get("limits", {}).get("memory")
+    ):
         raise RuntimeError(
             f"SHARD_RESOURCES is malformed - must be a dict with requests.memory and "
             f"limits.memory set (got: {parsed!r})"
@@ -317,18 +474,146 @@ def parse_shard_resources():
     return parsed
 
 
+def _as_number(value):
+    """ES _cat values arrive as strings with bytes=b (and percentages may carry a '%').
+    Returns a float, or None when the value is missing or not numeric."""
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        return float(str(value).strip().rstrip("%"))
+    except ValueError:
+        return None
+
+
+def check_reindex_preflight(health, allocation_rows, min_free_bytes, max_disk_percent):
+    """Return human-readable reasons the cluster must not be reindexed right now; [] means OK.
+    Pure function - no I/O, no imports beyond builtins.
+
+    `health` is the parsed GET _cluster/health body; `allocation_rows` is the parsed
+    GET _cat/allocation?format=json&bytes=b body. It refuses on what it cannot verify: a
+    status other than green, a data node whose disk numbers are missing, or an allocation
+    response that lists fewer data nodes than health's `number_of_data_nodes` (the disk
+    guard is seeded from these rows, so a node missing here would never be watched). The
+    UNASSIGNED row and any row without a node are not data nodes and are skipped.
+    """
+    problems = []
+    status = (health or {}).get("status")
+    if status != "green":
+        problems.append(f"cluster status is {status!r}, must be 'green'")
+    checked_nodes = 0
+    for row in allocation_rows or []:
+        node = row.get("node")
+        if not node or node == "UNASSIGNED":
+            continue
+        checked_nodes += 1
+        avail = _as_number(row.get("disk.avail"))
+        if avail is not None and (not math.isfinite(avail) or avail < 0):
+            avail = None  # 'nan'/'inf' parse as floats but compare False, which would pass silently
+        percent = _disk_percent(row)
+        if avail is None or percent is None:
+            problems.append(
+                f"node {node} disk usage is unknown (disk.avail={row.get('disk.avail')!r}, "
+                f"disk.percent={row.get('disk.percent')!r})"
+            )
+            continue
+        if avail < min_free_bytes:
+            problems.append(
+                f"node {node} has {avail / 1024**3:.1f} GiB free, below the {min_free_bytes / 1024**3:.1f} GiB minimum"
+            )
+        if percent > max_disk_percent:
+            problems.append(f"node {node} disk is {percent:.0f}% full, above the {max_disk_percent}% maximum")
+    if checked_nodes == 0:
+        # An empty or node-less _cat/allocation proves nothing about disk headroom.
+        problems.append("_cat/allocation returned no data nodes, so disk headroom cannot be verified")
+    expected_nodes = (health or {}).get("number_of_data_nodes")
+    if isinstance(expected_nodes, bool) or not isinstance(expected_nodes, int) or expected_nodes < 0:
+        problems.append(
+            f"cluster health number_of_data_nodes is {expected_nodes!r}, so the node list cannot be verified complete"
+        )
+    elif checked_nodes and checked_nodes < expected_nodes:
+        problems.append(
+            f"_cat/allocation reported {checked_nodes} of {expected_nodes} data nodes; "
+            "a missing node's disk cannot be checked or watched"
+        )
+    return problems
+
+
+def read_reindex_preflight_inputs(es_client):
+    """Fetch the two inputs check_reindex_preflight needs. Read-only."""
+    health = es_client.cluster.health()
+    allocation_rows = es_client.cat.allocation(format="json", bytes="b")
+    # elasticsearch-py 8 wraps responses in ObjectApiResponse; unwrap to the plain body.
+    return getattr(health, "body", health), getattr(allocation_rows, "body", allocation_rows)
+
+
+def cleanup_failed_reindex_targets(index_types=("text", "sheet"), debug=False, search_module=None, log_fn=None):
+    """Drop target indices created by init when the orchestrator will not finalize.
+
+    This intentionally deletes only the computed in-progress target side for each type.
+    It refuses to delete if that target is currently behind the alias, and also refuses
+    to delete the alias/shared default names themselves.
+    """
+    log = log_fn or (lambda level, msg: getattr(logger, level)(msg))
+    if search_module is None:
+        import sefaria.search as search_module
+
+    shared_index_names = ("text", "sheet", "topic", "book", "category")
+    deleted = []
+    for index_type in index_types:
+        try:
+            names = search_module.get_new_and_current_index_names(type=index_type, debug=debug)
+            target = names["new"]
+            alias = names["alias"]
+            current = names["current"]
+            search_module._assert_not_shared_index(alias, index_type)
+            if target in shared_index_names or target == alias:
+                log(
+                    "error",
+                    f"Refusing failed-reindex cleanup of shared alias/name - type: {index_type}, target: {target}, alias: {alias}",
+                )
+                continue
+            if target == current:
+                log(
+                    "error",
+                    f"Refusing failed-reindex cleanup because target is current - type: {index_type}, target: {target}, alias: {alias}",
+                )
+                continue
+            if search_module.index_client.exists_alias(index=target, name=alias):
+                log(
+                    "error",
+                    f"Refusing failed-reindex cleanup because target has live alias - type: {index_type}, target: {target}, alias: {alias}",
+                )
+                continue
+            log(
+                "warning",
+                f"Cleaning up failed reindex target - type: {index_type}, target: {target}, alias: {alias}, current: {current}",
+            )
+            search_module.clear_index(target)
+            deleted.append(target)
+        except Exception as e:
+            log("error", f"Failed to clean up failed reindex target - type: {index_type}, error: {e}")
+    return deleted
+
+
 def main():
     # Heavy imports are lazy so unit tests can exec_module without these packages
     import django
+
     django.setup()
     from datetime import datetime
+
     from kubernetes import client, config
-    from sefaria.pagesheetrank import update_pagesheetrank
+
+    import sefaria.search as search_module
     from scripts.scheduled.reindex_pipeline import (
+        REINDEX_TYPES,
         run_reindex_entities,
         run_reindex_finalize_all,
         run_reindex_init_all,
     )
+    from sefaria.pagesheetrank import update_pagesheetrank
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -339,19 +624,23 @@ def main():
     namespace = os.environ["K8S_NAMESPACE"]
     shard_count = int(os.environ.get("SHARD_COUNT", "8"))
     if not (1 <= shard_count <= 64):
-        raise RuntimeError(f"SHARD_COUNT must be between 1 and 64 (a Helm/config error, not attacker input) - got: {shard_count}")
+        raise RuntimeError(
+            f"SHARD_COUNT must be between 1 and 64 (a Helm/config error, not attacker input) - got: {shard_count}"
+        )
     image = os.environ["SHARD_JOB_IMAGE"]
     job_name = os.environ.get("SHARD_JOB_NAME", "reindex-shard")
     debug = os.environ.get("REINDEX_DEBUG", "").lower() in ("1", "true", "yes")
-    # Shards that completed took ~2-3h; 6h is generous but bounded, so a wedged shard
+    # On pd-standard disks the shard phase takes about 6-9h, so the 11h default is generous but
+    # bounded (it was 6h, which was marginal; see the guarded-reindex runbook), and a wedged shard
     # (observed spinning with zero progress and zero logs for hours) is force-terminated
     # instead of running forever.
-    shard_active_deadline_seconds = int(os.environ.get("SHARD_ACTIVE_DEADLINE_SECONDS", "21600"))
+    shard_active_deadline_seconds = int(os.environ.get("SHARD_ACTIVE_DEADLINE_SECONDS", "39600"))
     # Comfortably longer than shard_active_deadline_seconds so the shard Job's own deadline
     # fires first; this is only a backstop in case that somehow doesn't happen.
-    barrier_timeout_seconds = int(os.environ.get("REINDEX_BARRIER_TIMEOUT_SECONDS", "25200"))
+    barrier_timeout_seconds = int(os.environ.get("REINDEX_BARRIER_TIMEOUT_SECONDS", "43200"))
     command = [
-        "bash", "-c",
+        "bash",
+        "-c",
         "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && "
         "/app/run /app/scripts/scheduled/reindex_elasticsearch_cronjob.py --mode shard --type text",
     ]
@@ -404,12 +693,57 @@ def main():
 
     resources = parse_shard_resources()
     if resources is None:
-        raise RuntimeError(
-            "SHARD_RESOURCES env var is not set; cannot launch shard jobs (set via Helm shardResources)"
+        raise RuntimeError("SHARD_RESOURCES env var is not set; cannot launch shard jobs (set via Helm shardResources)")
+
+    # Pre-flight runs before anything is created or deleted: a full data-node disk or a
+    # non-green cluster is what took the prod cluster down in Sep 2026. Refusing here costs
+    # one failed CronJob run; not refusing can fill the disks.
+    preflight_nodes = []
+    if os.environ.get("REINDEX_PREFLIGHT_SKIP", "").lower() in ("1", "true", "yes"):
+        logger.warning(
+            "REINDEX_PREFLIGHT_SKIP is set: skipping the disk/health pre-flight; a full disk "
+            "or a non-green cluster will NOT be caught before the reindex starts"
         )
+    else:
+        min_free_gb = parse_preflight_min_free_gb(os.environ.get("REINDEX_PREFLIGHT_MIN_FREE_GB", "12"))
+        max_disk_percent = parse_abort_disk_percent(
+            os.environ.get("REINDEX_PREFLIGHT_MAX_DISK_PERCENT", "75"), name="REINDEX_PREFLIGHT_MAX_DISK_PERCENT"
+        )
+        health, allocation_rows = read_reindex_preflight_inputs(search_module.es_client)
+        problems = check_reindex_preflight(
+            health,
+            allocation_rows,
+            int(min_free_gb * 1024**3),
+            max_disk_percent,
+        )
+        if problems:
+            for problem in problems:
+                logger.error(f"Reindex pre-flight: {problem}")
+            raise RuntimeError(
+                f"Reindex pre-flight failed with {len(problems)} problem(s); nothing was created or deleted"
+            )
+        logger.info("Reindex pre-flight passed: cluster green, every data node within limits")
+        preflight_nodes = [node for node, _ in _data_node_rows(allocation_rows)]
+
+    # In-flight guard: ES's flood stage (95%) makes indices read-only and a disk-full write
+    # can leave a node unrecoverable (dev 2026-10-17). Stop the build well before that.
+    abort_disk_percent = parse_abort_disk_percent(os.environ.get("REINDEX_ABORT_DISK_PERCENT", "85"))
+    # One allocation-only request per poll with an explicit 10 s timeout and no retries, so a
+    # slow ES fails the check (and the barrier's grace applies) instead of stalling it.
+    monitor_client = search_module.es_client.options(request_timeout=10, max_retries=0)
+
+    disk_guard = None  # built when the shards start, so the init phase does not count as a gap
+
+    def check_disk_abort():
+        rows = monitor_client.cat.allocation(format="json", bytes="b")
+        return disk_guard.check(getattr(rows, "body", rows))
 
     manifest = build_shard_job_manifest(
-        job_name, namespace, image, shard_count, command,
+        job_name,
+        namespace,
+        image,
+        shard_count,
+        command,
         env=shard_env,
         env_from=shard_env_from or None,
         volumes=shard_volumes or None,
@@ -433,62 +767,114 @@ def main():
         logger.error(f"Failed to clear stale shard job - status: {exc.status}, reason: {exc.reason}")
         sys.exit(1)
 
-    logger.info("Orchestrator: running init (pagesheetrank + create indexes)")
-    update_pagesheetrank()
-    run_reindex_init_all(debug=debug)
+    init_started = False
+    finalized = False
+    job_creation_attempted = False
+
+    def cleanup_after_init_failure():
+        if not init_started or finalized:
+            return
+        if job_creation_attempted:
+            # Foreground deletion keeps the Job around until its dependent pods are gone.
+            # A background delete or an unconfirmed deletion can leave writers running.
+            try:
+                job_stopped = delete_stale_shard_job(
+                    batch,
+                    job_name,
+                    namespace,
+                    client.exceptions.ApiException,
+                    propagation_policy="Foreground",
+                )
+            except Exception:
+                logger.exception("Could not stop shard Job; leaving reindex targets for manual cleanup")
+                return
+            if not job_stopped:
+                logger.error("Shard Job deletion was not confirmed; leaving reindex targets for manual cleanup")
+                return
+        cleanup_failed_reindex_targets(index_types=REINDEX_TYPES, debug=debug)
 
     try:
-        batch.create_namespaced_job(namespace, manifest)
-    except client.exceptions.ApiException as exc:
-        logger.error(
-            f"Failed to create Indexed Job after init - status: {exc.status}, reason: {exc.reason}. "
-            "ES indexes were initialized; manual cleanup may be required."
+        logger.info("Orchestrator: running init (pagesheetrank + create indexes)")
+        update_pagesheetrank()
+        init_started = True
+        run_reindex_init_all(debug=debug)
+
+        try:
+            job_creation_attempted = True
+            batch.create_namespaced_job(namespace, manifest)
+        except client.exceptions.ApiException as exc:
+            logger.error(
+                f"Failed to create Indexed Job after init - status: {exc.status}, reason: {exc.reason}. "
+                "ES indexes were initialized; cleaning up failed reindex targets."
+            )
+            cleanup_after_init_failure()
+            sys.exit(1)
+
+        logger.info(
+            f"Orchestrator: created Indexed Job {job_name} with {shard_count} shards, "
+            f"activeDeadlineSeconds={shard_active_deadline_seconds}, "
+            f"barrier_timeout={barrier_timeout_seconds}s"
         )
-        sys.exit(1)
 
-    logger.info(
-        f"Orchestrator: created Indexed Job {job_name} with {shard_count} shards, "
-        f"activeDeadlineSeconds={shard_active_deadline_seconds}, "
-        f"barrier_timeout={barrier_timeout_seconds}s"
-    )
-
-    barrier_state, incomplete = run_barrier_loop(
-        read_job_status=lambda: batch.read_namespaced_job_status(job_name, namespace).status,
-        shard_count=shard_count,
-        timeout_seconds=barrier_timeout_seconds,
-        log_fn=lambda msg: logger.info(f"Orchestrator: {msg}"),
-    )
-    if barrier_state == "failed":
-        logger.error(
-            f"Orchestrator: shard job failed; incomplete shard indexes: {incomplete}; "
-            "NOT finalizing (alias unchanged)"
+        # The guard's per-node grace matches the barrier's no-observation grace (600 s).
+        disk_guard = DiskGuard(abort_disk_percent, grace_seconds=600, expected_nodes=preflight_nodes)
+        abort_reasons = []
+        barrier_state, incomplete = run_barrier_loop(
+            read_job_status=lambda: batch.read_namespaced_job_status(job_name, namespace).status,
+            shard_count=shard_count,
+            timeout_seconds=barrier_timeout_seconds,
+            log_fn=lambda msg: logger.info(f"Orchestrator: {msg}"),
+            check_abort=check_disk_abort,
+            abort_reasons=abort_reasons,
         )
-        sys.exit(1)
-    if barrier_state == "timeout":
-        logger.error(
-            f"Orchestrator: barrier timed out after {barrier_timeout_seconds}s; shard "
-            f"indexes still incomplete: {incomplete}; NOT finalizing (alias unchanged)"
+        if barrier_state == "aborted":
+            logger.error(
+                f"Orchestrator: aborted ({'; '.join(abort_reasons) or 'no reason recorded'}; disk limit "
+                f"{abort_disk_percent:.0f}%); incomplete shard "
+                f"indexes: {incomplete}; NOT finalizing (alias unchanged); stopping shards and "
+                "cleaning up failed reindex targets"
+            )
+            cleanup_after_init_failure()
+            sys.exit(1)
+        if barrier_state == "failed":
+            logger.error(
+                f"Orchestrator: shard job failed; incomplete shard indexes: {incomplete}; "
+                "NOT finalizing (alias unchanged); cleaning up failed reindex targets"
+            )
+            cleanup_after_init_failure()
+            sys.exit(1)
+        if barrier_state == "timeout":
+            logger.error(
+                f"Orchestrator: barrier timed out after {barrier_timeout_seconds}s; shard "
+                f"indexes still incomplete: {incomplete}; NOT finalizing (alias unchanged); "
+                "cleaning up failed reindex targets"
+            )
+            cleanup_after_init_failure()
+            sys.exit(1)
+
+        logger.info("Orchestrator: all shards complete; finalizing")
+        run_reindex_finalize_all(
+            debug=debug,
+            sheet_catch_up_timestamp=sheet_catch_up_timestamp,
+            clear_queue=True,
         )
-        sys.exit(1)
+        finalized = True
 
-    logger.info("Orchestrator: all shards complete; finalizing")
-    run_reindex_finalize_all(
-        debug=debug,
-        sheet_catch_up_timestamp=sheet_catch_up_timestamp,
-        clear_queue=True,
-    )
-
-    # Entity indices (topic, book, category) last, after the text/sheet aliases are
-    # durably swapped above -- matching index_all()'s ordering, so a failure here costs
-    # a re-run of entity indexing rather than the whole reindex. Not sharded: these
-    # corpora are thousands of documents, and index_entities() runs its own
-    # init -> index -> finalize cycle per type.
-    logger.info("Orchestrator: rebuilding entity indices")
-    run_reindex_entities(debug=debug)
+        # Entity indices (topic, book, category) last, after the text/sheet aliases are
+        # durably swapped above -- matching index_all()'s ordering, so a failure here costs
+        # a re-run of entity indexing rather than the whole reindex. Not sharded: these
+        # corpora are thousands of documents, and index_entities() runs its own
+        # init -> index -> finalize cycle per type.
+        logger.info("Orchestrator: rebuilding entity indices")
+        run_reindex_entities(debug=debug)
+    except SystemExit:
+        raise
+    except Exception:
+        cleanup_after_init_failure()
+        raise
 
     logger.info("Orchestrator: reindex complete")
 
 
 if __name__ == "__main__":
     main()
-

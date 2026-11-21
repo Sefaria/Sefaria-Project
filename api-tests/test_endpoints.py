@@ -1,4 +1,5 @@
 """Core API endpoint tests."""
+
 from urllib.parse import quote
 
 

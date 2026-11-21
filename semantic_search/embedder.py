@@ -33,7 +33,7 @@ class GeminiEmbedder:
         self.session = requests.Session()
 
     def _backoff(self, attempt: int) -> None:
-        delay = self.initial_backoff_seconds * (2 ** attempt) + random.uniform(0, self.initial_backoff_seconds)
+        delay = self.initial_backoff_seconds * (2**attempt) + random.uniform(0, self.initial_backoff_seconds)
         time.sleep(delay)
 
     def embed_text(self, text: str, task_type: str) -> list[float]:

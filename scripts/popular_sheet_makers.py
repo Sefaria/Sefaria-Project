@@ -1,21 +1,20 @@
-# -*- coding: utf-8 -*-
 from collections import defaultdict
 
-from sefaria.system.database import db
 from sefaria.model import *
+from sefaria.system.database import db
 
-authors        = defaultdict(int)
+authors = defaultdict(int)
 public_authors = defaultdict(int)
 
 sheets = db.sheets.find()
 
 for sheet in sheets:
     owner = sheet.get("owner", 0)
-    authors[owner] += sheet.get("views",0)
+    authors[owner] += sheet.get("views", 0)
     if "status" in sheet and sheet["status"] == "public":
-        public_authors[owner] += sheet.get("views",0)
+        public_authors[owner] += sheet.get("views", 0)
 
-sorted_authors        = sorted(iter(authors.items()), key=lambda x: -x[1])
+sorted_authors = sorted(iter(authors.items()), key=lambda x: -x[1])
 sorted_public_authors = sorted(iter(public_authors.items()), key=lambda x: -x[1])
 
 print("Most Popular Public Sheet Authors")

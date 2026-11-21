@@ -1,0 +1,11 @@
+node_modules/
+static/bundles/
+static/js/lib/
+**/*.min.js
+# Compiled CSS (generated from SCSS — format the SCSS source instead)
+static/css/*.css
+static/css/*.css.map
+# Django migration files
+**/migrations/*.py
+# Lock file
+package-lock.json

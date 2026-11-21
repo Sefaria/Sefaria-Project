@@ -1,9 +1,9 @@
-import sys
 import json
+import sys
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client, RequestFactory
+from django.test import Client, RequestFactory, TestCase
 
 sys._called_from_test = True
 
@@ -24,17 +24,13 @@ class EmailLoginTest(TestCase):
         )
 
     def test_valid_login(self):
-        User.objects.create_user(
-            username="a@test.com", email="a@test.com", password="pass123"
-        )
+        User.objects.create_user(username="a@test.com", email="a@test.com", password="pass123")
         res = self._post({"email": "a@test.com", "password": "pass123"})
         self.assertEqual(res.status_code, 200)
         self.assertIn("_auth_user_id", self.client.session)
 
     def test_wrong_password(self):
-        User.objects.create_user(
-            username="b@test.com", email="b@test.com", password="correct"
-        )
+        User.objects.create_user(username="b@test.com", email="b@test.com", password="correct")
         res = self._post({"email": "b@test.com", "password": "wrong"})
         self.assertEqual(res.status_code, 401)
         data = res.json()
@@ -47,9 +43,7 @@ class EmailLoginTest(TestCase):
         self.assertIn("error", res.json())
 
     def test_sso_only_account(self):
-        user = User.objects.create_user(
-            username="sso@test.com", email="sso@test.com", password="x"
-        )
+        user = User.objects.create_user(username="sso@test.com", email="sso@test.com", password="x")
         user.set_unusable_password()
         user.save()
         SocialAccount.objects.create(user=user, provider="google", uid="12345")
@@ -61,9 +55,7 @@ class EmailLoginTest(TestCase):
         self.assertIn("google", data["_auth"]["providers"])
 
     def test_invalid_json(self):
-        res = self.client.post(
-            self.url, data="not-json", content_type="application/json"
-        )
+        res = self.client.post(self.url, data="not-json", content_type="application/json")
         self.assertEqual(res.status_code, 400)
 
 
@@ -111,13 +103,38 @@ class AppleCallbackTest(TestCase):
 
             mock_complete.side_effect = set_authenticated
 
-            res = self._post(
-                {"id_token": "valid", "first_name": "Alice", "last_name": "Smith"}
-            )
+            res = self._post({"id_token": "valid", "first_name": "Alice", "last_name": "Smith"})
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(sl.user.first_name, "Alice")
         self.assertEqual(sl.user.last_name, "Smith")
+        # No _sefaria_new_social_user flag was set (complete_social_login is mocked, so the
+        # real save_user() that would set it never runs) -- an existing-user login.
+        self.assertEqual(res.json(), {"outcome": "existing_user_login"})
+
+    @patch("sso.views.complete_social_login")
+    def test_success_reports_created_new_account_outcome_for_new_user(self, mock_complete):
+        # Simulates what SefariaSocialAccountAdapter.save_user actually does for a
+        # brand-new user (setting request._sefaria_new_social_user = True) without
+        # running the real save_user side effects (mongo/CRM), same mocking level as
+        # test_success_injects_name above.
+        with patch("sso.views.get_social_adapter") as mock_get_adapter:
+            sl = MagicMock()
+            provider = MagicMock()
+            provider.verify_token.return_value = sl
+            mock_get_adapter.return_value.get_provider.return_value = provider
+
+            def set_authenticated_new_user(request, sociallogin):
+                request.user = MagicMock()
+                request.user.is_authenticated = True
+                request._sefaria_new_social_user = True
+
+            mock_complete.side_effect = set_authenticated_new_user
+
+            res = self._post({"id_token": "valid"})
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {"outcome": "created_new_account"})
 
     @patch("sso.views.complete_social_login")
     def test_does_not_overwrite_existing_name(self, mock_complete):
@@ -130,12 +147,84 @@ class AppleCallbackTest(TestCase):
             mock_get_adapter.return_value.get_provider.return_value = provider
             mock_complete.side_effect = lambda req, s: None
 
-            res = self._post(
-                {"id_token": "valid", "first_name": "Other", "last_name": "Name"}
-            )
+            self._post({"id_token": "valid", "first_name": "Other", "last_name": "Name"})
 
         self.assertEqual(sl.user.first_name, "Bob")
         self.assertEqual(sl.user.last_name, "Jones")
+
+
+class GoogleWebCallbackTest(TestCase):
+    """
+    Web counterpart to AppleCallbackTest for Google: useSsoSignIn.jsx's popup button and
+    GoogleOneTap.jsx both POST here instead of allauth's stock headless ProviderTokenView,
+    specifically so `outcome` can be reported (that stock endpoint has no hook for it).
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.url = "/api/auth/google/callback"
+
+    def _post(self, body):
+        return self.client.post(
+            self.url,
+            data=json.dumps(body),
+            content_type="application/json",
+        )
+
+    def test_missing_id_token(self):
+        res = self._post({})
+        self.assertEqual(res.status_code, 400)
+
+    def test_invalid_json(self):
+        res = self.client.post(self.url, data="bad", content_type="application/json")
+        self.assertEqual(res.status_code, 400)
+
+    def test_invalid_token_returns_400(self):
+        with patch("sso.views.get_social_adapter") as mock_get_adapter:
+            provider = MagicMock()
+            provider.verify_token.side_effect = Exception("bad token")
+            mock_get_adapter.return_value.get_provider.return_value = provider
+            res = self._post({"id_token": "bogus"})
+        self.assertEqual(res.status_code, 400)
+
+    @patch("sso.views.complete_social_login")
+    def test_success_reports_existing_user_login_outcome(self, mock_complete):
+        with patch("sso.views.get_social_adapter") as mock_get_adapter:
+            sl = MagicMock()
+            provider = MagicMock()
+            provider.verify_token.return_value = sl
+            mock_get_adapter.return_value.get_provider.return_value = provider
+
+            def set_authenticated(request, sociallogin):
+                request.user = MagicMock()
+                request.user.is_authenticated = True
+
+            mock_complete.side_effect = set_authenticated
+
+            res = self._post({"id_token": "valid"})
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {"outcome": "existing_user_login"})
+
+    @patch("sso.views.complete_social_login")
+    def test_success_reports_created_new_account_outcome_for_new_user(self, mock_complete):
+        with patch("sso.views.get_social_adapter") as mock_get_adapter:
+            sl = MagicMock()
+            provider = MagicMock()
+            provider.verify_token.return_value = sl
+            mock_get_adapter.return_value.get_provider.return_value = provider
+
+            def set_authenticated_new_user(request, sociallogin):
+                request.user = MagicMock()
+                request.user.is_authenticated = True
+                request._sefaria_new_social_user = True
+
+            mock_complete.side_effect = set_authenticated_new_user
+
+            res = self._post({"id_token": "valid"})
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {"outcome": "created_new_account"})
 
 
 def _sso_only_user(email):
@@ -167,9 +256,7 @@ class GoogleMobileTest(TestCase):
         )
 
     def test_invalid_json(self):
-        res = self.client.post(
-            self.url, data="not-json", content_type="application/json"
-        )
+        res = self.client.post(self.url, data="not-json", content_type="application/json")
         self.assertEqual(res.status_code, 400)
 
     def test_missing_id_token(self):
@@ -206,9 +293,7 @@ class GoogleMobileTest(TestCase):
         # cookie regardless of whether request.session.flush() runs — that
         # would make the assertions below pass even if flush() were deleted.
         # force_login first so there is a real, populated session to flush.
-        session_owner = User.objects.create_user(
-            username="session-owner@test.com", email="session-owner@test.com"
-        )
+        session_owner = User.objects.create_user(username="session-owner@test.com", email="session-owner@test.com")
         self.client.force_login(session_owner)
         self.assertIn("_auth_user_id", self.client.session)
 
@@ -276,9 +361,7 @@ class GoogleMobileEmailOverrideTest(TestCase):
         )
 
     def _assert_takes_over_existing_account(self, email, verified, uid):
-        existing = User.objects.create_user(
-            username=email, email=email, password="attacker-set-pw"
-        )
+        existing = User.objects.create_user(username=email, email=email, password="attacker-set-pw")
         self.assertTrue(existing.has_usable_password())
         sociallogin = self._real_sociallogin(email, verified=verified, uid=uid)
 
@@ -297,20 +380,14 @@ class GoogleMobileEmailOverrideTest(TestCase):
 
         existing.refresh_from_db()
         self.assertFalse(existing.has_usable_password())
-        self.assertTrue(
-            SocialAccount.objects.filter(
-                user=existing, provider="google", uid=uid
-            ).exists()
-        )
+        self.assertTrue(SocialAccount.objects.filter(user=existing, provider="google", uid=uid).exists())
         self.assertEqual(User.objects.count(), 1)  # no duplicate account was created
 
     def test_unverified_email_still_takes_over_existing_account(self):
         # Exercises SefariaSocialAccountAdapter.pre_social_login directly:
         # allauth's own lookup() doesn't match an unverified email, so our
         # hook is the one performing the takeover.
-        self._assert_takes_over_existing_account(
-            "victim@test.com", verified=False, uid="google-uid-1"
-        )
+        self._assert_takes_over_existing_account("victim@test.com", verified=False, uid="google-uid-1")
 
     def test_verified_email_also_takes_over_existing_account(self):
         # The common real-world case (an ordinary Gmail login, provider marks
@@ -321,9 +398,7 @@ class GoogleMobileEmailOverrideTest(TestCase):
         # (SOCIALACCOUNT_EMAIL_AUTHENTICATION + _AUTO_CONNECT). This guards
         # against a regression where our hook's is_existing check stops
         # matching allauth's actual behavior and interferes with this path.
-        self._assert_takes_over_existing_account(
-            "victim2@test.com", verified=True, uid="google-uid-2"
-        )
+        self._assert_takes_over_existing_account("victim2@test.com", verified=True, uid="google-uid-2")
 
 
 class AppleMobileTest(TestCase):
@@ -342,9 +417,7 @@ class AppleMobileTest(TestCase):
         )
 
     def test_invalid_json(self):
-        res = self.client.post(
-            self.url, data="not-json", content_type="application/json"
-        )
+        res = self.client.post(self.url, data="not-json", content_type="application/json")
         self.assertEqual(res.status_code, 400)
 
     def test_missing_id_token(self):
@@ -375,9 +448,7 @@ class AppleMobileTest(TestCase):
         # request.session, so without a real pre-existing session the
         # no-session assertions below would pass whether or not
         # request.session.flush() actually runs.
-        session_owner = User.objects.create_user(
-            username="session-owner2@test.com", email="session-owner2@test.com"
-        )
+        session_owner = User.objects.create_user(username="session-owner2@test.com", email="session-owner2@test.com")
         self.client.force_login(session_owner)
         self.assertIn("_auth_user_id", self.client.session)
 
@@ -394,9 +465,7 @@ class AppleMobileTest(TestCase):
 
             mock_complete.side_effect = set_authenticated
 
-            res = self._post(
-                {"id_token": "valid", "first_name": "Alice", "last_name": "Smith"}
-            )
+            res = self._post({"id_token": "valid", "first_name": "Alice", "last_name": "Smith"})
 
         self.assertEqual(res.status_code, 200)
         data = res.json()
@@ -427,9 +496,7 @@ class MobileLoginTest(TestCase):
         )
 
     def test_valid_login_returns_tokens(self):
-        User.objects.create_user(
-            username="ml-a@test.com", email="ml-a@test.com", password="pass123"
-        )
+        User.objects.create_user(username="ml-a@test.com", email="ml-a@test.com", password="pass123")
         res = self._post({"username": "ml-a@test.com", "password": "pass123"})
         self.assertEqual(res.status_code, 200)
         data = res.json()
@@ -437,9 +504,7 @@ class MobileLoginTest(TestCase):
         self.assertIn("refresh", data)
 
     def test_wrong_password_returns_generic_error_unchanged(self):
-        User.objects.create_user(
-            username="ml-b@test.com", email="ml-b@test.com", password="correct"
-        )
+        User.objects.create_user(username="ml-b@test.com", email="ml-b@test.com", password="correct")
         res = self._post({"username": "ml-b@test.com", "password": "wrong"})
         self.assertEqual(res.status_code, 401)
         data = res.json()
@@ -459,9 +524,7 @@ class MobileLoginTest(TestCase):
         # adapters.py is ever revisited, has_usable_password() is the only
         # thing keeping a mistyped password from being reported as
         # "your account is Google-only".
-        user = User.objects.create_user(
-            username="ml-c@test.com", email="ml-c@test.com", password="correct"
-        )
+        user = User.objects.create_user(username="ml-c@test.com", email="ml-c@test.com", password="correct")
         SocialAccount.objects.create(user=user, provider="google", uid="mobile-67890")
 
         res = self._post({"username": "ml-c@test.com", "password": "wrong"})
@@ -478,9 +541,7 @@ class MobileLoginTest(TestCase):
         self.assertNotIn("_auth", data)
 
     def test_sso_only_account_returns_code_and_providers(self):
-        user = User.objects.create_user(
-            username="ml-sso@test.com", email="ml-sso@test.com", password="x"
-        )
+        user = User.objects.create_user(username="ml-sso@test.com", email="ml-sso@test.com", password="x")
         user.set_unusable_password()
         user.save()
         SocialAccount.objects.create(user=user, provider="google", uid="mobile-12345")
@@ -508,9 +569,7 @@ class PasswordResetApiTest(TestCase):
         )
 
     def test_invalid_json(self):
-        res = self.client.post(
-            self.url, data="not-json", content_type="application/json"
-        )
+        res = self.client.post(self.url, data="not-json", content_type="application/json")
         self.assertEqual(res.status_code, 400)
 
     def test_invalid_email(self):
@@ -519,21 +578,15 @@ class PasswordResetApiTest(TestCase):
         self.assertEqual(res.json()["error"], "auth.invalid_email")
 
     def test_valid_email_sends_reset_and_returns_200(self):
-        User.objects.create_user(
-            username="reset@test.com", email="reset@test.com", password="x"
-        )
+        User.objects.create_user(username="reset@test.com", email="reset@test.com", password="x")
         with patch("sso.views.SefariaPasswordResetForm.save") as mock_save:
             res = self._post({"email": "reset@test.com"})
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json(), {})
         mock_save.assert_called_once()
         _, kwargs = mock_save.call_args
-        self.assertEqual(
-            kwargs["email_template_name"], "registration/password_reset_email.txt"
-        )
-        self.assertEqual(
-            kwargs["html_email_template_name"], "registration/password_reset_email.html"
-        )
+        self.assertEqual(kwargs["email_template_name"], "registration/password_reset_email.txt")
+        self.assertEqual(kwargs["html_email_template_name"], "registration/password_reset_email.html")
 
     def test_unknown_email_still_returns_200(self):
         # Django's PasswordResetForm silently no-ops for unknown emails (prevents
@@ -542,9 +595,7 @@ class PasswordResetApiTest(TestCase):
         self.assertEqual(res.status_code, 200)
 
     def test_sso_only_account_does_not_send_reset_email(self):
-        user = User.objects.create_user(
-            username="sso-reset@test.com", email="sso-reset@test.com", password="x"
-        )
+        user = User.objects.create_user(username="sso-reset@test.com", email="sso-reset@test.com", password="x")
         user.set_unusable_password()
         user.save()
         SocialAccount.objects.create(user=user, provider="google", uid="12345")
@@ -563,9 +614,7 @@ class PasswordResetApiTest(TestCase):
         # that actually enforces CSRF (unlike the default test Client) must
         # still reach the view rather than being rejected by the middleware.
         csrf_client = Client(enforce_csrf_checks=True)
-        User.objects.create_user(
-            username="csrf@test.com", email="csrf@test.com", password="x"
-        )
+        User.objects.create_user(username="csrf@test.com", email="csrf@test.com", password="x")
         with patch("sso.views.SefariaPasswordResetForm.save") as mock_save:
             res = csrf_client.post(
                 self.url,

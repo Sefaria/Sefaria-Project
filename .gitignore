@@ -27,6 +27,8 @@
 *.log
 *.sql
 !semantic_search/sql/*.sql
+# auth-service Postgres test fixture
+!auth-service/internal/registry/testdata/*.sql
 *.sqlite
 *.db
 
@@ -151,6 +153,7 @@ e2e-tests/e2e-test-logs/
 /playwright-report/
 /playwright/.cache/
 /playwright-profile/
+e2e-tests/.auth/
 
 # Storybook #
 *storybook.log
