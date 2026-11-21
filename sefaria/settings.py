@@ -167,6 +167,9 @@ MIDDLEWARE = [
     "sefaria.system.middleware.CORSDebugMiddleware",
     "sefaria.system.middleware.SharedCacheMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
+    # Answers a caller input error for every view, decorated or not; inside structlog's
+    # RequestMiddleware so the warning it logs carries the request context.
+    "sefaria.system.middleware.ErrorBoundaryMiddleware",
     *(["sefaria.system.middleware.MaxRSSMiddleware"] if os.environ.get("ENABLE_MAXRSS_MIDDLEWARE") else []),
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
