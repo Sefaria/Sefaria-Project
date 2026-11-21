@@ -819,6 +819,11 @@ Sefaria = extend(Sefaria, {
      * it adds the texts to 'he' and 'text', and the sources to 'sources' and 'heSources'
      */
     const versions = versionsResponse.versions;
+    // v1 texts responses carry the book title on each version. v3 keeps it only on the
+    // response, and readers such as VersionBlock still take version.title (their old shape).
+    versions.forEach((version) => {
+      version.title = version.title || versionsResponse.indexTitle;
+    });
     const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(versions);
     ({
       text: versionsResponse.text,
