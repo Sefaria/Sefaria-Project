@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-
-
 # This is failing because of the Postgres access happening in build_full_auto_completer()
 # E   RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db" fixtures to enable it.
-# todo: Add the right mark to get the module allowed
+# TODO: Add the right mark to get the module allowed
 
 """
 
@@ -56,14 +53,12 @@ class Test_Complete_Method(object):
 """
 
 
-
-
-    # Does 0 limit work to have no limits?
-    # How do we test that?
-    # Do individual dictionary autompleters return results?
-    # Do cross dictionary ac return results from all dicts?
-    # Are all refs noted as such in name api?
-    # Do dictionary entries resolve in name api?
+# Does 0 limit work to have no limits?
+# How do we test that?
+# Do individual dictionary autompleters return results?
+# Do cross dictionary ac return results from all dicts?
+# Are all refs noted as such in name api?
+# Do dictionary entries resolve in name api?
 
 
 # The tests below deliberately avoid build_full_auto_completer() (see the Postgres note at
@@ -72,13 +67,13 @@ class Test_Complete_Method(object):
 import pytest
 
 from sefaria.model import library
-from sefaria.model.category import TocCategory, TocTextIndex
 from sefaria.model.autospell import (
     INDEX_CONTAINER_MIN,
     get_search_categories,
     is_category_boundary,
     is_index_container,
 )
+from sefaria.model.category import TocCategory, TocTextIndex
 
 
 def _subtree_index_count(node):
@@ -92,17 +87,37 @@ def _subtree_index_count(node):
     return n
 
 
-class TestCategoryBoundary(object):
-    @pytest.mark.parametrize("name", [
-        "Commentary", "commentaries", "Rishonim on Tanakh", "Acharonim", "Geonim",
-        "Savoraim", "Other Kabbalah Works", "Modern", "Targum", "Guides", "comments",
-    ])
+class TestCategoryBoundary:
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "Commentary",
+            "commentaries",
+            "Rishonim on Tanakh",
+            "Acharonim",
+            "Geonim",
+            "Savoraim",
+            "Other Kabbalah Works",
+            "Modern",
+            "Targum",
+            "Guides",
+            "comments",
+        ],
+    )
     def test_boundaries(self, name):
         assert is_category_boundary(name)
 
-    @pytest.mark.parametrize("name", [
-        "Tanakh", "Talmud", "Mishneh Torah", "Rashi", "Seder Moed", "Kabbalah",
-    ])
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "Tanakh",
+            "Talmud",
+            "Mishneh Torah",
+            "Rashi",
+            "Seder Moed",
+            "Kabbalah",
+        ],
+    )
     def test_non_boundaries(self, name):
         assert not is_category_boundary(name)
 
@@ -112,7 +127,7 @@ class TestCategoryBoundary(object):
         assert not is_category_boundary("Otherworldly Texts")
 
 
-class TestSearchCategories(object):
+class TestSearchCategories:
     """
     A category is indexed only if it is a real container of texts: at least
     INDEX_CONTAINER_MIN indices somewhere beneath it.
@@ -127,8 +142,11 @@ class TestSearchCategories(object):
         assert all(isinstance(c, TocCategory) for c in self.cats)
 
     def test_every_category_holds_at_least_two_indices(self):
-        thin = [("/".join(c.full_path), _subtree_index_count(c))
-                for c in self.cats if _subtree_index_count(c) < INDEX_CONTAINER_MIN]
+        thin = [
+            ("/".join(c.full_path), _subtree_index_count(c))
+            for c in self.cats
+            if _subtree_index_count(c) < INDEX_CONTAINER_MIN
+        ]
         assert thin == [], f"categories with fewer than {INDEX_CONTAINER_MIN} indices: {thin[:10]}"
 
     def test_no_boundary_nodes_are_returned(self):

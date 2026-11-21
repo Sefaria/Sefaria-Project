@@ -1,12 +1,15 @@
 # Garden
+
 > Source: `sefaria/model/garden.py`
 
 ## Purpose
+
 Gardens are curated collections of textual "stops" (references to sources or freeform text blobs) with configurable filtering, sorting, and timeline/geographic visualization. They support importing content from sheets, search results, and ref lists, and can discover link-based relationships between their stops.
 
 ## Key Classes
 
 ### Garden
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `garden`
 - **Role**: Top-level container that owns a set of GardenStops and GardenStopRelations, plus display/filter configuration.
@@ -23,10 +26,12 @@ Gardens are curated collections of textual "stops" (references to sources or fre
   - `stopSet(sort)` / `relSet(sort)` — Return the associated `GardenStopSet` / `GardenStopRelationSet`, default sorted by `start`.
 
 ### GardenSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Role**: Set class for `Garden`.
 
 ### GardenStop
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `garden_stop`
 - **Role**: A single item in a garden — either an inside source (has a `ref`), outside source, or blob.
@@ -38,19 +43,23 @@ Gardens are curated collections of textual "stops" (references to sources or fre
   - `set_tags(tags, type)` — Has a bug: uses string literal `"type"` instead of the `type` parameter variable.
 
 ### GardenStopSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Role**: Set class for `GardenStop`.
 
 ### GardenStopRelation
+
 - **Inherits**: `AbstractMongoRecord`
 - **Collection**: `garden_rel`
 - **Role**: Represents a relationship between stops in a garden. Only requires `garden`; has no other defined attrs (schema is essentially open).
 
 ### GardenStopRelationSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Role**: Set class for `GardenStopRelation`.
 
 ## Non-Obvious Patterns
+
 - **Upsert-on-ref in `add_stop`**: Adding a stop with an existing `ref` in the same garden does not create a duplicate; it increments `weight` and merges tags. There is a bug on line 186 where `existing.enText` is set instead of `existing.heText` when merging Hebrew text.
 - **`tags` is a dict of lists**, not a flat list. Keys are filter types (e.g. `"default"`, `"Sheet Author"`). This maps to the garden's `config.filters`.
 - **`set_tags` bug**: Uses `self.tags["type"]` (string literal) instead of `self.tags[type]` (variable). This means tags are always stored/read under the key `"type"` regardless of the `type` argument.
@@ -59,6 +68,7 @@ Gardens are curated collections of textual "stops" (references to sources or fre
 - **Commented-out code** at the bottom (`process_index_title_change_in_gardens`, `process_index_delete_in_gardens`) suggests cascading updates for index title changes were planned but never activated.
 
 ## Relationships
+
 - **Garden.key -> GardenStop.garden**: One-to-many. Queried via `{"garden": self.key}`.
 - **Garden.key -> GardenStopRelation.garden**: One-to-many. Same pattern.
 - **GardenStop.ref -> text.Ref**: Stops with `type="inside_source"` reference Sefaria texts.
@@ -69,6 +79,7 @@ Gardens are curated collections of textual "stops" (references to sources or fre
 ## Common Tasks
 
 **Create a garden and populate it from a sheet:**
+
 ```python
 g = Garden({"key": "my-garden", "title": "My Garden", "heTitle": "הגינה שלי", "config": {}})
 g.save()
@@ -77,17 +88,20 @@ g.save()
 ```
 
 **Import a list of refs:**
+
 ```python
 g.import_ref_list(["Genesis 1:1", "Exodus 2:3"], defaults={"tags": {"custom_filter": ["tag1"]}})
 g.save()
 ```
 
 **Query stops grouped by tag:**
+
 ```python
 by_tag = g.stopsByTag()  # returns {"default": {"tag_name": [stop_dicts]}, ...}
 ```
 
 **Update filter/sort config:**
+
 ```python
 g.updateFilter("Author", {"en": "Author", "he": "מחבר", "logic": "OR", "position": "SIDE"})
 g.updateSort("weight", {"type": "Int", "en": "Weight", "he": "משקל"})

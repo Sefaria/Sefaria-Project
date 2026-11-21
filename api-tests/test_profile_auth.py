@@ -22,11 +22,14 @@ def test_user_history(api):
 
 
 def test_register_endpoint_exists(api):
-    r = api.post("/api/register", json={
-        "email": "test@example.com",
-        "username": "testuser",
-        "password": "password123",
-    })
+    r = api.post(
+        "/api/register",
+        json={
+            "email": "test@example.com",
+            "username": "testuser",
+            "password": "password123",
+        },
+    )
     assert r.status_code < 500
 
 

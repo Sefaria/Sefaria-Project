@@ -3,23 +3,26 @@ import Sefaria from '../sefaria';
 
 const BUDGET = Sefaria.MAX_ANON_HISTORY_BYTES;
 
-const encodedLength = items => encodeURIComponent(JSON.stringify(items)).length;
+const encodedLength = (items) => encodeURIComponent(JSON.stringify(items)).length;
 
 // Mirrors what `saveUserHistory` stores for a logged out user: the fields set by
 // `ReaderApp.getHistoryObject`, plus `time_stamp` and the `he_ref` looked up
 // through `Sefaria.getRef`.
-const historyItem = (i, {heavy = false} = {}) => ({
+const historyItem = (i, { heavy = false } = {}) => ({
   ref: heavy ? `Mishneh Torah, Foundations of the Torah ${i}:1` : `Genesis ${i}:1`,
-  book: heavy ? "Mishneh Torah, Foundations of the Torah" : "Genesis",
+  book: heavy ? 'Mishneh Torah, Foundations of the Torah' : 'Genesis',
   he_ref: heavy ? `משנה תורה, הלכות יסודי התורה ${i}׳:א׳` : `בראשית ${i}׳:א׳`,
   versions: heavy
-    ? {en: "Mishneh Torah, trans. by Eliyahu Touger. Jerusalem, Moznaim Pub. c1986-c2007", he: "Wikisource Mishneh Torah"}
+    ? {
+        en: 'Mishneh Torah, trans. by Eliyahu Touger. Jerusalem, Moznaim Pub. c1986-c2007',
+        he: 'Wikisource Mishneh Torah',
+      }
     : {},
-  language: "bilingual",
+  language: 'bilingual',
   time_stamp: 1754300000 + i,
 });
 
-const makeItems = (n, opts) => Array.from({length: n}, (_, i) => historyItem(i, opts));
+const makeItems = (n, opts) => Array.from({ length: n }, (_, i) => historyItem(i, opts));
 
 describe('_trimUserHistoryForCookie', () => {
   test('returns an empty array for empty input', () => {
@@ -41,14 +44,14 @@ describe('_trimUserHistoryForCookie', () => {
   });
 
   test('stays within the byte budget for long Hebrew refs with version titles', () => {
-    const items = makeItems(200, {heavy: true});
+    const items = makeItems(200, { heavy: true });
     const trimmed = Sefaria._trimUserHistoryForCookie(items);
     expect(encodedLength(trimmed)).toBeLessThanOrEqual(BUDGET);
   });
 
   test('bulky items yield fewer entries than compact ones', () => {
     const light = Sefaria._trimUserHistoryForCookie(makeItems(200));
-    const heavy = Sefaria._trimUserHistoryForCookie(makeItems(200, {heavy: true}));
+    const heavy = Sefaria._trimUserHistoryForCookie(makeItems(200, { heavy: true }));
     expect(heavy.length).toBeLessThan(light.length);
   });
 
@@ -67,7 +70,7 @@ describe('_trimUserHistoryForCookie', () => {
   });
 
   test('drops a single item that is larger than the whole budget', () => {
-    const oversized = {...historyItem(1), he_ref: "א".repeat(BUDGET)};
+    const oversized = { ...historyItem(1), he_ref: 'א'.repeat(BUDGET) };
     expect(Sefaria._trimUserHistoryForCookie([oversized, historyItem(2)])).toEqual([]);
   });
 });

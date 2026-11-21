@@ -1,0 +1,6 @@
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "newsletters": { "sefaria-news-resources-english": true }
+}

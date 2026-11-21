@@ -3,31 +3,31 @@ from django.contrib.auth.models import User
 
 from powered_by.models import Project
 
-
 PRIVATE_FIELDS = Project.PRIVATE_FIELDS
 
 
 def make_project(**overrides):
     """Create a Project with sane defaults, overridable per-test."""
-    defaults = dict(
-        submission_source="manual",
-        creator="Ada Lovelace",
-        creator_email="ada@example.com",
-        is_developer=True,
-        job_title="Engineer",
-        found_sefaria="A friend told me.",
-        submitter="Staff Member",
-        salesforce_id="SF-123",
-        notes="Internal staff note.",
-        project_name="Example Project",
-        project_link="https://example.com",
-        is_published=True,
-    )
+    defaults = {
+        "submission_source": "manual",
+        "creator": "Ada Lovelace",
+        "creator_email": "ada@example.com",
+        "is_developer": True,
+        "job_title": "Engineer",
+        "found_sefaria": "A friend told me.",
+        "submitter": "Staff Member",
+        "salesforce_id": "SF-123",
+        "notes": "Internal staff note.",
+        "project_name": "Example Project",
+        "project_link": "https://example.com",
+        "is_published": True,
+    }
     defaults.update(overrides)
     return Project.objects.create(**defaults)
 
 
 # --- model.contents() serialization gating ----------------------------------
+
 
 @pytest.mark.django_db
 def test_contents_omits_private_fields_when_not_authenticated():
@@ -57,6 +57,7 @@ def test_contents_defaults_to_unauthenticated():
 
 
 # --- view: published filter + PII gating ------------------------------------
+
 
 @pytest.fixture
 def projects(db):
@@ -162,7 +163,8 @@ def test_clean_rejects_invalid_submission_source():
 
 def test_clean_rejects_invalid_technical_experience():
     body = {
-        "project_name": "Example", "project_link": "https://example.com",
+        "project_name": "Example",
+        "project_link": "https://example.com",
         "technical_experience": "a decade",
     }
     cleaned, error = clean_and_default_post_body(body)
@@ -207,9 +209,14 @@ def test_clean_rejects_invalid_url():
 
 def test_clean_drops_non_writable_fields():
     body = {
-        "project_name": "Example", "project_link": "https://example.com",
-        "is_published": True, "featured": True, "tags": ["AI"], "is_buggy": True,
-        "id": 999, "status": "live",
+        "project_name": "Example",
+        "project_link": "https://example.com",
+        "is_published": True,
+        "featured": True,
+        "tags": ["AI"],
+        "is_buggy": True,
+        "id": 999,
+        "status": "live",
     }
     cleaned, error = clean_and_default_post_body(body)
     assert error is None
@@ -219,7 +226,8 @@ def test_clean_drops_non_writable_fields():
 
 def test_clean_rejects_unparseable_submission_date():
     body = {
-        "project_name": "Example", "project_link": "https://example.com",
+        "project_name": "Example",
+        "project_link": "https://example.com",
         "submission_date": "yesterday",
     }
     cleaned, error = clean_and_default_post_body(body)
@@ -229,7 +237,8 @@ def test_clean_rejects_unparseable_submission_date():
 
 def test_clean_accepts_valid_iso_submission_date():
     body = {
-        "project_name": "Example", "project_link": "https://example.com",
+        "project_name": "Example",
+        "project_link": "https://example.com",
         "submission_date": "2025-01-01T12:00:00Z",
     }
     cleaned, error = clean_and_default_post_body(body)
@@ -239,7 +248,8 @@ def test_clean_accepts_valid_iso_submission_date():
 
 def test_clean_rejects_overlong_field():
     body = {
-        "project_name": "X" * 256, "project_link": "https://example.com",
+        "project_name": "X" * 256,
+        "project_link": "https://example.com",
     }
     cleaned, error = clean_and_default_post_body(body)
     assert cleaned is None
@@ -248,7 +258,8 @@ def test_clean_rejects_overlong_field():
 
 def test_clean_rejects_invalid_email():
     body = {
-        "project_name": "Example", "project_link": "https://example.com",
+        "project_name": "Example",
+        "project_link": "https://example.com",
         "creator_email": "not-an-email",
     }
     cleaned, error = clean_and_default_post_body(body)
@@ -261,7 +272,8 @@ def test_clean_rejects_non_string_email_without_raising():
     # non-string value must be rejected before reaching the validator or this
     # 400 path becomes an unhandled 500.
     body = {
-        "project_name": "Example", "project_link": "https://example.com",
+        "project_name": "Example",
+        "project_link": "https://example.com",
         "creator_email": 12345,
     }
     cleaned, error = clean_and_default_post_body(body)
@@ -274,8 +286,8 @@ def test_clean_rejects_non_string_email_without_raising():
 import hashlib
 import hmac
 import json as _json
-from powered_by.views import translate_formstack_payload
 
+from powered_by.views import translate_formstack_payload
 
 TEST_HMAC_SECRET = "test-hmac-secret"
 
@@ -301,6 +313,7 @@ def post_powered_by(client, body, secret=TEST_HMAC_SECRET):
 
 
 # --- Formstack payload translation -------------------------------------------
+
 
 def test_translate_formstack_maps_simple_text_fields():
     body = {
@@ -346,8 +359,32 @@ def test_translate_formstack_converts_yes_no_radios_to_booleans():
     cleaned = translate_formstack_payload(body)
     assert cleaned["is_developer"] is True
     assert cleaned["vibe_coded"] is False
-    assert cleaned["consent_to_display"] is True
+    assert cleaned["request_not_to_publish"] is False
     assert cleaned["has_pbs_logo"] is False
+
+
+def test_translate_formstack_treats_long_form_yes_answer_as_true():
+    body = {"Field191150099": "Yes! I have added the Powered by Sefaria logo to my project."}
+    assert translate_formstack_payload(body)["has_pbs_logo"] is True
+
+
+def test_translate_formstack_long_form_no_answer_stays_false():
+    body = {"Field191150099": "No, I have not added the logo yet."}
+    assert translate_formstack_payload(body)["has_pbs_logo"] is False
+
+
+def test_translate_formstack_adds_https_to_schemeless_links():
+    body = {"Field179244929": "example.com/app", "Field179355747": "github.com/me/repo"}
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["project_link"] == "https://example.com/app"
+    assert cleaned["project_source_code"] == "https://github.com/me/repo"
+
+
+def test_translate_formstack_keeps_existing_scheme():
+    body = {"Field179244929": "http://example.com", "Field179355747": " https://github.com/me/repo "}
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["project_link"] == "http://example.com"
+    assert cleaned["project_source_code"] == "https://github.com/me/repo"
 
 
 def test_translate_formstack_joins_category_checkbox_values():
@@ -365,7 +402,10 @@ def test_translate_formstack_merges_endpoint_checkboxes_into_sefaria_tools_used(
     }
     cleaned = translate_formstack_payload(body)
     assert cleaned["sefaria_tools_used"] == [
-        "Texts API", "Reference resolution", "Related endpoint", "Topics endpoint",
+        "Texts API",
+        "Reference resolution",
+        "Related endpoint",
+        "Topics endpoint",
     ]
 
 
@@ -409,7 +449,7 @@ def test_post_creates_project_from_formstack_payload(client):
     assert project.project_name == "Formstack Project"
     assert project.creator == "Ada Lovelace"
     assert project.creator_email == "ada@example.com"
-    assert project.consent_to_display is True
+    assert project.request_not_to_publish is False
     assert project.submission_source == "formstack"
 
 
@@ -449,6 +489,7 @@ def test_post_invalid_json_returns_400(client):
 
 # --- view: X-FS-Signature requirement ------------------------------------------
 
+
 @pytest.mark.django_db
 def test_post_missing_signature_returns_401(client):
     body = {"project_name": "New Project", "project_link": "https://unauthorized.example.com"}
@@ -476,7 +517,11 @@ def test_post_returns_401_when_server_has_no_hmac_secret_configured(client, sett
 
 @pytest.mark.django_db
 def test_post_invalid_submission_source_returns_400(client):
-    body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "submission_source": "carrier_pigeon"}
+    body = {
+        "project_name": "New Project",
+        "project_link": "https://newproject.example.com",
+        "submission_source": "carrier_pigeon",
+    }
     response = post_powered_by(client, body)
     assert response.status_code == 400
     assert not Project.objects.filter(project_link="https://newproject.example.com").exists()
@@ -484,7 +529,11 @@ def test_post_invalid_submission_source_returns_400(client):
 
 @pytest.mark.django_db
 def test_post_response_strips_private_fields_for_anonymous(client):
-    body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "creator_email": "a@example.com"}
+    body = {
+        "project_name": "New Project",
+        "project_link": "https://newproject.example.com",
+        "creator_email": "a@example.com",
+    }
     response = post_powered_by(client, body)
     assert response.status_code == 201
     assert "creator_email" not in response.json()["project"]
@@ -495,7 +544,11 @@ def test_post_response_strips_private_fields_for_anonymous(client):
 def test_post_response_includes_private_fields_for_staff(client):
     staff = User.objects.create_user(username="staff2", password="pw", is_staff=True)
     client.force_login(staff)
-    body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "creator_email": "a@example.com"}
+    body = {
+        "project_name": "New Project",
+        "project_link": "https://newproject.example.com",
+        "creator_email": "a@example.com",
+    }
     response = post_powered_by(client, body)
     assert response.status_code == 201
     assert response.json()["project"]["creator_email"] == "a@example.com"
@@ -504,19 +557,24 @@ def test_post_response_includes_private_fields_for_staff(client):
 @pytest.mark.django_db
 def test_post_ignores_staff_only_fields_on_create(client):
     body = {
-        "project_name": "New Project", "project_link": "https://newproject.example.com",
-        "is_published": True, "featured": True, "tags": ["AI"], "is_buggy": True,
+        "project_name": "New Project",
+        "project_link": "https://newproject.example.com",
+        "is_published": True,
+        "featured": True,
+        "tags": ["AI"],
+        "is_buggy": True,
     }
     response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://newproject.example.com")
-    assert project.is_published is False
+    assert project.is_published is True
     assert project.featured is False
     assert project.tags == []
     assert project.is_buggy is False
 
 
 # --- view: POST create-only (no upsert) ---------------------------------------
+
 
 @pytest.mark.django_db
 def test_post_same_project_link_creates_a_new_project(client):
@@ -543,7 +601,7 @@ def test_post_same_project_link_creates_a_new_project(client):
 def test_post_cannot_alter_an_existing_published_project(client):
     # Even a POST that reuses a live project's project_link and claims
     # is_published must not touch the existing row -- it just creates a
-    # separate, unpublished project of its own.
+    # separate project of its own.
     project = make_project(
         project_link="https://livesite.example.com",
         project_name="Original Name",
@@ -564,7 +622,7 @@ def test_post_cannot_alter_an_existing_published_project(client):
 
     new_project = Project.objects.get(id=response.json()["project"]["id"])
     assert new_project.project_name == "Defaced Name"
-    assert new_project.is_published is False
+    assert new_project.is_published is True
 
 
 @pytest.mark.django_db
@@ -579,15 +637,31 @@ def test_post_always_defaults_submission_source_and_date(client):
 
 
 @pytest.mark.django_db
-def test_post_create_still_defaults_unpublished(client):
+def test_post_create_defaults_published(client):
     body = {"project_name": "Brand New Project", "project_link": "https://brandnew.example.com"}
     response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://brandnew.example.com")
+    assert project.is_published is True
+
+
+@pytest.mark.django_db
+def test_post_request_not_to_publish_is_not_published(client):
+    body = {
+        "FormID": "12345",
+        "Field179244711": "Private Project",
+        "Field179244929": "https://private.example.com",
+        "Field179245509": "No",
+    }
+    response = post_powered_by(client, body)
+    assert response.status_code == 201
+    project = Project.objects.get(project_link="https://private.example.com")
+    assert project.request_not_to_publish is True
     assert project.is_published is False
 
 
 # --- view: HTTP method restriction --------------------------------------------
+
 
 @pytest.mark.django_db
 def test_delete_method_returns_405(client):
@@ -599,3 +673,66 @@ def test_delete_method_returns_405(client):
 def test_put_method_returns_405(client):
     response = client.put("/api/powered-by", data=_json.dumps({}), content_type="application/json")
     assert response.status_code == 405
+
+
+@pytest.mark.django_db
+def test_post_without_consent_answer_is_published(client):
+    body = {"project_name": "Silent Project", "project_link": "https://silent.example.com"}
+    assert post_powered_by(client, body).status_code == 201
+    project = Project.objects.get(project_link="https://silent.example.com")
+    assert project.request_not_to_publish is False
+    assert project.is_published is True
+
+
+@pytest.mark.django_db
+def test_post_clean_body_request_not_to_publish_unpublishes(client):
+    body = {
+        "project_name": "Opt Out",
+        "project_link": "https://optout.example.com",
+        "request_not_to_publish": True,
+    }
+    assert post_powered_by(client, body).status_code == 201
+    assert Project.objects.get(project_link="https://optout.example.com").is_published is False
+
+
+@pytest.mark.django_db
+def test_saving_request_not_to_publish_forces_unpublished():
+    project = Project.objects.create(
+        project_name="P",
+        project_link="https://p.example.com",
+        submission_source="manual",
+    )
+    assert project.is_published is True
+    project.request_not_to_publish = True
+    project.save(update_fields=["request_not_to_publish"])
+    project.refresh_from_db()
+    assert project.is_published is False
+
+
+# --- migration 0003: explicit refusals only ---------------------------------
+
+
+@pytest.mark.django_db
+def test_migration_0003_flags_only_explicit_refusals():
+    from importlib import import_module
+
+    from django.apps import apps
+
+    migration = import_module("powered_by.migrations.0003_request_not_to_publish")
+    name, link = migration.EXPLICIT_REFUSALS[0]
+    refused = make_project(project_name=name, project_link=link, is_published=True)
+    # Same name, different link: must not be caught by the name alone.
+    other_link = make_project(project_name=name, project_link="https://example.com/other", is_published=True)
+    # Unpublished Formstack row that never refused: must stay a consenting row.
+    unanswered = make_project(submission_source="formstack", is_published=False)
+
+    migration.consent_to_request_not_to_publish(apps, None)
+
+    for p in (refused, other_link, unanswered):
+        p.refresh_from_db()
+    assert refused.request_not_to_publish is True
+    assert refused.is_published is False
+    assert other_link.request_not_to_publish is False
+    assert other_link.is_published is True
+    assert unanswered.request_not_to_publish is False
+    assert unanswered.is_published is False  # editorial state untouched

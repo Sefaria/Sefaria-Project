@@ -1,19 +1,19 @@
+from collections import defaultdict
+
 from django.db import models
 from django.db.models.query import QuerySet
+
 from .pool import TopicPool
-from collections import defaultdict
 
 
 class TopicManager(models.Manager):
     slug_to_pools = {}
 
-
     def sample_topic_slugs(self, order, pool: str = None, limit=10) -> list[str]:
-        queryset = self.get_topic_slugs_by_pool(pool) if pool else self.all().values_list('slug', flat=True)
-        if order == 'random':
+        queryset = self.get_topic_slugs_by_pool(pool) if pool else self.all().values_list("slug", flat=True)
+        if order == "random":
             return list(queryset.order_by("?")[:limit])  # Uses database-level random ordering
-        else:
-            raise ValueError(f"Invalid order: '{order}'")
+        raise ValueError(f"Invalid order: '{order}'")
 
     def get_pools_by_topic_slug(self, topic_slug: str) -> QuerySet:
         if not self.slug_to_pools:
@@ -26,11 +26,12 @@ class TopicManager(models.Manager):
     def build_slug_to_pools_cache(self, rebuild=False):
         if rebuild or not self.slug_to_pools:
             new_slug_to_pools = defaultdict(list)
-            topics = self.model.objects.values_list('slug', 'pools__name')
+            topics = self.model.objects.values_list("slug", "pools__name")
             for slug, pool_name in topics:
                 if pool_name:
                     new_slug_to_pools[slug].append(pool_name)
             self.slug_to_pools = new_slug_to_pools
+
 
 class Topic(models.Model):
     slug = models.CharField(max_length=255, primary_key=True)
@@ -45,7 +46,7 @@ class Topic(models.Model):
         """
         self.slug = self.slug.lower()
         super().save(*args, **kwargs)
-        
+
         # Update cache of slugs to pools
         Topic.objects.build_slug_to_pools_cache(rebuild=True)
 

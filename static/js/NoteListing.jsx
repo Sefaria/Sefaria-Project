@@ -1,16 +1,16 @@
-import React  from 'react';
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
+import React from 'react';
+import $ from './sefaria/sefariaJquery';
+import Sefaria from './sefaria/sefaria';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
 import { Note, LoadingMessage } from './Misc';
-import PropTypes  from 'prop-types';
-import Component      from 'react-class';
+import PropTypes from 'prop-types';
+import Component from 'react-class';
 
 class NoteListing extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showSheetModal: false
+      showSheetModal: false,
     };
   }
   componentDidUpdate(prevProps, prevState) {
@@ -19,21 +19,23 @@ class NoteListing extends Component {
     }
   }
   showSheetModal() {
-    this.setState({showSheetModal: true});
+    this.setState({ showSheetModal: true });
   }
   hideSheetModal() {
-    this.setState({showSheetModal: false});
+    this.setState({ showSheetModal: false });
   }
   positionSheetModal() {
-    $(".addToSourceSheetModal").position({my: "center center-40", at: "center center", of: window});
+    $('.addToSourceSheetModal').position({ my: 'center center-40', at: 'center center', of: window });
   }
   deleteNote() {
-    if (!confirm(Sefaria._("common.are_you_sure_you_want_to_delete_this"))) { return; }
-    const resolve = this.props.onDeleteNote || (()=>{});
+    if (!confirm(Sefaria._('common.are_you_sure_you_want_to_delete_this'))) {
+      return;
+    }
+    const resolve = this.props.onDeleteNote || (() => {});
     Sefaria.deleteNote(this.props.data._id).then(resolve);
   }
   getNoteLink(ref) {
-    // This helper function returns the a tag linking to the given ref of the note.  When the URL is to a ref in the library, 
+    // This helper function returns the a tag linking to the given ref of the note.  When the URL is to a ref in the library,
     // returning the appropriate a tag is very simple, but when the ref is to a sheet, we need to modify the ref and set the data-target-module attribute to the voices module.
     // If the ref is to a sheet, the ref will be something like "Sheet 3.4" but it needs to link to "/sheets/3.4" in the voices module.
     let path, noteURL, module, params;
@@ -41,16 +43,17 @@ class NoteListing extends Component {
       module = Sefaria.VOICES_MODULE;
       const parsedRef = Sefaria.parseRef(ref);
       path = `/sheets/${parsedRef.sections.join('.')}`;
-    }
-    else {
+    } else {
       module = Sefaria.LIBRARY_MODULE;
       path = `/${ref}`;
-      params = {"with": "Notes"};  
+      params = { with: 'Notes' };
     }
     noteURL = Sefaria.util.fullURL(path, module, params);
-    return <a className="noteRefTitle" href={noteURL} data-target-module={module}>
-            <span>{ref}</span>
-          </a>
+    return (
+      <a className="noteRefTitle" href={noteURL} data-target-module={module}>
+        <span>{ref}</span>
+      </a>
+    );
   }
   render() {
     const noteLink = this.getNoteLink(this.props.data.ref);
@@ -58,36 +61,38 @@ class NoteListing extends Component {
     return (
       <div className="noteListing">
         <div className="actionButtons">
-          <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} alt={Sefaria._("note_listing.delete_note")} />
+          <img
+            src="/static/icons/circled-x.svg"
+            onClick={this.deleteNote}
+            alt={Sefaria._('note_listing.delete_note')}
+          />
         </div>
         {noteLink}
-        <span className="noteText"><Note text={data.text}/></span>
-        {this.state.showSheetModal &&
+        <span className="noteText">
+          <Note text={data.text} />
+        </span>
+        {this.state.showSheetModal && (
           <div>
-            <AddToSourceSheetWindow
-              srefs={[data.ref]}
-              note={data.text}
-              close={this.hideSheetModal} />
+            <AddToSourceSheetWindow srefs={[data.ref]} note={data.text} close={this.hideSheetModal} />
             <div className="mask" onClick={this.hideSheetModal}></div>
           </div>
-        }
+        )}
       </div>
     );
   }
 }
 NoteListing.propTypes = {
-  data:         PropTypes.object.isRequired,
+  data: PropTypes.object.isRequired,
   onDeleteNote: PropTypes.func,
 };
 
-const NotesList = ({notes, onDeleteNote}) => {
-  return (
-    notes && notes.length ?
-      notes.map((item, i) => (
-        <NoteListing data={item} key={i} onDeleteNote={() => onDeleteNote(item._id)} />
-      ))
-    : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)};
-
+const NotesList = ({ notes, onDeleteNote }) => {
+  return notes && notes.length ? (
+    notes.map((item, i) => <NoteListing data={item} key={i} onDeleteNote={() => onDeleteNote(item._id)} />)
+  ) : (
+    <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />
+  );
+};
 
 export default NoteListing;
 export { NotesList };
