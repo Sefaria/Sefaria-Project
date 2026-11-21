@@ -1,13 +1,15 @@
 import django
-django.setup()
-from sefaria.system.database import db
-from sefaria.model.user_profile import UserProfile
-from datetime import date
-import csv
 
-if __name__ == '__main__':
+django.setup()
+import csv
+from datetime import date
+
+from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
+
+if __name__ == "__main__":
     no_sf = db.profiles.find({"sf_app_user_id": {"$exists": 0}})
-    with open(f'{date.today().strftime("%Y_%m_%d")}_not_in_sf.csv', "w+") as outf:
+    with open(f"{date.today().strftime('%Y_%m_%d')}_not_in_sf.csv", "w+") as outf:
         fieldnames = ["id", "email", "first", "last", "slug"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()

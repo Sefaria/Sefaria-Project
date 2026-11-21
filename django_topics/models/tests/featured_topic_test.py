@@ -1,6 +1,8 @@
-import pytest
 from datetime import date
-from django_topics.models import TopicOfTheDay, Topic
+
+import pytest
+
+from django_topics.models import Topic, TopicOfTheDay
 
 
 @pytest.fixture

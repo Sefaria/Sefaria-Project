@@ -14,6 +14,7 @@ class EnableLibraryAssistantViewTest(TestCase):
     authenticated user and bounce them back to where they were, so the assistant
     appears on that reload with no extra "Join" click.
     """
+
     databases = "__all__"
     url = "/enable-library-assistant"
 

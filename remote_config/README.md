@@ -6,13 +6,13 @@ This Django app centralizes runtime configuration (feature flags, percentage rol
 
 Each entry represents a single key/value pair:
 
-| Field | Purpose |
-| --- | --- |
-| `key` | Unique identifier, e.g., `features.reader.new_nav`. |
-| `raw_value` | Text value stored in the DB; parsed based on `value_type`. |
-| `value_type` | One of `string`, `int`, `bool`, `json`. Determines how `raw_value` is converted when read. |
-| `description` | (Optional) Human-readable context for admins. |
-| `is_active` | Soft toggle. Inactive entries remain in the DB but are removed from the cache. |
+| Field         | Purpose                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| `key`         | Unique identifier, e.g., `features.reader.new_nav`.                                        |
+| `raw_value`   | Text value stored in the DB; parsed based on `value_type`.                                 |
+| `value_type`  | One of `string`, `int`, `bool`, `json`. Determines how `raw_value` is converted when read. |
+| `description` | (Optional) Human-readable context for admins.                                              |
+| `is_active`   | Soft toggle. Inactive entries remain in the DB but are removed from the cache.             |
 
 Parsing is implemented in `remote_config.models.RemoteConfigEntry.parse_value`. Invalid values raise a validation error when saving through the admin or ORM.
 

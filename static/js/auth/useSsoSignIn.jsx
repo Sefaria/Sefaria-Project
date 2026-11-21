@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { whenReady, makeUuid, safeNext, authError, ALLAUTH_PROVIDER_TOKEN_URL } from './utils.js';
-import { persistPendingAttempt, SIGNUP_METHOD } from './signupAnalytics.js';
+import { whenReady, makeUuid, safeNext, authError } from './utils.js';
+import { persistPendingAttempt, AUTH_METHOD } from './authAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
 import Sefaria from '../sefaria/sefaria';
 
@@ -27,7 +27,7 @@ import Sefaria from '../sefaria/sefaria';
  * is currently mounted register its own local `setError` as where that failure should surface,
  * so it shows in place rather than forcing a navigation to ChooseView.
  */
-export function useProviderTriggers({ next, tracking }) {
+export function useProviderTriggers({ next, tracking, onGoogleClick }) {
   const [googleReady, setGoogleReady] = useState(false);
   const [appleReady, setAppleReady] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
@@ -41,6 +41,10 @@ export function useProviderTriggers({ next, tracking }) {
   // re-run just because e.g. an unrelated form field changed.
   const trackingRef = useRef(tracking);
   trackingRef.current = tracking;
+  // Optional: told about a click on Google's button, which (a cross-origin iframe) the page
+  // itself never sees. In a ref for the same reason as tracking.
+  const onGoogleClickRef = useRef(onGoogleClick);
+  onGoogleClickRef.current = onGoogleClick;
 
   const setActiveErrorHandler = useCallback((handler) => {
     activeErrorHandlerRef.current = handler || (() => {});
@@ -71,52 +75,52 @@ export function useProviderTriggers({ next, tracking }) {
 
   const { googleClientId } = Sefaria;
 
-  const onGoogleResult = useCallback(async (resp) => {
-    // click_listener (onGoogleButtonClicked below) now fires chooseMethod/startProcess
-    // synchronously at click time — this callback only fires on a real credential, so it
-    // must not call them again (that would end the click-time attempt as
-    // "abandoned_for_new_attempt" and open a second one for the same login).
-    // Google's own callback just fired, so a real fetch to our backend is now in flight —
-    // the popup-abandonment watch below must not treat this as "closed without a credential".
-    googlePopupStateRef.current = 'processing';
-    setSsoLoading(true);
-    try {
-      const res = await fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify({
-          provider: 'google',
-          process: 'login',
-          token: { client_id: googleClientId, id_token: resp.credential },
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      googlePopupStateRef.current = 'done';
-      if (res.ok) {
-        trackingRef.current.endProcess('success', null);
-        window.location.href = safeNext(nextRef.current);
-      } else {
+  const onGoogleResult = useCallback(
+    async (resp) => {
+      // click_listener (onGoogleButtonClicked below) now fires chooseMethod/startProcess
+      // synchronously at click time — this callback only fires on a real credential, so it
+      // must not call them again (that would end the click-time attempt as
+      // "abandoned_for_new_attempt" and open a second one for the same login).
+      // Google's own callback just fired, so a real fetch to our backend is now in flight —
+      // the popup-abandonment watch below must not treat this as "closed without a credential".
+      googlePopupStateRef.current = 'processing';
+      setSsoLoading(true);
+      try {
+        const res = await fetch('/api/auth/google/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+          body: JSON.stringify({ id_token: resp.credential }),
+        });
+        const data = await res.json().catch(() => ({}));
+        googlePopupStateRef.current = 'done';
+        if (res.ok) {
+          trackingRef.current.endProcess('success', null, data.outcome);
+          window.location.href = safeNext(nextRef.current);
+        } else {
+          setSsoLoading(false);
+          trackingRef.current.endProcess('failure', authError(data, 'auth.generic_error').message);
+          activeErrorHandlerRef.current(authError(data, 'auth.generic_error'));
+        }
+      } catch (e) {
+        googlePopupStateRef.current = 'done';
         setSsoLoading(false);
-        trackingRef.current.endProcess('failure', authError(data, 'auth.generic_error').message);
-        activeErrorHandlerRef.current(authError(data, 'auth.generic_error'));
+        trackingRef.current.endProcess('failure', 'network_error');
+        activeErrorHandlerRef.current(authError(null, 'auth.generic_error'));
       }
-    } catch (e) {
-      googlePopupStateRef.current = 'done';
-      setSsoLoading(false);
-      trackingRef.current.endProcess('failure', 'network_error');
-      activeErrorHandlerRef.current(authError(null, 'auth.generic_error'));
-    }
-  }, [googleClientId]);
+    },
+    [googleClientId]
+  );
 
   // Mirrors triggerApple below: click is now a real, observable signal for Google too (GIS's
   // click_listener, see renderButton config), so method_chosen/process_started fire
   // synchronously here instead of being synthesized in onGoogleResult.
   const onGoogleButtonClicked = useCallback(() => {
-    const attemptId = trackingRef.current.chooseMethod(SIGNUP_METHOD.GOOGLE);
+    onGoogleClickRef.current?.();
+    const attemptId = trackingRef.current.chooseMethod(AUTH_METHOD.GOOGLE);
     trackingRef.current.startProcess();
     if (Sefaria.ssoUseRedirect()) {
       trackingRef.current.suppressFlowEndRef.current = true;
-      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: SIGNUP_METHOD.GOOGLE });
+      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: AUTH_METHOD.GOOGLE });
       return;
     }
     // Popup mode: GIS gives no cancellation callback at all, so watch for focus returning to
@@ -182,14 +186,21 @@ export function useProviderTriggers({ next, tracking }) {
           el.innerHTML = '';
           const width = Math.max(200, Math.min(400, el.offsetWidth || 360));
           window.google.accounts.id.renderButton(el, {
-            type: 'standard', theme: 'outline', size: 'large',
-            text: 'continue_with', shape: 'rectangular', logo_alignment: 'center', width,
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'continue_with',
+            shape: 'rectangular',
+            logo_alignment: 'center',
+            width,
             locale: Sefaria.interfaceLang === 'hebrew' ? 'iw' : 'en',
             click_listener: onGoogleButtonClicked,
           });
           setGoogleReady(true);
-        } catch (e) { /* ignore */ }
-      },
+        } catch (e) {
+          /* ignore */
+        }
+      }
     );
     return () => {
       stopWaiting();
@@ -214,8 +225,8 @@ export function useProviderTriggers({ next, tracking }) {
       return undefined;
     }
     const onOk = async (ev) => {
-      const a = (ev.detail?.authorization) || {};
-      const u = (ev.detail?.user) || {};
+      const a = ev.detail?.authorization || {};
+      const u = ev.detail?.user || {};
       const n = u.name || {};
       setSsoLoading(true);
       try {
@@ -223,11 +234,15 @@ export function useProviderTriggers({ next, tracking }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
           body: JSON.stringify({
-            id_token: a.id_token, first_name: n.firstName || '', last_name: n.lastName || '', email: u.email || '',
+            id_token: a.id_token,
+            first_name: n.firstName || '',
+            last_name: n.lastName || '',
+            email: u.email || '',
           }),
         });
+        const data = await res.json().catch(() => ({}));
         if (res.ok) {
-          trackingRef.current.endProcess('success', null);
+          trackingRef.current.endProcess('success', null, data.outcome);
           window.location.href = safeNext(nextRef.current);
         } else {
           setSsoLoading(false);
@@ -261,8 +276,10 @@ export function useProviderTriggers({ next, tracking }) {
             usePopup: true,
           });
           setAppleReady(true);
-        } catch (e) { /* ignore */ }
-      },
+        } catch (e) {
+          /* ignore */
+        }
+      }
     );
     return () => {
       stopWaiting();
@@ -275,11 +292,11 @@ export function useProviderTriggers({ next, tracking }) {
     if (!appleReady) return;
     // We *do* control this call (unlike Google's iframe-driven button), so method_chosen/
     // process_started can fire synchronously right here for both popup and redirect mode.
-    const attemptId = trackingRef.current.chooseMethod(SIGNUP_METHOD.APPLE);
+    const attemptId = trackingRef.current.chooseMethod(AUTH_METHOD.APPLE);
     trackingRef.current.startProcess();
     if (Sefaria.ssoUseRedirect()) {
       trackingRef.current.suppressFlowEndRef.current = true;
-      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: SIGNUP_METHOD.APPLE });
+      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: AUTH_METHOD.APPLE });
       window.location.href = `/accounts/apple/login/?next=${encodeURIComponent(safeNext(nextRef.current))}`;
       return;
     }
@@ -298,14 +315,36 @@ export function useProviderTriggers({ next, tracking }) {
     }
   }, [appleReady, failApple]);
 
-  const overlayNode = targetEl && createPortal(
-    <div className="sefaria-provider-sdk-overlay" style={{ pointerEvents: googleReady ? 'auto' : 'none' }}>
-      <div ref={googleBtnRef} />
-    </div>,
-    targetEl,
-  );
+  const overlayNode =
+    targetEl &&
+    createPortal(
+      <div className="sefaria-provider-sdk-overlay" style={{ pointerEvents: googleReady ? 'auto' : 'none' }}>
+        <div ref={googleBtnRef} />
+      </div>,
+      targetEl
+    );
 
   return {
-    googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
+    googleReady,
+    appleReady,
+    ssoLoading,
+    overlayNode,
+    registerGoogleTarget,
+    setActiveErrorHandler,
+    triggerApple,
   };
+}
+
+/**
+ * useProviderError — a view's error state, registered while the view is mounted as where a
+ * Google/Apple failure surfaces (useProviderTriggers' `setActiveErrorHandler`). Returns
+ * [error, setError]; the view can set its own errors too, shown in the same ErrorBanner.
+ */
+export function useProviderError(setActiveErrorHandler) {
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    setActiveErrorHandler?.(setError);
+    return () => setActiveErrorHandler?.(null);
+  }, [setActiveErrorHandler]);
+  return [error, setError];
 }

@@ -9,9 +9,11 @@ import AuthCard from './AuthCard.jsx';
  * not a form: reset-link-sent, resend-link-sent, password-reset-successfully.
  */
 const MessageView = ({ heading, sub, children }) => (
-  <AuthCard className="sefaria-message-view"
+  <AuthCard
+    className="sefaria-message-view"
     heading={<InterfaceText>{heading}</InterfaceText>}
-    sub={sub && <InterfaceText>{sub}</InterfaceText>}>
+    sub={sub && <InterfaceText>{sub}</InterfaceText>}
+  >
     {children}
   </AuthCard>
 );

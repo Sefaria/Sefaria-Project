@@ -1,20 +1,17 @@
-# -*- coding: utf-8 -*-
-
 from sefaria.model import *
 
 
-class Test_VState(object):
-
+class Test_VState:
     def test_integrity(self):
         titles = ["Exodus", "Shabbat", "Rashi on Exodus", "Rashi on Genesis", "Rashi on Shabbat"]
         for title in titles:
             index = library.get_index(title)
             vs = VersionState(index)
-            assert getattr(vs, "title")
-            assert getattr(vs, "content")
+            assert vs.title
+            assert vs.content
 
 
-class Test_VSNode(object):
+class Test_VSNode:
     def test_section_counts(self):
         sn = StateNode("Exodus")
         cd = sn.get_available_counts_dict("he")
@@ -40,4 +37,3 @@ class Test_VSNode(object):
         assert "Chapter" in cd
         assert "Verse" in cd
         assert "Comment" in cd
-

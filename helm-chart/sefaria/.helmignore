@@ -1,0 +1,2 @@
+# Chart tests run in CI (.github/workflows/helm.yaml); they are not part of the published chart.
+tests/

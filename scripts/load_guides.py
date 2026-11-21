@@ -1,8 +1,9 @@
 import django
+
 django.setup()
-from sefaria.model import *
 import json
 
+from sefaria.model import *
 
 INPUT = "/Users/levisrael/sefaria/guide/data.jsonl"
 loaded_data = []
@@ -10,7 +11,7 @@ loaded_data = []
 # Each object should have keys: "ref", "en", "he", "response", "error", "skipped", "raw"
 # When "skipped" is True, "response" and "error" should be empty. A mistake in logic may result in raw having the previous response.  Raw is only relevant if skipped is false.
 
-with open(INPUT, "r") as f:
+with open(INPUT) as f:
     # Read the first line
     line = f.readline()
     # If the file is not empty keep reading line one at a time

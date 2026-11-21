@@ -1,7 +1,9 @@
 import django
+
 django.setup()
 from pymongo import UpdateOne
 from tqdm import tqdm
+
 from sefaria.model import *
 from sefaria.system.database import db
 
@@ -12,13 +14,11 @@ num_sheets = db.sheets.count_documents({})
 updates = []
 for s in tqdm(sheets, total=num_sheets):
     try:
-        updates += [{"id": s['id'], "expandedRefs": Ref.expand_refs(s["includedRefs"])}]
+        updates += [{"id": s["id"], "expandedRefs": Ref.expand_refs(s["includedRefs"])}]
     except KeyError:
         continue
 
-db.sheets.bulk_write([
-    UpdateOne({"id": s['id']}, {"$set": {"expandedRefs": s['expandedRefs']}}) for s in updates
-])
+db.sheets.bulk_write([UpdateOne({"id": s["id"]}, {"$set": {"expandedRefs": s["expandedRefs"]}}) for s in updates])
 
 # WEBPAGES
 
@@ -31,6 +31,4 @@ for w in tqdm(webpages, total=num_webpages):
     except KeyError:
         continue
 
-db.webpages.bulk_write([
-    UpdateOne({"_id": w['id']}, {"$set": {"expandedRefs": w['expandedRefs']}}) for w in updates
-])
+db.webpages.bulk_write([UpdateOne({"_id": w["id"]}, {"$set": {"expandedRefs": w["expandedRefs"]}}) for w in updates])
