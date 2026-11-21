@@ -559,7 +559,12 @@ def _get_normalized_versions(tref, ven, vhe):
     """
     if not ven and not vhe:
         return [None, None]  # saves `version_list()` db query
-    versions = Ref(tref).version_list()
+    try:
+        # Same resolver catchall uses; plain Ref() is stricter than the legacy and partial fallbacks.
+        oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
+    except InputError:
+        return [None, None]
+    versions = oref.version_list()
     normalized = []
     for version_param, direction in [(ven, "ltr"), (vhe, "rtl")]:
         if not version_param:
@@ -613,17 +618,17 @@ def catchall(request, tref, sheet=None):
     """
     active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
-    current_versions, normalized_versions = _get_current_and_normalized_versions(request, tref)
-    if current_versions != normalized_versions:
-        return _reader_redirect_versions(request, tref, current_versions, normalized_versions)
-
     if sheet is None:
-        # Validate ref first
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
+    current_versions, normalized_versions = _get_current_and_normalized_versions(request, tref)
+    if current_versions != normalized_versions:
+        return _reader_redirect_versions(request, tref, current_versions, normalized_versions)
+
+    if sheet is None:
         # If on wrong module, redirect to library module
         if active_module != LIBRARY_MODULE:
             return redirect_to_module(request, f"/{tref}", LIBRARY_MODULE)
