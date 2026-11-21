@@ -1,6 +1,6 @@
 import subprocess
 from http.client import HTTPConnection
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import structlog
 
@@ -8,6 +8,16 @@ from sefaria.settings import FRONT_END_URL, VARNISH_ADM_ADDR, VARNISH_FRNT_PORT,
 from sefaria.utils.util import graceful_exception
 
 logger = structlog.get_logger(__name__)
+
+# Characters a client leaves unencoded in a request target. Keeping them matches the URL Varnish
+# stored as its cache key, and keeping "%" keeps an already percent-encoded target as it is.
+_PATH_SAFE = "/%:@!$&'()*+,;=-._~"
+_QUERY_SAFE = "=&%/:@!$'()*+,;?-._~"
+
+
+def request_target(path, query=""):
+    target = quote(path, safe=_PATH_SAFE)
+    return "%s?%s" % (target, quote(query, safe=_QUERY_SAFE)) if query else target
 
 
 @graceful_exception(logger=logger, return_value=None)
@@ -25,7 +35,7 @@ def purge_url(url):
     url = urlparse(url)
     connection = HTTPConnection(VARNISH_HOST, VARNISH_FRNT_PORT)
     path = url.path or "/"
-    connection.request("PURGE", "%s?%s" % (path, url.query) if url.query else path, "", {"Host": url.hostname})
+    connection.request("PURGE", request_target(path, url.query), "", {"Host": url.hostname})
     response = connection.getresponse()
     if response.status != 200:
         logger.error(
