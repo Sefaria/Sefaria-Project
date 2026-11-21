@@ -7,7 +7,7 @@ const SearchToggle = ({ options, selected, onChange }) => {
   const [sliderStyle, setSliderStyle] = useState({});
 
   const updateSlider = () => {
-    const selectedIndex = options.findIndex(o => o.name === selected);
+    const selectedIndex = options.findIndex((o) => o.name === selected);
     const selectedEl = optionRefs.current[selectedIndex];
     const containerEl = containerRef.current;
     if (!selectedEl || !containerEl) return;
@@ -20,10 +20,14 @@ const SearchToggle = ({ options, selected, onChange }) => {
   };
 
   // Set initial position synchronously before first paint (avoids flash, no transition needed)
-  useLayoutEffect(() => { updateSlider(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    updateSlider();
+  }, []);
 
   // Animate on change — fires after paint so the CSS transition has a "from" state
-  useEffect(() => { updateSlider(); }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    updateSlider();
+  }, [selected]);
 
   return (
     <div className="searchToggle" role="group" ref={containerRef}>
@@ -32,7 +36,9 @@ const SearchToggle = ({ options, selected, onChange }) => {
         <button
           type="button"
           key={option.name}
-          ref={el => { optionRefs.current[i] = el; }}
+          ref={(el) => {
+            optionRefs.current[i] = el;
+          }}
           className={`searchToggle__option${selected === option.name ? ' searchToggle__option--active' : ''}`}
           onClick={() => onChange(option.name)}
           aria-pressed={selected === option.name}

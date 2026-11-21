@@ -113,8 +113,6 @@ spec:
               fieldRef:
                 fieldPath: metadata.uid
           {{- end }}
-          - name: REDIS_HOST
-            value: "redis-{{ .Values.deployEnv }}"
           # not used on the completion path, but the mounted local_settings lists
           # them as required env and degrades noisily without them
           - name: NODEJS_HOST
@@ -128,12 +126,7 @@ spec:
             value: {{ .Values.deployEnv }}-mongo
           {{- end }}
         envFrom:
-          {{- if .Values.tasks.enabled }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.redisPassword.ref }}
-          {{- end }}
+          {{- include "sefaria.secrets.redisSentinel" . | nindent 10 }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
           - secretRef:
@@ -161,10 +154,10 @@ spec:
           failureThreshold: 40 # 40 attempts x 15 secs = 10 minutes for the pod to successfully start
           periodSeconds: 15
           timeoutSeconds: 10
-        # multiserver rebuild events are processed synchronously in-request, so a
-        # worker can legitimately be blocked for several minutes rebuilding the
-        # completers.  The probes are split: liveness stays generous so kubelet
-        # does not kill a pod mid-rebuild (it will return to service on its own),
+        # A GenCache-triggered autocompleter rebuild runs synchronously in the request
+        # that notices it, so a worker can legitimately be blocked for several minutes
+        # rebuilding the completers.  The probes are split: liveness stays generous so
+        # kubelet does not kill a pod mid-rebuild (it will return to service on its own),
         # while readiness fails fast so a blocked pod is taken out of rotation
         # quickly and re-enters as soon as it answers again.
         livenessProbe:

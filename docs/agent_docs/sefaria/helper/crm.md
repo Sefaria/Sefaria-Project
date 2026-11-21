@@ -1,7 +1,9 @@
 # CRM Integration
+
 > Sources: `sefaria/helper/crm/crm_mediator.py`, `salesforce.py`, `nationbuilder.py`, `crm_connection_manager.py`, `crm_info_store.py`, `crm_factory.py`, `dummy_crm.py`, `tasks.py`
 
 ## Purpose
+
 Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and sustainer status with an external CRM. Salesforce is the live backend; NationBuilder is deprecated; `DummyConnectionManager` is used in dev and for unconfigured deployments. A separate Celery task handles chatbot (Library Assistant) opt-in/opt-out webhooks that bypass the mediator and post directly to a Salesforce Apex webhook URL.
 
 ## Key Components

@@ -27,13 +27,15 @@ library (thousands of index records), so it runs off the request path rather tha
 the read that triggers it still gets `[]` this one time, but the index is warm again by the
 time the rebuild task finishes.
 """
+
 import time
-from typing import List, Dict, Optional, Iterator, Tuple
+from collections.abc import Iterator
+from typing import Optional
 
 from sefaria.system.cache import (
+    delete_shared_cache_elem,
     get_shared_cache_elem,
     set_shared_cache_elem,
-    delete_shared_cache_elem,
 )
 
 CACHE_KEY_PREFIX = "linker_nut_usages:"
@@ -55,7 +57,8 @@ def _slug_key(slug: str) -> str:
 # Entry construction / identity
 # ---------------------------------------------------------------------------
 
-def make_usage_entry(index_title: str, node, template, struct_name: Optional[str] = None) -> dict:
+
+def make_usage_entry(index_title: str, node, template, struct_name: str | None = None) -> dict:
     """
     Build a usage entry for a single MatchTemplate on a single node.
     `template` is a MatchTemplate instance; `node` is a schema node.
@@ -78,7 +81,7 @@ def make_usage_entry(index_title: str, node, template, struct_name: Optional[str
     }
 
 
-def _alt_struct_editor_path(node, struct_name: str) -> List[str]:
+def _alt_struct_editor_path(node, struct_name: str) -> list[str]:
     """
     Return the linker-editor path for an alt-struct node:
     ["__alt__", struct_name, child_index, ...].
@@ -95,7 +98,7 @@ def _alt_struct_editor_path(node, struct_name: str) -> List[str]:
     return ["__alt__", struct_name] + path
 
 
-def _entry_identity(entry: dict) -> Tuple:
+def _entry_identity(entry: dict) -> tuple:
     """A hashable identity used to dedupe / match entries for surgical removal."""
     return (
         entry["index_title"],
@@ -110,6 +113,7 @@ def _entry_identity(entry: dict) -> Tuple:
 # Read
 # ---------------------------------------------------------------------------
 
+
 def _ensure_warm() -> None:
     """
     A missing registry key means the shared cache has no data for this index at all -
@@ -122,6 +126,7 @@ def _ensure_warm() -> None:
     persists (e.g. CI's DummyCache) doesn't queue one per read.
     """
     from django.conf import settings
+
     if not settings.CELERY_ENABLED:
         return
     global _last_rebuild_attempt
@@ -131,12 +136,13 @@ def _ensure_warm() -> None:
     if now - _last_rebuild_attempt < _REBUILD_COOLDOWN_SECONDS:
         return
     _last_rebuild_attempt = now
-    from sefaria.helper.linker.tasks import rebuild_nonuniqueterm_index_task
     from sefaria.celery_setup.config import CeleryQueue
+    from sefaria.helper.linker.tasks import rebuild_nonuniqueterm_index_task
+
     rebuild_nonuniqueterm_index_task.apply_async(queue=CeleryQueue.TASKS.value)
 
 
-def get_term_usages(slug: str) -> List[dict]:
+def get_term_usages(slug: str) -> list[dict]:
     _ensure_warm()
     return get_shared_cache_elem(_slug_key(slug)) or []
 
@@ -145,7 +151,8 @@ def get_term_usages(slug: str) -> List[dict]:
 # Write (low level)
 # ---------------------------------------------------------------------------
 
-def _get_registry() -> List[str]:
+
+def _get_registry() -> list[str]:
     return get_shared_cache_elem(REGISTRY_KEY) or []
 
 
@@ -155,7 +162,7 @@ def _add_to_registry(slugs) -> None:
     set_shared_cache_elem(REGISTRY_KEY, sorted(registry))
 
 
-def set_term_usages(slug: str, entries: List[dict]) -> None:
+def set_term_usages(slug: str, entries: list[dict]) -> None:
     if entries:
         set_shared_cache_elem(_slug_key(slug), entries)
         _add_to_registry([slug])
@@ -184,11 +191,12 @@ def remove_usage_entry(entry: dict) -> None:
 # Surgical update helpers called by the linker editor API
 # ---------------------------------------------------------------------------
 
-def add_template_usage(index_title: str, node, template, struct_name: Optional[str] = None) -> None:
+
+def add_template_usage(index_title: str, node, template, struct_name: str | None = None) -> None:
     add_usage_entry(make_usage_entry(index_title, node, template, struct_name))
 
 
-def remove_template_usage(index_title: str, node, template, struct_name: Optional[str] = None) -> None:
+def remove_template_usage(index_title: str, node, template, struct_name: str | None = None) -> None:
     remove_usage_entry(make_usage_entry(index_title, node, template, struct_name))
 
 
@@ -196,14 +204,15 @@ def remove_template_usage(index_title: str, node, template, struct_name: Optiona
 # Full rebuild
 # ---------------------------------------------------------------------------
 
-def _iter_nodes(node, struct_name: Optional[str] = None) -> Iterator:
+
+def _iter_nodes(node, struct_name: str | None = None) -> Iterator:
     """Yield `node` and all of its descendants."""
     yield node, struct_name
     for child in getattr(node, "children", []):
         yield from _iter_nodes(child, struct_name)
 
 
-def _iter_index_template_usages(index) -> Iterator[Tuple[str, object, object, Optional[str]]]:
+def _iter_index_template_usages(index) -> Iterator[tuple[str, object, object, str | None]]:
     """Yield (index_title, node, template, struct_name) for every MatchTemplate in an index."""
     index_title = index.title
     roots = [(index.nodes, None)]
@@ -225,7 +234,7 @@ def rebuild() -> int:
     """
     from sefaria.model import library
 
-    mapping: Dict[str, List[dict]] = {}
+    mapping: dict[str, list[dict]] = {}
     count = 0
     for index in library.all_index_records():
         try:
@@ -239,9 +248,12 @@ def rebuild() -> int:
                         count += 1
         except Exception as e:  # noqa - one bad index shouldn't abort the whole rebuild
             import structlog
+
             structlog.get_logger(__name__).warning(
                 "build_nonuniqueterm_index: skipping index due to error",
-                index=getattr(index, "title", "?"), error=str(e))
+                index=getattr(index, "title", "?"),
+                error=str(e),
+            )
 
     # Clear stale slugs no longer present, then write the fresh mapping.
     for slug in _get_registry():

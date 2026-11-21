@@ -4,7 +4,7 @@ import { InterfaceText } from '../Misc.jsx';
 
 const SSO_PROVIDER_INFO = {
   google: { msgEn: 'auth.email_registered_google', linkEn: 'auth.continue_with_google_link' },
-  apple:  { msgEn: 'auth.email_registered_apple',  linkEn: 'auth.continue_with_apple_link'  },
+  apple: { msgEn: 'auth.email_registered_apple', linkEn: 'auth.continue_with_apple_link' },
 };
 
 const GenericErrorItem = ({ message, linkText, onClick }) => (
@@ -13,7 +13,13 @@ const GenericErrorItem = ({ message, linkText, onClick }) => (
     {linkText && (
       <>
         {' '}
-        <a href="#" onClick={(e) => { e.preventDefault(); onClick?.(); }}>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            onClick?.();
+          }}
+        >
           <InterfaceText>{linkText}</InterfaceText>
         </a>
       </>
@@ -34,14 +40,23 @@ GenericErrorItem.propTypes = {
 const ProviderErrorItem = ({ provider, registerGoogleTarget, triggerApple }) => {
   const key = provider.toLowerCase();
   const displayName = key.charAt(0).toUpperCase() + key.slice(1);
-  const info = SSO_PROVIDER_INFO[key] || { msgEn: `This email is registered via ${displayName}.`, linkEn: `Continue with ${displayName}` };
+  const info = SSO_PROVIDER_INFO[key] || {
+    msgEn: `This email is registered via ${displayName}.`,
+    linkEn: `Continue with ${displayName}`,
+  };
 
   return (
     <span>
-      <InterfaceText>{info.msgEn}</InterfaceText>
-      {' '}
+      <InterfaceText>{info.msgEn}</InterfaceText>{' '}
       {key === 'apple' ? (
-        <a href="#" className="sefaria-auth-provider-action" onClick={(e) => { e.preventDefault(); triggerApple?.(); }}>
+        <a
+          href="#"
+          className="sefaria-auth-provider-action"
+          onClick={(e) => {
+            e.preventDefault();
+            triggerApple?.();
+          }}
+        >
           <InterfaceText>{info.linkEn}</InterfaceText>
         </a>
       ) : (
@@ -62,9 +77,7 @@ ProviderErrorItem.propTypes = {
   triggerApple: PropTypes.func,
 };
 
-const ErrorBanner = ({
-  error, registerGoogleTarget, triggerApple, onLinkClick,
-}) => {
+const ErrorBanner = ({ error, registerGoogleTarget, triggerApple, onLinkClick }) => {
   if (!error) return null;
 
   return (
@@ -74,8 +87,10 @@ const ErrorBanner = ({
         {error.code === 'sso_only_account' ? (
           error.providers.map((provider) => (
             <ProviderErrorItem
-              key={provider} provider={provider}
-              registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+              key={provider}
+              provider={provider}
+              registerGoogleTarget={registerGoogleTarget}
+              triggerApple={triggerApple}
             />
           ))
         ) : (

@@ -1,0 +1,255 @@
+package main
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"strings"
+	"sync/atomic"
+	"syscall"
+	"time"
+
+	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
+
+	"github.com/Sefaria/Sefaria-Project/auth-service/internal/authz"
+	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
+)
+
+const (
+	loadTimeout     = 10 * time.Second
+	shutdownTimeout = 20 * time.Second
+)
+
+func envOr(k, d string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return d
+}
+
+// parseGatedPaths parses GATED_PATHS, a comma-separated list of path prefixes. Each entry is trimmed and empty entries
+// are dropped, so "/api/a, /api/b" gates both. Empty or blank input gates nothing. An entry that does not start with
+// "/" can never match a request path, so it is an error: a typo must not silently leave a path ungated.
+func parseGatedPaths(spec string) ([]string, error) {
+	var out []string
+	for _, entry := range strings.Split(spec, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		if !strings.HasPrefix(entry, "/") {
+			return nil, fmt.Errorf("GATED_PATHS entry %q must start with /", entry)
+		}
+		out = append(out, entry)
+	}
+	return out, nil
+}
+
+func main() {
+	// SIGTERM (rollout, drain) cancels ctx: the background loops exit and both servers drain in-flight calls.
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
+	defer cancel()
+
+	promReg := prometheus.NewRegistry()
+	promReg.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	rec := authz.NewPromRecorder(promReg)
+	keysGauge := prometheus.NewGauge(prometheus.GaugeOpts{Name: "authsvc_registry_keys"})
+	versionGauge := prometheus.NewGauge(prometheus.GaugeOpts{Name: "authsvc_registry_version"})
+	reloads := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "authsvc_reload_total"}, []string{"result"})
+	notifyReloads := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "authsvc_notify_reload_total"}, []string{"result"})
+	startup := prometheus.NewGauge(prometheus.GaugeOpts{Name: "authsvc_startup_load_seconds"})
+	promReg.MustRegister(keysGauge, versionGauge, reloads, notifyReloads, startup)
+
+	cfg := authz.Config{
+		Mode:    authz.Mode(envOr("AUTH_MODE", "enforce")),
+		HelpURL: envOr("HELP_URL", "https://developers.sefaria.org/#"),
+	}
+	gatedPaths, err := parseGatedPaths(os.Getenv("GATED_PATHS"))
+	if err != nil {
+		panic(err)
+	}
+	cfg.GatedPaths = gatedPaths
+	meters, err := authz.ParseMeters(os.Getenv("METERED_PATHS"))
+	if err != nil {
+		panic(err)
+	}
+	cfg.Meters = meters
+	if cfg.Mode != authz.ModeEnforce && cfg.Mode != authz.ModeObserve {
+		panic("AUTH_MODE must be enforce or observe")
+	}
+	interval, err := time.ParseDuration(envOr("RELOAD_INTERVAL", "60s"))
+	if err != nil || interval <= 0 {
+		panic(fmt.Sprintf("RELOAD_INTERVAL must be a positive Go duration such as 60s, got %q", os.Getenv("RELOAD_INTERVAL")))
+	}
+	// After SIGTERM the pod reports not ready but keeps answering for this long, so Envoy stops sending it checks before
+	// the servers close. Stopping at once lets the checks still in flight to this address fail open.
+	drain, err := time.ParseDuration(envOr("SHUTDOWN_DRAIN", "5s"))
+	if err != nil || drain < 0 {
+		panic(fmt.Sprintf("SHUTDOWN_DRAIN must be a Go duration of zero or more such as 5s, got %q", os.Getenv("SHUTDOWN_DRAIN")))
+	}
+
+	reg := registry.New()
+	// Unix time of the last accepted registry load; 0 until the first one. Its alert fires on a stale or never-set value.
+	promReg.MustRegister(prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{Name: "authsvc_registry_last_reload_success_timestamp_seconds"},
+		func() float64 {
+			// One atomic read: loadedAt is written only with each accepted load (and stays 0 before the first),
+			// so a scrape can't mix two loads the way separate Version() and LoadedAt() reads could.
+			return float64(reg.LoadedAt().UnixNano()) / 1e9
+		},
+	))
+	// A pending empty is confirmed only by an empty load about one reload interval later. The gap is 90% of
+	// the interval because firstEmptyAt is stamped after a load finishes, so the next tick can land just
+	// under a full interval later; an exact-interval gap would then slip confirmation by a whole extra tick.
+	reg.SetEmptyReloadGap(interval * 9 / 10)
+	var ready atomic.Bool
+	db, err := sql.Open("pgx", os.Getenv("PG_DSN"))
+	if err != nil {
+		panic(err)
+	}
+	// A hung Postgres must not stall startup past the liveness probe or block the reload loops for good.
+	load := func(ctx context.Context) ([]registry.Key, error) {
+		ctx, cancel := context.WithTimeout(ctx, loadTimeout)
+		defer cancel()
+		return registry.LoadAll(ctx, db)
+	}
+	gauges := func() {
+		keysGauge.Set(float64(reg.Len()))
+		versionGauge.Set(float64(reg.Version()))
+	}
+	replace := func(keys []registry.Key) error {
+		wasNonempty := reg.Len() > 0
+		if err := reg.ReplaceGuarded(keys); err != nil {
+			reloads.WithLabelValues("rejected_empty").Inc()
+			return err
+		}
+		if len(keys) == 0 && wasNonempty {
+			slog.Warn("empty registry reload applied after consecutive empty result")
+		}
+		gauges()
+		reloads.WithLabelValues("ok").Inc()
+		ready.Store(reg.Settled())
+		return nil
+	}
+	reloadLoad := func(ctx context.Context) ([]registry.Key, error) {
+		keys, err := load(ctx)
+		if err != nil {
+			reloads.WithLabelValues("error").Inc()
+		}
+		return keys, err
+	}
+	reloader := registry.NewReloader(reloadLoad, replace, registry.WithLoadErrorHook(reg.ResetEmptyReloadGuard))
+
+	t0 := time.Now()
+	if keys, err := load(ctx); err != nil {
+		slog.Error("initial load failed; serving empty set until a reload succeeds", "err", err)
+		reloads.WithLabelValues("error").Inc()
+	} else if err := replace(keys); err != nil {
+		// A first load with zero keys is only an observation: the pod stays not ready (Envoy fails open) until a
+		// non-empty load or a confirming empty load, so an empty table never makes it deny every valid key.
+		slog.Warn("initial load returned no keys; not ready until a non-empty load or a confirming empty reload", "err", err)
+	}
+	startup.Set(time.Since(t0).Seconds())
+	slog.Info("registry loaded", "keys", reg.Len(), "took", time.Since(t0), "mode", cfg.Mode)
+
+	if channel := os.Getenv("PG_NOTIFY_CHANNEL"); channel != "" {
+		// The registry's triggers NOTIFY on every committed key/tier/origin change, whoever wrote it. Each notice
+		// schedules one coalesced full reload on the query pool (never on the listener's own connection).
+		co := registry.NewCoalescer(50*time.Millisecond, func() {
+			t0 := time.Now()
+			err := reloader.Reload(ctx)
+			if err != nil {
+				notifyReloads.WithLabelValues("error").Inc()
+				slog.Warn("notify reload failed; keeping in-memory set", "err", err)
+				return
+			}
+			notifyReloads.WithLabelValues("ok").Inc()
+			slog.Info("notify reload", "keys", reg.Len(), "took", time.Since(t0))
+		})
+		go co.Run(ctx)
+		go registry.ListenPostgres(ctx, registry.ListenConfig{
+			DSN: os.Getenv("PG_DSN"), Channel: channel, AppName: "authsvc-listener",
+			MinBackoff: time.Second, MaxBackoff: 30 * time.Second, WaitTimeout: 30 * time.Second,
+			// LISTEN is active before this runs, so a reload here cannot miss a change made while disconnected.
+			OnEstablished: func(context.Context) { slog.Info("postgres listener established", "channel", channel); co.Signal() },
+			OnNotify: func(n registry.Notice) {
+				slog.Info("notify received", "table", n.Table, "op", n.Op, "age", n.Age)
+				co.Signal()
+			},
+			OnErr: func(err error) { slog.Warn("postgres listener", "err", err) },
+		})
+	}
+	go registry.PeriodicReload(ctx, interval, reloader.Reload, func(err error) {
+		slog.Warn("reload skipped; keeping in-memory set", "err", err)
+	})
+
+	opts := authz.Options{Cfg: cfg}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
+	mux.HandleFunc("/readyz", func(w http.ResponseWriter, _ *http.Request) {
+		if ready.Load() {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		w.WriteHeader(http.StatusServiceUnavailable)
+	})
+	mux.Handle("/metrics", promhttp.HandlerFor(promReg, promhttp.HandlerOpts{}))
+	mux.HandleFunc("/internal/registry", func(w http.ResponseWriter, _ *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"len":       reg.Len(),
+			"version":   reg.Version(),
+			"loaded_at": reg.LoadedAt(),
+			"mode":      cfg.Mode,
+		})
+	})
+
+	lis, err := net.Listen("tcp", envOr("GRPC_ADDR", ":9090"))
+	if err != nil {
+		panic(err)
+	}
+	gs := grpc.NewServer()
+	authv3.RegisterAuthorizationServer(gs, authz.NewGRPCServer(reg, opts, rec))
+	go func() {
+		slog.Info("grpc listening", "addr", lis.Addr().String())
+		if err := gs.Serve(lis); err != nil {
+			panic(err)
+		}
+	}()
+
+	hs := &http.Server{Addr: envOr("HTTP_ADDR", ":8080"), Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	go func() {
+		slog.Info("http listening", "addr", hs.Addr, "reload_interval", interval, "pg_notify", os.Getenv("PG_NOTIFY_CHANNEL") != "")
+		if err := hs.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic(err)
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("shutting down", "drain", drain)
+	ready.Store(false)
+	time.Sleep(drain)
+	done := make(chan struct{})
+	go func() { gs.GracefulStop(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(shutdownTimeout):
+		gs.Stop()
+	}
+	sctx, scancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer scancel()
+	_ = hs.Shutdown(sctx)
+	_ = db.Close()
+}

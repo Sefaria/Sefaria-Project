@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The Library Assistant's on/off switch, in one place.
 
@@ -9,7 +8,10 @@ touching the key directly. The one exception is ``UserProfile.__init__``, which 
 the key when it creates a profile: importing this module from the model would be a
 cycle, so it reads the shared constant instead.
 
-Two rules:
+Logged-out visitors have no profile; whether they get the assistant is the remote
+config switch ``feature.chatbot.anonymous_enabled`` (on unless set to false).
+
+For logged-in users, two rules:
 
 1. **Key present** — obey it.
 2. **Key absent** — fall back to the experiments rule: the user is on the experiments
@@ -29,6 +31,8 @@ user reads exactly as they do today. The migration run — not the deploy — is
 the assistant switches from opt-in to opt-out, and rollback is unsetting the key.
 """
 
+from remote_config import remoteConfigCache
+from remote_config.keys import CHATBOT_ANONYMOUS_ENABLED, CHATBOT_ANONYMOUS_FREE_ANSWERS
 from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY
 from sefaria.model.user_profile import UserProfile
 
@@ -36,6 +40,11 @@ from sefaria.model.user_profile import UserProfile
 # definition lives in sefaria/constants/model.py, which UserProfile also reads when it
 # writes the key at profile creation -- see the comment there.
 SETTING_KEY = LIBRARY_ASSISTANT_SETTING_KEY
+
+# The user's "Hide Ask button" choice from the assistant's own menu: whether its floating
+# "✦ Ask" button is hidden. Saved here so it follows the user across devices; absent means
+# shown. The header and mobile-menu entry points are unaffected (that's SETTING_KEY).
+FLOATING_BUTTON_HIDDEN_KEY = "library_assistant_floating_button_hidden"
 
 
 def normalize(value):
@@ -61,12 +70,44 @@ def is_enabled(profile):
     return _legacy_enabled(profile)
 
 
+def is_floating_button_hidden(profile):
+    """
+    Whether this logged-in user hid the assistant's floating Ask button.
+    """
+    settings = getattr(profile, "settings", None) or {}
+    return normalize(settings.get(FLOATING_BUTTON_HIDDEN_KEY, False))
+
+
+def show_floating_button_if_turned_on(profile, was_enabled):
+    """
+    Turning the assistant back on starts with its Ask button shown: a hidden choice made
+    before it was turned off is cleared. Call after updating the profile, before saving.
+    """
+    if not was_enabled and is_enabled(profile):
+        profile.settings[FLOATING_BUTTON_HIDDEN_KEY] = False
+
+
+def is_enabled_for_anonymous():
+    """
+    Whether logged-out visitors get the Library Assistant.
+    """
+    return normalize(remoteConfigCache.get(CHATBOT_ANONYMOUS_ENABLED, default=True))
+
+
+def anonymous_free_answers():
+    """
+    How many free answers a logged-out visitor gets (remote config), or None when
+    not set. The chat server enforces it; the assistant gets it only for analytics.
+    """
+    return remoteConfigCache.get(CHATBOT_ANONYMOUS_FREE_ANSWERS, default=None)
+
+
 def is_enabled_for_user(user):
     """
     Convenience wrapper for a Django user object, authenticated or not.
     """
     if not user or not getattr(user, "is_authenticated", False):
-        return False
+        return is_enabled_for_anonymous()
     return is_enabled(UserProfile(user_obj=user))
 
 
@@ -80,6 +121,7 @@ def _legacy_enabled(profile):
     # Imported here, not at the top: the import serves only this TEMPORARY
     # fallback and disappears with it.
     from reader.models import user_has_experiments
+
     user = getattr(profile, "user", None)
     if user is None:
         return False
@@ -92,7 +134,9 @@ def set_enabled(user, enabled):
     """
     enabled = normalize(enabled)
     profile = UserProfile(id=user.id)
+    was_enabled = is_enabled(profile)
     profile.update({"settings": {SETTING_KEY: enabled}})
+    show_floating_button_if_turned_on(profile, was_enabled)
     profile.save()
 
     return enabled

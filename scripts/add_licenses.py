@@ -13,10 +13,10 @@ for link in links:
         continue
     sites.add(olink.netloc)
 
-print("\n********* {} sites ***********\n".format(len(sites)))
+print(f"\n********* {len(sites)} sites ***********\n")
 for site in list(sites):
     print(site)
 
-print("\n******** {} not sites **********\n".format(len(not_sites)))
+print(f"\n******** {len(not_sites)} not sites **********\n")
 for site in list(not_sites):
     print(site)

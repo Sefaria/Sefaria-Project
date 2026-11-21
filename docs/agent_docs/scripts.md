@@ -1,22 +1,29 @@
 # Scripts Directory
+
 > Source: `scripts/` (~315 .py files, ~238 at top level)
 
 ## Purpose
+
 Operational and one-off scripts for the Sefaria data pipeline: importing new books and lexicons, running data migrations, generating links, validating text structure, syncing with third-party services (Salesforce, NationBuilder), exporting data, and running recurring maintenance jobs (sitemaps, Elasticsearch reindexing, trend recalculation). Most are standalone Django-aware scripts that import directly from `sefaria.model` and operate against the live Mongo database.
 
 ## Subdirectories
 
 ### `scripts/books/`
+
 Index-creation scripts for specific books that need custom structural logic (e.g. `mekhilta_derashbi_index.py`, `moreh_index.py`, `orot_index.py`). Use when adding a book whose structure can't be loaded through the standard JSON ingestion.
 
 ### `scripts/linker_books/`
+
 Utilities for preparing book indexes for Linker v3 — bulk alt-title generation, commentary title munging, index modification for linker recognition, and LLM-based DH (dibur hamatchil) extraction. See `linker_books_utils.py` for shared helpers.
 
 ### `scripts/lexicon/`
+
 Ingestion and cleanup for dictionary / wordform data: Strong's Enhanced Lexicon, Rashi's La'az glosses, Mishnah terms, Bible word forms. Used when adding a new lexicon or fixing wordform structure.
 
 ### `scripts/scheduled/`
+
 Recurring jobs invoked by cron / k8s CronJobs. Includes:
+
 - `generate_sitemaps.py` — rebuilds sitemap XMLs
 - `reindex_elasticsearch_cronjob.py` / `_ES6.py` — ES reindexing
 - `index_from_queue.py` — processes the ES indexing queue
@@ -27,21 +34,27 @@ Recurring jobs invoked by cron / k8s CronJobs. Includes:
 - `regenerate_long_cached_data.py`, `metrics.py`
 
 ### `scripts/migrations/`
+
 Formal one-shot schema/data migrations (e.g. `add_topic_images.py`, `migrate_good_to_promote_to_topic_pools.py`). Sparsely populated — most historical migrations live as ad-hoc scripts at the top level.
 
 ### `scripts/mishnah_map_validation/`
+
 Validates the mapping between Mishnah references embedded in Talmud and standalone Mishnah refs (`mishnah_map_validation.py`, `ingest_new_links.py`).
 
 ### `scripts/workflowy/`
+
 Integration with Workflowy outlines — `parse_index_and_version.py` turns a Workflowy export into an index + version document.
 
 ### `scripts/archive/`
+
 Deprecated or historical scripts kept for reference (Onkelos link adders, old Mishneh Torah splitters, merge scripts for specific commentaries, Nation Builder tag sync, etc.). Do not rely on these working against current schema.
 
 ### `scripts/setup/`
+
 Developer onboarding — currently only `setup_hooks.sh` for installing git hooks.
 
 ## Top-Level Scripts
+
 The ~238 files at the root of `scripts/` are largely ad-hoc, one-off utilities. Broad categories by filename prefix:
 
 - **`add_*`** — add fields, links, or related objects (e.g. `add_ramban_links.py`, `add_corpora.py`, `add_all_links.py`, `add_licenses.py`)
@@ -55,10 +68,12 @@ The ~238 files at the root of `scripts/` are largely ad-hoc, one-off utilities. 
 - **Book-specific importers** — e.g. `arukh_hashulchan.py`, `bootstrap_topics.py`, `ImportAshlagTopics.py`, `catch_refs_yerushalmi_translation.py`
 
 ## Common Patterns
+
 Nearly every script begins with:
 
 ```python
 import django
+
 django.setup()
 from sefaria.model import *
 ```
@@ -68,6 +83,7 @@ From there they operate directly against the Mongo collections via model classes
 Scripts assume Django settings are available — i.e. `DJANGO_SETTINGS_MODULE` points at `sefaria.settings` and `sefaria/local_settings.py` is configured with a reachable Mongo instance.
 
 ## Running Scripts
+
 From the project root, with the Sefaria virtualenv active and `local_settings.py` pointing at the target database:
 
 ```bash

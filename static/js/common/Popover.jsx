@@ -1,22 +1,15 @@
 import React, { createContext, useContext, useRef } from 'react';
-import {
-  useFloating,
-  autoUpdate,
-  offset,
-  flip,
-  shift,
-  arrow as arrowMiddleware,
-} from '@floating-ui/react-dom';
+import { useFloating, autoUpdate, offset, flip, shift, arrow as arrowMiddleware } from '@floating-ui/react-dom';
 import Sefaria from '../sefaria/sefaria';
 import Button from './Button';
 
 /**
  * Simple Popover implementation following Floating UI best practices.
- * 
+ *
  * This is a controlled component that requires:
  * - `open`: boolean to control visibility
  * - `handleOpen`: callback when open state should change
- * 
+ *
  * Usage:
  * <Popover open={isOpen} handleOpen={setIsOpen}>
  *   <PopoverTrigger>
@@ -70,35 +63,32 @@ export const Popover = ({ children, open = false, handleOpen }) => {
     handleOpen,
     placement,
     middleware: [
-      offset(TOOLTIP_OFFSET),           // Add space between trigger and popover
-      flip(),                          // Flip to opposite side if no space
+      offset(TOOLTIP_OFFSET), // Add space between trigger and popover
+      flip(), // Flip to opposite side if no space
       shift({ padding: isMobile ? 10 : 45 }), // Shift within viewport bounds
-      arrowMiddleware({ element: arrowRef }),  // Position arrow element
+      arrowMiddleware({ element: arrowRef }), // Position arrow element
     ],
-    whileElementsMounted: autoUpdate,  // Auto-update position when elements move
+    whileElementsMounted: autoUpdate, // Auto-update position when elements move
   });
 
   // Context value shared with all child components
   const value = {
     open,
     setOpen: handleOpen,
-    refs,                              // Reference setters for trigger and floating elements
-    floatingStyles: {                  // Computed styles for positioning
-      position: strategy,              // 'absolute' or 'fixed'
+    refs, // Reference setters for trigger and floating elements
+    floatingStyles: {
+      // Computed styles for positioning
+      position: strategy, // 'absolute' or 'fixed'
       top: y ?? 0,
       left: x ?? 0,
     },
-    arrowRef,                          // Ref for arrow element
-    arrowX: middlewareData.arrow?.x,   // Arrow X position
-    arrowY: middlewareData.arrow?.y,   // Arrow Y position
+    arrowRef, // Ref for arrow element
+    arrowX: middlewareData.arrow?.x, // Arrow X position
+    arrowY: middlewareData.arrow?.y, // Arrow Y position
     placement: middlewareData?.placement || placement, // Final computed placement
   };
 
-  return (
-    <PopoverContext.Provider value={value}>
-      {children}
-    </PopoverContext.Provider>
-  );
+  return <PopoverContext.Provider value={value}>{children}</PopoverContext.Provider>;
 };
 
 /**
@@ -107,11 +97,7 @@ export const Popover = ({ children, open = false, handleOpen }) => {
  */
 export const PopoverTrigger = ({ children }) => {
   const { refs } = usePopoverContext();
-  return (
-    <div ref={refs.setReference}>
-      {children}
-    </div>
-  );
+  return <div ref={refs.setReference}>{children}</div>;
 };
 
 /**
@@ -152,11 +138,7 @@ export const PopoverContent = ({ children, className = '' }) => {
     >
       {children}
       {/* Arrow element positioned by Floating UI */}
-      <div
-        ref={arrowRef}
-        className={`floating-ui-arrow ${arrowClass}`}
-        style={arrowStyle}
-      />
+      <div ref={arrowRef} className={`floating-ui-arrow ${arrowClass}`} style={arrowStyle} />
     </div>
   );
 };
@@ -176,8 +158,8 @@ export const PopoverClose = ({ children, onClick, className = '', ...props }) =>
       activeModule={Sefaria.activeModule}
       className={`popover-button ${className}`}
       onClick={(e) => {
-        onClick?.(e);        // Call custom handler first
-        setOpen?.(false);    // Then close the popover
+        onClick?.(e); // Call custom handler first
+        setOpen?.(false); // Then close the popover
       }}
       {...props}
     >
@@ -187,4 +169,3 @@ export const PopoverClose = ({ children, onClick, className = '', ...props }) =>
 };
 
 export default Popover;
-
