@@ -1,12 +1,12 @@
 /**
- * Labs: features that are built but not yet on for everyone (follow me, recording). Off unless switched on, two ways:
+ * Labs: features that are built but not yet on for everyone (follow me, recording, the social surface). Off unless switched on, two ways:
  *  - PUBLIC_LABS on the server: the deployment's default, a comma-separated list of lab names ("follow_me,recording") — a cauldron or
  *    a local dev server turns its labs on here.
  *  - Remote config (Django admin, /admin/remote_config/remoteconfigentry/): a bool entry `feature.reader.labs.<name>`, active, overrides
  *    the deployment's default either way — on for staging or production without a deploy, or off at once (the kill switch).
  * Pure, so it can be tested; useLab (src/features/reader-state/labs.ts) reads it in components.
  */
-export const LABS = ["follow_me", "recording"] as const;
+export const LABS = ["follow_me", "recording", "social"] as const;
 export type LabName = (typeof LABS)[number];
 
 /** The remote-config key that switches a lab: "feature.reader.labs.follow_me". */

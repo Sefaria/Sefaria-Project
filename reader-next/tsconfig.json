@@ -22,5 +22,5 @@
       "@fixtures/*": ["fixtures/api/*"]
     }
   },
-  "include": ["src", "vendor", "test", ".storybook", "*.ts", "scripts/**/*.ts"]
+  "include": ["src", "contract", "vendor", "test", ".storybook", "*.ts", "scripts/**/*.ts"]
 }

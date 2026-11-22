@@ -102,7 +102,8 @@ export function selfTest({ regex, mod, prefixes }) {
   const problems = [];
   const samples = ["/", "/Genesis.1", "/Genesis.1.1", "/texts", "/texts/Tanakh", "/search", "/login", "/register", "/password/reset/confirm/x/set-password/",
     "/translations/de", "/calendars", "/compare/Genesis.1/", "/topics", "/topics/light", "/saved", "/history", "/activity", "/activity/leaderboard",
-    "/activity/Genesis.1/en/The_Koren_Jerusalem_Bible", "/activity/Genesis.1/he/Miqra_according_to_the_Masorah/2", "/Shabbat.2a", "/Rashi_on_Genesis.1.1"];
+    "/activity/Genesis.1/en/The_Koren_Jerusalem_Bible", "/activity/Genesis.1/he/Miqra_according_to_the_Masorah/2", "/Shabbat.2a", "/Rashi_on_Genesis.1.1",
+    "/social", "/social/r/abcdefgh"];
   for (const p of mod.DJANGO_PREFIXES) samples.push(`/${p}`, `/${p}/`, `/${p}/x`, `/${p}.js`, `/${p}x`, `/x${p}`);
   for (const path of samples) {
     if (re.test(path) && !mod.isDjangoPage(path, host) && !WELL_KNOWN_FILES.some((f) => path === `/${f}`)) problems.push(`would bypass the client for its own page ${path}`);

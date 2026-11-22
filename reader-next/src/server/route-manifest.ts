@@ -13,8 +13,9 @@ import { serverCatalogTree, type TocNode } from "~/lib/catalog/toc";
 import { parseUrlRef } from "~/lib/ref/url";
 import { isClientStaticPage } from "~/lib/routing/django-paths";
 
-const CLIENT_EXACT = new Set(["/", "/search", "/login", "/register", "/texts", "/calendars", "/calendars/", "/compare", "/topics", "/saved", "/history", "/notifications", "/torahtracker", "/updates"]);
-const CLIENT_PREFIXES = ["/texts/", "/activity/", "/translations/", "/compare/", "/topics/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/static-page-styles/", "/brand/", "/fonts/", "/img/", "/@", "/__"];
+const CLIENT_EXACT = new Set(["/", "/search", "/login", "/register", "/texts", "/calendars", "/calendars/", "/compare", "/topics", "/saved", "/history", "/notifications", "/torahtracker", "/updates", "/social"]);
+// "/social/": the social surface's pages (src/routes/social.*), the reader's own not-found page while its lab is off
+const CLIENT_PREFIXES = ["/texts/", "/activity/", "/translations/", "/compare/", "/topics/", "/interface/", "/password/reset/confirm/", "/_serverFn/", "/assets/", "/auth/", "/static-page-styles/", "/brand/", "/fonts/", "/img/", "/social/", "/@", "/__"];
 
 export type RouteOwner = "client" | "django";
 

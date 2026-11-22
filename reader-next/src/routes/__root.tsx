@@ -31,6 +31,8 @@ import { ReportingBoundary } from "~/lib/monitoring/ErrorBoundary";
 import { RouteError } from "~/features/shared/RouteError";
 import { openAssistantFromHeader, useAssistantShown } from "~/features/shell/assistant-pill";
 import { LibraryAssistant } from "~/features/assistant/LibraryAssistant";
+import { SurfaceHostProvider, SurfacePersistent } from "~/features/surfaces/SurfaceMount";
+import { useLab } from "~/features/reader-state/labs";
 import { installLegacyEvents } from "~/lib/integration/legacy-events";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
@@ -253,7 +255,9 @@ function Shell() {
   const assistantShown = useAssistantShown();
   // "Back to the classic reader" / "Report a problem" while the reader has opted in (src/features/shell/ReaderChoice.tsx)
   const optIn = useReaderOptIn(viewer);
-  return (
+  // the social surface (src/features/surfaces): its persistent mount beside <main> on every page, only while its lab is on
+  const social = useLab("social");
+  const body = (
     <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
       <SkipLink />
       <div className={appCss.header}>
@@ -266,6 +270,7 @@ function Shell() {
           <Outlet />
         </main>
         <LibraryAssistant search={loc.searchStr ?? ""} />
+        {social ? <SurfacePersistent /> : null}
       </div>
       <CookieNotice />
       <BannerImpressionProbe />
@@ -273,6 +278,8 @@ function Shell() {
       <Monitoring signedIn={!!viewer} />
     </div>
   );
+  // always provided (cheap: nothing is built until a mount asks), so the lab never changes the shell's tree
+  return <SurfaceHostProvider>{body}</SurfaceHostProvider>;
 }
 
 const simpleAnalytics = simpleAnalyticsScript(PUBLIC_CONFIG.analytics);

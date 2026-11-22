@@ -26,6 +26,8 @@ import { Route as ActivitySplatRouteImport } from './routes/activity.$'
 import { Route as CompareIndexRouteImport } from './routes/compare.index'
 import { Route as CompareSplatRouteImport } from './routes/compare.$'
 import { Route as InterfaceLangRouteImport } from './routes/interface.$lang'
+import { Route as SocialIndexRouteImport } from './routes/social.index'
+import { Route as SocialSplatRouteImport } from './routes/social.$'
 import { Route as StaticPageStylesSplatRouteImport } from './routes/static-page-styles.$'
 import { Route as TextsIndexRouteImport } from './routes/texts.index'
 import { Route as TextsSplatRouteImport } from './routes/texts.$'
@@ -122,6 +124,16 @@ const InterfaceLangRoute = InterfaceLangRouteImport.update({
   path: '/interface/$lang',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SocialIndexRoute = SocialIndexRouteImport.update({
+  id: '/social/',
+  path: '/social/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialSplatRoute = SocialSplatRouteImport.update({
+  id: '/social/$',
+  path: '/social/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaticPageStylesSplatRoute = StaticPageStylesSplatRouteImport.update({
   id: '/static-page-styles/$',
   path: '/static-page-styles/$',
@@ -195,12 +207,14 @@ export interface FileRoutesByFullPath {
   '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
+  '/social/$': typeof SocialSplatRoute
   '/static-page-styles/$': typeof StaticPageStylesSplatRoute
   '/texts/$': typeof TextsSplatRoute
   '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare/': typeof CompareIndexRoute
+  '/social/': typeof SocialIndexRoute
   '/texts/': typeof TextsIndexRoute
   '/topics/': typeof TopicsIndexRoute
   '/topics/all/$letter': typeof TopicsAllLetterRoute
@@ -224,12 +238,14 @@ export interface FileRoutesByTo {
   '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
+  '/social/$': typeof SocialSplatRoute
   '/static-page-styles/$': typeof StaticPageStylesSplatRoute
   '/texts/$': typeof TextsSplatRoute
   '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare': typeof CompareIndexRoute
+  '/social': typeof SocialIndexRoute
   '/texts': typeof TextsIndexRoute
   '/topics': typeof TopicsIndexRoute
   '/topics/all/$letter': typeof TopicsAllLetterRoute
@@ -255,12 +271,14 @@ export interface FileRoutesById {
   '/activity/$': typeof ActivitySplatRoute
   '/compare/$': typeof CompareSplatRoute
   '/interface/$lang': typeof InterfaceLangRoute
+  '/social/$': typeof SocialSplatRoute
   '/static-page-styles/$': typeof StaticPageStylesSplatRoute
   '/texts/$': typeof TextsSplatRoute
   '/texts/notes': typeof TextsNotesRoute
   '/topics/$': typeof TopicsSplatRoute
   '/translations/$slug': typeof TranslationsSlugRoute
   '/compare/': typeof CompareIndexRoute
+  '/social/': typeof SocialIndexRoute
   '/texts/': typeof TextsIndexRoute
   '/topics/': typeof TopicsIndexRoute
   '/topics/all/$letter': typeof TopicsAllLetterRoute
@@ -286,12 +304,14 @@ export interface FileRouteTypes {
     | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
+    | '/social/$'
     | '/static-page-styles/$'
     | '/texts/$'
     | '/texts/notes'
     | '/topics/$'
     | '/translations/$slug'
     | '/compare/'
+    | '/social/'
     | '/texts/'
     | '/topics/'
     | '/topics/all/$letter'
@@ -315,12 +335,14 @@ export interface FileRouteTypes {
     | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
+    | '/social/$'
     | '/static-page-styles/$'
     | '/texts/$'
     | '/texts/notes'
     | '/topics/$'
     | '/translations/$slug'
     | '/compare'
+    | '/social'
     | '/texts'
     | '/topics'
     | '/topics/all/$letter'
@@ -345,12 +367,14 @@ export interface FileRouteTypes {
     | '/activity/$'
     | '/compare/$'
     | '/interface/$lang'
+    | '/social/$'
     | '/static-page-styles/$'
     | '/texts/$'
     | '/texts/notes'
     | '/topics/$'
     | '/translations/$slug'
     | '/compare/'
+    | '/social/'
     | '/texts/'
     | '/topics/'
     | '/topics/all/$letter'
@@ -374,12 +398,14 @@ export interface RootRouteChildren {
   ActivitySplatRoute: typeof ActivitySplatRoute
   CompareSplatRoute: typeof CompareSplatRoute
   InterfaceLangRoute: typeof InterfaceLangRoute
+  SocialSplatRoute: typeof SocialSplatRoute
   StaticPageStylesSplatRoute: typeof StaticPageStylesSplatRoute
   TextsSplatRoute: typeof TextsSplatRoute
   TextsNotesRoute: typeof TextsNotesRoute
   TopicsSplatRoute: typeof TopicsSplatRoute
   TranslationsSlugRoute: typeof TranslationsSlugRoute
   CompareIndexRoute: typeof CompareIndexRoute
+  SocialIndexRoute: typeof SocialIndexRoute
   TextsIndexRoute: typeof TextsIndexRoute
   TopicsIndexRoute: typeof TopicsIndexRoute
   TopicsAllLetterRoute: typeof TopicsAllLetterRoute
@@ -508,6 +534,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InterfaceLangRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/social/': {
+      id: '/social/'
+      path: '/social'
+      fullPath: '/social/'
+      preLoaderRoute: typeof SocialIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social/$': {
+      id: '/social/$'
+      path: '/social/$'
+      fullPath: '/social/$'
+      preLoaderRoute: typeof SocialSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/static-page-styles/$': {
       id: '/static-page-styles/$'
       path: '/static-page-styles/$'
@@ -618,12 +658,14 @@ const rootRouteChildren: RootRouteChildren = {
   ActivitySplatRoute: ActivitySplatRoute,
   CompareSplatRoute: CompareSplatRoute,
   InterfaceLangRoute: InterfaceLangRoute,
+  SocialSplatRoute: SocialSplatRoute,
   StaticPageStylesSplatRoute: StaticPageStylesSplatRoute,
   TextsSplatRoute: TextsSplatRoute,
   TextsNotesRoute: TextsNotesRoute,
   TopicsSplatRoute: TopicsSplatRoute,
   TranslationsSlugRoute: TranslationsSlugRoute,
   CompareIndexRoute: CompareIndexRoute,
+  SocialIndexRoute: SocialIndexRoute,
   TextsIndexRoute: TextsIndexRoute,
   TopicsIndexRoute: TopicsIndexRoute,
   TopicsAllLetterRoute: TopicsAllLetterRoute,

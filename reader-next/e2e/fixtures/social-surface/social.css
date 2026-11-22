@@ -1,0 +1,3 @@
+/* The reference surface's stylesheet: linked with its integrity hash before the surface mounts. */
+[data-testid="reference-surface"] { padding: 16px; }
+[data-testid="surface-persistent"] { padding: 8px; margin: 8px; border: 1px solid currentColor; background: Canvas; }

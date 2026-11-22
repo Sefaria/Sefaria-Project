@@ -12,12 +12,18 @@ import { defineConfig, devices } from "@playwright/test";
  * and DOMAIN_MODULES for localhost (English) and he.localhost (Hebrew), so e2e/routing-pass-through.spec.ts runs in every suite
  * (E2E_PASS_THROUGH_URL). Its "Django" is the cassette too: Django's pages and the API are recorded answers from www.sefaria.org
  * (the cassette never forwards cookies; replay mode never reaches the network). E2E_LIVE leaves it out.
+ * A fourth (E2E_SOCIAL_PORT, default E2E_PORT + 7) has the `social` lab on and a social surface configured on an origin nothing listens
+ * on (E2E_SURFACE_ORIGIN, default port E2E_PORT + 8): e2e/social-surface.spec.ts serves the reference surface there with page.route.
+ * The other servers leave the lab off, so no other spec loads a surface.
  */
 const PORT = Number(process.env.E2E_PORT) || 3100;
 const AUTH_PORT = Number(process.env.E2E_AUTH_PORT) || 3112;
 const AUTH_BASE_URL = `http://localhost:${AUTH_PORT}`;
 const API_PORT = Number(process.env.E2E_API_PORT) || 3998;
 const PASS_THROUGH_PORT = Number(process.env.E2E_PASS_THROUGH_PORT) || PORT + 6;
+const SOCIAL_PORT = Number(process.env.E2E_SOCIAL_PORT) || PORT + 7;
+process.env.E2E_SOCIAL_URL ??= `http://localhost:${SOCIAL_PORT}`;
+process.env.E2E_SURFACE_ORIGIN ??= `http://localhost:${Number(process.env.E2E_SURFACE_PORT) || PORT + 8}`;
 /** What the error-report specs intercept (e2e/analytics-observability.spec.ts, ERROR_ENDPOINT); never answered by a server. */
 const E2E_ERROR_ENDPOINT = "/__e2e/errors";
 if (!process.env.E2E_LIVE) process.env.E2E_PASS_THROUGH_URL ??= `http://localhost:${PASS_THROUGH_PORT}`;
@@ -61,6 +67,22 @@ export default defineConfig({
         PUBLIC_ERROR_ENDPOINT: E2E_ERROR_ENDPOINT,
       },
       reuseExistingServer: true,
+      timeout: 60_000,
+    },
+    {
+      command: "npm run dev",
+      url: process.env.E2E_SOCIAL_URL,
+      env: {
+        PORT: String(SOCIAL_PORT),
+        ...API_ENV,
+        PUBLIC_LABS: `${API_ENV.PUBLIC_LABS},social`,
+        PUBLIC_SOCIAL_MANIFEST_URL: `${process.env.E2E_SURFACE_ORIGIN}/social-surface/manifest.json`,
+        PUBLIC_SOCIAL_ORIGINS: process.env.E2E_SURFACE_ORIGIN,
+        PUBLIC_SOCIAL_API_ORIGIN: process.env.E2E_SURFACE_ORIGIN,
+        PUBLIC_SOCIAL_ENVIRONMENT: "local",
+      },
+      // never someone else's server on that port: it must be this one, with this env
+      reuseExistingServer: false,
       timeout: 60_000,
     },
     ...(process.env.E2E_LIVE
