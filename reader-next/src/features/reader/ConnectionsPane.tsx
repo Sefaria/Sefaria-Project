@@ -81,6 +81,7 @@ import { aboutVersions, versionSectionOrder } from "~/lib/versions/about";
 import { bookVersionsQueryOptions, versionsQueryOptions } from "~/lib/versions/book-versions";
 import type { VersionMeta } from "~/lib/text/model";
 import { SITE_ORIGIN } from "~/lib/config";
+import { withoutCtx } from "~/lib/reader/ctx";
 
 export interface ConnectionsPaneProps {
   view: ConnectionsView;
@@ -505,7 +506,9 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   }
 
   if (view.view === "mode" && view.mode === "Share") {
-    const url = typeof window === "undefined" ? location.href : new URL(location.href, window.location.origin).href;
+    // the link shares the page, not a surface's context the reader may be in (the reserved `ctx`: lib/reader/ctx.ts)
+    const href = withoutCtx(location.href);
+    const url = typeof window === "undefined" ? href : new URL(href, window.location.origin).href;
     return (
       <ConnectionsPanel label="Share" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <ShareView url={url} />
