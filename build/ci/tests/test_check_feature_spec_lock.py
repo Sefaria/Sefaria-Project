@@ -27,9 +27,7 @@ class Repo:
         self.git("config", "commit.gpgsign", "false")
 
     def git(self, *args) -> str:
-        return subprocess.run(
-            ["git", *args], cwd=self.root, check=True, capture_output=True, text=True
-        ).stdout.strip()
+        return subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True, text=True).stdout.strip()
 
     def write(self, rel: str, text: str):
         p = self.root / rel
@@ -48,9 +46,7 @@ class Repo:
     def run_lock(self, base: str, rows: list[tuple], signed: bool = False):
         """rows: (sha, author_login, committer_login, verified)"""
         commits = self.root / "commits.txt"
-        commits.write_text(
-            "".join(f"{sha} {a} {c} {'true' if v else 'false'}\n" for sha, a, c, v in rows)
-        )
+        commits.write_text("".join(f"{sha} {a} {c} {'true' if v else 'false'}\n" for sha, a, c, v in rows))
         env = {
             **os.environ,
             "BASE_SHA": base,
@@ -59,9 +55,7 @@ class Repo:
             "COMMITS_FILE": str(commits),
             "SPEC_LOCK_REQUIRE_SIGNED": "true" if signed else "",
         }
-        return subprocess.run(
-            ["bash", str(SCRIPT)], cwd=self.root, env=env, capture_output=True, text=True
-        )
+        return subprocess.run(["bash", str(SCRIPT)], cwd=self.root, env=env, capture_output=True, text=True)
 
 
 @pytest.fixture
