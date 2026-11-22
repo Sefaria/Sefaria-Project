@@ -1950,10 +1950,13 @@ def edit_text(request, ref=None, language_family_name=None, version=None):
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
         except Exception:
-            index = library.get_index(ref)
-            if index:
-                ref = None
-                initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()["title"]})
+            try:
+                index = library.get_index(ref)
+            except BookNameError:
+                raise Http404("No text named '%s'." % ref)
+            ref = None
+            initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()["title"]})
+            mode = "Add"
     else:
         initJSON = json.dumps({"mode": "add new"})
 
