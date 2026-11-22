@@ -109,50 +109,62 @@ class BodyAndSignatureTest(SimpleTestCase):
 
 @override_settings(USER_DELETED_WEBHOOK_SECRET=SECRET)
 class SendTaskRetryTest(SimpleTestCase):
-    body = build_user_deleted_body(5)
+    """
+    Runs the task body as a worker would (a pushed request with called_directly=False), without
+    Task.apply, which needs a result backend.
+    """
 
-    def _run(self, status_code=200):
-        """Runs the task as a worker would on its last attempt (not called directly)."""
-        response = MagicMock(status_code=status_code)
-        with patch("sso.tasks.requests.post", return_value=response) as post:
-            result = tasks.send_user_deleted_webhook.apply(args=[URLS[0], self.body], retries=tasks.MAX_RETRIES)
-        return result, post
+    body = build_user_deleted_body(5)
+    task = tasks.send_user_deleted_webhook
+
+    def _run_as_worker(self, retries=0):
+        self.task.push_request(retries=retries, called_directly=False)
+        try:
+            return self.task.run(URLS[0], self.body)
+        finally:
+            self.task.pop_request()
 
     def test_server_error_retries(self):
         with (
-            patch.object(tasks.send_user_deleted_webhook, "retry", side_effect=RuntimeError("retry")) as retry,
+            patch.object(self.task, "retry", side_effect=RuntimeError("retry")) as retry,
             patch("sso.tasks.requests.post", return_value=MagicMock(status_code=503)),
+            self.assertRaises(RuntimeError),
         ):
-            result = tasks.send_user_deleted_webhook.apply(args=[URLS[0], self.body])
+            self._run_as_worker()
         retry.assert_called_once()
         self.assertEqual(retry.call_args.kwargs["countdown"], 30)
-        self.assertIsInstance(result.result, RuntimeError)
 
     def test_network_error_retries(self):
         with (
-            patch.object(tasks.send_user_deleted_webhook, "retry", side_effect=RuntimeError("retry")) as retry,
+            patch.object(self.task, "retry", side_effect=RuntimeError("retry")) as retry,
             patch("sso.tasks.requests.post", side_effect=requests.ConnectionError()),
+            self.assertRaises(RuntimeError),
         ):
-            tasks.send_user_deleted_webhook.apply(args=[URLS[0], self.body])
+            self._run_as_worker()
         retry.assert_called_once()
 
     def test_client_error_does_not_retry(self):
         with (
-            patch.object(tasks.send_user_deleted_webhook, "retry") as retry,
+            patch.object(self.task, "retry") as retry,
             patch("sso.tasks.requests.post", return_value=MagicMock(status_code=401)),
         ):
-            tasks.send_user_deleted_webhook.apply(args=[URLS[0], self.body])
+            self._run_as_worker()
         retry.assert_not_called()
 
     def test_gives_up_quietly_after_max_retries(self):
-        result, post = self._run(status_code=500)
+        with (
+            patch.object(self.task, "retry") as retry,
+            patch("sso.tasks.requests.post", return_value=MagicMock(status_code=500)) as post,
+        ):
+            self._run_as_worker(retries=tasks.MAX_RETRIES)
         post.assert_called_once()
-        self.assertTrue(result.successful())
+        retry.assert_not_called()
 
     def test_request_has_timeouts(self):
-        _result, post = self._run(status_code=200)
+        with patch("sso.tasks.requests.post", return_value=MagicMock(status_code=200)) as post:
+            self._run_as_worker()
         self.assertEqual(post.call_args.kwargs["timeout"], tasks.REQUEST_TIMEOUT)
 
     def test_called_directly_never_raises(self):
         with patch("sso.tasks.requests.post", side_effect=requests.Timeout()):
-            tasks.send_user_deleted_webhook(URLS[0], self.body)
+            self.task(URLS[0], self.body)
