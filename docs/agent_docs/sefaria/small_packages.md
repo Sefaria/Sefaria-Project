@@ -46,7 +46,7 @@ Implements a two-step OAuth 2.0 flow for Google API access (currently used only 
 **`celery_setup/app.py`:**
 
 - Creates the Celery application instance (`app = Celery('sefaria')`)
-- Auto-discovers tasks in `sefaria.helper.llm`, `sefaria.helper.linker`, `sefaria.helper.crm`
+- Auto-discovers tasks in `sefaria.helper.llm`, `sefaria.helper.linker`, `sefaria.helper.crm`, `sefaria.helper.texts`, `api`, `webhooks`, `sso`
 - Results expire after 1800 seconds (30 minutes)
 
 **`celery_setup/config.py`:**

@@ -286,7 +286,21 @@ data:
         'ROTATE_REFRESH_TOKENS': True,
         'SIGNING_KEY': os.getenv("SIMPLE_JWT_SIGNING_KEY"),
     }
-    
+
+    # Sefaria Social identity token. SOCIAL_TOKEN_PRIVATE_KEYS is a JSON list of {"kid", "pem"}
+    # (first signs, all published); unset or malformed leaves it empty, so /api/social/token
+    # answers 503. See sefaria/local_settings_example.py for key generation and rotation.
+    try:
+        SOCIAL_TOKEN_PRIVATE_KEYS = json.loads(os.getenv("SOCIAL_TOKEN_PRIVATE_KEYS") or "[]")
+    except ValueError:
+        print("SOCIAL_TOKEN_PRIVATE_KEYS is not valid JSON; social tokens are disabled.")
+        SOCIAL_TOKEN_PRIVATE_KEYS = []
+    SOCIAL_TOKEN_ISSUER = os.getenv("SOCIAL_TOKEN_ISSUER", "")
+    SOCIAL_TOKEN_LIFETIME_SECONDS = int(os.getenv("SOCIAL_TOKEN_LIFETIME_SECONDS") or 600)
+    # Account deletion webhook: comma-separated URLs; empty sends nothing.
+    USER_DELETED_WEBHOOK_URLS = [url.strip() for url in os.getenv("USER_DELETED_WEBHOOK_URLS", "").split(",") if url.strip()]
+    USER_DELETED_WEBHOOK_SECRET = os.getenv("USER_DELETED_WEBHOOK_SECRET")
+
     # Celery (Redis/Sentinel connection settings are defined above)
     CELERY_REDIS_BROKER_DB_NUM = os.getenv("CELERY_REDIS_BROKER_DB_NUM")
     CELERY_REDIS_RESULT_BACKEND_DB_NUM = os.getenv("CELERY_REDIS_RESULT_BACKEND_DB_NUM")

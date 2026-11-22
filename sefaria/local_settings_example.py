@@ -298,6 +298,29 @@ APPLE_SSO_TEAM_ID = ""
 APPLE_SSO_KEY_ID = ""
 APPLE_SSO_PRIVATE_KEY = ""
 
+# Sefaria Social identity token (POST /api/social/token, GET /.well-known/sefaria-social-jwks.json).
+# RSA private keys only Django holds, as a list of {"kid": ..., "pem": ...}. The FIRST key signs
+# (RS256); every key is published in the JWKS. Empty: the token endpoint answers 503 and the JWKS
+# is empty. Django never generates a key itself. Make one with:
+#   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out social-token-2026-11.pem
+# and set kid to something that names it, e.g. "2026-11". In the Helm configmap the list is read
+# from the SOCIAL_TOKEN_PRIVATE_KEYS env var as JSON (newlines in the PEM escaped as \n).
+# Rotation: (1) append the new key (published, not yet signing) and wait for JWKS caches to expire
+# (Cache-Control max-age 300s, plus whatever the verifiers cache); (2) move it first, so it signs;
+# (3) after the old key's last tokens expire (SOCIAL_TOKEN_LIFETIME_SECONDS) and caches turn over,
+# remove the old key.
+SOCIAL_TOKEN_PRIVATE_KEYS = []
+# The token's `iss`. Empty: the English library origin from DOMAIN_MODULES (the same on every domain).
+SOCIAL_TOKEN_ISSUER = ""
+SOCIAL_TOKEN_LIFETIME_SECONDS = 600
+
+# Account deletion webhook (sso/user_deleted_webhook.py): after delete_user_account succeeds, a
+# Celery task POSTs a signed {"event": "user.deleted", ...} to each URL. Empty list: nothing is sent.
+# The secret is shared with each receiver (HMAC-SHA256, header X-Sefaria-Signature: sha256=<hex>);
+# make one with `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+USER_DELETED_WEBHOOK_URLS = []
+USER_DELETED_WEBHOOK_SECRET = None
+
 # Simple JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),

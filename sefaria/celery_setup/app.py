@@ -16,5 +16,6 @@ app.autodiscover_tasks(
         "sefaria.helper.texts",
         "api",
         "webhooks",
+        "sso",
     ]
 )

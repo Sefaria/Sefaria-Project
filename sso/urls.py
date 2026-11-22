@@ -16,4 +16,9 @@ urlpatterns = [
     # JSON email login for the SSO auth page (existing /login form is untouched)
     path("api/auth/login", views.email_login),
     path("api/auth/password/reset", views.password_reset_api),
+    # Sefaria Social: a short-lived RS256 identity token for the signed-in session, and the
+    # public keys that verify it. /.well-known/ skips the language-domain redirect (middleware)
+    # and Varnish passes it uncached; the response's Cache-Control governs Cloudflare.
+    path("api/social/token", views.social_token),
+    path(".well-known/sefaria-social-jwks.json", views.social_jwks),
 ]

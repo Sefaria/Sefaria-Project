@@ -9,12 +9,13 @@ from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.providers.google.views import (
     login_by_token as google_login_by_token,
 )
-from django.contrib.auth import authenticate
+from django.contrib.auth import SESSION_KEY, authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from rest_framework import exceptions
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -22,6 +23,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from emailusernames.utils import get_user
 from sefaria.forms import SefariaPasswordResetForm
+from sefaria.model.user_profile import public_user_data
+from sso.social_token import SocialTokenNotConfigured, mint_social_token, public_jwks
 
 logger = structlog.get_logger(__name__)
 
@@ -352,3 +355,71 @@ def email_login(request):
 
     auth_login(request, user)
     return JsonResponse({})
+
+
+# Sefaria Social identity token. Token and key handling live in sso/social_token.py.
+SOCIAL_TOKEN_RATE_LIMIT = 30
+SOCIAL_TOKEN_RATE_WINDOW_SECONDS = 60
+SOCIAL_TOKEN_RATE_PREFIX = "social-token-mint:"
+SOCIAL_JWKS_MAX_AGE_SECONDS = 300
+
+
+def _reserve_social_token_mint(user_id) -> bool:
+    """Counts one mint against the user's limit; False when over it. Same pattern as powered_by's key reveal."""
+    name = SOCIAL_TOKEN_RATE_PREFIX + str(user_id)
+    cache.add(name, 0, SOCIAL_TOKEN_RATE_WINDOW_SECONDS)
+    try:
+        count = cache.incr(name)
+    except ValueError:  # expired between the add and the incr
+        cache.set(name, 1, SOCIAL_TOKEN_RATE_WINDOW_SECONDS)
+        count = 1
+    return count <= SOCIAL_TOKEN_RATE_LIMIT
+
+
+@require_POST
+def social_token(request):
+    """
+    POST /api/social/token -- a short-lived identity token for Sefaria Social.
+
+    Session cookie only, CSRF-protected by Django's middleware (send X-CSRFToken). A request
+    authenticated any other way (the X-Session-ID header) is treated as signed out, so only a
+    signed-in browser session can get one.
+
+    Returns:
+      200 { token, expires_at }  -- RS256 JWT; expires_at is its `exp`, in Unix seconds
+      401 { error }              -- not signed in with a session
+      429 { error }              -- over the per-user limit; Retry-After is set
+      503 { error }              -- no signing key configured
+    """
+    user = request.user
+    if not user.is_authenticated or request.session.get(SESSION_KEY) is None:
+        return JsonResponse({"error": "auth.not_authenticated"}, status=401)
+
+    if not _reserve_social_token_mint(user.pk):
+        response = JsonResponse({"error": "rate_limited"}, status=429)
+        response["Retry-After"] = str(SOCIAL_TOKEN_RATE_WINDOW_SECONDS)
+        return response
+
+    profile = public_user_data(user.pk)
+    try:
+        token, expires_at = mint_social_token(
+            user, name=(profile.get("name") or "").strip(), picture=profile.get("imageUrl")
+        )
+    except SocialTokenNotConfigured:
+        logger.warning("social_token_not_configured")
+        return JsonResponse({"error": "social_token_not_configured"}, status=503)
+
+    response = JsonResponse({"token": token, "expires_at": expires_at})
+    response["Cache-Control"] = "no-store"
+    return response
+
+
+@require_GET
+def social_jwks(request):
+    """
+    GET /.well-known/sefaria-social-jwks.json -- the public keys that verify social tokens,
+    signing key first. {"keys": []} when none are configured.
+    """
+    response = JsonResponse(public_jwks())
+    response["Cache-Control"] = f"public, max-age={SOCIAL_JWKS_MAX_AGE_SECONDS}"
+    return response
