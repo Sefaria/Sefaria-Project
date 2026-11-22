@@ -1,29 +1,33 @@
-import React, {useState, useEffect, useMemo, useCallback, useRef, useContext} from 'react';
-import $  from './sefaria/sefariaJquery';
-import {ReaderPanelContext} from "./context";
-import Sefaria from "./sefaria/sefaria";
+import React, { useState, useEffect, useMemo, useCallback, useRef, useContext } from 'react';
+import $ from './sefaria/sefariaJquery';
+import { ReaderPanelContext } from './context';
+import Sefaria from './sefaria/sefaria';
 
-
-function useContentLang(defaultToInterfaceOnBilingual, overrideLanguage){
-    /* useful for determining language for content text while taking into account ContentLanguageContent and interfaceLang
-    * `overrideLanguage` a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-    * `defaultToInterfaceOnBilingual` use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
-    const {language, textsData} = useContext(ReaderPanelContext);
-    const hasContent = !!textsData;
-    const shownLanguage = (language === "bilingual") ? language : (language === "english" && textsData?.text?.length) ? textsData?.translationLang : textsData?.primaryLang; //the 'hebrew' of language means source
-    const isContentLangAmbiguous = !['hebrew', 'english'].includes(shownLanguage);
-    let languageToFilter;
-    if (defaultToInterfaceOnBilingual && hasContent && isContentLangAmbiguous) {
-        languageToFilter = Sefaria.interfaceLang;
-    } else if (overrideLanguage) {
-        languageToFilter = overrideLanguage;
-    } else if (isContentLangAmbiguous || !hasContent) {
-        languageToFilter = language;
-    } else {
-        languageToFilter = shownLanguage;
-    }
-    const langShort = languageToFilter.slice(0,2);
-    return [languageToFilter, langShort];
+function useContentLang(defaultToInterfaceOnBilingual, overrideLanguage) {
+  /* useful for determining language for content text while taking into account ContentLanguageContent and interfaceLang
+   * `overrideLanguage` a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+   * `defaultToInterfaceOnBilingual` use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
+  const { language, textsData } = useContext(ReaderPanelContext);
+  const hasContent = !!textsData;
+  const shownLanguage =
+    language === 'bilingual'
+      ? language
+      : language === 'english' && textsData?.text?.length
+        ? textsData?.translationLang
+        : textsData?.primaryLang; //the 'hebrew' of language means source
+  const isContentLangAmbiguous = !['hebrew', 'english'].includes(shownLanguage);
+  let languageToFilter;
+  if (defaultToInterfaceOnBilingual && hasContent && isContentLangAmbiguous) {
+    languageToFilter = Sefaria.interfaceLang;
+  } else if (overrideLanguage) {
+    languageToFilter = overrideLanguage;
+  } else if (isContentLangAmbiguous || !hasContent) {
+    languageToFilter = language;
+  } else {
+    languageToFilter = shownLanguage;
+  }
+  const langShort = languageToFilter.slice(0, 2);
+  return [languageToFilter, langShort];
 }
 
 //From https://usehooks.com/useDebounce/
@@ -51,7 +55,6 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-
 /* Shared infinite-scroll trigger. Everything that loads on scroll binds through
  * here, because getting the scroller wrong fails silently -- a listener on a non-scrolling
  * element simply never fires. The container a component renders into is not always the
@@ -65,20 +68,18 @@ const OVERFLOW_VALUES_THAT_CAN_SCROLL = ['scroll', 'auto', 'overlay'];
 // Does the CSS permit a scrollbar? Not enough on its own (see observeNearBottom) -- `overflow-y:
 // visible` beside an `overflow-x` that is not visible computes to `auto`, which is what
 // .noOverflowX does to the topic and profile containers.
-const overflowAllowsScrolling = (el) => (
-  !!el && OVERFLOW_VALUES_THAT_CAN_SCROLL.includes(window.getComputedStyle(el).overflowY)
-);
+const overflowAllowsScrolling = (el) =>
+  !!el && OVERFLOW_VALUES_THAT_CAN_SCROLL.includes(window.getComputedStyle(el).overflowY);
 
 // Is the box actually hiding anything? On singlePanel these containers grow to their full
 // content height, so nothing is hidden, no scrollbar appears, and no scroll event ever fires.
 const contentIsTallerThanBox = (el) => el.scrollHeight > el.clientHeight;
 
 // A null scroller means the document scrolls.
-const pixelsToBottom = (scroller) => (
+const pixelsToBottom = (scroller) =>
   scroller
     ? scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight
-    : document.documentElement.scrollHeight - window.scrollY - window.innerHeight
-);
+    : document.documentElement.scrollHeight - window.scrollY - window.innerHeight;
 
 // Returns an unsubscribe function.
 const observeNearBottom = (candidate, margin, onNearBottom) => {
@@ -87,19 +88,25 @@ const observeNearBottom = (candidate, margin, onNearBottom) => {
   // The CSS half is read once and refreshed on resize, where a breakpoint can change it, so the
   // scroll handler never pays for getComputedStyle.
   let cssAllowsScrolling = overflowAllowsScrolling(candidate);
-  const onResize = () => { cssAllowsScrolling = overflowAllowsScrolling(candidate); };
+  const onResize = () => {
+    cssAllowsScrolling = overflowAllowsScrolling(candidate);
+  };
 
   const onScroll = () => {
     // Re-checked per event: a container too short to scroll on page 1 can become the scroller.
     const scroller = cssAllowsScrolling && contentIsTallerThanBox(candidate) ? candidate : null;
-    if (pixelsToBottom(scroller) <= margin) { onNearBottom(); }
+    if (pixelsToBottom(scroller) <= margin) {
+      onNearBottom();
+    }
   };
   // Only one can fire: element scroll events don't bubble, document scroll is window-only.
   const targets = candidate ? [candidate, window] : [window];
-  targets.forEach(t => t.addEventListener('scroll', onScroll, {passive: true}));
-  if (candidate) { window.addEventListener('resize', onResize, {passive: true}); }
+  targets.forEach((t) => t.addEventListener('scroll', onScroll, { passive: true }));
+  if (candidate) {
+    window.addEventListener('resize', onResize, { passive: true });
+  }
   return () => {
-    targets.forEach(t => t.removeEventListener('scroll', onScroll));
+    targets.forEach((t) => t.removeEventListener('scroll', onScroll));
     window.removeEventListener('resize', onResize);
   };
 };
@@ -110,16 +117,17 @@ const observeNearBottom = (candidate, margin, onNearBottom) => {
  * so it need not be stable; callers do their own "already loading" / "nothing left" guarding.
  * `enabled: false` skips binding; `deps` re-bind (normally the resolved element).
  */
-function useScrollNearBottom({getScrollCandidate, margin, onNearBottom, enabled = true, deps = []}) {
+function useScrollNearBottom({ getScrollCandidate, margin, onNearBottom, enabled = true, deps = [] }) {
   const latestOnNearBottom = useRef(onNearBottom);
   latestOnNearBottom.current = onNearBottom;
 
   useEffect(() => {
-    if (!enabled) { return; }
+    if (!enabled) {
+      return;
+    }
     return observeNearBottom(getScrollCandidate(), margin, () => latestOnNearBottom.current());
   }, [enabled, margin, ...deps]);
 }
-
 
 /**
  * Hook for paginated data loading triggered by scroll position.
@@ -134,7 +142,7 @@ function useScrollNearBottom({getScrollCandidate, margin, onNearBottom, enabled 
  * @param {number} [options.itemsPreLoaded=0] - Number of items already in cache; skips initial fetch if > 0
  * @param {number} [options.pageSize=20] - Number of items to fetch per request
  */
-function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSize = 20}) {
+function useScrollToLoad({ scrollableRef, url, setter, itemsPreLoaded = 0, pageSize = 20 }) {
   const loadedToEndRef = useRef(false);
   const loadingRef = useRef(false);
   const fetchedCountRef = useRef(itemsPreLoaded);
@@ -176,7 +184,6 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
   });
 }
 
-
 function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin, initialRenderSize) {
   /*
   Listens until user is scrolled within `bottomMargin` of `scrollable_element_ref`
@@ -185,46 +192,59 @@ function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMarg
   */
   initialRenderSize = Math.max(initialRenderSize, pageSize);
   bottomMargin = bottomMargin || 800;
-  const [page, setPage] = useState(parseInt(initialRenderSize/pageSize)-1);
+  const [page, setPage] = useState(parseInt(initialRenderSize / pageSize) - 1);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
   const [inputUpToPage, setInputUpToPage] = useState(input.slice(0, initialRenderSize));
-  useEffect(() => () => {
-    setInputUpToPage(prev => {
-      // use `setInputUpToPage` to get access to previous value
-      // input changes because of useIncrementalLoad even though inputUpToPage may not change
-      // as long as inputUpToPage is the same element by element, dont reset page to 0
-      if (!inputUpToPage && !!prev) { setPage(0); }
-      else if (!inputUpToPage.elementsAreEqual(prev)) { setPage(0); }
-      return prev;
-    });
-    setLoadedToEnd(false);
-  }, [scrollable_element_ref && scrollable_element_ref.current, input]);
-  const numPages = useMemo(() => Math.ceil(input.length/pageSize), [input, pageSize]);
+  useEffect(
+    () => () => {
+      setInputUpToPage((prev) => {
+        // use `setInputUpToPage` to get access to previous value
+        // input changes because of useIncrementalLoad even though inputUpToPage may not change
+        // as long as inputUpToPage is the same element by element, dont reset page to 0
+        if (!inputUpToPage && !!prev) {
+          setPage(0);
+        } else if (!inputUpToPage.elementsAreEqual(prev)) {
+          setPage(0);
+        }
+        return prev;
+      });
+      setLoadedToEnd(false);
+    },
+    [scrollable_element_ref && scrollable_element_ref.current, input]
+  );
+  const numPages = useMemo(() => Math.ceil(input.length / pageSize), [input, pageSize]);
   // No ref at all means the caller opts out of scroll pagination entirely -- not the same as
   // passing a ref to a container that turns out not to be the scroller.
   useScrollNearBottom({
     getScrollCandidate: () => scrollable_element_ref.current,
     margin: bottomMargin,
-    onNearBottom: () => { if (!loadedToEnd) { setPage(prevPage => prevPage + 1); } },
+    onNearBottom: () => {
+      if (!loadedToEnd) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    },
     enabled: !!scrollable_element_ref,
     deps: [scrollable_element_ref && scrollable_element_ref.current],
   });
   useEffect(() => {
-    setInputUpToPage(prev => {
+    setInputUpToPage((prev) => {
       // decide whether or not inputUpToPage has changed. if it's the same element-by-element to `prev`, return `prev`
-      const next = input.slice(0, pageSize*(page+1));
-      if (!next.elementsAreEqual(prev)) { return next; }
+      const next = input.slice(0, pageSize * (page + 1));
+      if (!next.elementsAreEqual(prev)) {
+        return next;
+      }
       return prev;
     });
   }, [page, input, pageSize]);
   useEffect(() => {
-    if (page >= numPages) { setLoadedToEnd(true); }
+    if (page >= numPages) {
+      setLoadedToEnd(true);
+    }
   }, [page, numPages]);
   return inputUpToPage;
 }
 
-
-function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement, resetValue=false) {
+function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement, resetValue = false) {
   /*
   Loads all items in `input` in `pageSize` chunks.
   Each input chunk is passed to `fetchData`
@@ -239,25 +259,26 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement,
   // When input changes, creates function to fetch data by page, computes number of pages
   const [fetchDataByPage, numPages] = useMemo(() => {
     const fetchDataByPage = (page) => {
-      if (!input) { return Promise.reject({error: "input not array", input}); }
-      const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
+      if (!input) {
+        return Promise.reject({ error: 'input not array', input });
+      }
+      const pagedInput = input.slice(page * pageSize, (page + 1) * pageSize);
       return fetchData(pagedInput);
     };
-    const numPages = Math.ceil(input.length/pageSize);
+    const numPages = Math.ceil(input.length / pageSize);
     return [fetchDataByPage, numPages];
   }, [input]);
 
   usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue);
 }
 
-
-function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue=false) {
+function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue = false) {
   /*
   See `useIncrementalLoad` docs
   */
 
   const [page, setPage] = useState(0);
-  const [isCanceled, setCanceled] = useState({});    // dict {idElem: Bool}
+  const [isCanceled, setCanceled] = useState({}); // dict {idElem: Bool}
   const [valueQueue, setValueQueue] = useState(null);
 
   // When identityElement changes:
@@ -266,45 +287,52 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   //    Removes old items by calling setter(false);
   //    Resets page to 0
   useEffect(() => {
-      setCanceled(d => { d[identityElement] = false; return Object.assign({}, d);});
-      return () => {
-        setCanceled(d => { d[identityElement] = true; return Object.assign({}, d);});
-        setter(resetValue);
-        setPage(0);
-  }}, [identityElement]);
+    setCanceled((d) => {
+      d[identityElement] = false;
+      return Object.assign({}, d);
+    });
+    return () => {
+      setCanceled((d) => {
+        d[identityElement] = true;
+        return Object.assign({}, d);
+      });
+      setter(resetValue);
+      setPage(0);
+    };
+  }, [identityElement]);
 
   const fetchPage = useCallback(() => fetchDataByPage(page), [page, fetchDataByPage]);
 
   // make sure value setting callback and page procession get short circuited when id_elem has been canceled
   // clear value queue on success
-  const setResult = useCallback((id_elem, val) => {
-            if (isCanceled[id_elem]) { setValueQueue(null); return; }
-            setter(val);
-            setValueQueue(null);
-            if (page === numPages - 1 || numPages === 0) { return; }
-            setPage(prevPage => prevPage + 1);
-        }, [isCanceled, setter, numPages, page, identityElement]);
+  const setResult = useCallback(
+    (id_elem, val) => {
+      if (isCanceled[id_elem]) {
+        setValueQueue(null);
+        return;
+      }
+      setter(val);
+      setValueQueue(null);
+      if (page === numPages - 1 || numPages === 0) {
+        return;
+      }
+      setPage((prevPage) => prevPage + 1);
+    },
+    [isCanceled, setter, numPages, page, identityElement]
+  );
 
   // Make sure that current value is processed with latest setResult function
   // if this is called from within the fetchPage effect, it will have stale canceled data
   useEffect(() => {
-    if(valueQueue) {
+    if (valueQueue) {
       setResult(...valueQueue);
     }
   }, [valueQueue, setResult]);
 
   // Put value returned and originating identity element into value queue
   useEffect(() => {
-      fetchPage()
-        .then((val, err) => setValueQueue([identityElement, val]));
+    fetchPage().then((val, err) => setValueQueue([identityElement, val]));
   }, [fetchPage]);
 }
 
-export {
-  useScrollNearBottom,
-  useScrollToLoad,
-  usePaginatedDisplay,
-  useDebounce,
-  useContentLang,
-  useIncrementalLoad,
-};
+export { useScrollNearBottom, useScrollToLoad, usePaginatedDisplay, useDebounce, useContentLang, useIncrementalLoad };

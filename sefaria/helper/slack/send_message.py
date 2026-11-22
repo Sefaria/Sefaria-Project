@@ -1,8 +1,19 @@
 import requests
+
 from sefaria.settings import SLACK_URL
 
 
-def send_message(channel, username, pretext, text, fallback=None, icon_emoji=':robot_face:', color="#a30200", timeout=None, mrkdwn=False):
+def send_message(
+    channel,
+    username,
+    pretext,
+    text,
+    fallback=None,
+    icon_emoji=":robot_face:",
+    color="#a30200",
+    timeout=None,
+    mrkdwn=False,
+):
     attachment = {
         "fallback": fallback or pretext,
         "color": color,
@@ -13,12 +24,7 @@ def send_message(channel, username, pretext, text, fallback=None, icon_emoji=':r
         # Opt in to Slack mrkdwn rendering (bold/italic/`code`) for the text field;
         # off by default so callers passing literal *, _, ` aren't reformatted.
         attachment["mrkdwn_in"] = ["text"]
-    post_object = {
-            "icon_emoji": icon_emoji,
-            "username": username,
-            "channel": channel,
-            "attachments": [attachment]
-        }
+    post_object = {"icon_emoji": icon_emoji, "username": username, "channel": channel, "attachments": [attachment]}
 
     response = requests.post(SLACK_URL, json=post_object, timeout=timeout)
     return response

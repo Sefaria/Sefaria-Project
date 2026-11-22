@@ -1,4 +1,3 @@
-# coding=utf-8
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
 
@@ -9,21 +8,23 @@ def _fresh_synthetic_index(title):
     except Exception:
         pass
 
-    idx = Index({
-        "title": title,
-        "categories": ["Liturgy"],
-        "schema": {
-            "titles": [
-                {"lang": "en", "text": title, "primary": True},
-                {"lang": "he", "text": "ספר בדיקת מתאם", "primary": True},
-            ],
-            "nodeType": "JaggedArrayNode",
-            "depth": 2,
-            "sectionNames": ["Chapter", "Verse"],
-            "addressTypes": ["Integer", "Integer"],
-            "key": title,
-        },
-    })
+    idx = Index(
+        {
+            "title": title,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": title, "primary": True},
+                    {"lang": "he", "text": "ספר בדיקת מתאם", "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": ["Chapter", "Verse"],
+                "addressTypes": ["Integer", "Integer"],
+                "key": title,
+            },
+        }
+    )
     idx.save()
     return idx
 
@@ -49,8 +50,15 @@ def test_append_version_no_false_merge_flag_when_requested_version_is_complete()
 
         # A second version in the same language family -- present so a merge is attempted,
         # but it contributes nothing that isn't already covered by A.
-        Version({"language": "en", "title": title, "versionSource": "http://foobar.com",
-                 "versionTitle": vt_b, "chapter": []}).save()
+        Version(
+            {
+                "language": "en",
+                "title": title,
+                "versionSource": "http://foobar.com",
+                "versionTitle": vt_b,
+                "chapter": [],
+            }
+        ).save()
 
         oref = Ref(f"{title} 1")
         adapter = TextRequestAdapter(oref, [["english", vt_a]], fill_in_missing_segments=True)

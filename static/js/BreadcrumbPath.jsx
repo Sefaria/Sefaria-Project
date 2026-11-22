@@ -18,7 +18,10 @@ function Breadcrumb({ label, hebrewLabel, href, linkProps }) {
         href={href}
         className="searchResultCard-crumb searchResultCard-crumb--link"
         {...rest}
-        onClick={(e) => { e.stopPropagation(); onClick?.(e); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.(e);
+        }}
       >
         {text}
       </a>
@@ -28,22 +31,19 @@ function Breadcrumb({ label, hebrewLabel, href, linkProps }) {
 }
 
 function CrumbSep() {
-  return (
-    <img
-      src={CHEVRON}
-      alt=""
-      aria-hidden="true"
-      className="searchResultCard-crumbChevron"
-    />
-  );
+  return <img src={CHEVRON} alt="" aria-hidden="true" className="searchResultCard-crumbChevron" />;
 }
 
 function CrumbList({ crumbs, getCrumbLinkProps }) {
   return crumbs.map((crumb, i) => (
     <React.Fragment key={i}>
       {i > 0 && <CrumbSep />}
-      <Breadcrumb label={crumb.label} hebrewLabel={crumb.hebrewLabel} href={crumb.href}
-                  linkProps={getCrumbLinkProps?.(crumb)} />
+      <Breadcrumb
+        label={crumb.label}
+        hebrewLabel={crumb.hebrewLabel}
+        href={crumb.href}
+        linkProps={getCrumbLinkProps?.(crumb)}
+      />
     </React.Fragment>
   ));
 }
@@ -68,12 +68,12 @@ function CrumbList({ crumbs, getCrumbLinkProps }) {
  */
 function BreadcrumbPath({ crumbs, getCrumbLinkProps }) {
   const containerRef = useRef(null);
-  const measureRef   = useRef(null);
+  const measureRef = useRef(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
-    const measure   = measureRef.current;
+    const measure = measureRef.current;
     if (!container || !measure) return;
 
     const check = () => {
@@ -89,18 +89,20 @@ function BreadcrumbPath({ crumbs, getCrumbLinkProps }) {
   if (!crumbs || crumbs.length === 0) return null;
 
   const isHebrew = Sefaria.interfaceLang === 'hebrew';
-  const first    = crumbs[0];
-  const last     = crumbs[crumbs.length - 1];
-  const middle   = crumbs.slice(1, -1);
+  const first = crumbs[0];
+  const last = crumbs[crumbs.length - 1];
+  const middle = crumbs.slice(1, -1);
 
-  const tooltipText = middle
-    .map(c => (isHebrew && c.hebrewLabel) ? c.hebrewLabel : c.label)
-    .join(' > ');
+  const tooltipText = middle.map((c) => (isHebrew && c.hebrewLabel ? c.hebrewLabel : c.label)).join(' > ');
 
   const truncatedCrumbs = (
     <>
-      <Breadcrumb label={first.label} hebrewLabel={first.hebrewLabel} href={first.href}
-                  linkProps={getCrumbLinkProps?.(first)} />
+      <Breadcrumb
+        label={first.label}
+        hebrewLabel={first.hebrewLabel}
+        href={first.href}
+        linkProps={getCrumbLinkProps?.(first)}
+      />
       {middle.length > 0 && (
         <>
           <CrumbSep />
@@ -115,8 +117,12 @@ function BreadcrumbPath({ crumbs, getCrumbLinkProps }) {
       {crumbs.length > 1 && (
         <>
           <CrumbSep />
-          <Breadcrumb label={last.label} hebrewLabel={last.hebrewLabel} href={last.href}
-                      linkProps={getCrumbLinkProps?.(last)} />
+          <Breadcrumb
+            label={last.label}
+            hebrewLabel={last.hebrewLabel}
+            href={last.href}
+            linkProps={getCrumbLinkProps?.(last)}
+          />
         </>
       )}
     </>
@@ -124,30 +130,26 @@ function BreadcrumbPath({ crumbs, getCrumbLinkProps }) {
 
   return (
     <div ref={containerRef} className="searchResultCard-breadcrumbs">
-      <div
-        ref={measureRef}
-        className="searchResultCard-breadcrumbs-measure"
-        aria-hidden="true"
-      >
+      <div ref={measureRef} className="searchResultCard-breadcrumbs-measure" aria-hidden="true">
         {/* Measurement copy only — `pointer-events: none`, and deliberately given no
             link props, so it can never emit a duplicate analytics event. */}
         <CrumbList crumbs={crumbs} />
       </div>
       <div className="searchResultCard-breadcrumbs-inner">
-        {isTruncated
-          ? truncatedCrumbs
-          : <CrumbList crumbs={crumbs} getCrumbLinkProps={getCrumbLinkProps} />}
+        {isTruncated ? truncatedCrumbs : <CrumbList crumbs={crumbs} getCrumbLinkProps={getCrumbLinkProps} />}
       </div>
     </div>
   );
 }
 
 BreadcrumbPath.propTypes = {
-  crumbs: PropTypes.arrayOf(PropTypes.shape({
-    label:       PropTypes.string.isRequired,
-    hebrewLabel: PropTypes.string,
-    href:        PropTypes.string,
-  })),
+  crumbs: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      hebrewLabel: PropTypes.string,
+      href: PropTypes.string,
+    })
+  ),
   getCrumbLinkProps: PropTypes.func,
 };
 

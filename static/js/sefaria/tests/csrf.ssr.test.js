@@ -8,7 +8,9 @@
 import { getCsrfToken } from '../csrf';
 
 describe('getCsrfToken under Node SSR (no document)', () => {
-  afterEach(() => { jest.restoreAllMocks(); });
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   it('returns "" without warning', () => {
     expect(typeof document).toBe('undefined');

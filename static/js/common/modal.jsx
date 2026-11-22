@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import classNames from "classnames";
+import React, { useEffect, useRef } from 'react';
+import classNames from 'classnames';
 
 const Modal = ({ children, close, className }) => {
   const dialogRef = useRef(null);
@@ -12,7 +12,8 @@ const Modal = ({ children, close, className }) => {
       if (dialogRef.current) {
         dialogRef.current.close();
       }
-  }}, []);
+    };
+  }, []);
 
   const handleClickOutside = (e) => {
     if (dialogRef.current && e.target === dialogRef.current) {
@@ -30,15 +31,13 @@ const Modal = ({ children, close, className }) => {
   return (
     <dialog
       ref={dialogRef}
-      className={classNames("dialogModal", className)}
+      className={classNames('dialogModal', className)}
       onClick={handleClickOutside}
       onKeyDown={handleKeyDown}
     >
-      <div className="modal-content">
-        {children}
-      </div>
+      <div className="modal-content">{children}</div>
     </dialog>
   );
-}
+};
 
 export default Modal;

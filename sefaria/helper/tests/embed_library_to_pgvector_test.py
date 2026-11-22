@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for scripts/embed_library_to_pgvector.py.
 
@@ -8,12 +7,13 @@ get_section_context, collect_segment_records_by_section) hit Mongo, so they're t
 against existing, stable library records (Genesis, Mishneh Torah Sabbath, Mishnah
 Berakhot) rather than fixtures.
 """
+
 from types import SimpleNamespace
 
-from sefaria.model import *
-import sefaria.helper.vector.embed_library_to_pgvector as pgv
-
 import pytest
+
+import sefaria.helper.vector.embed_library_to_pgvector as pgv
+from sefaria.model import *
 
 # Temporarily disabled: these tests depend on the pgvector/vector_db integration
 # which is not yet provisioned in CI. Re-enable once pgvector is reachable.
@@ -208,10 +208,16 @@ class TestBuildChunkDataOrdinals:
     segment is hard-split into multiple chunks sharing the same ref (patot's hard_max_split
     pass - see chunker.py's `_apply_hard_max_pass` / `_split_text_evenly_by_max_tokens`).
     """
+
     def _fake_patot_chunk(self, text, source_segment_refs, kind="single_segment"):
         return SimpleNamespace(
-            text=text, source_segment_refs=source_segment_refs, kind=kind,
-            pass_number=1, token_count=len(text.split()), triggered=False, score=None,
+            text=text,
+            source_segment_refs=source_segment_refs,
+            kind=kind,
+            pass_number=1,
+            token_count=len(text.split()),
+            triggered=False,
+            score=None,
         )
 
     def _contexts(self):
@@ -226,33 +232,45 @@ class TestBuildChunkDataOrdinals:
         embedder = SimpleNamespace(embed_text=lambda text, task_type: [0.0, 0.0, 0.0, 0.0])
         result = SimpleNamespace(chunks=chunks)
         return pgv.build_chunk_data(
-            Ref("Genesis 1"), version_context["language"], version.versionTitle, "Genesis",
-            embedder, result, index_context, version_context,
+            Ref("Genesis 1"),
+            version_context["language"],
+            version.versionTitle,
+            "Genesis",
+            embedder,
+            result,
+            index_context,
+            version_context,
         )
 
     def test_chunks_with_distinct_refs_all_get_ordinal_one(self):
-        built = self._build([
-            self._fake_patot_chunk("verse one", ["Genesis 1:1"]),
-            self._fake_patot_chunk("verse two", ["Genesis 1:2"]),
-        ])
+        built = self._build(
+            [
+                self._fake_patot_chunk("verse one", ["Genesis 1:1"]),
+                self._fake_patot_chunk("verse two", ["Genesis 1:2"]),
+            ]
+        )
         assert [b.chunk.chunk_ordinal for b in built] == [1, 1]
         assert len({b.chunk.ref for b in built}) == 2
 
     def test_hard_split_pieces_of_one_segment_get_incrementing_ordinal(self):
-        built = self._build([
-            self._fake_patot_chunk("piece one", ["Genesis 1:1"], kind="hard_max_split"),
-            self._fake_patot_chunk("piece two", ["Genesis 1:1"], kind="hard_max_split"),
-            self._fake_patot_chunk("piece three", ["Genesis 1:1"], kind="hard_max_split"),
-        ])
+        built = self._build(
+            [
+                self._fake_patot_chunk("piece one", ["Genesis 1:1"], kind="hard_max_split"),
+                self._fake_patot_chunk("piece two", ["Genesis 1:1"], kind="hard_max_split"),
+                self._fake_patot_chunk("piece three", ["Genesis 1:1"], kind="hard_max_split"),
+            ]
+        )
         assert [b.chunk.chunk_ordinal for b in built] == [1, 2, 3]
         assert len({b.chunk.ref for b in built}) == 1
         assert [b.text for b in built] == ["piece one", "piece two", "piece three"]
 
     def test_mixed_whole_segment_and_split_chunks(self):
-        built = self._build([
-            self._fake_patot_chunk("verse one", ["Genesis 1:1"]),
-            self._fake_patot_chunk("piece a", ["Genesis 1:2"], kind="hard_max_split"),
-            self._fake_patot_chunk("piece b", ["Genesis 1:2"], kind="hard_max_split"),
-            self._fake_patot_chunk("verse three", ["Genesis 1:3"]),
-        ])
+        built = self._build(
+            [
+                self._fake_patot_chunk("verse one", ["Genesis 1:1"]),
+                self._fake_patot_chunk("piece a", ["Genesis 1:2"], kind="hard_max_split"),
+                self._fake_patot_chunk("piece b", ["Genesis 1:2"], kind="hard_max_split"),
+                self._fake_patot_chunk("verse three", ["Genesis 1:3"]),
+            ]
+        )
         assert [b.chunk.chunk_ordinal for b in built] == [1, 1, 2, 1]

@@ -14,6 +14,7 @@ but are the shipped semantics search ranking is calibrated on:
 
 Changing either is a separate decision, not a refactor.
 """
+
 import numpy
 import pytest
 
@@ -32,7 +33,7 @@ def _legacy_pagerank(g, s=0.85, tolerance=0.00005, maxiter=100):
         p = new_p
         iteration += 1
     pr_list = list(numpy.squeeze(numpy.asarray(p)))
-    return {k: v for k, v in zip([x[0] for x in g], pr_list)}
+    return dict(zip([x[0] for x in g], pr_list))
 
 
 def _graph(d):
@@ -49,24 +50,27 @@ SIMPLE = {
 
 # every edge weight lands on a different side of int(round())
 QUANTIZED = {
-    "a": {"b": 0.4, "c": 0.6},   # 0.4 -> dropped, 0.6 -> 1
-    "b": {"c": 1.5},             # banker's rounding: round(1.5) == 2
-    "c": {"a": 2.4},             # -> 2
+    "a": {"b": 0.4, "c": 0.6},  # 0.4 -> dropped, 0.6 -> 1
+    "b": {"c": 1.5},  # banker's rounding: round(1.5) == 2
+    "c": {"a": 2.4},  # -> 2
     "d": {},
 }
 
 DANGLING = {
     "a": {"b": 1},
-    "b": {},          # dangling: no outgoing edges
+    "b": {},  # dangling: no outgoing edges
     "c": {"a": 0.4},  # rounds to 0 -> contributes no in_link, but c is NOT dangling
 }
 
 
-@pytest.mark.parametrize("graph,name", [
-    (SIMPLE, "simple"),
-    (QUANTIZED, "quantized"),
-    (DANGLING, "dangling"),
-])
+@pytest.mark.parametrize(
+    "graph,name",
+    [
+        (SIMPLE, "simple"),
+        (QUANTIZED, "quantized"),
+        (DANGLING, "dangling"),
+    ],
+)
 def test_vectorized_matches_legacy(graph, name):
     g = _graph(graph)
     legacy = _legacy_pagerank(g)
@@ -75,7 +79,7 @@ def test_vectorized_matches_legacy(graph, name):
     assert set(new) == set(legacy), name
     for k in legacy:
         assert new[k] == pytest.approx(legacy[k], rel=1e-9, abs=1e-12), (
-            "{}: rank for {!r} diverged: {} vs {}".format(name, k, new[k], legacy[k])
+            f"{name}: rank for {k!r} diverged: {new[k]} vs {legacy[k]}"
         )
 
 
@@ -121,13 +125,18 @@ def test_empty_graph_does_not_crash():
 
 def test_start_year_cache_collapses_repeat_lookups():
     class FakeTP:
-        def __init__(self, y): self.y = y
-        def determine_year_estimate(self): return self.y
+        def __init__(self, y):
+            self.y = y
+
+        def determine_year_estimate(self):
+            return self.y
 
     calls = []
 
     class FakeIndex:
-        def __init__(self, title, year): self.title, self._y = title, year
+        def __init__(self, title, year):
+            self.title, self._y = title, year
+
         def best_time_period(self):
             calls.append(self.title)
             return FakeTP(self._y)
@@ -137,13 +146,15 @@ def test_start_year_cache_collapses_repeat_lookups():
     got = [psr._start_year(idx, cache) for _ in range(500)]
 
     assert got == [1200] * 500
-    assert len(calls) == 1, "best_time_period must be called once per index, got {}".format(len(calls))
+    assert len(calls) == 1, f"best_time_period must be called once per index, got {len(calls)}"
 
 
 def test_start_year_falls_back_to_3000_without_time_period():
     class NoTP:
         title = "Unknown"
-        def best_time_period(self): return None
+
+        def best_time_period(self):
+            return None
 
     cache = {}
     assert psr._start_year(NoTP(), cache) == 3000
@@ -152,12 +163,18 @@ def test_start_year_falls_back_to_3000_without_time_period():
 
 def test_start_year_caches_per_title_not_globally():
     class FakeTP:
-        def __init__(self, y): self.y = y
-        def determine_year_estimate(self): return self.y
+        def __init__(self, y):
+            self.y = y
+
+        def determine_year_estimate(self):
+            return self.y
 
     class FakeIndex:
-        def __init__(self, title, year): self.title, self._y = title, year
-        def best_time_period(self): return FakeTP(self._y)
+        def __init__(self, title, year):
+            self.title, self._y = title, year
+
+        def best_time_period(self):
+            return FakeTP(self._y)
 
     cache = {}
     assert psr._start_year(FakeIndex("A", 100), cache) == 100

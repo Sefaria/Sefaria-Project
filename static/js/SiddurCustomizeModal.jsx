@@ -1,9 +1,9 @@
-import React, {useMemo, useState} from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
-import {InterfaceText} from './Misc';
-import {ContentText} from './ContentText';
+import { InterfaceText } from './Misc';
+import { ContentText } from './ContentText';
 import Modal from './common/modal';
 import {
   buildCustomizeTree,
@@ -13,77 +13,98 @@ import {
   leavesOf,
   normalizeHiddenRefs,
   setDisplayOptions,
-  setHiddenRefs
+  setHiddenRefs,
 } from './sefaria/siddurCustomization';
-
 
 const nodeState = (node, hidden) => {
   const leaves = leavesOf(node);
-  const numHidden = leaves.filter(leaf => hidden.has(leaf.ref)).length;
-  return numHidden === 0 ? "all" : numHidden === leaves.length ? "none" : "some";
+  const numHidden = leaves.filter((leaf) => hidden.has(leaf.ref)).length;
+  return numHidden === 0 ? 'all' : numHidden === leaves.length ? 'none' : 'some';
 };
 
-
-const SiddurCustomizeNode = ({node, hidden, collapsed, onToggle, onToggleCollapse}) => {
+const SiddurCustomizeNode = ({ node, hidden, collapsed, onToggle, onToggleCollapse }) => {
   const state = nodeState(node, hidden);
   const hasChildren = node.children.length > 0;
   const isCollapsed = collapsed.has(node.ref);
   return (
     <li className="siddurCustomizeNode">
       <div className="siddurCustomizeRow">
-        {hasChildren ?
+        {hasChildren ? (
           <button
             type="button"
-            className={classNames("siddurCustomizeCaret", {collapsed: isCollapsed})}
+            className={classNames('siddurCustomizeCaret', { collapsed: isCollapsed })}
             aria-expanded={!isCollapsed}
-            aria-label={Sefaria._(isCollapsed ? "siddur_customize.expand" : "siddur_customize.collapse")}
+            aria-label={Sefaria._(isCollapsed ? 'siddur_customize.expand' : 'siddur_customize.collapse')}
             onClick={() => onToggleCollapse(node.ref)}
-          /> : <span className="siddurCustomizeCaret placeholder" />}
+          />
+        ) : (
+          <span className="siddurCustomizeCaret placeholder" />
+        )}
         <label>
           <input
             type="checkbox"
-            checked={state === "all"}
-            ref={el => { if (el) { el.indeterminate = state === "some"; } }}
-            onChange={() => onToggle(node, state !== "all")}
+            checked={state === 'all'}
+            ref={(el) => {
+              if (el) {
+                el.indeterminate = state === 'some';
+              }
+            }}
+            onChange={() => onToggle(node, state !== 'all')}
           />
-          <ContentText text={{en: node.en, he: node.he}} defaultToInterfaceOnBilingual={true} />
+          <ContentText text={{ en: node.en, he: node.he }} defaultToInterfaceOnBilingual={true} />
         </label>
       </div>
-      {hasChildren && !isCollapsed ?
+      {hasChildren && !isCollapsed ? (
         <ul>
-          {node.children.map(child =>
-            <SiddurCustomizeNode key={child.ref} node={child} hidden={hidden} collapsed={collapsed}
-                                 onToggle={onToggle} onToggleCollapse={onToggleCollapse} />)}
-        </ul> : null}
+          {node.children.map((child) => (
+            <SiddurCustomizeNode
+              key={child.ref}
+              node={child}
+              hidden={hidden}
+              collapsed={collapsed}
+              onToggle={onToggle}
+              onToggleCollapse={onToggleCollapse}
+            />
+          ))}
+        </ul>
+      ) : null}
     </li>
   );
 };
 
-
-const SiddurCustomizeModal = ({title, schema, close}) => {
+const SiddurCustomizeModal = ({ title, schema, close }) => {
   // Tree of every section of the siddur; unchecked leaves are saved as hidden.
   // Top-level sections start expanded, everything below them collapsed.
   const tree = useMemo(() => buildCustomizeTree(schema, title), [schema, title]);
-  const leafRefs = useMemo(() => flattenLeaves(tree).map(leaf => leaf.ref), [tree]);
+  const leafRefs = useMemo(() => flattenLeaves(tree).map((leaf) => leaf.ref), [tree]);
   const [hidden, setHidden] = useState(() => new Set(normalizeHiddenRefs(tree, getHiddenRefs(title))));
   const [options, setOptions] = useState(() => getDisplayOptions(title));
-  const [collapsed, setCollapsed] = useState(() => new Set(
-    tree.flatMap(node => node.children).flatMap(function parents(node) {
-      return node.children.length ? [node.ref, ...node.children.flatMap(parents)] : [];
-    })));
+  const [collapsed, setCollapsed] = useState(
+    () =>
+      new Set(
+        tree
+          .flatMap((node) => node.children)
+          .flatMap(function parents(node) {
+            return node.children.length ? [node.ref, ...node.children.flatMap(parents)] : [];
+          })
+      )
+  );
 
   const toggle = (node, show) => {
     const next = new Set(hidden);
-    leavesOf(node).forEach(leaf => show ? next.delete(leaf.ref) : next.add(leaf.ref));
+    leavesOf(node).forEach((leaf) => (show ? next.delete(leaf.ref) : next.add(leaf.ref)));
     setHidden(next);
   };
-  const toggleCollapse = ref => {
+  const toggleCollapse = (ref) => {
     const next = new Set(collapsed);
     next.has(ref) ? next.delete(ref) : next.add(ref);
     setCollapsed(next);
   };
   const save = () => {
-    setHiddenRefs(title, leafRefs.filter(ref => hidden.has(ref)));
+    setHiddenRefs(
+      title,
+      leafRefs.filter((ref) => hidden.has(ref))
+    );
     setDisplayOptions(title, options);
     close();
   };
@@ -92,31 +113,51 @@ const SiddurCustomizeModal = ({title, schema, close}) => {
     <Modal close={close} className="siddurCustomizeModal">
       <div className="siddurCustomize">
         <div className="siddurCustomizeHeader">
-          <h2><InterfaceText>siddur_customize.title</InterfaceText></h2>
-          <button type="button" className="siddurCustomizeClose" aria-label={Sefaria._("common.close")} onClick={close}>×</button>
+          <h2>
+            <InterfaceText>siddur_customize.title</InterfaceText>
+          </h2>
+          <button type="button" className="siddurCustomizeClose" aria-label={Sefaria._('common.close')} onClick={close}>
+            ×
+          </button>
         </div>
         <p className="siddurCustomizeDescription">
           <InterfaceText>siddur_customize.description</InterfaceText>
         </p>
         <div className="siddurCustomizeOptions">
-          {[["showInstructions", "siddur_customize.show_instructions"], ["showHints", "siddur_customize.show_hints"]].map(([key, label]) =>
+          {[
+            ['showInstructions', 'siddur_customize.show_instructions'],
+            ['showHints', 'siddur_customize.show_hints'],
+          ].map(([key, label]) => (
             <label className="siddurCustomizeOption" key={key}>
               <input
                 type="checkbox"
                 role="switch"
                 checked={options[key]}
-                onChange={() => setOptions({...options, [key]: !options[key]})}
+                onChange={() => setOptions({ ...options, [key]: !options[key] })}
               />
               <InterfaceText>{label}</InterfaceText>
-            </label>)}
+            </label>
+          ))}
         </div>
         <ul className="siddurCustomizeTree">
-          {tree.map(node =>
-            <SiddurCustomizeNode key={node.ref} node={node} hidden={hidden} collapsed={collapsed}
-                                 onToggle={toggle} onToggleCollapse={toggleCollapse} />)}
+          {tree.map((node) => (
+            <SiddurCustomizeNode
+              key={node.ref}
+              node={node}
+              hidden={hidden}
+              collapsed={collapsed}
+              onToggle={toggle}
+              onToggleCollapse={toggleCollapse}
+            />
+          ))}
         </ul>
         <div className="siddurCustomizeFooter">
-          <button type="button" className="button small white" onClick={() => setHidden(new Set())} disabled={!hidden.size}>
+          <button
+            type="button"
+            className="button small white"
+            onClick={() => setHidden(new Set())}
+            disabled={!hidden.size}
+          >
             <InterfaceText>siddur_customize.show_all</InterfaceText>
           </button>
           <div className="siddurCustomizeFooterActions">
@@ -133,9 +174,9 @@ const SiddurCustomizeModal = ({title, schema, close}) => {
   );
 };
 SiddurCustomizeModal.propTypes = {
-  title:  PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
   schema: PropTypes.object.isRequired,
-  close:  PropTypes.func.isRequired,
+  close: PropTypes.func.isRequired,
 };
 
 export default SiddurCustomizeModal;

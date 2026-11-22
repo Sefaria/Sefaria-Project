@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from reader.views import render_template
+
 from .models import Dedication
 
 

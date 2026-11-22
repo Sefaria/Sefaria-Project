@@ -1,16 +1,15 @@
 import re
 
-class CrmConnectionManager(object):
+
+class CrmConnectionManager:
     def __init__(self, base_url):
         self.base_url = base_url
         self.session = self._get_connection()
-
 
     def _get_connection(self):
         """
         Authenticate application & return a Requests session object
         """
-        pass
 
     def add_user_to_crm(self, email, first_name, last_name, lang="en", educator=False):
         """
@@ -18,7 +17,6 @@ class CrmConnectionManager(object):
         Returns user id if successful
         Returns false if no user added
         """
-        pass
 
     def change_user_email(self, uid, new_email):
         """
@@ -30,13 +28,11 @@ class CrmConnectionManager(object):
         """
         Do in CRM whatever decision has been made to do about spam users.
         """
-        pass
 
     def mark_for_review_in_crm(self, crm_id):
         """
         Do in CRM whatever decision has been made to do about spam users.
         """
-        pass
 
     def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en", mailing_lists=None):
         CrmConnectionManager.validate_email(email)
@@ -47,18 +43,15 @@ class CrmConnectionManager(object):
         """
         Find CRM ID in CRM given certain information
         """
-        pass
 
     @staticmethod
     def validate_name(name):
         if len(name) < 20 and re.fullmatch(r"^[\w\- \u0590-\u05fe]+$", name):
             return True
-        else:
-            raise ValueError("Invalid Name")
+        raise ValueError("Invalid Name")
 
     @staticmethod
     def validate_email(name):
-        if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', name):
+        if re.fullmatch(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b", name):
             return True
-        else:
-            raise ValueError("Invalid Email")
+        raise ValueError("Invalid Email")

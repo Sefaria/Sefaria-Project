@@ -4,14 +4,16 @@ Tests for catchall view redirects between modules (library and voices).
 Tests that reference links accessed from the wrong module (e.g., voices)
 are properly redirected to the library module.
 """
-from urllib.parse import urlparse, parse_qs
+
+from urllib.parse import parse_qs, urlparse
+
 import pytest
 from django.http import HttpResponse
 from django.test import override_settings
 from django.urls import resolve
-from sefaria.system.exceptions import InputError
-from sefaria.constants.model import VOICES_MODULE
 
+from sefaria.constants.model import VOICES_MODULE
+from sefaria.system.exceptions import InputError
 
 TEST_DOMAIN_MODULES = {
     "en": {
@@ -37,7 +39,7 @@ def test_voices_catchall_ref_redirects_to_library(client, monkeypatch):
     Test that accessing a valid ref from voices domain redirects to library domain.
     """
     HTTP_HOST = "voices.modularization.testing.sefaria.org"
-    
+
     class DummyRef:
         def url(self, _=False):
             return "Genesis.1.1"
@@ -66,9 +68,10 @@ def test_voices_catchall_non_ref_404(client, monkeypatch):
     """
     Test that accessing an invalid ref from voices domain returns 404 (doesn't redirect).
     """
+
     def raise_input_error(tref):
         raise InputError("bad ref")
-    
+
     monkeypatch.setattr(
         "sefaria.model.Ref.instantiate_ref_with_legacy_parse_fallback",
         raise_input_error,
@@ -89,7 +92,7 @@ def test_library_catchall_valid_ref_no_redirect(client, monkeypatch):
     Test that accessing a valid ref from library domain doesn't redirect (stays on library).
     """
     HTTP_HOST = "www.modularization.testing.sefaria.org"
-    
+
     class DummyRef:
         def url(self, _=False):
             return "Genesis.1.1"
@@ -113,16 +116,19 @@ def test_library_catchall_valid_ref_no_redirect(client, monkeypatch):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("encoded_path, tref", [
-    (
-        "The_Five_Books_of_Moses,_by_Everett_Fox,_The_Day_of_Purgation%2FAtonement",
-        "The_Five_Books_of_Moses,_by_Everett_Fox,_The_Day_of_Purgation/Atonement",
-    ),
-    (
-        "Judaism's_Life_Changing_Ideas%3B_A_Weekly_Reading_of_the_Jewish_Bible%2C_Matot%3B_Subject%5CObject",
-        "Judaism's_Life_Changing_Ideas;_A_Weekly_Reading_of_the_Jewish_Bible,_Matot;_Subject\\Object",
-    ),
-])
+@pytest.mark.parametrize(
+    "encoded_path, tref",
+    [
+        (
+            "The_Five_Books_of_Moses,_by_Everett_Fox,_The_Day_of_Purgation%2FAtonement",
+            "The_Five_Books_of_Moses,_by_Everett_Fox,_The_Day_of_Purgation/Atonement",
+        ),
+        (
+            "Judaism's_Life_Changing_Ideas%3B_A_Weekly_Reading_of_the_Jewish_Bible%2C_Matot%3B_Subject%5CObject",
+            "Judaism's_Life_Changing_Ideas;_A_Weekly_Reading_of_the_Jewish_Bible,_Matot;_Subject\\Object",
+        ),
+    ],
+)
 def test_catchall_preserves_escaped_title_separators(client, monkeypatch, encoded_path, tref):
     parsed_refs = []
 
@@ -146,6 +152,7 @@ def test_catchall_preserves_escaped_title_separators(client, monkeypatch, encode
 
 class LegacySegmentTitleRef:
     """Stands in for a library title that contains "/en/"."""
+
     TITLE = "Book/en/Part"
 
     def __init__(self, tref):
@@ -190,10 +197,13 @@ def test_full_title_tref_rejects_legacy_version_url():
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("path, location", [
-    ("/Genesis.1.1/en/Some_Version", "/Genesis.1.1?ven=Some_Version"),
-    ("/api/texts/Genesis.1.1/en/Some_Version", "/api/texts/Genesis.1.1?ven=Some_Version"),
-])
+@pytest.mark.parametrize(
+    "path, location",
+    [
+        ("/Genesis.1.1/en/Some_Version", "/Genesis.1.1?ven=Some_Version"),
+        ("/api/texts/Genesis.1.1/en/Some_Version", "/api/texts/Genesis.1.1?ven=Some_Version"),
+    ],
+)
 def test_legacy_version_url_keeps_section_and_version(client, path, location):
     response = client.get(path)
 
@@ -203,8 +213,10 @@ def test_legacy_version_url_keeps_section_and_version(client, path, location):
 
 @pytest.mark.django_db
 def test_catchall_resolves_real_title_with_escaped_slash(client, monkeypatch):
-    tref = ("The_Five_Books_of_Moses,_by_Everett_Fox,_Leviticus,_Part_II;_Ritual_Pollution_and_Purification,"
-            "_The_Day_of_Purgation/Atonement")
+    tref = (
+        "The_Five_Books_of_Moses,_by_Everett_Fox,_Leviticus,_Part_II;_Ritual_Pollution_and_Purification,"
+        "_The_Day_of_Purgation/Atonement"
+    )
     monkeypatch.setattr("reader.views.text_panels", lambda request, ref: HttpResponse(ref))
 
     response = client.get("/" + tref.replace("/", "%2F"))
@@ -213,10 +225,13 @@ def test_catchall_resolves_real_title_with_escaped_slash(client, monkeypatch):
     assert response.content.decode() == tref
 
 
-@pytest.mark.parametrize("path, page", [
-    ("/activity/Book,_Chapter/Part.1/en/Version/Title", None),
-    ("/activity/Book,_Chapter/Part.1/en/Version/Title/2", "2"),
-])
+@pytest.mark.parametrize(
+    "path, page",
+    [
+        ("/activity/Book,_Chapter/Part.1/en/Version/Title", None),
+        ("/activity/Book,_Chapter/Part.1/en/Version/Title/2", "2"),
+    ],
+)
 def test_activity_route_accepts_title_slashes(path, page):
     match = resolve(path, urlconf="sefaria.urls_library")
 
@@ -242,8 +257,7 @@ def test_version_link_uses_query_form_for_title_slashes():
         def first_section_ref(self):
             return FakeSectionRef()
 
-    assert version_link(FakeVersion()) == \
-        '<a href="/Book,_Chapter%2FPart.1?ven=Version%2FTitle">Version/Title</a>'
+    assert version_link(FakeVersion()) == '<a href="/Book,_Chapter%2FPart.1?ven=Version%2FTitle">Version/Title</a>'
 
 
 @pytest.mark.parametrize("prefix", ["/api/ref/", "/api/texts/", "/api/v3/texts/"])
@@ -259,15 +273,16 @@ def test_redirect_to_module_cross_module(client):
     """
     Test redirect_to_module function for cross-module redirects.
     """
-    from reader.views import redirect_to_module
     from django.test import RequestFactory
-    
+
+    from reader.views import redirect_to_module
+
     factory = RequestFactory()
     request = factory.get("/test", {"param": "value"})
     request.interfaceLang = "english"
-    
+
     response = redirect_to_module(request, "/Genesis.1.1", VOICES_MODULE)
-    
+
     assert response.status_code == 301
     assert "voices.modularization.testing.sefaria.org" in response["Location"]
     assert "Genesis.1.1" in response["Location"]
@@ -280,15 +295,16 @@ def test_redirect_to_module_same_module(client):
     """
     Test redirect_to_module function for same-module redirects (URL normalization).
     """
-    from reader.views import redirect_to_module
     from django.test import RequestFactory
-    
+
+    from reader.views import redirect_to_module
+
     factory = RequestFactory()
     request = factory.get("/test", {"param": "value"})
     request.interfaceLang = "english"
-    
+
     response = redirect_to_module(request, "Genesis.1.1", target_module=None)
-    
+
     assert response.status_code == 301
     assert "/Genesis.1.1" in response["Location"]
     assert "param=value" in response["Location"]
@@ -333,12 +349,15 @@ def test_catchall_redirect_version_language_only(client, monkeypatch):
     """
     _setup_version_mocks(monkeypatch)
 
-    response = client.get("/Genesis.1.1", {
-        "ven": "english|Nonexistent_Title",
-        "vhe": "hebrew|Nonexistent_Title",
-        "p2": "Genesis.1",
-        "ven2": "english|Nonexistent_Title",
-    })
+    response = client.get(
+        "/Genesis.1.1",
+        {
+            "ven": "english|Nonexistent_Title",
+            "vhe": "hebrew|Nonexistent_Title",
+            "p2": "Genesis.1",
+            "ven2": "english|Nonexistent_Title",
+        },
+    )
     assert response.status_code == 302
     params = _get_redirect_params(response)
     assert params["ven"] == ["english|William_Davidson_Edition"]
@@ -361,13 +380,16 @@ def test_catchall_redirect_version_title_only(client, monkeypatch):
     """
     _setup_version_mocks(monkeypatch)
 
-    response = client.get("/Genesis.1.1", {
-        "vhe": "Koren_Tanakh",
-        "p2": "Genesis.1",
-        "vhe2": "Koren_Tanakh",
-        "p10": "Genesis.1",
-        "ven10": "William_Davidson_Edition",
-    })
+    response = client.get(
+        "/Genesis.1.1",
+        {
+            "vhe": "Koren_Tanakh",
+            "p2": "Genesis.1",
+            "vhe2": "Koren_Tanakh",
+            "p10": "Genesis.1",
+            "ven10": "William_Davidson_Edition",
+        },
+    )
     assert response.status_code == 302
     params = _get_redirect_params(response)
     assert params["vhe"] == ["hebrew|Koren_Tanakh"]
@@ -383,11 +405,14 @@ def test_catchall_redirect_version_one_invalid(client, monkeypatch):
     """
     _setup_version_mocks(monkeypatch)
 
-    response = client.get("/Genesis.1.1", {
-        "ven": "nonexistent|William_Davidson_Edition",
-        "p2": "Genesis.1",
-        "vhe2": "nonexistent|Koren_Tanakh",
-    })
+    response = client.get(
+        "/Genesis.1.1",
+        {
+            "ven": "nonexistent|William_Davidson_Edition",
+            "p2": "Genesis.1",
+            "vhe2": "nonexistent|Koren_Tanakh",
+        },
+    )
     assert response.status_code == 302
     params = _get_redirect_params(response)
     assert params["ven"] == ["english|William_Davidson_Edition"]
@@ -401,11 +426,14 @@ def test_catchall_redirect_version_both_invalid(client, monkeypatch):
     """
     _setup_version_mocks(monkeypatch)
 
-    response = client.get("/Genesis.1.1", {
-        "ven": "nonexistent|Nonexistent_Title",
-        "p2": "Genesis.1",
-        "vhe2": "nonexistent|Nonexistent_Title",
-    })
+    response = client.get(
+        "/Genesis.1.1",
+        {
+            "ven": "nonexistent|Nonexistent_Title",
+            "p2": "Genesis.1",
+            "vhe2": "nonexistent|Nonexistent_Title",
+        },
+    )
     assert response.status_code == 302
     params = _get_redirect_params(response)
     assert "ven" not in params

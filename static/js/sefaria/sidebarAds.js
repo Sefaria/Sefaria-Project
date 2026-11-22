@@ -1,18 +1,18 @@
-import { LOCALE_TO_INTERFACE_LANG } from "./strapiLocalization";
-import { normalizePageType } from "./pageTypes";
+import { LOCALE_TO_INTERFACE_LANG } from './strapiLocalization';
+import { normalizePageType } from './pageTypes';
 
 // The Strapi `keywords` field, parsed: a comma-separated list where a `!` prefix means exclude.
 // An EMPTY (or missing/whitespace) field means "no keyword restriction" — the honest way to say
 // "any page", replacing the old editor hack of an exclusion that never matches ("!nowhere").
 // Blank entries from stray commas are dropped rather than becoming unmatchable include keywords.
 const parseKeywords = (rawKeywords) => {
-  const entries = (rawKeywords || "")
-    .split(",")
+  const entries = (rawKeywords || '')
+    .split(',')
     .map((entry) => entry.trim().toLowerCase())
-    .filter((entry) => entry !== "");
+    .filter((entry) => entry !== '');
   return {
-    keywordTargets: entries.filter((entry) => entry[0] !== "!"),
-    excludeKeywordTargets: entries.filter((entry) => entry[0] === "!").map((entry) => entry.slice(1)),
+    keywordTargets: entries.filter((entry) => entry[0] !== '!'),
+    excludeKeywordTargets: entries.filter((entry) => entry[0] === '!').map((entry) => entry.slice(1)),
   };
 };
 
@@ -33,13 +33,10 @@ const parseKeywords = (rawKeywords) => {
 //   - both present                  -> both rules must hold (AND — the old rule ORed them, which
 //                                      let "a, !b" match a page carrying both a AND b).
 const adMatchesKeywords = ({ keywordTargets, excludeKeywordTargets }, pageKeywords) => {
-  const includesPass =
-    keywordTargets.length === 0 ||
-    pageKeywords.some((keyword) => keywordTargets.includes(keyword));
+  const includesPass = keywordTargets.length === 0 || pageKeywords.some((keyword) => keywordTargets.includes(keyword));
   const excludesPass =
     excludeKeywordTargets.length === 0 ||
-    (pageKeywords.length > 0 &&
-      !pageKeywords.some((keyword) => excludeKeywordTargets.includes(keyword)));
+    (pageKeywords.length > 0 && !pageKeywords.some((keyword) => excludeKeywordTargets.includes(keyword)));
   return includesPass && excludesPass;
 };
 
@@ -53,8 +50,8 @@ const adMatchesKeywords = ({ keywordTargets, excludeKeywordTargets }, pageKeywor
 // if an editor ever picks a mid-tone that lands on the wrong side.
 const isLightBackground = (hexColor) => {
   if (!hexColor) return true; // no color -> default styling, same as light
-  const hex = hexColor.replace("#", "");
-  const full = hex.length === 3 ? [...hex].map((c) => c + c).join("") : hex;
+  const hex = hexColor.replace('#', '');
+  const full = hex.length === 3 ? [...hex].map((c) => c + c).join('') : hex;
   if (!/^[0-9a-f]{6}$/i.test(full)) return true; // unparseable -> fail toward readable default
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.7;
@@ -65,16 +62,16 @@ const isLightBackground = (hexColor) => {
 // strapiSelection.js spells "everyone" as "both_logged_in_and_logged_out") — the sidebar ad
 // content type has its own enumeration, and production ads carry "all".
 const SHOW_TO = Object.freeze({
-  ALL: "all",
-  LOGGED_IN: "loggedIn",
-  LOGGED_OUT: "loggedOut",
+  ALL: 'all',
+  LOGGED_IN: 'loggedIn',
+  LOGGED_OUT: 'loggedOut',
 });
 
 const KNOWN_SHOW_TO_VALUES = new Set(Object.values(SHOW_TO));
 
 // Stable console prefix (UNKNOWN_PAGE_TYPE_LOG pattern) so vocabulary drift between the Strapi
 // enumeration and SHOW_TO is findable, instead of surfacing as "why did that ad never show".
-const UNKNOWN_SHOW_TO_LOG = "Unknown sidebar-ad showTo from Strapi (ad will show to nobody):";
+const UNKNOWN_SHOW_TO_LOG = 'Unknown sidebar-ad showTo from Strapi (ad will show to nobody):';
 
 // Strapi value -> internal value. Same contract as normalizePageType in pageTypes.js:
 //   - absent (null/undefined/"") means no audience restriction, so it becomes ALL — an ad an
@@ -106,7 +103,7 @@ const adMatchesShowTo = (showTo, isLoggedIn) => {
 
 // Stable console prefix (same idea as SKIPPED_ROWS_LOG in strapiLocalization.js) so a skipped
 // ad is findable in a console or a test instead of looking like "no campaign running".
-const SKIPPED_SIDEBAR_AD_LOG = "Skipped malformed sidebar ad from Strapi:";
+const SKIPPED_SIDEBAR_AD_LOG = 'Skipped malformed sidebar ad from Strapi:';
 
 // sidebarAds: array of grouped docs from groupByDocumentId (each carrying byLocale/locales).
 // One in-app ad per locale actually present on the document, so a locale with no

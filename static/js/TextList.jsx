@@ -1,17 +1,11 @@
-import {
-  SheetListing,
-  LoadingMessage,
-  SimpleLinkedBlock, InterfaceText, EnglishText, HebrewText
-} from './Misc';
-import {
-  RecentFilterSet,
-} from './ConnectionFilters';
-import React  from 'react';
-import ReactDOM  from 'react-dom';
-import Sefaria  from './sefaria/sefaria';
-import PropTypes  from 'prop-types';
-import TextRange  from './TextRange';
-import Component      from 'react-class';
+import { SheetListing, LoadingMessage, SimpleLinkedBlock, InterfaceText, EnglishText, HebrewText } from './Misc';
+import { RecentFilterSet } from './ConnectionFilters';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import Sefaria from './sefaria/sefaria';
+import PropTypes from 'prop-types';
+import TextRange from './TextRange';
+import Component from 'react-class';
 import classNames from 'classnames';
 
 class TextList extends Component {
@@ -19,10 +13,10 @@ class TextList extends Component {
     super(props);
     this.state = {
       linksLoaded: false, // has the list of refs been loaded
-      textLoaded:  false, // has the text of those refs been loaded
-      waitForText: true,  // should we delay rendering texts until preload is finished
-      links: []
-    }
+      textLoaded: false, // has the text of those refs been loaded
+      waitForText: true, // should we delay rendering texts until preload is finished
+      links: [],
+    };
   }
   componentDidMount() {
     this._isMounted = true;
@@ -31,10 +25,12 @@ class TextList extends Component {
   componentWillUnmount() {
     this._isMounted = false;
   }
-  componentWillUpdate(nextProps) {
-  }
+  componentWillUpdate(nextProps) {}
   componentDidUpdate(prevProps, prevState) {
-    if (!prevProps.srefs.compare(this.props.srefs) || !Sefaria.util.object_equals(this.props.filter, prevProps.filter)) {
+    if (
+      !prevProps.srefs.compare(this.props.srefs) ||
+      !Sefaria.util.object_equals(this.props.filter, prevProps.filter)
+    ) {
       this.loadConnections();
     }
     const didRender = prevState.linksLoaded && (!prevState.waitForText || prevState.textLoaded);
@@ -53,21 +49,29 @@ class TextList extends Component {
     // Load connections data from server for this section, and updates links based on current filter and current ref
     // Finally, preload commentary texts so that it's ready when the user clicks to open a connections panel link in a main panel
     const sectionRef = this.getSectionRef();
-    if (!sectionRef) { return; }
-    Sefaria.related(sectionRef, function(data) {
-      if (this._isMounted) {
-        this.setState({
-          linksLoaded: true,
-          links: this.getLinksAndFilter()
-        }, () => {
-          this.preloadCommentaryText(this.props.filter);
-        });
-      }
-    }.bind(this));
+    if (!sectionRef) {
+      return;
+    }
+    Sefaria.related(
+      sectionRef,
+      function (data) {
+        if (this._isMounted) {
+          this.setState(
+            {
+              linksLoaded: true,
+              links: this.getLinksAndFilter(),
+            },
+            () => {
+              this.preloadCommentaryText(this.props.filter);
+            }
+          );
+        }
+      }.bind(this)
+    );
   }
   onDataChange() {
     Sefaria.clearLinks();
-    this.setState({linksLoaded: false});
+    this.setState({ linksLoaded: false });
     this.loadConnections();
   }
   preloadCommentaryText(filter) {
@@ -76,27 +80,29 @@ class TextList extends Component {
     // categories[0] === "Commentary" only for these terms, whereas a real index like "Rashi on Genesis" has categories[0] === "Tanakh".
     // We don't want to include "Rashi on Genesis" case because that's a "Quoting Commentary" case.
     const isOneText = filter.length === 1 && Sefaria.index(filter[0]);
-    const isCommentary = Sefaria.index(filter[0])?.primary_category === "Commentary" || Sefaria.index(filter[0])?.categories[0] === "Commentary";
+    const isCommentary =
+      Sefaria.index(filter[0])?.primary_category === 'Commentary' ||
+      Sefaria.index(filter[0])?.categories[0] === 'Commentary';
     if (isCommentary && isOneText) {
-      this.setState({waitForText: true});
+      this.setState({ waitForText: true });
       // Get the refs of the links and zoom out one level.  In most cases, the refs will be the same, so it's helpful to use a Set.
-      const refs = [...new Set(this.state.links.map(link => Sefaria.humanRef(Sefaria.zoomOutRef(link.sourceRef))))];
-      refs.map(ref => {
-        Sefaria.getTextFromCurrVersions(ref, {}, this.props.translationLanguagePreference, false).then(data =>{
-          this.setState({textLoaded: true, waitForText: false});
+      const refs = [...new Set(this.state.links.map((link) => Sefaria.humanRef(Sefaria.zoomOutRef(link.sourceRef))))];
+      refs.map((ref) => {
+        Sefaria.getTextFromCurrVersions(ref, {}, this.props.translationLanguagePreference, false).then((data) => {
+          this.setState({ textLoaded: true, waitForText: false });
         });
       });
     } else {
-      this.setState({waitForText: false, textLoaded: false});
+      this.setState({ waitForText: false, textLoaded: false });
     }
   }
   getLinksAndFilter() {
-    const refs               = this.props.srefs;
-    const filter             = this.props.filter;
-    const excludedSheet      = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-    const sectionRef         = this.getSectionRef();
+    const refs = this.props.srefs;
+    const filter = this.props.filter;
+    const excludedSheet = this.props.nodeRef ? this.props.nodeRef.split('.')[0] : null;
+    const sectionRef = this.getSectionRef();
 
-    const sortConnections = function(a, b) {
+    const sortConnections = function (a, b) {
       // Sort according this which verse the link connects to
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
@@ -109,7 +115,7 @@ class TextList extends Component {
         // For text links of same text/commentary use content order, set by server
         return a.commentaryNum - b.commentaryNum;
       }
-      if (this.props.contentLang === "hebrew") {
+      if (this.props.contentLang === 'hebrew') {
         return a.sourceHeRef > b.sourceHeRef ? 1 : -1;
       } else {
         return a.sourceRef > b.sourceRef ? 1 : -1;
@@ -117,13 +123,13 @@ class TextList extends Component {
     }.bind(this);
 
     let sectionLinks = Sefaria.getLinksFromCache(sectionRef);
-    sectionLinks.map(link => {
-      if (!("anchorRefExpanded" in link)) { link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef); }
+    sectionLinks.map((link) => {
+      if (!('anchorRefExpanded' in link)) {
+        link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef);
+      }
     });
-    let overlaps = link => (!(link.anchorRefExpanded.every(aref => Sefaria.util.inArray(aref, refs) === -1)));
-    let links = Sefaria._filterLinks(sectionLinks, filter)
-      .filter(overlaps)
-      .sort(sortConnections);
+    let overlaps = (link) => !link.anchorRefExpanded.every((aref) => Sefaria.util.inArray(aref, refs) === -1);
+    let links = Sefaria._filterLinks(sectionLinks, filter).filter(overlaps).sort(sortConnections);
 
     if (excludedSheet) {
       links = Sefaria._filterSheetFromLinks(links, excludedSheet);
@@ -133,58 +139,81 @@ class TextList extends Component {
   }
 
   render() {
-    var refs               = this.props.srefs;
-    var oref               = Sefaria.ref(refs[0]);
-    var filter             = this.props.filter; // Remove filterSuffix for display
-    var displayFilter      = filter.map(filter => filter.split("|")[0]);  // Remove filterSuffix for display
+    var refs = this.props.srefs;
+    var oref = Sefaria.ref(refs[0]);
+    var filter = this.props.filter; // Remove filterSuffix for display
+    var displayFilter = filter.map((filter) => filter.split('|')[0]); // Remove filterSuffix for display
 
-    var en = "No connections known" + (filter.length ? " for " + displayFilter.join(", ") + " here" : "") + ".";
-    var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
+    var en = 'No connections known' + (filter.length ? ' for ' + displayFilter.join(', ') + ' here' : '') + '.';
+    var he =
+      'אין קשרים ידועים' +
+      (filter.length ? ' ל' + displayFilter.map((f) => Sefaria.hebrewTerm(f)).join(', ') : '') +
+      '.';
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
-    var message = !this.state.linksLoaded ? (<LoadingMessage />) : (this.state.links.length === 0 ? noResultsMessage : null);
-    var content = this.state.links.length === 0 ? message :
-                  this.state.waitForText && !this.state.textLoaded ?
-                    (<LoadingMessage />) :
-                    this.state.links.map(function(link, i) {
-                        if (link.isSheet) {
-                          var hideAuthor = link.index_title == this.props.filter[0];
-                          return (<SheetListing
-                                    sheet={link}
-                                    handleSheetClick={this.props.handleSheetClick}
-                                    connectedRefs={this.props.srefs}
-                                    hideAuthor={hideAuthor}
-                                    openInNewTab={true}
-                                    key={i + link.anchorRef} />);
-                        } else {
-                          var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                          const classes = classNames({ textListTextRangeBox: 1,  typeQF: link.type.startsWith('quotation_auto')});
-                          return (<div className={classes} key={i + link.sourceRef}>
-                                    <TextRange
-                                      panelPosition ={this.props.panelPosition}
-                                      sref={link.sourceRef}
-                                      hideTitle={hideTitle}
-                                      numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                      basetext={false}
-                                      textHighlights={link.highlightedWords || null}
-                                      inlineReference={link.inline_reference || null}
-                                      onCitationClick={this.props.onCitationClick}
-                                      translationLanguagePreference={this.props.translationLanguagePreference}
-                                      filterRef={this.props.filterRef}
-                                    />
-                                    <ConnectionButtons>
-                                      <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
-                                      {Sefaria._uid && <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>}
-                                      {Sefaria.is_moderator ?
-                                      <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/> : null
-                                      }
-                                    </ConnectionButtons>
-                                  </div>);
-
-                        }
-                      }, this);
+    var message = !this.state.linksLoaded ? (
+      <LoadingMessage />
+    ) : this.state.links.length === 0 ? (
+      noResultsMessage
+    ) : null;
+    var content =
+      this.state.links.length === 0 ? (
+        message
+      ) : this.state.waitForText && !this.state.textLoaded ? (
+        <LoadingMessage />
+      ) : (
+        this.state.links.map(function (link, i) {
+          if (link.isSheet) {
+            var hideAuthor = link.index_title == this.props.filter[0];
+            return (
+              <SheetListing
+                sheet={link}
+                handleSheetClick={this.props.handleSheetClick}
+                connectedRefs={this.props.srefs}
+                hideAuthor={hideAuthor}
+                openInNewTab={true}
+                key={i + link.anchorRef}
+              />
+            );
+          } else {
+            var hideTitle = link.category === 'Commentary' && this.props.filter[0] !== 'Commentary';
+            const classes = classNames({ textListTextRangeBox: 1, typeQF: link.type.startsWith('quotation_auto') });
+            return (
+              <div className={classes} key={i + link.sourceRef}>
+                <TextRange
+                  panelPosition={this.props.panelPosition}
+                  sref={link.sourceRef}
+                  hideTitle={hideTitle}
+                  numberLabel={link.category === 'Commentary' ? link.anchorVerse : 0}
+                  basetext={false}
+                  textHighlights={link.highlightedWords || null}
+                  inlineReference={link.inline_reference || null}
+                  onCitationClick={this.props.onCitationClick}
+                  translationLanguagePreference={this.props.translationLanguagePreference}
+                  filterRef={this.props.filterRef}
+                />
+                <ConnectionButtons>
+                  <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick} />
+                  {Sefaria._uid && (
+                    <AddConnectionToSheetButton
+                      srefs={[link.sourceRef]}
+                      addToSheetCallback={this.props.setConnectionsMode}
+                    />
+                  )}
+                  {Sefaria.is_moderator ? (
+                    <DeleteConnectionButton
+                      delUrl={'/api/links/' + link._id}
+                      connectionDeleteCallback={this.onDataChange}
+                    />
+                  ) : null}
+                </ConnectionButtons>
+              </div>
+            );
+          }
+        }, this)
+      );
     return (
-        <div>
-          {this.props.fullPanel ?
+      <div>
+        {this.props.fullPanel ? (
           <RecentFilterSet
             srefs={this.props.srefs}
             asHeader={false}
@@ -192,67 +221,68 @@ class TextList extends Component {
             recentFilters={this.props.recentFilters}
             textCategory={oref ? oref.primary_category : null}
             setFilter={this.props.setFilter}
-            showAllFilters={this.showAllFilters} />
-            : null }
-          { content }
-        </div>);
+            showAllFilters={this.showAllFilters}
+          />
+        ) : null}
+        {content}
+      </div>
+    );
   }
 }
 TextList.propTypes = {
-  srefs:                   PropTypes.array.isRequired,    // an array of ref strings
-  filter:                  PropTypes.array.isRequired,
-  recentFilters:           PropTypes.array.isRequired,
-  fullPanel:               PropTypes.bool,
-  multiPanel:              PropTypes.bool,
-  contentLang:             PropTypes.string,
-  setFilter:               PropTypes.func,
-  setConnectionsMode:      PropTypes.func,
-  onTextClick:             PropTypes.func,
-  onCitationClick:         PropTypes.func,
-  onDataChange:            PropTypes.func,
-  handleSheetClick:        PropTypes.func,
-  openNav:                 PropTypes.func,
-  closePanel:              PropTypes.func,
-  selectedWords:           PropTypes.string,
-  checkVisibleSegments:    PropTypes.func.isRequired,
+  srefs: PropTypes.array.isRequired, // an array of ref strings
+  filter: PropTypes.array.isRequired,
+  recentFilters: PropTypes.array.isRequired,
+  fullPanel: PropTypes.bool,
+  multiPanel: PropTypes.bool,
+  contentLang: PropTypes.string,
+  setFilter: PropTypes.func,
+  setConnectionsMode: PropTypes.func,
+  onTextClick: PropTypes.func,
+  onCitationClick: PropTypes.func,
+  onDataChange: PropTypes.func,
+  handleSheetClick: PropTypes.func,
+  openNav: PropTypes.func,
+  closePanel: PropTypes.func,
+  selectedWords: PropTypes.string,
+  checkVisibleSegments: PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
-  filterRef:             PropTypes.string
+  filterRef: PropTypes.string,
 };
 
-const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
+const DeleteConnectionButton = ({ delUrl, connectionDeleteCallback }) => {
   /*
   ConnectionButton composite element. Goes inside a ConnectionButtons
   Takes a url for a delete api (with the full URI of a specific object) and callback
    */
   const deleteLink = () => {
-    if(!Sefaria.is_moderator) return;
-    if (confirm("Are you sure you want to delete this connection?")) {
+    if (!Sefaria.is_moderator) return;
+    if (confirm('Are you sure you want to delete this connection?')) {
       const url = delUrl;
       $.ajax({
-        type: "delete",
+        type: 'delete',
         url: url,
-        success: function() {
+        success: function () {
           connectionDeleteCallback();
-          alert("Connection deleted.");
+          alert('Connection deleted.');
         }.bind(this),
         error: function () {
-          alert("There was an error deleting this connection. Please reload the page or try again later.");
-        }
+          alert('There was an error deleting this connection. Please reload the page or try again later.');
+        },
       });
     }
-  }
+  };
   return Sefaria.is_moderator ? (
-      <SimpleLinkedBlock
-        aclasses={"connection-button delete-link"}
-        onClick={deleteLink}
-        en={"Remove"}
-        he={"מחיקת קישור"}
-      />
+    <SimpleLinkedBlock
+      aclasses={'connection-button delete-link'}
+      onClick={deleteLink}
+      en={'Remove'}
+      he={'מחיקת קישור'}
+    />
   ) : null;
-}
+};
 
-
-const OpenConnectionTabButton = ({srefs, openInTabCallback, openStrings}) =>{
+const OpenConnectionTabButton = ({ srefs, openInTabCallback, openStrings }) => {
   /*
   ConnectionButton composite element. Goes inside a ConnectionButtons
   Takes a ref(s) for opening as a link and callback for opening in-app
@@ -264,49 +294,49 @@ const OpenConnectionTabButton = ({srefs, openInTabCallback, openStrings}) =>{
       event.preventDefault();
       //Click on the body of the TextRange itself from TextList
       openInTabCallback(srefs);
-      Sefaria.track.event("Reader", "Click Text from TextList", sref);
+      Sefaria.track.event('Reader', 'Click Text from TextList', sref);
     }
-  }
-  return(
-      <SimpleLinkedBlock
-        aclasses={"connection-button panel-open-link"}
-        onClick={openLinkInTab}
-        en={en}
-        he={he}
-        url={`/${sref}`}
-      />
+  };
+  return (
+    <SimpleLinkedBlock
+      aclasses={'connection-button panel-open-link'}
+      onClick={openLinkInTab}
+      en={en}
+      he={he}
+      url={`/${sref}`}
+    />
   );
-}
+};
 
-
-const AddConnectionToSheetButton = ({srefs, addToSheetCallback, versions= {"en":null, "he":null} }) =>{
+const AddConnectionToSheetButton = ({ srefs, addToSheetCallback, versions = { en: null, he: null } }) => {
   /*
   ConnectionButton composite element. Goes inside a ConnectionButtons
   Takes a ref(s) for opening an AddToSourceSheet element and callback for passing data to said element - refs and versions object
    */
   const addToSheet = () => {
-    addToSheetCallback("Add To Sheet", {"addSource": "connectionsPanel", "connectionRefs" : srefs, "versions": versions});
-  }
-  return(
+    addToSheetCallback('Add To Sheet', { addSource: 'connectionsPanel', connectionRefs: srefs, versions: versions });
+  };
+  return (
     <SimpleLinkedBlock
-      aclasses={"connection-button add-to-sheet-link"}
+      aclasses={'connection-button add-to-sheet-link'}
       onClick={addToSheet}
-      en={"Add to Sheet"}
-      he={"הוספה לדף מקורות"}
+      en={'Add to Sheet'}
+      he={'הוספה לדף מקורות'}
     />
   );
-}
+};
 
-const ConnectionButtons = ({children}) =>{
+const ConnectionButtons = ({ children }) => {
   /* This is basically just a composition container, and allows to apply css rules to a container for connection buttons.
     can also be expanded to use a default set of connection buttons, if not children are present?
    */
-  return(
-      <div className={`connection-buttons`}>
-        {children}
-      </div>
-  );
-}
+  return <div className={`connection-buttons`}>{children}</div>;
+};
 
-
-export {TextList as default, ConnectionButtons, AddConnectionToSheetButton, OpenConnectionTabButton, DeleteConnectionButton};
+export {
+  TextList as default,
+  ConnectionButtons,
+  AddConnectionToSheetButton,
+  OpenConnectionTabButton,
+  DeleteConnectionButton,
+};

@@ -1,4 +1,5 @@
 # Sheets
+
 > Source: `sefaria/sheets.py`
 
 ## Purpose
@@ -29,7 +30,7 @@ Backend for Sefaria Source Sheets -- user-created documents that combine referen
 
 - **`user_sheets(user_id, sort_by, limit, skip, private)`** -- Returns sheets for a user. If `private=True`, annotates with all collections the user has added each sheet to; otherwise annotates with the displayed collection only.
 - **`public_sheets(sort, limit, skip, lang, filtered)`** -- Returns public sheets. `filtered=True` limits to sheets that contain at least one textual ref source.
-- **`get_sheets_for_ref(tref, uid, in_collection)`** -- Core function for the sidebar: returns all sheets containing a given ref. Uses `expandedRefs` index for lookup. Calculates `combined_score` via LLM scoring data (title interest, ref relevance, creativity). Batch-loads user profiles for performance.
+- **`get_sheets_for_ref(tref, uid, in_collection, sheet_ids, slim)`** -- Core function for the sidebar: returns all sheets containing a given ref. Finds them via the `expandedRefs` indexes (no hint; the planner picks the compound `{expandedRefs, status|owner, ...}` ones). Calculates `combined_score` via LLM scoring data (title interest, ref relevance, creativity). Batch-loads user profiles for performance. With `slim=True` it skips all of that and returns only `{id, owner, anchorRef, anchorRefExpanded}` per sheet -- what the web reader's sheets count needs (`/api/related/<ref>?with_sheet_links=1`, which only the web reader sends).
 - **`get_sheets_by_topic(topic, public, proj, limit, page)`** -- Fetches sheets by topic slug with pagination.
 - **`sheet_list(query, sort, skip, limit)`** -- Low-level list query that returns only display-relevant fields via projection.
 
@@ -100,18 +101,22 @@ Backend for Sefaria Source Sheets -- user-created documents that combine referen
 ## Common Tasks
 
 ### Add a new field to sheets
+
 1. Add to `Sheet.optional_attrs` (or `required_attrs` if mandatory).
 2. Handle in `save_sheet()` -- decide if it's a protected field (can't be set from outside) or user-settable.
 3. If it should be in listings, add to the projection in `sheet_list()`.
 
 ### Debug why a sheet isn't appearing in search
+
 1. Check `sheet["status"]` is `"public"`.
 2. Check `SEARCH_INDEX_ON_SAVE` is `True`.
 3. Look at the `try/except` around `search.index_sheet()` in `save_sheet()` -- errors are logged but swallowed.
 4. Check `search.index_sheet()` in `search.py` for validation failures (missing title, summary, owner data, dates).
 
 ### Understand how sheets appear in the text sidebar
+
 Follow `get_sheets_for_ref(tref)` -- it queries `expandedRefs`, calculates combined scores from LLM data, and returns annotated sheet data. The `expandedRefs` field is populated by `save_sheet()` on every save.
 
 ### Change how sheet-topic linking works
+
 Look at `update_sheet_topic_links()` which creates/deletes `RefTopicLink` records. The ref format for sheets is `"Sheet {id}"`. Links are only created for public sheets.

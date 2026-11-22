@@ -13,7 +13,10 @@ export function whenReady(check, cb) {
   let timer = null;
   const tick = () => {
     if (cancelled) return;
-    if (check()) { cb(); return; }
+    if (check()) {
+      cb();
+      return;
+    }
     if (--tries <= 0) return;
     timer = setTimeout(tick, 100);
   };
@@ -27,8 +30,7 @@ export function whenReady(check, cb) {
 export function pickFirstError(data) {
   if (!data || typeof data !== 'object') return null;
   if (typeof data.error === 'string') return data.error;
-  if (typeof data.errors?.[0]?.message === 'string')
-    return data.errors[0].message;
+  if (typeof data.errors?.[0]?.message === 'string') return data.errors[0].message;
   for (const k of Object.keys(data)) {
     if (k === '_auth' || k === 'errors') continue;
     if (typeof data[k] === 'string') return data[k];
@@ -60,7 +62,7 @@ export function resolveInitialAuthState(initialPath, authResetUid) {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : initialPath.split('?')[0];
   return {
     showAuth: isAuthPath(pathname.replace(/\/$/, '')) || !!authResetUid,
-    authPath: typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : initialPath,
+    authPath: typeof window !== 'undefined' ? window.location.pathname + window.location.search : initialPath,
   };
 }
 
@@ -82,8 +84,15 @@ export function nextFromPath(path) {
   return safeNext(new URLSearchParams(path.split('?')[1] || '').get('next') || '/');
 }
 
+// Developer banner (PBS check-in, 2026-11-02): someone sent here from developer settings or the Powered by form
+// should read why they have to log in first. Both get the same message (D78). The return address already brings
+// them back afterwards.
+export function authNoticeFor(next) {
+  return next && /^\/settings\/developer(\/|\?|$)/.test(next) ? 'developer' : null;
+}
+
 export function checkPasswordsMatch(p1, p2) {
-  return (p2 && p1 !== p2) ? 'auth.passwords_dont_match' : null;
+  return p2 && p1 !== p2 ? 'auth.passwords_dont_match' : null;
 }
 
 export function requiredFieldValidate(value) {

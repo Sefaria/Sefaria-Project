@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 import django
+
 django.setup()
-import sys
 import datetime
+import sys
 
 from sefaria.stats import SheetStats
 
@@ -12,4 +12,4 @@ stats = SheetStats()
 stats.run()
 stats.print_stats()
 if action == "savesheet":
-	stats.save_top_sheets()
+    stats.save_top_sheets()

@@ -54,16 +54,16 @@ Remote URLs require HTTPS; redirects are rejected so a wrong endpoint cannot sil
 
 Ten sequential requests, no retries or load testing:
 
-| Case | Assertions |
-|---|---|
-| English and Hebrew conceptual queries | HTTP 200, nonempty results, expected metadata and text |
-| Linked-ref search | Results plus correctly shaped linked refs; validate expanded chunk numbering and parent limit |
-| English-language and Hebrew-language filters | Every semantic result has the requested language |
-| Genesis filter | Every semantic result belongs to Genesis |
-| Metadata-only response | Required metadata present, text omitted |
-| Limit of one | Exactly one semantic result |
-| Empty query, valid auth | HTTP 400 and JSON error |
-| No authentication | HTTP 401 and JSON error |
+| Case                                         | Assertions                                                                                    |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| English and Hebrew conceptual queries        | HTTP 200, nonempty results, expected metadata and text                                        |
+| Linked-ref search                            | Results plus correctly shaped linked refs; validate expanded chunk numbering and parent limit |
+| English-language and Hebrew-language filters | Every semantic result has the requested language                                              |
+| Genesis filter                               | Every semantic result belongs to Genesis                                                      |
+| Metadata-only response                       | Required metadata present, text omitted                                                       |
+| Limit of one                                 | Exactly one semantic result                                                                   |
+| Empty query, valid auth                      | HTTP 400 and JSON error                                                                       |
+| No authentication                            | HTTP 401 and JSON error                                                                       |
 
 Every successful-search case requires the selected backend header. Results must respect the
 requested limit. Empty linked refs are legal and produce a coverage warning; omitted linked

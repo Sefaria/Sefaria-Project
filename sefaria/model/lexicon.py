@@ -1,38 +1,35 @@
-# -*- coding: utf-8 -*-
 """
 Writes to MongoDB Collection: word_form, lexicon_entry
 """
-import re
+
 import html
+import re
 import unicodedata
+
 import bleach
-from . import abstract as abst
+
 from sefaria.datatype.jagged_array import JaggedTextArray
-from sefaria.system.exceptions import InputError
-from sefaria.utils.hebrew import has_hebrew, strip_cantillation, has_cantillation
-from sefaria.utils.util import deep_map, deep_prune
 from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+from sefaria.utils.hebrew import has_cantillation, has_hebrew, strip_cantillation
+from sefaria.utils.util import deep_map, deep_prune
+
+from . import abstract as abst
 
 
 class WordForm(abst.AbstractMongoRecord):
-
-    collection = 'word_form'
+    collection = "word_form"
     required_attrs = [
         "form",
         "lookups",
     ]
 
-    optional_attrs = [
-        "c_form",
-        "refs",
-        "language_code",
-        "generated_by"
-    ]
+    optional_attrs = ["c_form", "refs", "language_code", "generated_by"]
 
     def load(self, query, proj=None):
-        if 'form' in query and isinstance(query['form'], str):
-            query['form'] = {"$regex": "^"+query['form']+"$", "$options": "i"}
-        return super(WordForm, self).load(query, proj=None)
+        if "form" in query and isinstance(query["form"], str):
+            query["form"] = {"$regex": "^" + query["form"] + "$", "$options": "i"}
+        return super().load(query, proj=None)
 
     def _sanitize(self):
         pass
@@ -43,30 +40,25 @@ class WordFormSet(abst.AbstractMongoSet):
 
 
 class Lexicon(abst.AbstractMongoRecord):
-    collection = 'lexicon'
-    required_attrs = [
-        "name",
-        'language',
-        'to_language',
-        'text_categories'
-    ]
+    collection = "lexicon"
+    required_attrs = ["name", "language", "to_language", "text_categories"]
 
     optional_attrs = [
-        'title',
-        'pub_location',
-        'pub_date',
-        'editor',
-        'year',
-        'source',
-        'source_url',
-        'attribution',
-        'attribution_url',
-        'text_categories',
-        'index_title',          # The title of the Index record that corresponds to this Lexicon
-        'version_title',        # The title of the Version record that corresponds to this Lexicon
-        'version_lang',         # The language of the Version record that corresponds to this Lexicon
-        'should_autocomplete',   # enables search box
-        'needsRefsWrapping'
+        "title",
+        "pub_location",
+        "pub_date",
+        "editor",
+        "year",
+        "source",
+        "source_url",
+        "attribution",
+        "attribution_url",
+        "text_categories",
+        "index_title",  # The title of the Index record that corresponds to this Lexicon
+        "version_title",  # The title of the Version record that corresponds to this Lexicon
+        "version_lang",  # The language of the Version record that corresponds to this Lexicon
+        "should_autocomplete",  # enables search box
+        "needsRefsWrapping",
     ]
 
     def word_count(self):
@@ -85,8 +77,8 @@ class Dictionary(Lexicon):
 
 
 class LexiconEntry(abst.AbstractMongoRecord):
-    collection   = 'lexicon_entry'
-    history_noun = 'lexicon_entry'
+    collection = "lexicon_entry"
+    history_noun = "lexicon_entry"
 
     required_attrs = [
         "headword",
@@ -121,27 +113,27 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "strong_numbers",
         "GK",
         "TWOT",
-        'peculiar',
-        'all_cited',
-        'ordinal',
-        'brackets',
-        'headword_suffix',
-        'root',
-        'occurrences'
+        "peculiar",
+        "all_cited",
+        "ordinal",
+        "brackets",
+        "headword_suffix",
+        "root",
+        "occurrences",
     ]
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
-    ALLOWED_ATTRS   = {
-        'span':['class', 'dir'],
-        'i': ['data-commentator', 'data-order', 'class', 'data-label', 'dir'],
-        'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
+    ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
+    ALLOWED_ATTRS = {
+        "span": ["class", "dir"],
+        "i": ["data-commentator", "data-order", "class", "data-label", "dir"],
+        "img": lambda name, value: name == "src" and value.startswith("data:image/"),
         # data-scroll-link matches the general text-sanitization allowlist for `a`
         # (sefaria/constants/model.py) -- TextRange.jsx:464 reads it to scroll within the
         # same panel instead of opening a new one.
-        'a': ['dir', 'class', 'href', 'data-ref', 'data-scroll-link'],
+        "a": ["dir", "class", "href", "data-ref", "data-scroll-link"],
         # The standard footnote-marker convention (sefaria/helper/normalization.py,
         # sefaria/search.py) -- s2.css styles it and ReaderApp.jsx's clipboard-copy cleanup
         # keys off this exact class.
-        'sup': ['class'],
+        "sup": ["class"],
     }
 
     # is_key_changed('headword') tells _validate() whether headword itself is being set to
@@ -160,33 +152,52 @@ class LexiconEntry(abst.AbstractMongoRecord):
     # inside `content`/`content['senses']`, which is a different field and stays reachable
     # through `content` regardless.
     content_patch_excluded_attrs = [
-        "headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes",
-        "transliteration", "pronunciation", "morphology", "refs", "related_words", "number",
-        "citations", "plural_form", "binyan_form", "alternative",
-        "orig_word", "orig_ref", "catane_number", "strong_number", "strong_numbers", "GK", "TWOT",
+        "headword",
+        "parent_lexicon",
+        "prev_hw",
+        "next_hw",
+        "rid",
+        "quotes",
+        "transliteration",
+        "pronunciation",
+        "morphology",
+        "refs",
+        "related_words",
+        "number",
+        "citations",
+        "plural_form",
+        "binyan_form",
+        "alternative",
+        "orig_word",
+        "orig_ref",
+        "catane_number",
+        "strong_number",
+        "strong_numbers",
+        "GK",
+        "TWOT",
     ]
 
     def load(self, query, proj=None):
         # Resolve the correct dictionary subclass before super().load(), since its
         # known-keys assertion needs self.__class__ to already be e.g. KrupnikEntry to
         # accept fields (pos_list, emendation, ...) the base class doesn't know about.
-        parent_lexicon = query.get('parent_lexicon')
+        parent_lexicon = query.get("parent_lexicon")
         if parent_lexicon is None:  # query didn't include it (e.g. lookup by _id alone)
-            peek = getattr(db, self.collection).find_one(query, {'parent_lexicon': 1})
-            parent_lexicon = peek['parent_lexicon'] if peek else None
+            peek = getattr(db, self.collection).find_one(query, {"parent_lexicon": 1})
+            parent_lexicon = peek["parent_lexicon"] if peek else None
         if parent_lexicon is not None:
             self.__class__ = LexiconEntrySubClassMapping.class_factory(parent_lexicon)
-        return super(LexiconEntry, self).load(query, proj)
+        return super().load(query, proj)
 
     def _normalize(self):
         # An existing entry only gets headword normalized if it's actually changing this
         # save -- an unrelated save must leave an untouched, not-yet-backfilled value as is.
-        if self.is_new() or self.is_key_changed('headword'):
-            self.headword = unicodedata.normalize('NFC', self.headword)
+        if self.is_new() or self.is_key_changed("headword"):
+            self.headword = unicodedata.normalize("NFC", self.headword)
         if self.is_new():
-            for attr in ('prev_hw', 'next_hw'):
+            for attr in ("prev_hw", "next_hw"):
                 if hasattr(self, attr):
-                    setattr(self, attr, unicodedata.normalize('NFC', getattr(self, attr)))
+                    setattr(self, attr, unicodedata.normalize("NFC", getattr(self, attr)))
         self._prune_empty_attrs()
 
     def _prune_empty_attrs(self):
@@ -204,24 +215,24 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
     # Hyphen/dash, period, and colon each make a headword fail to resolve as a ref (Ref's
     # tref parsing, sefaria/model/text.py). Comma and underscore were checked and don't.
-    HEADWORD_REF_UNSAFE_CHARS = re.compile(r'[-\u2010-\u2015.:]')
+    HEADWORD_REF_UNSAFE_CHARS = re.compile(r"[-\u2010-\u2015.:]")
 
     def _validate(self):
-        super(LexiconEntry, self)._validate()
+        super()._validate()
         # Unlike the ref-safety/uniqueness checks below, this applies regardless of
         # is_rendered_as_text: headword_string() (BDBEntry, KovetzYesodotEntry) interpolates
         # self.headword raw into HTML for every dictionary entry, lookup-only or not. Reject
         # rather than silently bleach-clean it, so the persisted value always matches what
         # the caller (and any API response built from it) thinks was saved.
-        if self.is_key_changed('headword') and bleach.clean(self.headword, tags=[], attributes={}) != self.headword:
+        if self.is_key_changed("headword") and bleach.clean(self.headword, tags=[], attributes={}) != self.headword:
             raise InputError(f"Headword {self.headword!r} contains characters that would not render safely")
-        lexicon = Lexicon().load({'name': self.parent_lexicon})
-        is_rendered_as_text = bool(getattr(lexicon, 'index_title', None))
-        if is_rendered_as_text and self.is_key_changed('headword'):
+        lexicon = Lexicon().load({"name": self.parent_lexicon})
+        is_rendered_as_text = bool(getattr(lexicon, "index_title", None))
+        if is_rendered_as_text and self.is_key_changed("headword"):
             if self.HEADWORD_REF_UNSAFE_CHARS.search(self.headword):
                 raise InputError(f"Headword {self.headword!r} would not resolve as a ref in {self.parent_lexicon}")
-            existing = LexiconEntry().load({'parent_lexicon': self.parent_lexicon, 'headword': self.headword})
-            if existing and getattr(existing, '_id', None) != getattr(self, '_id', None):
+            existing = LexiconEntry().load({"parent_lexicon": self.parent_lexicon, "headword": self.headword})
+            if existing and getattr(existing, "_id", None) != getattr(self, "_id", None):
                 raise InputError(f"Entry of {self.parent_lexicon} with headword {self.headword} already exists")
 
     def _sanitize(self):
@@ -246,10 +257,18 @@ class LexiconEntry(abst.AbstractMongoRecord):
         # the caller was told was saved.
         for attr in set(self.required_attrs + self.optional_attrs) - set(self.content_patch_excluded_attrs):
             if hasattr(self, attr):
-                setattr(self, attr, deep_map(
-                    getattr(self, attr),
-                    leaf_fn=lambda v: bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS) if isinstance(v, str) else v,
-                ))
+                setattr(
+                    self,
+                    attr,
+                    deep_map(
+                        getattr(self, attr),
+                        leaf_fn=lambda v: (
+                            bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+                            if isinstance(v, str)
+                            else v
+                        ),
+                    ),
+                )
 
     def content_attr_names(self):
         return (set(self.required_attrs) | set(self.optional_attrs)) - set(self.content_patch_excluded_attrs)
@@ -272,34 +291,33 @@ class LexiconEntry(abst.AbstractMongoRecord):
         pass
 
     def contents(self, **kwargs):
-        cts = super(LexiconEntry, self).contents()
-        parent_lexicon = Lexicon().load({'name': self.parent_lexicon})
-        cts['parent_lexicon_details'] = parent_lexicon.contents()
+        cts = super().contents()
+        parent_lexicon = Lexicon().load({"name": self.parent_lexicon})
+        cts["parent_lexicon_details"] = parent_lexicon.contents()
         return cts
 
 
 class DictionaryEntry(LexiconEntry):
     attr_schemas = {
-        'content': {
-            'type': 'dict',
-            'allow_unknown': True,
-            'schema': {'senses': {'type': 'list', 'schema': {'type': 'dict', 'allow_unknown': True}}},
+        "content": {
+            "type": "dict",
+            "allow_unknown": True,
+            "schema": {"senses": {"type": "list", "schema": {"type": "dict", "allow_unknown": True}}},
         },
     }
 
     def get_sense(self, sense):
-        text = ''
-        text += sense.get('number', '')
+        text = ""
+        text += sense.get("number", "")
         if text:
-            text = "<b>{}</b> ".format(text)
-        for field in ['definition', 'alternative', 'notes']:
-            text += sense.get(field, '')
+            text = f"<b>{text}</b> "
+        for field in ["definition", "alternative", "notes"]:
+            text += sense.get(field, "")
         return text
 
     def headword_string(self):
-        headwords = [self.headword] + getattr(self, 'alt_headwords', [])
-        string = ', '.join(
-            ['<strong dir="rtl">{}</strong>'.format(hw) for hw in headwords])
+        headwords = [self.headword] + getattr(self, "alt_headwords", [])
+        string = ", ".join([f'<strong dir="rtl">{hw}</strong>' for hw in headwords])
         return string
 
     def word_count(self):
@@ -308,21 +326,21 @@ class DictionaryEntry(LexiconEntry):
     def as_strings(self, with_headword=True):
         new_content = ""
         next_line = ""
-        content = getattr(self, 'content', {})
+        content = getattr(self, "content", {})
 
         if with_headword:
             next_line = self.headword_string()
 
-        for field in ['morphology']:
+        for field in ["morphology"]:
             if field in content:
                 next_line += " " + content[field]
 
-        lang = ''
-        if hasattr(self, 'language_code'):
+        lang = ""
+        if hasattr(self, "language_code"):
             lang += " " + self.language_code
-        if hasattr(self, 'language_reference'):
+        if hasattr(self, "language_reference"):
             if lang:
-                lang += ' '
+                lang += " "
             lang += self.language_reference
         if lang:
             next_line += lang
@@ -330,24 +348,25 @@ class DictionaryEntry(LexiconEntry):
         # senses may be absent (content is optional for some subclasses) or present but
         # empty (e.g. an entry whose real content is in notes/morphology instead) -- neither
         # is a crash, both should just contribute nothing here.
-        for sense in content.get('senses', []):
-            if 'grammar' in sense:
+        for sense in content.get("senses", []):
+            if "grammar" in sense:
                 # This is where we would start a new segment for the new form
                 new_content += next_line
-                next_line = '<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{}</strong> - '.format(sense['grammar']['verbal_stem'])
-                next_line += ', '.join(
-                    ['<strong dir="rtl">{}</strong>'.format(b) for b in sense['grammar']['binyan_form']])
+                next_line = "<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{}</strong> - ".format(
+                    sense["grammar"]["verbal_stem"]
+                )
+                next_line += ", ".join([f'<strong dir="rtl">{b}</strong>' for b in sense["grammar"]["binyan_form"]])
                 try:
-                    for binyan_sense in sense['senses']:
+                    for binyan_sense in sense["senses"]:
                         next_line += " " + self.get_sense(binyan_sense)
                 except KeyError:
                     pass
             else:
                 next_line += " " + self.get_sense(sense)
 
-        if hasattr(self, 'notes'):
+        if hasattr(self, "notes"):
             next_line += " " + self.notes
-        if hasattr(self, 'derivatives'):
+        if hasattr(self, "derivatives"):
             next_line += " " + self.derivatives
 
         if next_line:
@@ -370,8 +389,8 @@ class HebrewDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["rid"]
 
     def headword_string(self):
-        headwords = [self.headword] + getattr(self, 'alt_headwords', [])
-        string = ', '.join([f'<strong><big>{hw}</big></strong>' for hw in headwords]) + '\xa0\xa0'
+        headwords = [self.headword] + getattr(self, "alt_headwords", [])
+        string = ", ".join([f"<strong><big>{hw}</big></strong>" for hw in headwords]) + "\xa0\xa0"
         return string
 
 
@@ -379,24 +398,24 @@ class JastrowDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["rid"]
 
     def get_sense(self, sense):
-        text = ''
-        text += sense.get('number', '')
+        text = ""
+        text += sense.get("number", "")
         if text:
-            text = "<b>{}</b> ".format(text)
-        for field in ['definition']:
-            text += sense.get(field, '')
+            text = f"<b>{text}</b> "
+        for field in ["definition"]:
+            text += sense.get(field, "")
         return text
 
     def headword_string(self):
         line = ""
-        for hw in [self.headword] + getattr(self, 'alt_headwords', []):
-            hw = re.sub(r' [\u00B2\u00B3\u2074\u2075\u2076]', '', hw)  # Drop superscripts from presentation
-            for txt in re.split(r'([^ IV\u0590-\u05fe\'\-\"̇̇…̇̇])', hw):
-                if re.search(r'[IV\u0590-\u05fe\'\-\"̇̇…̇̇]', txt):
-                    line += '<strong dir="rtl">{}</strong>'.format(txt)
+        for hw in [self.headword] + getattr(self, "alt_headwords", []):
+            hw = re.sub(r" [\u00B2\u00B3\u2074\u2075\u2076]", "", hw)  # Drop superscripts from presentation
+            for txt in re.split(r"([^ IV\u0590-\u05fe\'\-\"̇̇…̇̇])", hw):
+                if re.search(r"[IV\u0590-\u05fe\'\-\"̇̇…̇̇]", txt):
+                    line += f'<strong dir="rtl">{txt}</strong>'
                 else:
                     line += txt
-            line += ', '
+            line += ", "
         line = line[:-2]
         return line
 
@@ -405,125 +424,140 @@ class KleinDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
 
     def get_sense(self, sense):
-        text = ''
-        for field in ['plural_form', 'language_code', 'alternative']:
-            text += sense.get(field, '') + ' '
-        num = sense.get('number', '')
+        text = ""
+        for field in ["plural_form", "language_code", "alternative"]:
+            text += sense.get(field, "") + " "
+        num = sense.get("number", "")
         if num:
-            text += "<b>{}</b> ".format(num)
-        for field in ['definition', 'notes']:
-            text += sense.get(field, '') + ' '
+            text += f"<b>{num}</b> "
+        for field in ["definition", "notes"]:
+            text += sense.get(field, "") + " "
         return text[:-1]
+
 
 class BDBEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
-    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_suffix', 'alt_headwords', 'root', 'occurrences', 'quotes', 'GK', 'TWOT']
+    optional_attrs = [
+        "strong_numbers",
+        "next_hw",
+        "prev_hw",
+        "peculiar",
+        "all_cited",
+        "ordinal",
+        "brackets",
+        "headword_suffix",
+        "alt_headwords",
+        "root",
+        "occurrences",
+        "quotes",
+        "GK",
+        "TWOT",
+    ]
 
     def headword_string(self):
         hw = f'<span dir="rtl">{re.sub("[⁰¹²³⁴⁵⁶⁷⁸⁹]*", "", self.headword)}</span>'
-        if hasattr(self, 'occurrences') and not hasattr(self, 'headword_suffix'):
-            hw += f'</big><sub>{self.occurrences}</sub><big>' #the sub shouldn't be in big
+        if hasattr(self, "occurrences") and not hasattr(self, "headword_suffix"):
+            hw += f"</big><sub>{self.occurrences}</sub><big>"  # the sub shouldn't be in big
         alts = []
-        if hasattr(self, 'alt_headwords'):
+        if hasattr(self, "alt_headwords"):
             for alt in self.alt_headwords:
                 a = f'<span dir="rtl">{alt["word"]}</span>'
-                if 'occurrences' in alt:
-                    a += f'</big><sub>{alt["occurrences"]}</sub><big>' #the sub shouldn't be in big
+                if "occurrences" in alt:
+                    a += f"</big><sub>{alt['occurrences']}</sub><big>"  # the sub shouldn't be in big
                 alts.append(a)
-        if getattr(self, 'brackets', '') == 'all':
-            if hasattr(self, 'headword_suffix'):
-                hw = f'[{hw}{self.headword_suffix}]' #if there's a space, it'll be part of headword_suffix
-                if hasattr(self, 'occurrences'):
-                    hw += f'</big><sub>{self.occurrences}</sub><big>'
+        if getattr(self, "brackets", "") == "all":
+            if hasattr(self, "headword_suffix"):
+                hw = f"[{hw}{self.headword_suffix}]"  # if there's a space, it'll be part of headword_suffix
+                if hasattr(self, "occurrences"):
+                    hw += f"</big><sub>{self.occurrences}</sub><big>"
             else:
-                hw = f'[{", ".join([hw] + alts)}]'
+                hw = f"[{', '.join([hw] + alts)}]"
         else:
-            if hasattr(self, 'brackets') and self.brackets == 'first_word':
-                hw = f'[{hw}]'
-            if hasattr(self, 'alt_headwords'):
+            if hasattr(self, "brackets") and self.brackets == "first_word":
+                hw = f"[{hw}]"
+            if hasattr(self, "alt_headwords"):
                 hw = ", ".join([hw] + alts)
-        hw = f'<big>{hw}</big>'
-        if hasattr(self, 'root'):
-            hw = re.sub('(</?big>)', r'\1\1', hw)
-        if hasattr(self, 'ordinal'):
-            hw = f'{self.ordinal} {hw}'
-        if hasattr(self, 'all_cited'):
-            hw = f'† {hw}'
-        if hasattr(self, 'peculiar'):
-            hw = f'‡ {hw}'
-        hw = re.sub('<big></big>', '', hw)
+        hw = f"<big>{hw}</big>"
+        if hasattr(self, "root"):
+            hw = re.sub("(</?big>)", r"\1\1", hw)
+        if hasattr(self, "ordinal"):
+            hw = f"{self.ordinal} {hw}"
+        if hasattr(self, "all_cited"):
+            hw = f"† {hw}"
+        if hasattr(self, "peculiar"):
+            hw = f"‡ {hw}"
+        hw = re.sub("<big></big>", "", hw)
         return hw
 
     def get_alt_headwords(self):
         alts = getattr(self, "alt_headwords", [])
-        return [a['word'] for a in alts]
+        return [a["word"] for a in alts]
 
     def get_sense(self, sense):
-        string = ''
-        if 'note' in sense:
-            string = '<em>Note.</em>'
-        if 'pre_num' in sense:
+        string = ""
+        if "note" in sense:
+            string = "<em>Note.</em>"
+        if "pre_num" in sense:
             string += f"{sense['pre_num']} "
-        if 'all_cited' in sense:
-            string += '†'
-        if 'form' in sense:
-            if 'note' in sense:
-                string += f' {sense["num"]}'
+        if "all_cited" in sense:
+            string += "†"
+        if "form" in sense:
+            if "note" in sense:
+                string += f" {sense['num']}"
             else:
-                string += f'<strong>{sense["form"]}</strong>'
-        elif 'num' in sense:
-            string += f'<strong>{sense["num"]}</strong>'
-        if 'occurrences' in sense:
-            string += f'<sub>{sense["occurrences"]}</sub>'
-        string += ' '
-        if 'definition' in sense:
-            return string + sense['definition']
-        else:
-            senses = []
-            for s in sense['senses']:
-                subsenses = self.get_sense(s)
-                if type(subsenses) == list:
-                    senses += subsenses
-                else:
-                    senses.append(subsenses)
-            senses[0] = string + senses[0]
-            return senses
+                string += f"<strong>{sense['form']}</strong>"
+        elif "num" in sense:
+            string += f"<strong>{sense['num']}</strong>"
+        if "occurrences" in sense:
+            string += f"<sub>{sense['occurrences']}</sub>"
+        string += " "
+        if "definition" in sense:
+            return string + sense["definition"]
+        senses = []
+        for s in sense["senses"]:
+            subsenses = self.get_sense(s)
+            if type(subsenses) == list:
+                senses += subsenses
+            else:
+                senses.append(subsenses)
+        senses[0] = string + senses[0]
+        return senses
 
     def as_strings(self, with_headword=True):
         strings = []
         # senses may be absent or empty (e.g. an entry whose real content is in
         # notes/morphology instead) -- not a crash, just nothing to add here.
-        for sense in self.content.get('senses', []):
+        for sense in self.content.get("senses", []):
             sense = self.get_sense(sense)
             if type(sense) == list:
-                strings.append(' '.join(sense))
+                strings.append(" ".join(sense))
             else:
                 strings.append(sense)
         if not strings:
-            strings = ['']  # keeps strings[0] below safe when there were no senses
+            strings = [""]  # keeps strings[0] below safe when there were no senses
         if with_headword:
-            strings[0] = self.headword_string() + ' ' + strings[0]
-        return ['<br>'.join(strings)]
+            strings[0] = self.headword_string() + " " + strings[0]
+        return ["<br>".join(strings)]
 
 
 class KovetzYesodotEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
 
     def headword_string(self):
-        return f'<big><b>{self.headword}</b></big>'
+        return f"<big><b>{self.headword}</b></big>"
 
     def as_strings(self, with_headword=True):
         strings = []
         if with_headword:
             strings.append(self.headword_string())
         for key, value in self.content.items():
-            if key != 'reference':
+            if key != "reference":
                 # escaped here, not at save time: a content key is a plain label typed by a
                 # moderator, stored exactly as entered, and only needs to be safe at the one
                 # place it's actually interpolated into HTML -- here.
-                strings.append(f'<br><small>{html.escape(key)}</small>')
+                strings.append(f"<br><small>{html.escape(key)}</small>")
             strings += value
-        return ['<br>'.join(strings)]
+        return ["<br>".join(strings)]
 
 
 class BenYehudaDictionaryEntry(DictionaryEntry):
@@ -534,6 +568,7 @@ class BenYehudaDictionaryEntry(DictionaryEntry):
     cross-reference links, produced by the import pipeline). ``content`` is
     ``{"definition": [<p>…</p>, …]}`` — one HTML paragraph per list element.
     """
+
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
     optional_attrs = DictionaryEntry.optional_attrs + ["page_num"]
 
@@ -565,172 +600,184 @@ class BenYehudaDictionaryEntry(DictionaryEntry):
 
 class KrupnikEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
-    optional_attrs = DictionaryEntry.optional_attrs + ['biblical', 'no_binyan_kal', 'emendation', 'used_in', 'equals', 'pos_list']
+    optional_attrs = DictionaryEntry.optional_attrs + [
+        "biblical",
+        "no_binyan_kal",
+        "emendation",
+        "used_in",
+        "equals",
+        "pos_list",
+    ]
 
-    pos_schema = {'pos': {'type': 'string'}}
+    pos_schema = {"pos": {"type": "string"}}
     hw_related_schemas = {
-        'biblical': {'type': 'boolean'},
-        'no_binyan_kal': {'type': 'boolean'},
-        'emendation': {'type': 'string'},
-        'used_in': {'type': 'string'},
-        'pos_list': {'type': 'list', 'schema': {'type': 'string'}}
+        "biblical": {"type": "boolean"},
+        "no_binyan_kal": {"type": "boolean"},
+        "emendation": {"type": "string"},
+        "used_in": {"type": "string"},
+        "pos_list": {"type": "list", "schema": {"type": "string"}},
     }
     # 'required': True on each schema's own discriminating key, since _validate()'s outer
     # allow_unknown=True would otherwise let oneof/oneof_schema alternatives below match
     # any dict regardless of which keys it actually has, rather than picking out the one
     # shape it's actually meant to recognize.
-    senses_schema = {'senses':
-                         {'type': 'list',
-                          'required': True,
-                          'schema': {
-                              'type': 'dict',
-                              'schema': {
-                                  'number': {'type': 'integer'},
-                                  **pos_schema,
-                                  'definition': {'type': 'string'},
-                                  'notes': {'type': 'string'},
-                              }}}}
-    attr_schemas = {
-        'headword': {'type': 'string'},
-        'equals': {'type': 'list', 'schema': {'type': 'string'}},
-        **hw_related_schemas,
-        'alt_headwords': {
-            'type': 'list',
-            'schema': {
-                'type': 'dict',
-                'schema': {
-                    'word': {'type': 'string', 'required': True},
-                    **hw_related_schemas
+    senses_schema = {
+        "senses": {
+            "type": "list",
+            "required": True,
+            "schema": {
+                "type": "dict",
+                "schema": {
+                    "number": {"type": "integer"},
+                    **pos_schema,
+                    "definition": {"type": "string"},
+                    "notes": {"type": "string"},
                 },
-            }
-        },
-        'content': {
-            'oneof': [
-                {'type': 'string'},
-                {'type': 'dict',
-                 'allow_unknown': False,
-                 'schema': {'binyans': {
-                     'type': 'list',
-                     'required': True,
-                     'schema': {
-                         'type': 'list',
-                         'schema': {
-                             'type': 'dict',
-                             'required': True,
-                             'allow_unknown': False,
-                             'oneof_schema': [
-                                 senses_schema,
-                                 {'pos': {'type': 'string', 'required': True}},
-                                 {'binyan-form': {'type': 'string', 'required': True}},
-                                 {'binyan-name': {'type': 'string', 'required': True}}
-                             ]},
-                     }}}},
-                {'type': 'dict',
-                 'allow_unknown': False,
-                 'schema': senses_schema}
-            ]
+            },
         }
+    }
+    attr_schemas = {
+        "headword": {"type": "string"},
+        "equals": {"type": "list", "schema": {"type": "string"}},
+        **hw_related_schemas,
+        "alt_headwords": {
+            "type": "list",
+            "schema": {
+                "type": "dict",
+                "schema": {"word": {"type": "string", "required": True}, **hw_related_schemas},
+            },
+        },
+        "content": {
+            "oneof": [
+                {"type": "string"},
+                {
+                    "type": "dict",
+                    "allow_unknown": False,
+                    "schema": {
+                        "binyans": {
+                            "type": "list",
+                            "required": True,
+                            "schema": {
+                                "type": "list",
+                                "schema": {
+                                    "type": "dict",
+                                    "required": True,
+                                    "allow_unknown": False,
+                                    "oneof_schema": [
+                                        senses_schema,
+                                        {"pos": {"type": "string", "required": True}},
+                                        {"binyan-form": {"type": "string", "required": True}},
+                                        {"binyan-name": {"type": "string", "required": True}},
+                                    ],
+                                },
+                            },
+                        }
+                    },
+                },
+                {"type": "dict", "allow_unknown": False, "schema": senses_schema},
+            ]
+        },
     }
 
     def format_pos(self, pos):
-        return f'<small>{pos}</small>'
+        return f"<small>{pos}</small>"
 
     def format_headword(self, hw, is_primary):
-        getter = lambda x, y: getattr(x, y, None) if is_primary else x.get(y)
-        hw_string = ''
+        def getter(x, y):
+            return getattr(x, y, None) if is_primary else x.get(y)
+
+        hw_string = ""
         attrs_to_funcs_map = {
-            'headword' if is_primary else 'word': lambda x: re.sub("[²³⁴]", "", x),
-            'biblical': lambda _: f'{hw_string}·–',
-            'no_binyan_kal': lambda _: f'({hw_string})',
-            'emendation': lambda x: f'{hw_string} [{x}]',
-            'used_in': lambda x: f'{hw_string}; {x}',
-            'equals': lambda x: f'{hw_string} (={", ".join(x)})',
+            "headword" if is_primary else "word": lambda x: re.sub("[²³⁴]", "", x),
+            "biblical": lambda _: f"{hw_string}·–",
+            "no_binyan_kal": lambda _: f"({hw_string})",
+            "emendation": lambda x: f"{hw_string} [{x}]",
+            "used_in": lambda x: f"{hw_string}; {x}",
+            "equals": lambda x: f"{hw_string} (={', '.join(x)})",
         }
         for attr, func in attrs_to_funcs_map.items():
             value = getter(hw, attr)
             if value:
                 hw_string = func(value)
-        hw_string = f'<big><big>{hw_string}</big></big>'
-        pos_list = getter(hw, 'pos_list')
+        hw_string = f"<big><big>{hw_string}</big></big>"
+        pos_list = getter(hw, "pos_list")
         if pos_list:
-            pos_string = ' '.join([self.format_pos(pos) for pos in pos_list])
-            hw_string = f'{hw_string} {pos_string}'
+            pos_string = " ".join([self.format_pos(pos) for pos in pos_list])
+            hw_string = f"{hw_string} {pos_string}"
         return hw_string
 
     def headword_string(self):
         headwords = [self] + getattr(self, "alt_headwords", [])
         formatted_headwords = [self.format_headword(hw, i == 0) for i, hw in enumerate(headwords)]
-        return ', '.join(formatted_headwords)
+        return ", ".join(formatted_headwords)
 
     def get_alt_headwords(self):
         alts = getattr(self, "alt_headwords", [])
-        return [a['word'] for a in alts]
+        return [a["word"] for a in alts]
 
     def get_sense(self, sense):
-        number = sense.get('number')
+        number = sense.get("number")
         if number:
-            number = f'{number}) '
-        pos = sense.get('pos')
+            number = f"{number}) "
+        pos = sense.get("pos")
         if pos:
             pos = self.format_pos(pos)
-        definition = sense.get('definition')
-        notes = sense.get('notes')
+        definition = sense.get("definition")
+        notes = sense.get("notes")
         existing_parts = [part for part in [number, pos, definition, notes] if part]
-        return ' '.join(existing_parts)
+        return " ".join(existing_parts)
 
     def get_binyan(self, binyan):
-        text = ''
-        for part in binyan: # any part is a dict of one {key: value} dict
-            if 'senses' in part:
-                text += ' '.join([self.get_sense(sense) for sense in part['senses']])
-            elif 'pos' in part:
-                text += self.format_pos(part['pos'])
-            elif 'binyan-form' in part:
-                text = f'<b>{next(iter(part.values()))}</b>'
+        text = ""
+        for part in binyan:  # any part is a dict of one {key: value} dict
+            if "senses" in part:
+                text += " ".join([self.get_sense(sense) for sense in part["senses"]])
+            elif "pos" in part:
+                text += self.format_pos(part["pos"])
+            elif "binyan-form" in part:
+                text = f"<b>{next(iter(part.values()))}</b>"
             else:
                 text += next(iter(part.values()))
-            text += ' '
+            text += " "
         return text.strip()
 
     def get_content(self):
         if isinstance(self.content, str):
             return self.content
-        elif 'binyans' in self.content:
-            parts = [self.get_binyan(binyan) for binyan in self.content['binyans']]
+        if "binyans" in self.content:
+            parts = [self.get_binyan(binyan) for binyan in self.content["binyans"]]
         else:
-            parts = [self.get_sense(sense) for sense in self.content['senses']]
-        content = '<br>'.join(parts)
+            parts = [self.get_sense(sense) for sense in self.content["senses"]]
+        content = "<br>".join(parts)
         if len(parts) > 1:
-            content = f'<br>{content}'
+            content = f"<br>{content}"
         return content
 
-
     def as_strings(self, with_headword=True):
-        return [self.headword_string() + ' ' + self.get_content()]
+        return [self.headword_string() + " " + self.get_content()]
 
 
-class LexiconEntrySubClassMapping(object):
+class LexiconEntrySubClassMapping:
     lexicon_class_map = {
-        'BDB Augmented Strong': StrongsDictionaryEntry,
-        'Rashi Foreign Lexicon': RashiDictionaryEntry,
-        'Jastrow Dictionary': JastrowDictionaryEntry,
-        "Jastrow Unabbreviated" : JastrowDictionaryEntry,
-        'Klein Dictionary': KleinDictionaryEntry,
-        'Sefer HaShorashim': HebrewDictionaryEntry,
-        'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry,
-        'BDB Dictionary': BDBEntry,
-        'BDB Aramaic Dictionary': BDBEntry,
-        'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
-        'Krupnik Dictionary': KrupnikEntry,
-        'Ben Yehuda Dictionary': BenYehudaDictionaryEntry,
+        "BDB Augmented Strong": StrongsDictionaryEntry,
+        "Rashi Foreign Lexicon": RashiDictionaryEntry,
+        "Jastrow Dictionary": JastrowDictionaryEntry,
+        "Jastrow Unabbreviated": JastrowDictionaryEntry,
+        "Klein Dictionary": KleinDictionaryEntry,
+        "Sefer HaShorashim": HebrewDictionaryEntry,
+        "Animadversions by Elias Levita on Sefer HaShorashim": HebrewDictionaryEntry,
+        "BDB Dictionary": BDBEntry,
+        "BDB Aramaic Dictionary": BDBEntry,
+        "Kovetz Yesodot VaChakirot": KovetzYesodotEntry,
+        "Krupnik Dictionary": KrupnikEntry,
+        "Ben Yehuda Dictionary": BenYehudaDictionaryEntry,
     }
 
     @classmethod
     def class_factory(cls, name):
         if name in cls.lexicon_class_map:
             return cls.lexicon_class_map[name]
-        else:
-            return LexiconEntry
+        return LexiconEntry
 
     @classmethod
     def instance_factory(cls, name, attrs=None):
@@ -738,19 +785,19 @@ class LexiconEntrySubClassMapping(object):
 
     @classmethod
     def instance_from_record_factory(cls, record):
-        return cls.instance_factory(record['parent_lexicon'], record)
+        return cls.instance_factory(record["parent_lexicon"], record)
 
 
 class LexiconEntrySet(abst.AbstractMongoSet):
     recordClass = LexiconEntry
 
-    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, primary_tuples=None):
-        super(LexiconEntrySet, self).__init__(query, page, limit, sort, proj, hint)
+    def __init__(self, query=None, page=0, limit=0, sort=(("_id", 1),), proj=None, hint=None, primary_tuples=None):
+        super().__init__(query, page, limit, sort, proj, hint)
         self._primary_tuples = primary_tuples
 
     def _read_records(self):
         def is_primary(entry):
-            return not (entry.headword, entry.parent_lexicon) in self._primary_tuples
+            return (entry.headword, entry.parent_lexicon) not in self._primary_tuples
 
         if self.records is None:
             # The entry class depends on the document's lexicon, so this set cannot use
@@ -761,8 +808,7 @@ class LexiconEntrySet(abst.AbstractMongoSet):
                 self.records.sort(key=is_primary)
 
 
-class LexiconLookupAggregator(object):
-
+class LexiconLookupAggregator:
     @classmethod
     def _split_input(cls, input_str):
         input_str = re.sub(r"[:\u05c3\u05be\u05c0.]", " ", input_str)
@@ -772,34 +818,33 @@ class LexiconLookupAggregator(object):
     def _create_ngrams(cls, input_words, n):
         gram_list = []
         for k in range(1, n + 1):
-            gram_list += [" ".join(input_words[i:i + k]) for i in range(len(input_words) - k + 1)]
+            gram_list += [" ".join(input_words[i : i + k]) for i in range(len(input_words) - k + 1)]
         return gram_list
 
     @classmethod
-    def get_word_form_objects(cls, input_word, lookup_key='form', **kwargs):
+    def get_word_form_objects(cls, input_word, lookup_key="form", **kwargs):
         from sefaria.model import Ref
 
-        lookup_ref = kwargs.get("lookup_ref", None)
+        lookup_ref = kwargs.get("lookup_ref")
         wform_pkey = lookup_key
         if has_hebrew(input_word):
             # This step technically used to happen in the lookup main method `lexicon_lookup` if there were no initial results, but in case where a
             # consonantal form was supplied in the first place, this optimizes queries.
             input_word = strip_cantillation(input_word)
             if not has_cantillation(input_word, detect_vowels=True):
-                wform_pkey = 'c_form'
+                wform_pkey = "c_form"
         query_obj = {wform_pkey: input_word}
         if lookup_ref:
             nref = Ref(lookup_ref).normal()
-            query_obj["refs"] = {'$regex': '^{}'.format(nref)}
+            query_obj["refs"] = {"$regex": f"^{nref}"}
         forms = WordFormSet(query_obj)
         if lookup_ref and len(forms) == 0:
             del query_obj["refs"]
             forms = WordFormSet(query_obj)
         return forms
 
-
     @classmethod
-    def _single_lookup(cls, input_word, lookup_key='form', **kwargs):
+    def _single_lookup(cls, input_word, lookup_key="form", **kwargs):
         forms = cls.get_word_form_objects(input_word, lookup_key=lookup_key, **kwargs)
         if len(forms) > 0:
             headword_query = []
@@ -807,8 +852,7 @@ class LexiconLookupAggregator(object):
                 for lookup in form.lookups:
                     headword_query.append(lookup)
             return headword_query
-        else:
-            return []
+        return []
 
     @classmethod
     def _ngram_lookup(cls, input_str, **kwargs):
@@ -827,14 +871,13 @@ class LexiconLookupAggregator(object):
     def lexicon_lookup(cls, input_str, **kwargs):
         input_str = unicodedata.normalize("NFC", input_str)
         results = cls._single_lookup(input_str, **kwargs)
-        if not results or kwargs.get('always_consonants', False):
-            results += cls._single_lookup(strip_cantillation(input_str, True), lookup_key='c_form', **kwargs)
-        if not kwargs.get('never_split', None) and (len(results) == 0 or kwargs.get("always_split", None)):
+        if not results or kwargs.get("always_consonants", False):
+            results += cls._single_lookup(strip_cantillation(input_str, True), lookup_key="c_form", **kwargs)
+        if not kwargs.get("never_split") and (len(results) == 0 or kwargs.get("always_split")):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results
         if len(results):
             primary_tuples = set()
-            query = set() #TODO: optimize number of word form lookups? there can be a lot of duplicates... is it needed?
             for r in results:
                 # extract the lookups with "primary" field so it can be used for sorting lookup in the LexiconEntrySet,
                 # but also delete it, because its not part of the query obj
@@ -843,5 +886,4 @@ class LexiconLookupAggregator(object):
                         primary_tuples.add((r["headword"], r["parent_lexicon"]))
                     del r["primary"]
             return LexiconEntrySet({"$or": results}, primary_tuples=primary_tuples)
-        else:
-            return None
+        return None
