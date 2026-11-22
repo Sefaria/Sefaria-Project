@@ -148,12 +148,12 @@ test.describe("nothing found", () => {
   test.use({ viewport: { width: 1280, height: 900 } });
 
   for (const [tab, heading, cta, href] of [["sources", "No sources found for “zzzxqkw”", "Browse Library", "/texts"], ["books", "No books found for “zzzxqkw”", "Browse Library", "/texts"], ["authors", "No authors found for “zzzxqkw”", "Browse Authors", "/topics/category/authors"], ["topics", "No topics found for “zzzxqkw”", "Browse Topics", "/topics"]] as const) {
-    test(`${tab}: heading, a way on, and where to report a problem`, async ({ page }) => {
+    // sefaria.org's NoSearchResults: the illustration, the heading, the body and the way on; no bug-report line under them
+    test(`${tab}: heading and a way on, as sefaria.org`, async ({ page }) => {
       await open(page, `/search?q=zzzxqkw&tab=text&search_tab=${tab}`);
       await expect(page.getByText(heading)).toBeVisible();
       await expect(page.getByRole("link", { name: cta })).toHaveAttribute("href", href);
-      await expect(page.getByRole("link", { name: "Report a bug" })).toBeVisible();
-      await expect(page.getByRole("link", { name: "contact us" })).toHaveAttribute("href", "mailto:hello@sefaria.org");
+      await expect(page.getByRole("link", { name: "Report a bug" })).toHaveCount(0);
     });
   }
 });

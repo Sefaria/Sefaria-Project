@@ -331,3 +331,16 @@ export function buildBookFilterTree(catalog: readonly TocNode[], counts: Readonl
 
 /** The Sources sorts, as options. */
 export const SOURCE_SORTS: SortOption<SearchSort>[] = [{ value: "relevance", en: "Relevance", he: "רלוונטיות" }, { value: "chronological", en: "Chronological", he: "כרונולוגי" }];
+
+/**
+ * The category that colours a result's bar, as sefaria.org's `palette.indexColor`: the book's primary category, else its first
+ * category; "Other" for a title that is not a book (a category row in the Books tab). Undefined until the catalog is here.
+ */
+export function colourCategoryOf(books: ReadonlyMap<string, { categories: string[]; primary_category?: string }> | undefined, title: string | undefined): string | undefined {
+  if (!books) return undefined;
+  const book = title ? books.get(title) : undefined;
+  return book ? (book.primary_category ?? book.categories[0] ?? "Other") : "Other";
+}
+
+/** The book a full-text hit is in: the last part of its path ("Tanakh/Torah/Genesis" → "Genesis"). */
+export const hitBookTitle = (path: string | undefined): string | undefined => path?.split("/").pop() || undefined;

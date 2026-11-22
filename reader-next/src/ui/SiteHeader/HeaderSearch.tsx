@@ -3,7 +3,7 @@ import { useLibraryHref } from "~/lib/routing/library-href";
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { GROUP_TITLES, MIN_SUGGEST_LENGTH, type Suggestion, type SuggestionType } from "~/lib/search/autocomplete";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
-import { Icon, type IconName } from "../Icon/Icon";
+import { MaskIcon } from "../MaskIcon/MaskIcon";
 import { KeyboardLauncher } from "../VirtualKeyboard/KeyboardLauncher";
 import styles from "./HeaderSearch.module.css";
 
@@ -19,7 +19,17 @@ export interface HeaderSearchProps {
   mobile?: boolean;
 }
 
-const ICON: Record<SuggestionType, IconName> = { search: "search", ref: "book", Collection: "file", TocCategory: "list", Topic: "hash", AuthorTopic: "pen", User: "user", Term: "scroll" };
+/** sefaria.org's icon per kind of suggestion (HeaderAutocomplete type_icon_map), drawn at 40% of the text colour. */
+const ICON: Record<SuggestionType, string> = {
+  search: "/icons/iconmonstr-magnifier-2.svg",
+  ref: "/icons/iconmonstr-book-15.svg",
+  Collection: "/icons/collection.svg",
+  TocCategory: "/icons/iconmonstr-view-6.svg",
+  Topic: "/icons/iconmonstr-hashtag-1.svg",
+  AuthorTopic: "/icons/iconmonstr-pen-17.svg",
+  User: "/icons/profile.svg",
+  Term: "/icons/iconmonstr-script-2.svg",
+};
 const isHebrew = (s: string) => /[֐-׿]/.test(s);
 
 /**
@@ -162,33 +172,42 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
         />
         {!he && !mobile ? <KeyboardLauncher inputRef={input} value={q} onChange={setQ} onEnter={submit} focused={focused} iconSrc="/icons/keyboard_mdl.svg" className={styles.keyboard} /> : null}
       </div>
+      {/* sefaria.org's dropdown (HeaderAutocomplete, s2.css .autocomplete-dropdown): right under the box, a group per kind of
+          suggestion with its name in a column on the start side ("Search for" has none), a rule under each group */}
       <div id={`${id}-list`} role="listbox" aria-label={he ? "הצעות" : "Suggestions"} className={styles.dropdown} hidden={!open}>
         {groups.map((g) => (
           <div key={g.type} className={styles.group} role="group" aria-label={GROUP_TITLES[g.type][he ? "he" : "en"] || undefined}>
             {g.type !== "search" ? <div className={styles.groupTitle} aria-hidden="true">{GROUP_TITLES[g.type][he ? "he" : "en"]}</div> : null}
-            {g.items.map(({ s, i }) => (
-              <a
-                key={`${s.type}:${s.label}:${i}`}
-                id={`${id}-${i}`}
-                role="option"
-                aria-selected={active === i}
-                data-active={active === i}
-                className={styles.item}
-                lang={isHebrew(s.label) ? "he" : "en"}
-                href={s.url ?? lib(`/search?q=${encodeURIComponent(s.label)}`)}
-                onClick={click(s)}
-                onMouseEnter={() => setActive(i)}
-                // clicks must not blur the input first
-                onMouseDown={(e) => e.preventDefault()}
-              >
-                <span className={styles.icon}><Icon name={ICON[s.type]} /></span>
-                {s.type === "search" ? (
-                  <span className={styles.override}>{he ? "חיפוש: " : "Search for: "}<strong>{"“" + s.label + "”"}</strong></span>
-                ) : (
-                  <span>{s.label}</span>
-                )}
-              </a>
-            ))}
+            <div className={styles.groupItems}>
+              {g.items.map(({ s, i }) => (
+                <a
+                  key={`${s.type}:${s.label}:${i}`}
+                  id={`${id}-${i}`}
+                  role="option"
+                  aria-selected={active === i}
+                  data-active={active === i}
+                  data-search={s.type === "search" || undefined}
+                  className={styles.item}
+                  lang={isHebrew(s.label) ? "he" : "en"}
+                  dir={isHebrew(s.label) ? "rtl" : "ltr"}
+                  href={s.url ?? lib(`/search?q=${encodeURIComponent(s.label)}`)}
+                  onClick={click(s)}
+                  onMouseEnter={() => setActive(i)}
+                  // clicks must not blur the input first
+                  onMouseDown={(e) => e.preventDefault()}
+                >
+                  {/* the row inside the link, as sefaria.org's .search-suggestion in its link: the phone menu pads its links */}
+                  <span className={styles.row}>
+                    <MaskIcon className={styles.icon} src={ICON[s.type]} size={18} />
+                    {s.type === "search" ? (
+                      <span className={styles.text}><span className={styles.override}>{he ? "חיפוש:" : "Search for:"}&nbsp;</span>{he ? `״${s.label}״` : `“${s.label}”`}</span>
+                    ) : (
+                      <span className={styles.text}>{s.label}</span>
+                    )}
+                  </span>
+                </a>
+              ))}
+            </div>
           </div>
         ))}
       </div>

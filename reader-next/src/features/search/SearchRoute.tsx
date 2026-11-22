@@ -8,11 +8,12 @@ import { versionApiToParam } from "~/lib/workspace/url";
 import { useMediaQuery } from "~/lib/ui/use-media-query";
 import { topicTocQueryOptions } from "~/lib/topics/topic-toc";
 import { entitySearchInfiniteOptions, entitySearchQueryOptions, formatEntityCount, type EntityType } from "~/lib/search/entity-search";
-import { buildBookFilterTree, buildFilterTree, SOURCE_SORTS, catalogOrder, countLabel, ENTITY_SORTS, type EntitySort, parseSearchParams, searchHref, searchResultsQueryOptions, searchTreeQueryOptions, toggleFilter, type FilterNode, type SearchParams, type SearchTab } from "~/lib/search/search-page";
+import { buildBookFilterTree, buildFilterTree, SOURCE_SORTS, catalogOrder, colourCategoryOf, hitBookTitle, countLabel, ENTITY_SORTS, type EntitySort, parseSearchParams, searchHref, searchResultsQueryOptions, searchTreeQueryOptions, toggleFilter, type FilterNode, type SearchParams, type SearchTab } from "~/lib/search/search-page";
 import { filteredTotal, mergeHits, scoreSefariaHits } from "~/lib/search/dicta";
 import { autocorrectQueryOptions, decideAutocorrect, NO_AUTOCORRECT, type TabCount } from "~/lib/search/autocorrect";
 import { highlightsOf, mergeTextResultsVersions, type SearchHit } from "~/lib/search/text-search";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
+import { categoryColor } from "~/ui/tokens/category-color";
 import { VisuallyHidden } from "~/ui/VisuallyHidden/VisuallyHidden";
 import { NavPage } from "~/ui/NavPage/NavPage";
 import { AutocorrectBanner, EntityResults, ExactToggle, MobileFilterButton, MobileFilterPanel, NoResults, PanelSection, SearchError, SearchSkeleton, SearchBar, SearchFilters, SearchResultCard, SearchSortBar, SearchTabs, SortMenu, SortRadios } from "~/ui/SearchPage/SearchPage";
@@ -65,6 +66,12 @@ export function SearchRoute() {
   const catalog = useQuery(tocQueryOptions()).data;
   const order = useMemo(() => (catalog ? catalogOrder(catalog.tree) : new Map<string, number>()), [catalog]);
   const names = useMemo(() => (catalog ? hebrewCategoryNames(catalog.tree) : new Map<string, string>()), [catalog]);
+  // a result's bar in its book's primary category's colour (sefaria.org's palette.refColor); the card's own guess until the catalog is here
+  const accentOf = (title: string | undefined) => {
+    if (!title) return undefined;
+    const cat = colourCategoryOf(catalog?.books, title);
+    return cat ? categoryColor(cat) : undefined;
+  };
 
   // ── auto-correction (SRC-111): the query as typed is counted in every tab; a confident correction is searched only when it finds
   // nothing anywhere. Until that is decided nothing is shown (master's ElasticSearchQuerier); the search box keeps the typed text.
@@ -210,7 +217,7 @@ export function SearchRoute() {
   if (!hasQuery) body = null;
   else if (entityType) {
     const list = entities.data?.pages.flatMap((p) => p.hits);
-    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} itemProps={(h, i) => resultClickHandlers(h.title_en || h.title_he, i + 1)} empty={<NoResults tab={params.tab} query={searchedQ} assistant={assistantShown} />} />;
+    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} accentFor={(h) => accentOf(h.title_en)} itemProps={(h, i) => resultClickHandlers(h.title_en || h.title_he, i + 1)} empty={<NoResults tab={params.tab} query={searchedQ} assistant={assistantShown} />} />;
   } else if (sources.isError && !hits) body = <SearchError onRetry={() => void sources.refetch()} />;
   else if (!hits) body = null; // the skeleton below stands in while the first query runs
   else if (!hits.length) body = <NoResults tab="sources" query={searchedQ} assistant={assistantShown} />;
@@ -218,7 +225,7 @@ export function SearchRoute() {
     body = (
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 20 }} aria-label="Search results">
         {hits.map((h, i) => (
-          <li key={h._id} {...resultClickHandlers(h._source.ref, i + 1)}><SearchResultCard hit={h} hrefFor={hitHref} onOpen={openHit} /></li>
+          <li key={h._id} {...resultClickHandlers(h._source.ref, i + 1)}><SearchResultCard hit={h} hrefFor={hitHref} onOpen={openHit} accent={accentOf(hitBookTitle(h._source.path))} /></li>
         ))}
       </ul>
     );

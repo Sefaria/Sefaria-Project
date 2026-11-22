@@ -27,6 +27,7 @@
   --sefaria-color-border: light-dark(#e6e6e6, #3a3a38);
   --sefaria-color-border-strong: light-dark(#cccccc, #55554f);
   --sefaria-color-border-light: light-dark(#ededec, #333331);
+  --sefaria-color-icon-light: light-dark(#999999, #8f8f8c); /* the old --medium-grey-legacy: heavy-x.svg, the search filters' chevrons */
   --sefaria-color-border-mid: light-dark(#999999, #6b6b67); /* the old #999: the current edition toggle's underline */ /* the old --lighter-grey: search boxes, hairlines in menus */
   --sefaria-color-border-title: light-dark(#e6e5e6, #3f3f3d);
   --sefaria-color-skeleton: light-dark(#e6e6e6, #333331);
@@ -56,6 +57,8 @@
   /* the old grey chip and band greys (#EDEDEC buttons and counts, #EDEDED sidebar header) and the #595959 text on them */
   --sefaria-color-chip: light-dark(#ededec, #333331);
   --sefaria-color-chip-hover: light-dark(#e4e4e2, #3d3d3a);
+  --sefaria-color-chip-pressed: light-dark(#dfdfdf, #41413e); /* the old --lighter-grey-hover: the search sort button on hover or open */
+  --sefaria-color-text-unselected: light-dark(#aaaaaa, #8a8a87); /* the old sort list's other options (.dropdown-option-list .unselected) */
   --sefaria-color-text-on-chip: light-dark(#595959, #c9c9c5);
   --sefaria-color-band: light-dark(#ededed, #2a2a29);
   --sefaria-color-key: light-dark(#fafaf9, #2a2a29);
@@ -186,6 +189,11 @@
   --sefaria-shadow-card: 0 0 10px -1px rgb(83 83 83 / 0.04);
   --sefaria-shadow-raised: 0 4px 4px 0 rgb(0 0 0 / 0.25);
   --sefaria-shadow-modal: 0 2px 10px rgb(0 0 0 / 0.1);
+  /* the old search result card (s2.css .searchResultCard), and its hover / pressed state */
+  --sefaria-shadow-search-card: 0 0 10px -1px rgb(83 83 83 / 0.04), 0 1px 2px 0 rgb(31 31 31 / 0.04), 0 8px 16px 0 rgb(31 31 31 / 0.05);
+  --sefaria-shadow-search-card-hover: 0 0 10px -1px rgb(83 83 83 / 0.4), 0 1px 2px 0 rgb(31 31 31 / 0.04), 0 8px 16px 0 rgb(31 31 31 / 0.05);
+  /* the old header autocomplete (s2.css .autocomplete-dropdown) */
+  --sefaria-shadow-autocomplete: 0 1px 3px rgb(0 0 0 / 0.25);
   --sefaria-shadow-toggle: 0 1px 3px rgb(0 0 0 / 0.1); /* the old search toggle's chosen option (s2.css .searchToggle__slider) */
 
   /* ── Layers: only portaled components use overlay and above ── */
