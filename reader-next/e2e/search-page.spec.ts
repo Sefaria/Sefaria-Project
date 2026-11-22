@@ -15,6 +15,21 @@ test.describe("search results page", () => {
     await expect(page.getByRole("checkbox", { name: "Tanakh", exact: true })).toBeVisible();
   });
 
+  // the design review (2026-11-22): a filter needed two clicks. The click waited for the new search before the address changed, and
+  // the checkbox snapped back meanwhile; on the live API that is seconds. With the search answering slowly, one click must tick it.
+  test("one click ticks a filter at once, while its results load", async ({ page }) => {
+    await page.goto("/search?q=light&tab=text");
+    const tanakh = page.getByRole("checkbox", { name: "Tanakh", exact: true });
+    await expect(tanakh).toBeVisible({ timeout: 25_000 });
+    await page.route("**/api/search-wrapper/**", async (route) => {
+      await new Promise((r) => setTimeout(r, 5_000));
+      await route.continue();
+    });
+    await tanakh.click();
+    await expect(tanakh).toBeChecked({ timeout: 1_500 });
+    await expect(page).toHaveURL(/tpathFilters=Tanakh/, { timeout: 1_500 });
+  });
+
   test("Exact Phrase and a filter are kept in the address", async ({ page }) => {
     await open(page, "/search?q=light&tab=text");
     await page.getByRole("button", { name: "Exact Phrase" }).click();

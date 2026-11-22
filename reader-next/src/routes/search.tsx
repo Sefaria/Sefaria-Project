@@ -17,7 +17,13 @@ export const Route = createFileRoute("/search")({
   loaderDeps: ({ search }) => ({ q: search.q, search_tab: search.search_tab, tvar: search.tvar, tsort: search.tsort, tpathFilters: search.tpathFilters, disable_autocorrect: search.disable_autocorrect }),
   loader: async ({ context, deps }) => {
     const origin = await pageCanonicalOrigin();
-    await loadSearch(context.queryClient, deps as Record<string, unknown>);
+    // The server render waits for the results, so the page arrives with them. In the browser a change of filter, sort or tab must
+    // show at once: waiting here held the navigation until the whole search had answered, and the clicked checkbox snapped back
+    // meanwhile (the design review, 2026-11-22: "you have to double click to activate the filter"). The page shows its own loading
+    // state while the queries started here answer.
+    const loading = loadSearch(context.queryClient, deps as Record<string, unknown>);
+    if (typeof window === "undefined") await loading;
+    else void loading.catch(() => undefined);
     return { origin };
   },
   // reader/views.py search's description and noindex (PLT-007, RTE-029); the title the old client sets; og:url and the alternates as
