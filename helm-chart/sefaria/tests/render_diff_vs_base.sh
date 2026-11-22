@@ -53,6 +53,11 @@ RULES = [
      rf"({BLANK}|\s*#.*|\s*map \$\S+ \$(uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d|request_uri_scrubbed|referer_scrubbed) \{{"
      r"|\s*\"~\*.*\" .*;|\s*default \$(request_uri|http_referer|uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d);|\s*\}|\s*log_format structured .*)"),
     ("staging sync-postgres CronJob", ("staging",), "CronJob", r"sync-postgres", r".*"),
+    # Sefaria Social settings read from env; with the env vars unset (as deployed) both features are off.
+    ("SOCIAL_TOKEN_* / USER_DELETED_WEBHOOK_* entries", ENVS, "ConfigMap", r"^local-settings-",
+     rf"({BLANK}|\s*# (Sefaria Social|SOCIAL_TOKEN_PRIVATE_KEYS:|USER_DELETED_WEBHOOK_URLS:) .*|\s*try:|\s*except ValueError:"
+     r"|\s*print\(\"SOCIAL_TOKEN_PRIVATE_KEYS is not valid JSON; social tokens are disabled\.\"\)"
+     r"|\s*(SOCIAL_TOKEN_(PRIVATE_KEYS|ISSUER|LIFETIME_SECONDS)|USER_DELETED_WEBHOOK_(URLS|SECRET)) = .*)"),
     # Not in the plan's list: one comment line in the ClientTrafficPolicy, a no-op for Kubernetes.
     ("ClientTrafficPolicy comment", ENVS, "ClientTrafficPolicy", r".*", rf"({BLANK}|\s*# Port 80 still serves the site here.*)"),
 ]
