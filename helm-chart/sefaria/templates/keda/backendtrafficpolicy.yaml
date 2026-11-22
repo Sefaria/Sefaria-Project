@@ -1,4 +1,5 @@
-{{- if and .Values.keda.enabled .Values.keda.splash.enabled .Values.gateway.enabled }}
+{{- /* With auth rate limiting on, the splash override is rendered inside gateway/backendtrafficpolicy-auth.yaml: one BackendTrafficPolicy per HTTPRoute. */}}
+{{- if and .Values.keda.enabled .Values.keda.splash.enabled .Values.gateway.enabled (not (and .Values.authService.enabled .Values.authService.rateLimit.enabled)) }}
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:

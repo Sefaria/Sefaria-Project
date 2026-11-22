@@ -48,6 +48,7 @@ class BookPage extends Component {
       currentVersion: null,
       currObjectVersions: { en: null, he: null },
       indexDetails: Sefaria.getIndexDetailsFromCache(props.title),
+      lastPlaceLoaded: !Sefaria._uid,
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
@@ -77,6 +78,10 @@ class BookPage extends Component {
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
     Sefaria.getIndexDetails(this.props.title).then((data) => this.setState({ indexDetails: data }));
+    // If the request fails, the read button still shows, as "Start Reading".
+    Sefaria.loadLastPlaceForText(this.props.title)
+      .catch(() => {})
+      .then(() => this.setState({ lastPlaceLoaded: true }));
 
     if (this.isBookToc() && !this.props.compare) {
       if (!this.state.versionsLoaded) {
@@ -183,8 +188,10 @@ class BookPage extends Component {
       catUrl = '/texts/' + category;
     }
 
+    const hideReadButton = !this.state.indexDetails || !this.state.lastPlaceLoaded || this.props.compare;
     const readButton =
-      !this.state.indexDetails || this.props.compare ? null : Sefaria.lastPlaceForText(title) ? (
+      !hideReadButton &&
+      (Sefaria.lastPlaceForText(title) ? (
         <a
           className="button small readButton"
           href={'/' + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}
@@ -200,7 +207,7 @@ class BookPage extends Component {
         >
           <InterfaceText>book_page.start_reading</InterfaceText>
         </a>
-      );
+      ));
 
     const tabs = [{ id: 'contents', title: { en: 'Contents', he: Sefaria._('common.contents') } }];
     if (this.isBookToc()) {
