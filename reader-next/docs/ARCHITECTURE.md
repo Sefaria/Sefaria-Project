@@ -64,6 +64,22 @@ leave the baseline (`node scripts/architecture-baseline.mjs`), so the list only 
 | `literal-colours`       | Every colour is a token with light and dark values (`src/ui/tokens/tokens.css`).                       |
 | `writes-through-helper` | Every write to Django goes through `src/lib/auth/http.ts` (session cookie and CSRF).                   |
 | `lang-with-dir`         | An element that sets `lang` sets `dir` too (`src/ui/LangText`).                                        |
+| `surface-boundary`      | Only `src/lib/surfaces`, `src/features/surfaces` and the shell (`__root.tsx`, `/social` routes) import surface code or `contract/`. |
+| `reader-state-core-pure` | `src/lib/reader-state/core` imports nothing from `~/`, React, the router or vendored code, nor outside itself. |
+
+### Surfaces
+
+Another app can run inside the reader's page as a **surface**, loaded at run time; the first is the social app, behind the `social`
+lab (`src/lib/labs.ts`, remote config `feature.reader.labs.social`, off by default). The contract is
+`contract/surface-host.v1.ts` (what the surface exports, and the `SurfaceHost` the reader hands it: location and navigation through
+the router, the reader state API, the workspace commands, the reserved `ctx`, the viewer and its identity token, the interface
+language, config, reporting). `src/lib/surfaces/load.ts` fetches the release manifest (`contract/surface-manifest.v1.ts` and its
+generated JSON Schema) from an allowlisted origin, links every file with its integrity hash and imports the entry; a failure is
+reported and leaves the reader as it was. The page mount renders under `/social/*`, the persistent mount beside `<main>`
+(`src/features/surfaces/SurfaceMount.tsx`). The reserved `ctx` query parameter (`src/lib/reader/ctx.ts`) is kept through the
+reader's own address rewrites and left out of the canonical link, snapshots and share links. Settings: `PUBLIC_SOCIAL_*` in
+`src/lib/config.ts`. Tests: `src/lib/surfaces/*.test.ts`, `src/lib/reader/ctx.test.ts`, `e2e/social-surface.spec.ts` (the reference
+surface in `e2e/fixtures/social-surface`).
 
 ## Library cache
 

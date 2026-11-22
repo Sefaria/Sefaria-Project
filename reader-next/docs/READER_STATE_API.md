@@ -602,7 +602,9 @@ than a URL.
 
 - `src/lib/reader-state/core/` is the future package `@sefaria/reader-state`: types, the JSON Schemas for
   `ReaderSnapshot`, `StreamMessage` and `ProtocolMessage`, slice registry, stream writer and reader, `diff`/`fold`,
-  warning codes, transports, recorder and player logic. A lint rule forbids imports from `~/` and from React in it;
+  warning codes, transports, recorder and player logic. A rule forbids imports from `~/` and from React in it (**As built**: the
+  architecture rule `reader-state-core-pure`, test/architecture/rules.ts, which also forbids the router, vendored code and imports
+  from outside the folder);
   it builds and tests on its own.
 - `src/lib/session/` is the room client (envelope, `control`, `presence`, `chat`, following and spotlight logic),
   later its own package; it depends on the core, never the reverse. The relay Worker lives beside it.
@@ -618,6 +620,10 @@ than a URL.
 The way this design fails is drift: someone adds `useState` that shows on screen and never registers a slice, and
 replays and follows silently stop matching. Tests catch it:
 
+- **As built** (first version, its TODO list at the top of the script): `node scripts/replay-check.mjs --base <dev server>` opens a
+  text, scrolls, chooses a verse, changes the sidebar's view and closes it, takes `getSnapshot()` and a screenshot at each step, then
+  replays every snapshot on a page that started elsewhere and compares pixels (in a canvas; no image library). Settings changes, a
+  menu, the recorder and player, the follow check and a CI job are still to come. Not run in CI yet.
 - `scripts/replay-check.mjs` drives a scripted session with Playwright (open a text, open the sidebar, change
   settings, scroll, open a menu, open a second panel), records it, then replays it and compares a screenshot at each
   keyframe with the one taken while recording (`scripts/parity-diff-page.py`). Differing pixels beyond the

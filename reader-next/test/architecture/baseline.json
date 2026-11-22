@@ -173,6 +173,8 @@
       "fetch DELETE"
     ]
   },
+  "surface-boundary": {},
+  "reader-state-core-pure": {},
   "lang-with-dir": {
     "src/ui/NavSidebar/NavSidebar.tsx": [
       "1 element(s)"
