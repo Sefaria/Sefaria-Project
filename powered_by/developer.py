@@ -736,7 +736,7 @@ def _check_project_limit(user):
     _lock_account(user)
     limit = max_projects(user)
     if owned_projects(user).count() >= limit:
-        raise InputError(f"An account can have at most {limit} projects. To add more, contact hello@sefaria.org.")
+        raise InputError(f"An account can have at most {limit} projects. To add more, contact developers@sefaria.org.")
 
 
 def _unpublish(profile):
