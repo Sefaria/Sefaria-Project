@@ -157,10 +157,14 @@ def new_link_api(request):
 def send_confirmation(request, user):
     """
     Reserves the send (check + record, atomically) before sending, so a failed send still
-    throttles.
+    throttles. A failed send clears the "sent" marker, so the page doesn't say an email is on its way.
     """
     developer.reserve_confirmation_send(user)
-    send_confirmation_email(request, user)
+    try:
+        send_confirmation_email(request, user)
+    except Exception:
+        developer.mark_confirmation_sent(user, False)
+        raise
 
 
 def confirmation_url(request, key):
@@ -174,14 +178,18 @@ def send_confirmation_email(request, user):
         render_to_string("developer/email_confirmation_message.txt", context),
         None,
         [user.email],
+        html_message=render_to_string(
+            "developer/email_confirmation_message.html",
+            {**context, "request": request},  # for its lang attribute
+        ),
     )
 
 
 LINK_PAGE_TITLES = {
     developer.LinkStatus.ALREADY_CONFIRMED: "Already confirmed",
-    developer.LinkStatus.EXPIRED: "This link has expired",
-    developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link is no longer valid",
-    developer.LinkStatus.ADDRESS_IN_USE: "This link is no longer valid",
+    developer.LinkStatus.EXPIRED: "This link no longer works",
+    developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link no longer works",
+    developer.LinkStatus.ADDRESS_IN_USE: "This link no longer works",
 }
 
 

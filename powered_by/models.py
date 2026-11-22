@@ -28,6 +28,15 @@ class Status(models.TextChoices):
     UNKNOWN = "unknown", "Unknown"
 
 
+class Purpose(models.TextChoices):
+    PERSONAL = "personal", "Personal"
+    SCHOOL = "school", "School"
+    RESEARCH = "research", "Research"
+    COMMUNITY = "community", "Community"
+    COMMERCIAL = "commercial", "Commercial"
+    OTHER = "other", "Other"
+
+
 class Tier(models.TextChoices):
     DEVELOPER = "developer", "Developer"
 
@@ -77,6 +86,8 @@ class Project(models.Model):
         "submitter",
         "salesforce_id",
         "notes",
+        "anything_else",
+        "purpose",
         "request_not_to_publish",
     )
 
@@ -177,7 +188,11 @@ class Project(models.Model):
         help_text="Editorial publish gate, controls visibility on the public site.",
     )
     featured = models.BooleanField(default=False, help_text="Pinned / featured position in the gallery.")
-    notes = models.TextField(null=True, blank=True, help_text="Staff notes, anything else.")
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Staff-only notes. Never shown to the project's owner.",
+    )
 
     # --- Developer settings -------------------------------------------------
     # New columns carry database defaults: every dev cauldron shares this table, and
@@ -199,6 +214,28 @@ class Project(models.Model):
         help_text="API access tier of the project's keys.",
     )
     organization = models.CharField(max_length=255, blank=True, default="", db_default="")
+    show_name = models.BooleanField(
+        default=False,
+        db_default=False,
+        help_text="The submitter agreed to show their name with the project if it's featured.",
+    )
+    has_donate_link = models.BooleanField(
+        default=False,
+        db_default=False,
+        help_text="The submitter says the project links to a donation page for Sefaria.",
+    )
+    anything_else = models.TextField(
+        null=True,
+        blank=True,
+        help_text='The submitter\'s answer to "Anything else" on the publish form.',
+    )
+    purpose = models.CharField(
+        max_length=32,
+        choices=Purpose.choices,
+        null=True,
+        blank=True,
+        help_text='The owner\'s answer to "What are you building?" in developer settings.',
+    )
     consent_withdrawn_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -251,7 +288,7 @@ class Project(models.Model):
         Return a JSON-safe dict of fields (datetimes as ISO strings).
 
         Public fields are always included. PII / internal fields
-        (`PRIVATE_FIELDS`: creator_email, submitter, salesforce_id, notes) are
+        (`PRIVATE_FIELDS`: creator_email, submitter, salesforce_id, notes, ...) are
         included only when `authenticated` is True, which the view sets from
         `request.user.is_staff`.
         """

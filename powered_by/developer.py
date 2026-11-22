@@ -30,7 +30,7 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project, SubmissionSource
+from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project, Purpose, SubmissionSource
 
 MAX_KEYS_PER_PROJECT = 5
 MAX_PROJECTS_PER_ACCOUNT = 10
@@ -39,6 +39,10 @@ RAISED_PROJECT_LIMIT_GROUP = "Developer project limit raised"
 RAISED_MAX_PROJECTS_PER_ACCOUNT = 100
 MAX_DESCRIPTION_LENGTH = 150
 MAX_PROFILE_DESCRIPTION_LENGTH = 300
+MAX_PUBLISH_ANSWER_LENGTH = 2000
+MAX_PUBLISH_CHOICES = 20
+# "What kind of project is it?" on the publish form. project_category holds the chosen ids joined with commas.
+PUBLISH_CATEGORIES = ("learning", "ai", "visualization", "community", "extensions", "other")
 
 ENABLED_SETTING = "developer_enabled"
 PROFILE_SETTING = "developer_profile"
@@ -76,10 +80,6 @@ REVEAL_THROTTLE_PREFIX = "developer-key-reveal:"
 audit_logger = logging.getLogger("powered_by.key_reveal")
 
 _url_validator = URLValidator(schemes=["http", "https"])
-
-WEBSITE_IN_USE_ERROR = (
-    "A key is restricted to this website. Turn off the restriction on every key before removing the website."
-)
 
 
 class CooldownError(Exception):
@@ -318,9 +318,11 @@ def serialize_project(api_project):
         "description": profile.project_desc,
         "organization": profile.organization,
         "websiteUrl": profile.project_link,
+        "purpose": profile.purpose,
         "visibility": "private" if profile.request_not_to_publish else "public",
         "aiAssisted": profile.vibe_coded,
         "linkedListing": profile.submission_source != SubmissionSource.DEVELOPER_SETTINGS,
+        "poweredBy": serialize_publish_answers(profile),
         "consentWithdrawnAt": iso(profile.consent_withdrawn_at),
         "contactEmail": api_project.contact_email,
         "keys": [serialize_key(k) for k in keys],
@@ -352,6 +354,7 @@ def developer_state(request):
         "profile": profile.settings.get(PROFILE_SETTING),
         "projects": [serialize_project(p) for p in owned_projects(user)],
         "maxKeysPerProject": MAX_KEYS_PER_PROJECT,
+        "maxProjects": max_projects(user),
     }
     return state
 
@@ -366,6 +369,12 @@ FIELD_LABELS = {
     "organization": "The organization",
     "websiteUrl": "The website",
     "contactEmail": "The contact email",
+    "currentRole": "The current role",
+    "sourceCode": "The source code link",
+    "otherTech": "The other technologies",
+    "inspiration": "What inspired you",
+    "monthlyUsers": "The monthly users",
+    "anythingElse": "Anything else",
 }
 
 
@@ -565,14 +574,20 @@ def clean_project_fields(data):
         "organization": _text(data, "organization"),
         "websiteUrl": _text(data, "websiteUrl", 200),
         "visibility": data.get("visibility"),
+        # None when the request leaves it out or empty, so an edit keeps the stored answer.
+        "purpose": data.get("purpose") or None,
         "aiAssisted": bool(data.get("aiAssisted")),
         # None when the request leaves it out, so an edit keeps the stored address.
         "contactEmail": _text(data, "contactEmail", CONTACT_EMAIL_MAX_LENGTH) if "contactEmail" in data else None,
+        # Only the publish form sends these; other saves leave the stored answers as they are.
+        "poweredBy": clean_publish_answers(data["poweredBy"]) if "poweredBy" in data else None,
     }
     if not fields["name"]:
         raise InputError("Give the project a name.")
     if fields["visibility"] not in ("public", "private"):
         raise InputError("Choose whether the project is public or private.")
+    if fields["purpose"] is not None and fields["purpose"] not in Purpose.values:
+        raise InputError("Choose what you are building from the list.")
     if fields["websiteUrl"]:
         try:
             _url_validator(fields["websiteUrl"])
@@ -586,12 +601,89 @@ def clean_project_fields(data):
     return fields
 
 
+def _choices(data, field, allowed=None):
+    value = data.get(field, [])
+    if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+        raise InputError(f"{field} must be a list of text.")
+    chosen = list(dict.fromkeys(v.strip() for v in value if v.strip()))
+    if len(chosen) > MAX_PUBLISH_CHOICES or any(len(v) > 255 for v in chosen):
+        raise InputError(f"{field} has too many or too long choices.")
+    if allowed is not None and any(v not in allowed for v in chosen):
+        raise InputError(f"{field} has a choice that isn't on the form.")
+    return chosen
+
+
+def clean_publish_answers(data):
+    """The Powered by answers from the publish form, as sent next to the project's own fields."""
+    if not isinstance(data, dict):
+        raise InputError("The publish answers must be a JSON object.")
+    answers = {
+        "showName": bool(data.get("showName")),
+        "currentRole": _text(data, "currentRole"),
+        "isDeveloper": bool(data.get("isDeveloper")),
+        "categories": _choices(data, "categories", PUBLISH_CATEGORIES),
+        "sourceCode": _text(data, "sourceCode", 200),
+        "tools": _choices(data, "tools"),
+        "otherTech": _text(data, "otherTech", MAX_PUBLISH_ANSWER_LENGTH),
+        "inspiration": _text(data, "inspiration", MAX_PUBLISH_ANSWER_LENGTH),
+        "monthlyUsers": _text(data, "monthlyUsers"),
+        "anythingElse": _text(data, "anythingElse", MAX_PUBLISH_ANSWER_LENGTH),
+        "addedLogo": bool(data.get("addedLogo")),
+        "addedDonateLink": bool(data.get("addedDonateLink")),
+    }
+    if not answers["categories"]:
+        raise InputError("Choose at least one category.")
+    if answers["sourceCode"]:
+        try:
+            _url_validator(answers["sourceCode"])
+        except ValidationError:
+            raise InputError("The source code link is not a valid web address.")
+    return answers
+
+
+def serialize_publish_answers(profile):
+    categories = [c.strip() for c in (profile.project_category or "").split(",")]
+    return {
+        "showName": profile.show_name,
+        "currentRole": profile.job_title,
+        "isDeveloper": profile.is_developer,
+        "categories": [c for c in categories if c in PUBLISH_CATEGORIES],
+        "sourceCode": profile.project_source_code or "",
+        "tools": profile.sefaria_tools_used if isinstance(profile.sefaria_tools_used, list) else [],
+        "otherTech": profile.tech_used_raw,
+        "inspiration": profile.project_why,
+        "monthlyUsers": profile.project_reach,
+        "anythingElse": profile.anything_else or "",
+        "addedLogo": profile.has_pbs_logo,
+        "addedDonateLink": profile.has_donate_link,
+    }
+
+
+def _apply_publish_answers(project, answers):
+    project.show_name = answers["showName"]
+    project.job_title = answers["currentRole"]
+    project.is_developer = answers["isDeveloper"]
+    project.project_category = ",".join(answers["categories"])
+    project.project_source_code = answers["sourceCode"] or None
+    project.sefaria_tools_used = answers["tools"]
+    project.tech_used_raw = answers["otherTech"]
+    project.project_why = answers["inspiration"]
+    project.project_reach = answers["monthlyUsers"]
+    project.anything_else = answers["anythingElse"]
+    project.has_pbs_logo = answers["addedLogo"]
+    project.has_donate_link = answers["addedDonateLink"]
+
+
 def _apply_fields(project, fields):
     project.project_name = fields["name"]
     project.project_desc = fields["description"]
     project.organization = fields["organization"]
     project.project_link = fields["websiteUrl"]
     project.vibe_coded = fields["aiAssisted"]
+    if fields["purpose"] is not None:
+        project.purpose = fields["purpose"]
+    if fields["poweredBy"] is not None:
+        _apply_publish_answers(project, fields["poweredBy"])
 
 
 def _set_visibility(project, visibility):
@@ -673,16 +765,15 @@ def create_project(user, data):
 @transaction.atomic
 def update_project(user, project_id, data):
     """
-    Restricted keys follow the website to a new address. The website can't be removed while any
-    key is restricted to it: that would quietly let the key work from anywhere.
+    Restricted keys follow the website to a new address. Removing the website turns the website
+    limit off on every key that had it, in the same save: the settings page warns first and names
+    those keys (Penina, 2026-11-09).
     """
     api_project = _lock_owned_project(user, project_id)
     profile = api_project.profile
     fields = clean_project_fields(data)
     old_link = profile.project_link
-    restricted_keys = api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[])
-    if old_link and not fields["websiteUrl"] and restricted_keys.exists():
-        raise InputError(WEBSITE_IN_USE_ERROR)
+    restricted_keys = list(api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[]))
     _apply_fields(profile, fields)
     _set_visibility(profile, fields["visibility"])
     profile.save()
@@ -690,8 +781,9 @@ def update_project(user, project_id, data):
         api_project.contact_email = fields["contactEmail"]
     api_project.save()
     if profile.project_link != old_link:
+        new_origins = [origin_of(profile.project_link)] if profile.project_link else []
         for api_key in restricted_keys:
-            api_key.allowed_origins = [origin_of(profile.project_link)]
+            api_key.allowed_origins = new_origins
             api_key.save(update_fields=["allowed_origins"])
     return get_owned_project(user, project_id)
 

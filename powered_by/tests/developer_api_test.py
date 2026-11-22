@@ -18,7 +18,7 @@ from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
-from powered_by import developer
+from powered_by import developer, developer_views
 from powered_by.models import ApiKey, ApiProject, ApiTier, Project, SubmissionSource
 from reader.conftest import create_test_user, page_props, purge_test_profiles
 from sefaria.model.user_profile import UserProfile
@@ -32,6 +32,21 @@ PROJECT = {
     "websiteUrl": "https://dafportal.org/app",
     "visibility": "private",
     "aiAssisted": True,
+}
+
+PUBLISH_ANSWERS = {
+    "showName": True,
+    "currentRole": "Teacher",
+    "isDeveloper": True,
+    "categories": ["learning", "ai"],
+    "sourceCode": "https://github.com/example/daf-portal",
+    "tools": ["Sefaria API", "Sefaria MCP"],
+    "otherTech": "React, Postgres",
+    "inspiration": "My chavruta.",
+    "monthlyUsers": "100",
+    "anythingElse": "Thanks!",
+    "addedLogo": True,
+    "addedDonateLink": True,
 }
 
 
@@ -106,6 +121,15 @@ class VerificationTest(DeveloperApiTestCase):
         self.assertEqual(status, 200)
         self.assertTrue(state["developerEnabled"])
 
+    def test_the_confirmation_email_has_an_html_version_with_the_same_link(self):
+        self.call("post", "confirmation")
+
+        message = mail.outbox[0]
+        link = re.search(r"https?://\S+/settings/developer/confirm-email/\S+", message.body).group(0)
+        html, mimetype = message.alternatives[0]
+        self.assertEqual(mimetype, "text/html")
+        self.assertIn('href="%s"' % link, html)
+
     def test_the_emailed_link_confirms_the_address_without_a_login_and_turns_developer_settings_on(self):
         status, state = self.call("post", "confirmation")
 
@@ -132,6 +156,14 @@ class VerificationTest(DeveloperApiTestCase):
         self.assertTrue(0 < int(response["Retry-After"]) <= 60)
         self.assertIn("error", json.loads(response.content))
         self.assertEqual(len(mail.outbox), 1)
+
+    def test_a_failed_send_is_not_shown_as_sent_but_still_throttles(self):
+        failing_send = patch("powered_by.developer_views.send_confirmation_email", side_effect=RuntimeError("refused"))
+        with failing_send, self.assertRaises(RuntimeError):
+            developer_views.send_confirmation(None, self.user)
+
+        self.assertIsNone(self.call("get", "state")[1]["confirmationSentAt"])
+        self.assertEqual(self.call("post", "confirmation")[0], 429)
 
     def test_cancelling_does_not_reset_the_cooldown(self):
         self.call("post", "confirmation")
@@ -538,6 +570,181 @@ class ProjectTest(DeveloperApiTestCase):
             purge_test_profiles(other)
 
 
+class PurposeTest(DeveloperApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+
+    def row(self, project):
+        return ApiProject.objects.get(id=int(project["id"])).profile
+
+    def edit(self, project, **fields):
+        return self.call("post", "projects/" + project["id"], {"project": {**PROJECT, **fields}})
+
+    def test_a_create_saves_the_purpose_and_the_state_returns_it(self):
+        project = self.create_project(purpose="school")
+
+        self.assertEqual(self.row(project).purpose, "school")
+        self.assertEqual(project["purpose"], "school")
+        _, state = self.call("get", "state")
+        self.assertEqual(state["projects"][0]["purpose"], "school")
+
+    def test_a_create_without_a_purpose_leaves_it_unset(self):
+        project = self.create_project()
+
+        self.assertIsNone(self.row(project).purpose)
+        self.assertIsNone(project["purpose"])
+
+    def test_an_edit_changes_the_purpose(self):
+        project = self.create_project(purpose="school")
+
+        status, state = self.edit(project, purpose="research")
+
+        self.assertEqual(status, 200, state)
+        self.assertEqual(self.row(project).purpose, "research")
+        self.assertEqual(state["projects"][0]["purpose"], "research")
+
+    def test_an_edit_without_a_purpose_keeps_the_stored_one(self):
+        project = self.create_project(purpose="community")
+
+        for fields in ({}, {"purpose": ""}, {"purpose": None}):
+            status, _ = self.edit(project, name="Renamed", **fields)
+            self.assertEqual(status, 200, fields)
+            self.assertEqual(self.row(project).purpose, "community", fields)
+
+    def test_a_publish_submit_keeps_the_purpose(self):
+        project = self.create_project(purpose="commercial")
+
+        status, _ = self.edit(project, visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        self.assertEqual(status, 200)
+        self.assertEqual(self.row(project).purpose, "commercial")
+
+    def test_a_purpose_not_on_the_form_is_refused(self):
+        for purpose in ("hobby", "Personal", ["personal"], 1):
+            status, _ = self.call("post", "projects", {"project": {**PROJECT, "purpose": purpose}})
+            self.assertEqual(status, 400, purpose)
+        project = self.create_project(purpose="personal")
+        status, _ = self.edit(project, purpose="hobby")
+        self.assertEqual(status, 400)
+        self.assertEqual(self.row(project).purpose, "personal")
+
+
+class PublishAnswersTest(DeveloperApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+        self.project = self.create_project()
+
+    def submit(self, answers, **fields):
+        body = {"project": {**PROJECT, "visibility": "public", **fields, "poweredBy": answers}}
+        return self.call("post", "projects/" + self.project["id"], body)
+
+    def row(self):
+        return ApiProject.objects.get(id=int(self.project["id"])).profile
+
+    def test_a_new_project_has_no_answers_and_its_name_is_not_shown(self):
+        row = self.row()
+        self.assertFalse(row.show_name)
+        self.assertFalse(row.has_donate_link)
+        self.assertEqual(self.project["poweredBy"]["categories"], [])
+
+    def test_submitting_stores_every_answer_on_the_powered_by_row(self):
+        status, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(status, 200, state)
+        row = self.row()
+        self.assertTrue(row.show_name)
+        self.assertEqual(row.job_title, "Teacher")
+        self.assertTrue(row.is_developer)
+        self.assertEqual(row.project_category, "learning,ai")
+        self.assertEqual(row.project_source_code, "https://github.com/example/daf-portal")
+        self.assertEqual(row.sefaria_tools_used, ["Sefaria API", "Sefaria MCP"])
+        self.assertEqual(row.tech_used_raw, "React, Postgres")
+        self.assertEqual(row.project_why, "My chavruta.")
+        self.assertEqual(row.project_reach, "100")
+        self.assertEqual(row.anything_else, "Thanks!")
+        self.assertTrue(row.has_pbs_logo)
+        self.assertTrue(row.has_donate_link)
+        self.assertTrue(row.vibe_coded)
+
+    def test_the_answers_come_back_in_the_state(self):
+        _, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(state["projects"][0]["poweredBy"], PUBLISH_ANSWERS)
+
+    def test_a_create_can_carry_the_answers(self):
+        project = self.create_project(visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        self.assertEqual(project["poweredBy"], PUBLISH_ANSWERS)
+
+    def test_an_edit_without_answers_keeps_the_stored_ones(self):
+        self.submit(PUBLISH_ANSWERS)
+
+        status, _ = self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "name": "Renamed"}})
+
+        self.assertEqual(status, 200)
+        row = self.row()
+        self.assertEqual(row.project_name, "Renamed")
+        self.assertEqual(row.job_title, "Teacher")
+        self.assertTrue(row.has_donate_link)
+
+    def test_a_resubmit_clears_answers_left_empty(self):
+        self.submit(PUBLISH_ANSWERS)
+
+        self.submit({"categories": ["other"]})
+
+        row = self.row()
+        self.assertFalse(row.show_name)
+        self.assertEqual(row.job_title, "")
+        self.assertIsNone(row.project_source_code)
+        self.assertEqual(row.sefaria_tools_used, [])
+        self.assertEqual(row.anything_else, "")
+        self.assertFalse(row.has_donate_link)
+
+    def test_the_answers_leave_staff_notes_alone_and_never_show_them(self):
+        row = self.row()
+        row.notes = "Staff only: follow up about the logo."
+        row.save()
+
+        _, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(self.row().notes, "Staff only: follow up about the logo.")
+        self.assertEqual(state["projects"][0]["poweredBy"]["anythingElse"], "Thanks!")
+        self.assertNotIn("Staff only", json.dumps(state))
+        _, state = self.call("get", "state")
+        self.assertNotIn("Staff only", json.dumps(state))
+
+        self.submit({"categories": ["other"]})
+
+        self.assertEqual(self.row().notes, "Staff only: follow up about the logo.")
+
+    def test_bad_answers_are_refused_and_nothing_is_saved(self):
+        for answers in (
+            {**PUBLISH_ANSWERS, "categories": []},
+            {**PUBLISH_ANSWERS, "categories": ["Learning & Study Tools"]},
+            {**PUBLISH_ANSWERS, "tools": "Sefaria API"},
+            {**PUBLISH_ANSWERS, "sourceCode": "not a link"},
+            {**PUBLISH_ANSWERS, "currentRole": "x" * 256},
+            {**PUBLISH_ANSWERS, "anythingElse": "x" * 2001},
+            "not an object",
+        ):
+            status, _ = self.submit(answers)
+            self.assertEqual(status, 400, answers)
+        self.assertEqual(self.row().job_title, "")
+
+    def test_the_gallery_does_not_show_whether_the_name_may_be_shown(self):
+        project = self.create_project(visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        listings = json.loads(Client().get("/api/powered-by").content)["projects"]
+        listing = next(p for p in listings if p["id"] == ApiProject.objects.get(id=int(project["id"])).profile_id)
+
+        self.assertNotIn("show_name", listing)
+        self.assertNotIn("has_donate_link", listing)
+        self.assertNotIn("anything_else", listing)
+        self.assertNotIn("purpose", listing)
+
+
 class KeyTest(DeveloperApiTestCase):
     def setUp(self):
         super().setUp()
@@ -583,18 +790,19 @@ class KeyTest(DeveloperApiTestCase):
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
-    def test_the_website_cannot_be_removed_while_a_key_is_restricted_to_it(self):
+    def test_removing_the_website_turns_off_its_keys_limits_in_the_same_save(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
+        unrestricted = self.create_key(self.project["id"], "Local")["keyId"]
         self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
         url = "projects/" + self.project["id"]
 
         status, state = self.call("post", url, {"project": {**PROJECT, "name": "Renamed", "websiteUrl": ""}})
 
-        self.assertEqual(status, 400)
-        self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
+        self.assertEqual(status, 200, state)
         project = ApiProject.objects.get(id=int(self.project["id"])).profile
-        self.assertEqual((project.project_name, project.project_link), (PROJECT["name"], PROJECT["websiteUrl"]))
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://dafportal.org"])
+        self.assertEqual((project.project_name, project.project_link), ("Renamed", ""))
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, [])
+        self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
     def test_the_website_can_be_removed_once_no_live_key_is_restricted(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
