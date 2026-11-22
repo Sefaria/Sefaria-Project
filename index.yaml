@@ -242,6 +242,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.95.1-claudegracious-noether-3tuqmy-103dd3b.1.tgz
     version: 0.95.1-claudegracious-noether-3tuqmy-103dd3b.1
   - apiVersion: v2
+    appVersion: v7.17.3
+    created: "2026-11-22T18:07:18.81951558Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: c3ea722c247d81ed7155fb76af0a956b7ee7400eb47a800d815b18bfc3aeed01
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.95.1-claudeecstatic-fermat-oeocni-6bf3465.1.tgz
+    version: 0.95.1-claudeecstatic-fermat-oeocni-6bf3465.1
+  - apiVersion: v2
     appVersion: v7.16.3
     created: "2026-11-19T07:07:04.208663907Z"
     description: Chart to deploy complete Sefaria environment
@@ -25710,4 +25725,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-22T07:56:05.169024387Z"
+generated: "2026-11-22T18:07:18.814477918Z"
