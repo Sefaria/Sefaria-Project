@@ -7,11 +7,11 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 
-from .models import ApiKey, ApiProject, Project
+from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project
 
-# How much of a key the admin may show or search on: the "sfr_" prefix and 6 characters. Enough to tell keys apart in a
-# log or a support request; everything after it is the secret.
-KEY_DISPLAY_PREFIX = 10
+# The fields an admin may edit inline. The admin form carries each one's value as it was when the page rendered
+# (a hidden "initial-" input), so a save can tell what the admin changed from what merely went stale.
+ADMIN_EDITABLE_KEY_FIELDS = ("label", "allowed_origins", "revoked_at")
 
 
 class ApiKeyForm(forms.ModelForm):
@@ -20,11 +20,34 @@ class ApiKeyForm(forms.ModelForm):
         # A revoked key stays revoked: a disabled field ignores whatever the form posts.
         if self.instance.revoked_at is not None:
             self.fields["revoked_at"].disabled = True
+        for name in ADMIN_EDITABLE_KEY_FIELDS:
+            if not self.fields[name].disabled:
+                self.fields[name].show_hidden_initial = True
+
+
+class ApiKeyFormSet(forms.BaseInlineFormSet):
+    def save_existing(self, form, obj, commit=True):
+        # The form was built from the key as it was when the page loaded, and the row is written whole. Re-read it
+        # under its lock: a revoke since then must stand, and so must every other field this form did not change (an
+        # owner may have restricted allowed_origins meanwhile; writing the old list back would widen the key).
+        if commit:
+            with transaction.atomic():
+                current = ApiKey.objects.select_for_update().get(pk=obj.pk)
+                for name in ADMIN_EDITABLE_KEY_FIELDS:
+                    if name == "revoked_at":
+                        # A revocation that is already there stands whatever the form carries.
+                        if current.revoked_at is not None or name not in form.changed_data:
+                            obj.revoked_at = current.revoked_at
+                    elif name not in form.changed_data:
+                        setattr(obj, name, getattr(current, name))
+                return super().save_existing(form, obj, commit)
+        return super().save_existing(form, obj, commit)
 
 
 class ApiKeyInline(admin.TabularInline):
     model = ApiKey
     form = ApiKeyForm
+    formset = ApiKeyFormSet
     extra = 0
     can_delete = False
     fields = ("label", "masked_key", "allowed_origins", "created_at", "revoked_at", "last_used_at")
@@ -64,7 +87,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "is_buggy",
     )
     search_fields = ("project_name", "creator", "creator_email", "submitter")
-    readonly_fields = ("created_at", "updated_at", "live_api_project")
+    readonly_fields = ("created_at", "updated_at", "live_api_project", "anything_else", "purpose")
     date_hierarchy = "created_at"
 
     def get_queryset(self, request):
@@ -113,6 +136,7 @@ class ProjectAdmin(admin.ModelAdmin):
                     "submitter",
                     "is_developer",
                     "job_title",
+                    "show_name",
                     "technical_experience",
                     "found_sefaria",
                     "sefaria_tools_used",
@@ -134,6 +158,9 @@ class ProjectAdmin(admin.ModelAdmin):
                     "vibe_coded",
                     "image_url",
                     "has_pbs_logo",
+                    "has_donate_link",
+                    "anything_else",
+                    "purpose",
                 ),
             },
         ),
@@ -185,6 +212,17 @@ class ApiProjectAdmin(admin.ModelAdmin):
             params[SEARCH_VAR] = queries[-1].strip()[:KEY_DISPLAY_PREFIX]
             return HttpResponseRedirect(f"{request.path}?{params.urlencode()}")
         return super().changelist_view(request, extra_context)
+
+    def save_model(self, request, obj, form, change):
+        # deleted_at is not editable here, but save() writes every column: a project soft-deleted since the form loaded
+        # would come back to life. Re-read it under the row lock and keep a deletion that is already there.
+        if change:
+            with transaction.atomic():
+                deleted_at = ApiProject.objects.select_for_update().values_list("deleted_at", flat=True).get(pk=obj.pk)
+                if deleted_at is not None:
+                    obj.deleted_at = deleted_at
+                return super().save_model(request, obj, form, change)
+        return super().save_model(request, obj, form, change)
 
     def get_search_results(self, request, queryset, search_term):
         # Match only the prefix the admin already shows. Searching further into the key would let staff recover it a

@@ -84,3 +84,89 @@ class EmailAddressSideEffectsTest(TestCase):
         self.assertEqual(plain["login with the old email"], 401)
         self.assertEqual(plain["reset with the old email"], (200, False))
         self.assertEqual(confirmed, plain)
+
+
+@override_settings(DEVELOPER_SETTINGS_ENABLED=True)
+class AllauthConfirmationRoutesTest(TestCase):
+    """
+    The emailed developer-settings key is an allauth confirmation key, so allauth's own routes accept it too. They
+    must not confirm it around powered_by.developer.confirm_email, which holds the account's row lock and refuses a
+    link for an address that is no longer the account email.
+    """
+
+    databases = "__all__"
+
+    def setUp(self):
+        self.user = create_test_user("allauthroutes")
+        purge_test_profiles(self.user)
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def tearDown(self):
+        purge_test_profiles(self.user)
+
+    def emailed_key(self):
+        mail.outbox.clear()
+        self.client.post("/api/developer/confirmation", "", content_type="application/json")
+        return re.search(r"/settings/developer/confirm-email/(\S+)", mail.outbox[-1].body).group(1).rstrip("/")
+
+    def address_state(self):
+        from allauth.account.models import EmailAddress
+
+        return list(EmailAddress.objects.filter(user=self.user).values_list("email", "verified"))
+
+    def account_email(self):
+        self.user.refresh_from_db()
+        return self.user.email
+
+    def change_email_after_link_was_sent(self):
+        self.user.email = "changed-" + self.user.email
+        self.user.username = self.user.email
+        self.user.save()
+
+    def test_the_allauth_confirm_page_does_not_confirm_a_key_for_a_replaced_address(self):
+        key = self.emailed_key()
+        old_email = self.account_email()
+        self.change_email_after_link_was_sent()
+
+        Client().post(f"/accounts/confirm-email/{key}/")
+
+        self.assertEqual(self.account_email(), "changed-" + old_email)
+        self.assertNotIn((old_email, True), self.address_state())
+
+    def test_the_allauth_confirm_page_does_not_confirm_a_current_key_outside_the_developer_flow(self):
+        key = self.emailed_key()
+
+        Client().post(f"/accounts/confirm-email/{key}/")
+        Client().get(f"/accounts/confirm-email/{key}/")
+
+        self.assertEqual([verified for _, verified in self.address_state()], [False])
+
+    def test_the_headless_verify_endpoint_does_not_confirm_a_key_for_a_replaced_address(self):
+        key = self.emailed_key()
+        old_email = self.account_email()
+        self.change_email_after_link_was_sent()
+
+        Client().post(
+            "/_allauth/browser/v1/auth/email/verify", json.dumps({"key": key}), content_type="application/json"
+        )
+
+        self.assertEqual(self.account_email(), "changed-" + old_email)
+        self.assertNotIn((old_email, True), self.address_state())
+
+    def test_the_headless_verify_endpoint_does_not_confirm_a_current_key_outside_the_developer_flow(self):
+        key = self.emailed_key()
+
+        Client().post(
+            "/_allauth/browser/v1/auth/email/verify", json.dumps({"key": key}), content_type="application/json"
+        )
+
+        self.assertEqual([verified for _, verified in self.address_state()], [False])
+
+    def test_the_developer_link_still_confirms_a_current_address(self):
+        key = self.emailed_key()
+
+        response = Client().get(f"/settings/developer/confirm-email/{key}")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual([verified for _, verified in self.address_state()], [True])

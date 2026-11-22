@@ -12,15 +12,18 @@ from unittest.mock import patch
 import pytest
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth.models import User
 from django.core import mail
-from django.db import connection, connections
+from django.db import connection, connections, transaction
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
-from powered_by import developer
+from powered_by import developer, developer_views
 from powered_by.models import ApiKey, ApiProject, ApiTier, Project, SubmissionSource
 from reader.conftest import create_test_user, page_props, purge_test_profiles
+from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 
 PROFILE = {"developerName": "Tova Levi", "description": "Daily study tools.", "termsAccepted": True}
 PROJECT = {
@@ -30,6 +33,21 @@ PROJECT = {
     "websiteUrl": "https://dafportal.org/app",
     "visibility": "private",
     "aiAssisted": True,
+}
+
+PUBLISH_ANSWERS = {
+    "showName": True,
+    "currentRole": "Teacher",
+    "isDeveloper": True,
+    "categories": ["learning", "ai"],
+    "sourceCode": "https://github.com/example/daf-portal",
+    "tools": ["Sefaria API", "Sefaria MCP"],
+    "otherTech": "React, Postgres",
+    "inspiration": "My chavruta.",
+    "monthlyUsers": "100",
+    "anythingElse": "Thanks!",
+    "addedLogo": True,
+    "addedDonateLink": True,
 }
 
 
@@ -104,6 +122,15 @@ class VerificationTest(DeveloperApiTestCase):
         self.assertEqual(status, 200)
         self.assertTrue(state["developerEnabled"])
 
+    def test_the_confirmation_email_has_an_html_version_with_the_same_link(self):
+        self.call("post", "confirmation")
+
+        message = mail.outbox[0]
+        link = re.search(r"https?://\S+/settings/developer/confirm-email/\S+", message.body).group(0)
+        html, mimetype = message.alternatives[0]
+        self.assertEqual(mimetype, "text/html")
+        self.assertIn('href="%s"' % link, html)
+
     def test_the_emailed_link_confirms_the_address_without_a_login_and_turns_developer_settings_on(self):
         status, state = self.call("post", "confirmation")
 
@@ -130,6 +157,14 @@ class VerificationTest(DeveloperApiTestCase):
         self.assertTrue(0 < int(response["Retry-After"]) <= 60)
         self.assertIn("error", json.loads(response.content))
         self.assertEqual(len(mail.outbox), 1)
+
+    def test_a_failed_send_is_not_shown_as_sent_but_still_throttles(self):
+        failing_send = patch("powered_by.developer_views.send_confirmation_email", side_effect=RuntimeError("refused"))
+        with failing_send, self.assertRaises(RuntimeError):
+            developer_views.send_confirmation(None, self.user)
+
+        self.assertIsNone(self.call("get", "state")[1]["confirmationSentAt"])
+        self.assertEqual(self.call("post", "confirmation")[0], 429)
 
     def test_cancelling_does_not_reset_the_cooldown(self):
         self.call("post", "confirmation")
@@ -257,6 +292,16 @@ class ConfirmationLinkTest(DeveloperApiTestCase):
         self.assertEqual(Client().get(link).status_code, 302)
         self.assertTrue(self.call("get", "state")[1]["emailVerified"])
 
+    def test_a_new_link_request_with_a_key_that_is_not_text_is_a_400_not_a_500(self):
+        for key in (123, ["a"], {"a": 1}, True, 1.5):
+            response = Client().post(
+                "/api/developer/confirmation/new-link", {"key": key}, content_type="application/json"
+            )
+
+            self.assertEqual(response.status_code, 400, key)
+            self.assertIn("error", json.loads(response.content))
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_new_links_share_the_resend_limits(self):
         key = self.link_key(age=timedelta(days=4))
 
@@ -335,6 +380,50 @@ class ResendLimitTest(DeveloperApiTestCase):
         self.assertEqual(len(mail.outbox), 6)
 
 
+class ThrottleStorageTest(DeveloperApiTestCase):
+    """The limits live outside the profile settings, so a whole-profile save cannot reset them."""
+
+    def send(self):
+        return self.client.post("/api/developer/confirmation", "", content_type="application/json").status_code
+
+    def test_a_stale_profile_save_cannot_erase_the_cooldown(self):
+        stale = UserProfile(id=self.user.id)
+        self.assertEqual(self.send(), 200)
+
+        stale.save()
+
+        self.assertEqual(self.send(), 429)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_a_stale_profile_save_cannot_erase_the_daily_limit(self):
+        start = timezone.now()
+        stale = UserProfile(id=self.user.id)
+        for i in range(5):
+            with patch("powered_by.developer.timezone.now", return_value=start + timedelta(minutes=2 * i)):
+                self.assertEqual(self.send(), 200)
+
+        stale.save()
+
+        with patch("powered_by.developer.timezone.now", return_value=start + timedelta(minutes=30)):
+            self.assertEqual(self.send(), 429)
+
+    def test_sends_an_older_version_recorded_in_the_profile_still_count(self):
+        start = timezone.now() - timedelta(hours=2)
+        profile = UserProfile(id=self.user.id)
+        profile.settings[developer.CONFIRMATION_SENDS_SETTING] = [
+            developer.iso(start + timedelta(minutes=2 * i)) for i in range(5)
+        ]
+        profile.save()
+
+        self.assertEqual(self.send(), 429)
+
+    def test_a_send_is_stored_in_the_throttle_collection_and_not_in_the_profile(self):
+        self.assertEqual(self.send(), 200)
+
+        self.assertEqual(len(db.developer_confirmation_throttle.find_one({"uid": self.user.id})["sends"]), 1)
+        self.assertNotIn(developer.CONFIRMATION_SENDS_SETTING, UserProfile(id=self.user.id).settings)
+
+
 class EmailChangeTest(DeveloperApiTestCase):
     """
     Changing the account email resets verification: existing keys keep working and stay manageable,
@@ -360,16 +449,9 @@ class EmailChangeTest(DeveloperApiTestCase):
         self.assertEqual(len(state["projects"][0]["keys"]), 1)
         self.assertIsNone(ApiKey.objects.get(id=self.key_id).revoked_at)
 
-    def test_new_projects_keys_and_claims_are_blocked(self):
-        Project.objects.create(
-            submission_source=SubmissionSource.MANUAL, project_name="Listing", creator_email=self.user.email
-        )
-        listing = Project.objects.get(project_name="Listing")
-
+    def test_new_projects_and_keys_are_blocked(self):
         self.assertEqual(self.call("post", "projects", {"project": PROJECT})[0], 403)
         self.assertEqual(self.call("post", "projects/{}/keys".format(self.project["id"]), {"label": "Two"})[0], 403)
-        self.assertEqual(self.call("post", f"listings/{listing.id}/claim")[0], 403)
-        self.assertFalse(ApiProject.objects.filter(profile_id=listing.id).exists())
 
     def test_existing_projects_and_keys_can_still_be_managed(self):
         self.assertEqual(
@@ -489,6 +571,181 @@ class ProjectTest(DeveloperApiTestCase):
             purge_test_profiles(other)
 
 
+class PurposeTest(DeveloperApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+
+    def row(self, project):
+        return ApiProject.objects.get(id=int(project["id"])).profile
+
+    def edit(self, project, **fields):
+        return self.call("post", "projects/" + project["id"], {"project": {**PROJECT, **fields}})
+
+    def test_a_create_saves_the_purpose_and_the_state_returns_it(self):
+        project = self.create_project(purpose="school")
+
+        self.assertEqual(self.row(project).purpose, "school")
+        self.assertEqual(project["purpose"], "school")
+        _, state = self.call("get", "state")
+        self.assertEqual(state["projects"][0]["purpose"], "school")
+
+    def test_a_create_without_a_purpose_leaves_it_unset(self):
+        project = self.create_project()
+
+        self.assertIsNone(self.row(project).purpose)
+        self.assertIsNone(project["purpose"])
+
+    def test_an_edit_changes_the_purpose(self):
+        project = self.create_project(purpose="school")
+
+        status, state = self.edit(project, purpose="research")
+
+        self.assertEqual(status, 200, state)
+        self.assertEqual(self.row(project).purpose, "research")
+        self.assertEqual(state["projects"][0]["purpose"], "research")
+
+    def test_an_edit_without_a_purpose_keeps_the_stored_one(self):
+        project = self.create_project(purpose="community")
+
+        for fields in ({}, {"purpose": ""}, {"purpose": None}):
+            status, _ = self.edit(project, name="Renamed", **fields)
+            self.assertEqual(status, 200, fields)
+            self.assertEqual(self.row(project).purpose, "community", fields)
+
+    def test_a_publish_submit_keeps_the_purpose(self):
+        project = self.create_project(purpose="commercial")
+
+        status, _ = self.edit(project, visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        self.assertEqual(status, 200)
+        self.assertEqual(self.row(project).purpose, "commercial")
+
+    def test_a_purpose_not_on_the_form_is_refused(self):
+        for purpose in ("hobby", "Personal", ["personal"], 1):
+            status, _ = self.call("post", "projects", {"project": {**PROJECT, "purpose": purpose}})
+            self.assertEqual(status, 400, purpose)
+        project = self.create_project(purpose="personal")
+        status, _ = self.edit(project, purpose="hobby")
+        self.assertEqual(status, 400)
+        self.assertEqual(self.row(project).purpose, "personal")
+
+
+class PublishAnswersTest(DeveloperApiTestCase):
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+        self.project = self.create_project()
+
+    def submit(self, answers, **fields):
+        body = {"project": {**PROJECT, "visibility": "public", **fields, "poweredBy": answers}}
+        return self.call("post", "projects/" + self.project["id"], body)
+
+    def row(self):
+        return ApiProject.objects.get(id=int(self.project["id"])).profile
+
+    def test_a_new_project_has_no_answers_and_its_name_is_not_shown(self):
+        row = self.row()
+        self.assertFalse(row.show_name)
+        self.assertFalse(row.has_donate_link)
+        self.assertEqual(self.project["poweredBy"]["categories"], [])
+
+    def test_submitting_stores_every_answer_on_the_powered_by_row(self):
+        status, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(status, 200, state)
+        row = self.row()
+        self.assertTrue(row.show_name)
+        self.assertEqual(row.job_title, "Teacher")
+        self.assertTrue(row.is_developer)
+        self.assertEqual(row.project_category, "learning,ai")
+        self.assertEqual(row.project_source_code, "https://github.com/example/daf-portal")
+        self.assertEqual(row.sefaria_tools_used, ["Sefaria API", "Sefaria MCP"])
+        self.assertEqual(row.tech_used_raw, "React, Postgres")
+        self.assertEqual(row.project_why, "My chavruta.")
+        self.assertEqual(row.project_reach, "100")
+        self.assertEqual(row.anything_else, "Thanks!")
+        self.assertTrue(row.has_pbs_logo)
+        self.assertTrue(row.has_donate_link)
+        self.assertTrue(row.vibe_coded)
+
+    def test_the_answers_come_back_in_the_state(self):
+        _, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(state["projects"][0]["poweredBy"], PUBLISH_ANSWERS)
+
+    def test_a_create_can_carry_the_answers(self):
+        project = self.create_project(visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        self.assertEqual(project["poweredBy"], PUBLISH_ANSWERS)
+
+    def test_an_edit_without_answers_keeps_the_stored_ones(self):
+        self.submit(PUBLISH_ANSWERS)
+
+        status, _ = self.call("post", "projects/" + self.project["id"], {"project": {**PROJECT, "name": "Renamed"}})
+
+        self.assertEqual(status, 200)
+        row = self.row()
+        self.assertEqual(row.project_name, "Renamed")
+        self.assertEqual(row.job_title, "Teacher")
+        self.assertTrue(row.has_donate_link)
+
+    def test_a_resubmit_clears_answers_left_empty(self):
+        self.submit(PUBLISH_ANSWERS)
+
+        self.submit({"categories": ["other"]})
+
+        row = self.row()
+        self.assertFalse(row.show_name)
+        self.assertEqual(row.job_title, "")
+        self.assertIsNone(row.project_source_code)
+        self.assertEqual(row.sefaria_tools_used, [])
+        self.assertEqual(row.anything_else, "")
+        self.assertFalse(row.has_donate_link)
+
+    def test_the_answers_leave_staff_notes_alone_and_never_show_them(self):
+        row = self.row()
+        row.notes = "Staff only: follow up about the logo."
+        row.save()
+
+        _, state = self.submit(PUBLISH_ANSWERS)
+
+        self.assertEqual(self.row().notes, "Staff only: follow up about the logo.")
+        self.assertEqual(state["projects"][0]["poweredBy"]["anythingElse"], "Thanks!")
+        self.assertNotIn("Staff only", json.dumps(state))
+        _, state = self.call("get", "state")
+        self.assertNotIn("Staff only", json.dumps(state))
+
+        self.submit({"categories": ["other"]})
+
+        self.assertEqual(self.row().notes, "Staff only: follow up about the logo.")
+
+    def test_bad_answers_are_refused_and_nothing_is_saved(self):
+        for answers in (
+            {**PUBLISH_ANSWERS, "categories": []},
+            {**PUBLISH_ANSWERS, "categories": ["Learning & Study Tools"]},
+            {**PUBLISH_ANSWERS, "tools": "Sefaria API"},
+            {**PUBLISH_ANSWERS, "sourceCode": "not a link"},
+            {**PUBLISH_ANSWERS, "currentRole": "x" * 256},
+            {**PUBLISH_ANSWERS, "anythingElse": "x" * 2001},
+            "not an object",
+        ):
+            status, _ = self.submit(answers)
+            self.assertEqual(status, 400, answers)
+        self.assertEqual(self.row().job_title, "")
+
+    def test_the_gallery_does_not_show_whether_the_name_may_be_shown(self):
+        project = self.create_project(visibility="public", poweredBy=PUBLISH_ANSWERS)
+
+        listings = json.loads(Client().get("/api/powered-by").content)["projects"]
+        listing = next(p for p in listings if p["id"] == ApiProject.objects.get(id=int(project["id"])).profile_id)
+
+        self.assertNotIn("show_name", listing)
+        self.assertNotIn("has_donate_link", listing)
+        self.assertNotIn("anything_else", listing)
+        self.assertNotIn("purpose", listing)
+
+
 class KeyTest(DeveloperApiTestCase):
     def setUp(self):
         super().setUp()
@@ -501,7 +758,9 @@ class KeyTest(DeveloperApiTestCase):
         api_key = ApiKey.objects.get(id=state["keyId"])
         self.assertRegex(api_key.key, r"^sfr_[A-Za-z0-9]{32}$")
         self.assertEqual(api_key.allowed_origins, [])
-        self.assertEqual(state["projects"][0]["keys"][0]["value"], api_key.key)
+        self.assertEqual(state["keyValue"], api_key.key)
+        self.assertEqual(state["projects"][0]["keys"][0]["prefix"], api_key.key[:10])
+        self.assertNotIn(api_key.key, json.dumps(state["projects"]))
 
     def test_a_project_has_at_most_five_active_keys(self):
         for i in range(5):
@@ -581,18 +840,19 @@ class KeyTest(DeveloperApiTestCase):
         self.assertEqual(ApiProject.objects.get(id=int(self.project["id"])).profile.project_link, PROJECT["websiteUrl"])
         self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["dafportal.org"])
 
-    def test_the_website_cannot_be_removed_while_a_key_is_restricted_to_it(self):
+    def test_removing_the_website_turns_off_its_keys_limits_in_the_same_save(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
+        unrestricted = self.create_key(self.project["id"], "Local")["keyId"]
         self.call("post", "keys/" + restricted, {"restrictToWebsite": True})
         url = "projects/" + self.project["id"]
 
         status, state = self.call("post", url, {"project": {**PROJECT, "name": "Renamed", "websiteUrl": ""}})
 
-        self.assertEqual(status, 400)
-        self.assertEqual(state["error"], developer.WEBSITE_IN_USE_ERROR)
+        self.assertEqual(status, 200, state)
         project = ApiProject.objects.get(id=int(self.project["id"])).profile
-        self.assertEqual((project.project_name, project.project_link), (PROJECT["name"], PROJECT["websiteUrl"]))
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["dafportal.org"])
+        self.assertEqual((project.project_name, project.project_link), ("Renamed", ""))
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, [])
+        self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
     def test_the_website_can_be_removed_once_no_live_key_is_restricted(self):
         restricted = self.create_key(self.project["id"], "Production")["keyId"]
@@ -634,38 +894,8 @@ class ListingTest(DeveloperApiTestCase):
             request_not_to_publish=False,
         )
 
-    def test_an_unclaimed_listing_with_the_account_email_is_offered(self):
-        state = self.call("get", "state")[1]
-
-        self.assertEqual(state["yourListing"]["id"], str(self.listing.id))
-        self.assertEqual(state["yourListing"]["name"], "Tehillim Circle")
-
-    def test_claiming_makes_the_listing_a_project(self):
-        status, state = self.call("post", f"listings/{self.listing.id}/claim")
-
-        self.assertEqual(status, 200)
-        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
-        self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).profile_id, self.listing.id)
-        self.assertIsNone(state["yourListing"])
-        project = state["projects"][0]
-        self.assertTrue(project["linkedListing"])
-        self.assertEqual(project["visibility"], "public")
-
-    def test_claiming_keeps_the_listing_consent_and_publish_flags(self):
-        for refused, published in ((False, False), (True, False)):
-            ApiProject.objects.filter(profile_id=self.listing.id).delete()
-            Project.objects.filter(id=self.listing.id).update(request_not_to_publish=refused, is_published=published)
-
-            status, state = self.call("post", f"listings/{self.listing.id}/claim")
-            self.assertEqual(status, 200)
-
-            row = Project.objects.get(id=self.listing.id)
-            self.assertEqual((row.request_not_to_publish, row.is_published), (refused, published))
-            self.assertNotIn(row.id, gallery_ids())
-            self.assertEqual(ApiProject.objects.get(id=int(state["projectId"])).owner, self.user)
-
     def test_deleting_the_account_revokes_keys_and_deletes_projects_and_claimed_listings(self):
-        claimed = self.call("post", f"listings/{self.listing.id}/claim")[1]["projectId"]
+        claimed = str(ApiProject.objects.create(profile=self.listing, owner=self.user).id)
         own = self.create_project()
         claimed_key = self.create_key(claimed)["keyId"]
         own_key = self.create_key(own["id"])["keyId"]
@@ -683,39 +913,14 @@ class ListingTest(DeveloperApiTestCase):
         self.assertIsNone(listing.deleted_at)
         self.assertFalse(ApiProject.objects.filter(profile_id=self.listing.id, deleted_at__isnull=True).exists())
 
-    def test_deleting_a_claimed_listing_unpublishes_it_and_it_is_not_offered_again(self):
-        claimed = self.call("post", f"listings/{self.listing.id}/claim")[1]["projectId"]
+    def test_deleting_a_linked_listing_project_unpublishes_the_listing(self):
+        claimed = str(ApiProject.objects.create(profile=self.listing, owner=self.user).id)
 
         status, state = self.call("delete", "projects/" + claimed)
 
         self.assertEqual(status, 200, state)
-        self.assertIsNone(state["yourListing"])
         listing = Project.objects.get(id=self.listing.id)
         self.assertTrue(listing.request_not_to_publish and not listing.is_published)
-        self.assertEqual(self.call("post", f"listings/{self.listing.id}/claim")[0], 404)
-
-    def test_a_dismissed_listing_is_not_offered_again(self):
-        state = self.call("post", f"listings/{self.listing.id}/dismiss")[1]
-
-        self.assertIsNone(state["yourListing"])
-        self.assertEqual(self.call("post", f"listings/{self.listing.id}/claim")[0], 404)
-
-    def test_only_a_listing_submitted_with_the_account_email_can_be_dismissed(self):
-        other = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK,
-            creator_email="someone@example.org",
-            project_name="Other",
-            project_link="https://other.example.org",
-        )
-
-        self.assertEqual(self.call("post", f"listings/{other.id}/dismiss")[0], 404)
-        self.assertEqual(self.call("post", "listings/999999999/dismiss")[0], 404)
-
-    def test_a_listing_owned_by_another_account_is_not_offered(self):
-        other = create_test_user("devapiowner")
-        ApiProject.objects.create(profile=self.listing, owner=other)
-
-        self.assertIsNone(self.call("get", "state")[1]["yourListing"])
 
 
 class DeveloperSettingsOffTest(TestCase):
@@ -741,7 +946,6 @@ class DeveloperSettingsOffTest(TestCase):
             ("post", "projects"),
             ("post", "projects/1/keys"),
             ("delete", "keys/1"),
-            ("post", "listings/1/claim"),
         ):
             response = self.client.generic(
                 method.upper(), "/api/developer/" + url, "{}", content_type="application/json"
@@ -776,7 +980,6 @@ class DeveloperSettingsStaffOnlyTest(DeveloperApiTestCase):
             ("post", "projects"),
             ("post", "projects/1/keys"),
             ("delete", "keys/1"),
-            ("post", "listings/1/claim"),
         ):
             response = self.client.generic(
                 method.upper(), "/api/developer/" + url, "{}", content_type="application/json"
@@ -920,20 +1123,6 @@ class ProjectLockTest(DeveloperApiTestCase):
         )
         self.assertLess(lock, profile_write)
 
-    def test_claiming_a_listing_locks_the_listing_row(self):
-        listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK,
-            creator_email=self.user.email,
-            project_name="Locked",
-            project_link="https://locked.example.org",
-        )
-
-        with CaptureQueriesContext(connection) as queries:
-            status, _ = self.call("post", f"listings/{listing.id}/claim")
-
-        self.assertEqual(status, 200)
-        self.assertTrue(any("FOR UPDATE" in q["sql"] and f'"{Project._meta.db_table}"' in q["sql"] for q in queries))
-
 
 class ConfirmationLockTest(DeveloperApiTestCase):
     def test_reserving_a_confirmation_send_locks_the_account_row(self):
@@ -1001,6 +1190,67 @@ class ConfirmationRaceTest(TransactionTestCase):
 
         self.assertEqual(sorted(statuses), [200, 429])
         self.assertEqual(len(mail.outbox), 1)
+
+
+@override_settings(DEVELOPER_SETTINGS_ENABLED=True)
+class ConfirmationEmailChangeRaceTest(TransactionTestCase):
+    databases = "__all__"
+
+    def setUp(self):
+        self.user = create_test_user("confemailrace")
+        purge_test_profiles(self.user)
+        self.old_email = self.user.email
+
+    def tearDown(self):
+        EmailAddress.objects.filter(user=self.user).delete()
+        purge_test_profiles(self.user)
+
+    def test_a_link_for_the_previous_address_cannot_undo_an_email_change_made_while_it_is_confirming(self):
+        key = developer.confirmation_for(self.user).key
+        in_window = threading.Event()
+        release = threading.Event()
+        first = []
+        real_check = developer.is_account_email
+
+        def check_then_stall(address):
+            result = real_check(address)
+            if not first:
+                first.append(True)
+                in_window.set()
+                release.wait(10)
+            return result
+
+        def open_link():
+            try:
+                Client().get("/settings/developer/confirm-email/" + key)
+            finally:
+                connections.close_all()
+
+        def change_email():
+            try:
+                with transaction.atomic():
+                    User.objects.filter(pk=self.user.pk).update(email="new-address@example.org")
+                    EmailAddress.objects.filter(user=self.user).delete()
+                    EmailAddress.objects.create(
+                        user=self.user, email="new-address@example.org", primary=False, verified=False
+                    )
+            finally:
+                connections.close_all()
+
+        with patch.object(developer, "is_account_email", check_then_stall):
+            link = threading.Thread(target=open_link)
+            change = threading.Thread(target=change_email)
+            link.start()
+            self.assertTrue(in_window.wait(10))
+            change.start()
+            change.join(0.5)
+            release.set()
+            link.join(10)
+            change.join(10)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, "new-address@example.org")
+        self.assertFalse(EmailAddress.objects.filter(user=self.user, email=self.old_email.lower()).exists())
 
 
 @override_settings(DEVELOPER_SETTINGS_ENABLED=True)

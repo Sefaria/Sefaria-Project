@@ -1023,6 +1023,37 @@ class TestApiCorsPreflightMiddleware:
         for request in requests:
             assert self.middleware(request).content == b"view"
 
+    def test_an_options_request_outside_api_falls_through_to_the_next_middleware(self):
+        for path in ("/texts/Genesis.1.1", "/apiary", "/admin/", "/"):
+            for method in ("GET", "POST"):
+                response = self.middleware(self.preflight(path, method))
+
+                assert response.content == b"view", path
+                assert "Access-Control-Allow-Origin" not in response
+
+    def test_a_write_preflight_with_custom_headers_gets_the_documented_answer(self):
+        request = self.factory.options(
+            "/api/profile",
+            HTTP_ORIGIN="https://site-a.example.org",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="content-type, x-api-key",
+        )
+
+        response = self.middleware(request)
+
+        assert response.status_code == 204
+        assert response["Access-Control-Allow-Origin"] == "*"
+        assert response["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
+        allowed = [h.strip().lower() for h in response["Access-Control-Allow-Headers"].split(",")]
+        assert "content-type" in allowed and "x-api-key" in allowed
+        assert response["Access-Control-Max-Age"] == "86400"
+
+    def test_a_preflight_for_a_method_other_than_get_or_post_is_answered_without_allowing_it(self):
+        response = self.middleware(self.preflight("/api/profile", "DELETE"))
+
+        assert response.status_code == 204
+        assert "DELETE" not in response["Access-Control-Allow-Methods"]
+
     def test_the_middleware_is_installed(self, client):
         response = client.options(
             "/api/knn-search",

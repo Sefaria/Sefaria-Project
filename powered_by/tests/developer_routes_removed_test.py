@@ -23,6 +23,14 @@ def test_mock_and_poc_routes_not_resolvable():
         assert module is None or not module.startswith("powered_by"), (path, module)
 
 
+def test_claim_routes_are_gone():
+    # A 404 from a live view would not prove the route is gone. A catch-all may still match the path, so the check is
+    # that no powered_by view resolves for it.
+    for path in ("/api/developer/listings/1/claim", "/api/developer/listings/1/dismiss"):
+        module = resolved_module(path)
+        assert module is None or not module.startswith("powered_by"), (path, module)
+
+
 def test_powered_by_form_path_is_not_the_poc_form():
     # An SPA catch-all may still match this path; it must not be the old form view.
     for path in ("/powered-by/form", "/powered-by/form/"):

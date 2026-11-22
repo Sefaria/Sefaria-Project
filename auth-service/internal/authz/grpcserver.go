@@ -12,6 +12,7 @@ import (
 	typev3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -32,6 +33,18 @@ type GRPCServer struct {
 	l   Lookup
 	o   Options
 	rec Recorder
+}
+
+// settledLookup is implemented by a Lookup that knows whether it holds a trustworthy view of the key table
+// (registry.Registry does). A Lookup without it is always treated as settled.
+type settledLookup interface {
+	Settled() bool
+}
+
+// needsRegistry reports whether the decision depends on the key table: only a single sfr_ key is looked up. A comma-joined
+// value is a bad key whatever the table holds, and a legacy or absent key never reads it.
+func needsRegistry(key string) bool {
+	return !strings.Contains(key, ",") && strings.HasPrefix(key, sfrPrefix)
 }
 
 func NewGRPCServer(l Lookup, o Options, rec Recorder) *GRPCServer {
@@ -98,6 +111,12 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 		path = path[:i]
 	}
 	r := Request{Method: httpReq.GetMethod(), Path: path, APIKey: h["x-api-key"], Authorization: h["authorization"], Origin: h["origin"]}
+	// Before the first accepted load the registry knows nothing, so a valid key would look unknown and be refused.
+	// Answer UNAVAILABLE instead: Envoy is failOpen, so the request goes through (and the pod is not ready either).
+	if sl, ok := s.l.(settledLookup); ok && needsRegistry(r.APIKey) && !sl.Settled() {
+		s.rec.Observe("registry_unsettled", true, time.Since(t0))
+		return nil, status.Error(codes.Unavailable, "key registry not loaded yet")
+	}
 	d := Decide(s.l, s.o.Cfg, r)
 	s.rec.Observe(d.Result, d.Allow, time.Since(t0))
 	if d.Allow {

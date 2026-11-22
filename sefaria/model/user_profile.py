@@ -311,10 +311,13 @@ class UserHistory(abst.AbstractMongoRecord):
         annotate=False,
         limit=0,
         skip=0,
+        book=None,
     ):
         query = {}
         if uid is not None:
             query["uid"] = uid
+        if book is not None:
+            query["book"] = book
         if oref is not None:
             regex_list = oref.context_ref().regex(as_list=True)
             ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
@@ -801,15 +804,22 @@ class UserProfile:
         Set the slug according to the profile name,
         using the first available number at the end if duplicated exist
         """
-        slug = "%s-%s" % (self.first_name, self.last_name)
-        slug = slug.lower()
-        slug = slug.replace(" ", "-")
-        slug = re.sub(r"[^a-z0-9\-]", "", slug)
-        self.slug = slug
+        base = f"{self.first_name}-{self.last_name}"
+        base = base.lower()
+        base = base.replace(" ", "-")
+        base = re.sub(r"[^a-z0-9\-]", "", base)
+        taken = {
+            doc["slug"]
+            for doc in db.profiles.find(
+                {"slug": {"$regex": f"^{re.escape(base)}[0-9]*$"}, "_id": {"$ne": self._id}}, {"slug": 1, "_id": 0}
+            )
+        }
+        slug = base
         dupe_count = 0
-        while self.errors():
+        while slug in taken:
             dupe_count += 1
-            self.slug = "%s%d" % (slug, dupe_count)
+            slug = f"{base}{dupe_count}"
+        self.slug = slug
 
         return self
 
@@ -866,10 +876,12 @@ class UserProfile:
         annotate=False,
         limit=0,
         skip=0,
+        book=None,
     ):
         """
         personal user history
         :param oref:
+        :param book: index title, to only get items of this book
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
         :param last_place: ditto
@@ -891,6 +903,7 @@ class UserProfile:
             annotate=annotate,
             limit=limit,
             skip=skip,
+            book=book,
         )
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):

@@ -14,7 +14,7 @@ type Credentials = { email: string; password: string };
 // strings in the main process where global-setup runs. Workers re-import
 // globals fresh (after dotenv has run) and get the real values, which is why
 // the bug never surfaced until we started reading creds from the main process.
-declare const process: { env: { [key: string]: string | undefined }; argv: string[] };
+declare const process: { env: { [key: string]: string | undefined } };
 function creds(emailVar: string, passwordVar: string): Credentials {
   return {
     email: process.env[emailVar] ?? '',
@@ -220,31 +220,9 @@ function stampVariant(baseState: any, profile: Profile) {
   return { ...baseState, cookies };
 }
 
-function selectedProjects(): string[] {
-  const names: string[] = [];
-  const argv = process.argv;
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg.startsWith('--project=')) names.push(arg.slice('--project='.length));
-    else if (arg === '--project' && argv[i + 1]) names.push(argv[++i]);
-  }
-  return names;
-}
-
-export default async function globalSetup(config: FullConfig) {
+export default async function globalSetup(_config: FullConfig) {
   const baseURL = process.env.SANDBOX_URL || 'https://www.sefaria.org';
   const baseURLIL = process.env.SANDBOX_URL_IL || 'https://www.sefaria.org.il';
-
-  // The api-keys suites log in their own seeded accounts in `apikeys-setup` and read none of
-  // the files written here. The selection is read from the command line, because
-  // `config.projects` lists every project whatever --project said.
-  const selected = selectedProjects();
-  const apiKeysProjectsOnly = selected.length > 0 && selected.every(name => name.startsWith('apikeys'))
-    || config.projects.length > 0 && config.projects.every(project => project.name.startsWith('apikeys'));
-  if (apiKeysProjectsOnly) {
-    console.log('[global-setup] api-keys projects only — skipping the shared QA logins.');
-    return;
-  }
 
   // Wipe stale auth files exactly once. Workers will only read from this
   // point forward — no race between worker processes, no in-flight login.

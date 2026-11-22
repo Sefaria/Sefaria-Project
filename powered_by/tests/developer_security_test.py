@@ -18,7 +18,7 @@ from django.test import Client, override_settings
 from sentry_sdk.transport import Transport
 
 from powered_by import developer
-from powered_by.models import ApiKey, ApiProject, Project, SubmissionSource
+from powered_by.models import ApiKey, ApiProject, Project
 from powered_by.tests.developer_api_test import DeveloperApiTestCase
 from sefaria.model.user_profile import UserProfile
 from sefaria.settings_utils import scrub_api_keys
@@ -81,7 +81,7 @@ class SessionIdHeaderTest(DeveloperApiTestCase):
         response = self.client.get("/api/developer/state", HTTP_X_SESSION_ID=self.token)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(self.key_value, response.content.decode())
+        self.assertIn(self.key_value[:10], response.content.decode())
 
 
 class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
@@ -91,7 +91,6 @@ class ProfileApiDeveloperStateTest(DeveloperApiTestCase):
         developer.CONFIRMATION_SENDS_SETTING: [],
         developer.ENABLED_SETTING: True,
         developer.PROFILE_SETTING: {"developerName": "x" * 5000, "termsAccepted": False},
-        developer.DISMISSED_LISTINGS_SETTING: [1, 2, 3],
     }
 
     def setUp(self):
@@ -164,21 +163,6 @@ class ProjectCapTest(DeveloperApiTestCase):
 
         self.assertEqual(self.create("again")[0], 200)
 
-    def test_N_CR7_claiming_a_listing_counts_toward_the_cap(self):
-        self.fill()
-        listing = Project.objects.create(
-            submission_source=SubmissionSource.FORMSTACK,
-            creator_email=self.user.email,
-            project_name="Submitted",
-            request_not_to_publish=False,
-            is_published=True,
-        )
-
-        status, body = self.call("post", f"listings/{listing.id}/claim")
-
-        self.assertEqual(status, 400)
-        self.assertFalse(ApiProject.objects.filter(profile_id=listing.id).exists())
-
     def test_N_CR7_staff_raise_the_cap_with_the_group(self):
         self.fill()
         self.user.groups.add(Group.objects.get_or_create(name=developer.RAISED_PROJECT_LIMIT_GROUP)[0])
@@ -226,6 +210,21 @@ class FrameProtectionTest(DeveloperApiTestCase):
             Client().get("/settings/developer/confirm-email/" + developer.confirmation_for(self.user).key)
         )
         self.assert_not_frameable(Client().get("/settings/developer/email-confirmed"))
+
+    def test_N_CR5_the_password_reset_request_endpoint_is_a_json_api_and_is_not_decorated(self):
+        # The confirm page renders HTML a site could frame, so it sends DENY. The request endpoint
+        # (sso.views.password_reset_api) is deliberately undecorated: it answers JSON only, with no page to frame.
+        response = Client().post("/api/auth/password/reset", "not json", content_type="application/json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response["Content-Type"], "application/json")
+        self.assertIsNone(response.get("X-Frame-Options"))
+
+    def test_N_CR5_a_normal_reader_page_can_still_be_framed(self):
+        response = Client().get("/texts")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.get("X-Frame-Options"))
 
 
 class CapturingTransport(Transport):
@@ -292,3 +291,119 @@ def test_N_CR6_scrub_api_keys_replaces_key_values_at_any_depth():
     assert key[:8] not in json.dumps(scrubbed)
     assert scrubbed["message"] == "bad key sfr_[Filtered]"
     assert scrubbed["frames"][0]["vars"]["n"] == 3
+
+
+def _sentry_hooks():
+    remote_config = MagicMock()
+    remote_config.get.return_value = {}
+    with (
+        patch("sefaria.settings_utils.remoteConfigCache", remote_config),
+        patch("sefaria.settings_utils.sentry_sdk.init") as init,
+    ):
+        from sefaria.settings_utils import init_sentry
+
+        init_sentry("https://public@sentry.example.invalid/1", "test", "test")
+    return init.call_args.kwargs
+
+
+def test_scrub_api_keys_also_replaces_a_key_with_a_percent_encoded_prefix():
+    assert scrub_api_keys("/x?q=sfr%5FAb1Cd2Ef3") == "/x?q=sfr_[Filtered]"
+    assert scrub_api_keys("/x?q=%73fr_Ab1Cd2Ef3") == "/x?q=sfr_[Filtered]"
+
+
+def test_a_sentry_transaction_event_carries_no_key_value():
+    key = "sfr_" + "Ab1" * 10 + "Cd"
+    event = {
+        "type": "transaction",
+        "request": {"url": f"https://www.sefaria.org/api/texts?x={key}", "headers": {"x-api-key": key}},
+        "transaction": "/api/texts",
+    }
+
+    scrubbed = _sentry_hooks()["before_send_transaction"](event, {})
+
+    assert key[:8] not in json.dumps(scrubbed)
+    assert scrubbed["request"]["headers"]["x-api-key"] == "sfr_[Filtered]"
+
+
+def test_scrub_api_keys_replaces_a_key_whose_body_is_percent_encoded():
+    cases = {
+        "/?q=sfr_%41" + "A" * 31: "/?q=sfr_[Filtered]",
+        "/?q=sfr_Ab%31Cd2Ef3Gh4Ij5": "/?q=sfr_[Filtered]",
+        "/?q=sfr_" + "%41" * 32 + "&x=1": "/?q=sfr_[Filtered]&x=1",
+        "/?q=sfr_%2541b12Cd34Ef56Gh78": "/?q=sfr_[Filtered]",
+        "/?q=%73fr%5f%41b12Cd34": "/?q=sfr_[Filtered]",
+    }
+    for raw, want in cases.items():
+        assert scrub_api_keys(raw) == want, raw
+    assert scrub_api_keys({"url": "/?q=sfr_%41" + "A" * 31}) == {"url": "/?q=sfr_[Filtered]"}
+    # Sentry keeps its any-length threshold (it over-redacts rather than risk a leak); a bare prefix has no body to redact.
+    assert scrub_api_keys("sfr_ alone and transfr") == "sfr_ alone and transfr"
+
+
+class NoStoreTest(DeveloperApiTestCase):
+    """Responses that carry full key values are never kept by an HTTP cache."""
+
+    def assert_no_store(self, response):
+        directives = {d.strip() for d in response["Cache-Control"].split(",")}
+        self.assertIn("no-store", directives)
+        self.assertIn("private", directives)
+
+    def test_a_developer_state_response_is_private_and_no_store(self):
+        self.set_up_developer()
+        response = self.client.get("/api/developer/state")
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_no_store(response)
+
+    def test_a_key_creation_response_and_an_error_response_are_private_and_no_store(self):
+        self.set_up_developer()
+        project = self.create_project()
+        created = self.client.post(
+            "/api/developer/projects/{}/keys".format(project["id"]),
+            json.dumps({"label": "Cache check"}),
+            content_type="application/json",
+        )
+        self.assertEqual(created.status_code, 200)
+        self.assert_no_store(created)
+        self.assert_no_store(Client().get("/api/developer/state"))
+
+    def test_the_settings_page_of_a_developer_is_private_and_no_store(self):
+        self.set_up_developer()
+        response = self.client.get("/settings/developer")
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_no_store(response)
+
+    def test_the_account_settings_page_embeds_the_developer_state_and_is_no_store_too(self):
+        response = self.client.get("/settings/account")
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_no_store(response)
+
+    def test_a_reader_page_is_unchanged(self):
+        response = Client().get("/texts")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("no-store", response.get("Cache-Control", ""))
+
+    @override_settings(DEVELOPER_SETTINGS_ENABLED=False)
+    def test_the_account_settings_page_with_developer_settings_off_carries_no_developer_state_and_is_unchanged(self):
+        response = self.client.get("/settings/account")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("no-store", response.get("Cache-Control", ""))
+
+
+def test_scrub_api_keys_handles_a_double_encoded_prefix_and_a_left_boundary():
+    body = "Ab1Cd2Ef3Gh4"
+    for raw, want in {
+        "/?q=%2573%2566%2572%255f" + body: "/?q=sfr_[Filtered]",
+        "/?q=sfr%255F" + body: "/?q=sfr_[Filtered]",
+        "sfr_" + body: "sfr_[Filtered]",
+        "bad key sfr_" + body: "bad key sfr_[Filtered]",
+        "/?q=x%3Dsfr_" + body: "/?q=x%3Dsfr_[Filtered]",
+        "/a/sfr_" + body + "/b": "/a/sfr_[Filtered]/b",
+    }.items():
+        assert scrub_api_keys(raw) == want, raw
+    for untouched in ("/?q=newsfr_campaign2024", "my_sfr_campaign2024", "/?q=2sfr_campaign2024"):
+        assert scrub_api_keys(untouched) == untouched, untouched

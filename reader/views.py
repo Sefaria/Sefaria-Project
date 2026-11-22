@@ -31,6 +31,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import Resolver404, resolve
 from django.utils import timezone
+from django.utils.cache import patch_cache_control
 from django.utils.encoding import iri_to_uri
 from django.utils.html import strip_tags
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -159,6 +160,7 @@ from sefaria.utils.calendars import (
     parashat_hashavua_and_haftara,
 )
 from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.utils.design_system import design_system_preview
 from sefaria.utils.domains_and_languages import (
     current_domain_lang,
     get_cookie_domain,
@@ -370,6 +372,7 @@ def chatbot_access_props(request, profile):
         if library_assistant.is_enabled(profile):
             props["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             props["chatbot_enabled"] = True
+            props["chatbot_hide_launcher"] = library_assistant.is_floating_button_hidden(profile)
         # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
         # suppresses the "try the Library Assistant" promo banner for users who have
         # already made a choice about the assistant — whether they are using it or
@@ -380,6 +383,14 @@ def chatbot_access_props(request, profile):
         props["chatbot_enabled"] = True
         props["chatbot_anon_free_answers"] = library_assistant.anonymous_free_answers()
     return props
+
+
+def requested_chatbot_version(request):
+    """The chatbot preview build to use, or None. The query param wins over the session, so the
+    first visit with ?chatbot_version= already talks to that build's server (the context processor
+    saves it to the session only while the template renders, after these props are built)."""
+    chatbot_version = request.GET.get("chatbot_version", "").strip() or request.session.get("chatbot_version")
+    return chatbot_version if is_int(chatbot_version) else None
 
 
 def base_props(request):
@@ -421,9 +432,6 @@ def base_props(request):
                     saved=True, secondary=False, serialized=True, annotate=False, sheets_only=sheets_only
                 ),
             },  # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
-            "last_place": profile.get_history(
-                last_place=True, secondary=False, sheets_only=sheets_only, serialized=True
-            ),
         }
     else:
         user_data = {
@@ -478,13 +486,14 @@ def base_props(request):
         }
     )
 
-    chatbot_version = request.session.get("chatbot_version")
-    chatbot_version = chatbot_version if is_int(chatbot_version) else None
+    chatbot_version = requested_chatbot_version(request)
 
     # Chatbot props (passed through base_props for ReaderApp)
     chatbot_data = {
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
+        # The Library Assistant previews this design-system version too (its design-system-preview attribute).
+        "design_system_preview": design_system_preview(request),
         "chatbot_max_input_chars": remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         "chatbot_max_prompts": remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
         "chatbot_promo_learn_more_urls": remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
@@ -3100,12 +3109,19 @@ def related_api(request, tref):
     elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
-        sheets = get_sheets_for_ref(tref)
+        with_sheet_links = bool(int(request.GET.get("with_sheet_links", False)))
+        # with_sheet_links is used here as a marker for "the request comes from our web reader", the only client that
+        # sends it. The reader only counts the public sheets, so slim ones are enough. Other clients (the mobile app,
+        # third parties) still get full sheets: we don't know whether they use them at all (probably not), so we keep
+        # the response they had. We don't add a slim param, because changing the reader's URL would make every
+        # chapter start uncached in Varnish, and heavy chapters time out when uncached.
+        slim_sheets = with_sheet_links
+        sheets = get_sheets_for_ref(tref, slim=slim_sheets)
         response = {
             "links": get_links(
                 tref,
                 with_text=False,
-                with_sheet_links=bool(int(request.GET.get("with_sheet_links", False))),
+                with_sheet_links=with_sheet_links,
                 public_sheets=sheets,
             ),
             "sheets": sheets,
@@ -4811,13 +4827,15 @@ def profile_api(request, slug=None):
             profileUpdate.pop("experiments", None)
 
         drop_developer_settings(profileUpdate.get("settings"))
-        la_key = library_assistant.SETTING_KEY
-        if la_key in profileUpdate.get("settings", {}):
-            # Public endpoint — coerce so a posted "false" can't read as truthy.
-            profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
+        for la_key in (library_assistant.SETTING_KEY, library_assistant.FLOATING_BUTTON_HIDDEN_KEY):
+            if la_key in profileUpdate.get("settings", {}):
+                # Public endpoint — coerce so a posted "false" can't read as truthy.
+                profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
+        la_was_enabled = library_assistant.is_enabled(profile)
         profile.update(profileUpdate)
+        library_assistant.show_floating_button_if_turned_on(profile, la_was_enabled)
 
         error = profile.errors()
         # TODO: should validation not need to be called manually? maybe inside the save
@@ -5054,9 +5072,11 @@ def profile_sync_api(request):
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
+                    la_was_enabled = library_assistant.is_enabled(profile)
                     settingsInDB = profile.settings
                     settingsInDB.update(field_data)
                     profile.update({field: settingsInDB, "attr_time_stamps": profile.attr_time_stamps})
+                    library_assistant.show_floating_button_if_turned_on(profile, la_was_enabled)
                     profile_updated = True
             elif field == "user_history":
                 if len(field_data) > MAX_LEN_USER_HISTORY:
@@ -5153,7 +5173,8 @@ def get_url_params_user_history(request):
         last_place = bool(int(last_place))
     tref = request.GET.get("tref", None)
     oref = Ref(tref) if tref else None
-    return saved, secondary, last_place, oref
+    book = request.GET.get("book", None)
+    return saved, secondary, last_place, book, oref
 
 
 def saved_history_for_ref(request):
@@ -5162,7 +5183,7 @@ def saved_history_for_ref(request):
     :tref: Ref associated with history item
     """
     if request.method == "GET":
-        _, _, _, oref = get_url_params_user_history(request)
+        _, _, _, _, oref = get_url_params_user_history(request)
         if oref is None:
             return jsonResponse({"error": "Must specify 'tref' param"})
         return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
@@ -5180,11 +5201,12 @@ def user_history_api(request):
     :saved: bool. True if you only want saved items. None if you dont care
     :secondary: bool. True if you only want secondary items. None if you dont care
     :tref: Ref associated with history item
+    :book: index title, to only get items of this book
     """
     if request.method == "GET":
         if not request.user.is_authenticated:
             return jsonResponse(_get_anonymous_user_history(request))
-        saved, secondary, last_place, oref = get_url_params_user_history(request)
+        saved, secondary, last_place, book, oref = get_url_params_user_history(request)
         user = UserProfile(id=request.user.id)
         if "reading_history" in user.settings and not user.settings["reading_history"] and not saved:
             return jsonResponse([])
@@ -5203,6 +5225,7 @@ def user_history_api(request):
                 last_place=last_place,
                 skip=skip,
                 limit=limit,
+                book=book,
             )
         )
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -5303,7 +5326,11 @@ def settings_page(request, tab="account", project_id=None):
         "account": "Manage your Sefaria account settings.",
         "developer": "Register your projects and manage keys for the Sefaria API.",
     }
-    return menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
+    response = menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
+    if props["initialDeveloper"] is not None:
+        # The page embeds the developer state (key display prefixes, never values), private to the account: no HTTP cache may keep it.
+        patch_cache_control(response, private=True, no_store=True)
+    return response
 
 
 @ensure_csrf_cookie

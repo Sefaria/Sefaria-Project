@@ -11,13 +11,36 @@ API_KEY_QUERY_RE = re.compile(
 )
 
 
+# A key itself ("sfr_" + 32 letters and digits, see powered_by.models) wherever it appears in a URL, query string or
+# Referer, whatever the parameter name: the admin search box sends a pasted key as ?q=sfr_<secret>. The prefix may be
+# percent-encoded. The body is a run of units, a unit being one letter or digit or one percent-encoded byte (% and two
+# hex digits), so a key whose body is partly or wholly encoded, even double-encoded, is still caught and the whole run is
+# consumed. The prefix characters may also be double-encoded (%25 and the hex pair, as sfr%255F). A token must not
+# continue a longer name: it starts the string or follows a character that is not a letter, digit or underscore (so
+# "=", "/", "&", "?" and a space qualify, as does an encoded one such as %3D), and "newsfr_campaign2024" is left alone.
+# A token whose body is no longer than 6 units (the 6 characters the admin shows: KEY_DISPLAY_PREFIX of 10,
+# with "sfr_") is a display prefix, not a secret, and stays. The two unit alternatives start with different characters,
+# so matching is linear. Mirror this regex in the nginx log scrubbing.
+API_KEY_TOKEN_RE = re.compile(
+    r"(?i)(?:(?<![A-Za-z0-9_])|(?<=%[0-9A-Fa-f]{2}))"
+    r"(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[A-Za-z0-9]|%[0-9A-Fa-f]{2}){7,}"
+)
+API_KEY_TOKEN_REPLACEMENT = "sfr_[REDACTED]"
+
+
+def scrub_api_key_tokens(text):
+    """Replaces every API key value (sfr_ + body longer than the displayed prefix) in text with sfr_[REDACTED]."""
+    return API_KEY_TOKEN_RE.sub(API_KEY_TOKEN_REPLACEMENT, text)
+
+
 def scrub_api_key_query(url):
-    """Replaces the value of every API key query parameter in url with [REDACTED]; the rest of the URL is kept.
-    Only the query part (after the first "?") is scrubbed: an "&" in the path is not a parameter separator."""
+    """Replaces the value of every API key query parameter in url with [REDACTED] and every sfr_ key token anywhere in
+    url with sfr_[REDACTED]; the rest of the URL is kept. Parameters are only looked for in the query part (after the
+    first "?"): an "&" in the path is not a parameter separator."""
     head, sep, query = url.partition("?")
-    if not sep:
-        return url
-    return head + sep + API_KEY_QUERY_RE.sub(r"\1[REDACTED]", query)
+    if sep:
+        url = head + sep + API_KEY_QUERY_RE.sub(r"\1[REDACTED]", query)
+    return scrub_api_key_tokens(url)
 
 
 def log_exception_info(logger, method_name, event_dict):

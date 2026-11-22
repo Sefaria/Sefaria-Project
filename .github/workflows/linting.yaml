@@ -20,6 +20,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  design-system-pin:
+    name: "Design system is pinned to a release"
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the base branch, to compare versions
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags --depth=1 origin "$BASE_REF"
+        env:
+          BASE_REF: ${{ github.base_ref }}
+      - run: node build/ci/check-design-system-pin.mjs
+        env:
+          DESIGN_SYSTEM_BASE: ${{ github.event_name == 'pull_request' && 'FETCH_HEAD' || '' }}
+
   lint-python:
     name: "Lint: Python (Ruff)"
     runs-on: ubuntu-latest

@@ -149,10 +149,6 @@ static/sheetrank.json
 e2e-tests/playwright_auth_*.json
 e2e-tests/auth_*.json
 e2e-tests/e2e-test-logs/
-# API keys e2e: the fixture manifest holds key values; sessions and results record headers.
-e2e-tests/.apikeys-e2e*.json
-e2e-tests/api-keys/.auth*/
-e2e-tests/api-keys/results/
 /test-results/
 /playwright-report/
 /playwright/.cache/

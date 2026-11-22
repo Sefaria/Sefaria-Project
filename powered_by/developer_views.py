@@ -12,6 +12,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.cache import patch_cache_control, patch_vary_headers
 from django.views.decorators.clickjacking import xframe_options_deny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
@@ -47,13 +48,20 @@ def developer_api(func=None, login=True):
     """
     JSON endpoints, logged in through the browser session unless login=False: parses a JSON body into request.json, and maps
     input errors to 400, missing setup to 403, unknown or unowned objects to 404 and a repeated
-    request to 429.
+    request to 429. Every response, errors included, is "private, no-store" and varies on the cookie: the key value
+    endpoint answers with a full key value, which no HTTP cache may keep.
     """
     if func is None:
         return lambda f: developer_api(f, login=login)
 
     @wraps(func)
     def wrapper(request, *args, **kwargs):
+        response = handle(request, *args, **kwargs)
+        patch_cache_control(response, private=True, no_store=True)
+        patch_vary_headers(response, ["Cookie"])
+        return response
+
+    def handle(request, *args, **kwargs):
         if login and not developer.session_login(request):
             return jsonResponse({"error": "Log in to use developer settings."}, status=401)
         request.json = {}
@@ -137,7 +145,11 @@ def new_link_api(request):
     Sends a new link in place of an expired one, to the account it was sent for. Needs no login,
     as the link didn't; the link must still be for the account email.
     """
-    user = developer.user_for_new_link(request.json.get("key") or "")
+    key = request.json.get("key") or ""
+    # Anything but text would reach django.core.signing as a TypeError.
+    if not isinstance(key, str):
+        raise InputError("The link key must be text.")
+    user = developer.user_for_new_link(key)
     send_confirmation(request, user)
     return jsonResponse({"sent": True})
 
@@ -145,10 +157,14 @@ def new_link_api(request):
 def send_confirmation(request, user):
     """
     Reserves the send (check + record, atomically) before sending, so a failed send still
-    throttles.
+    throttles. A failed send clears the "sent" marker, so the page doesn't say an email is on its way.
     """
     developer.reserve_confirmation_send(user)
-    send_confirmation_email(request, user)
+    try:
+        send_confirmation_email(request, user)
+    except Exception:
+        developer.mark_confirmation_sent(user, False)
+        raise
 
 
 def confirmation_url(request, key):
@@ -162,14 +178,18 @@ def send_confirmation_email(request, user):
         render_to_string("developer/email_confirmation_message.txt", context),
         None,
         [user.email],
+        html_message=render_to_string(
+            "developer/email_confirmation_message.html",
+            {**context, "request": request},  # for its lang attribute
+        ),
     )
 
 
 LINK_PAGE_TITLES = {
     developer.LinkStatus.ALREADY_CONFIRMED: "Already confirmed",
-    developer.LinkStatus.EXPIRED: "This link has expired",
-    developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link is no longer valid",
-    developer.LinkStatus.ADDRESS_IN_USE: "This link is no longer valid",
+    developer.LinkStatus.EXPIRED: "This link no longer works",
+    developer.LinkStatus.NOT_ACCOUNT_EMAIL: "This link no longer works",
+    developer.LinkStatus.ADDRESS_IN_USE: "This link no longer works",
 }
 
 
@@ -228,7 +248,8 @@ def project_api(request, project_id):
 def project_keys_api(request, project_id):
     developer.require_verified_developer(request)
     api_key = developer.create_key(request.user, project_id, request.json.get("label"))
-    return state_response(request, keyId=str(api_key.id))
+    # The one response that carries the new key's value, so its owner can copy it without a second request.
+    return state_response(request, keyId=str(api_key.id), keyValue=api_key.key)
 
 
 @requires_developer_settings
@@ -246,11 +267,7 @@ def key_api(request, key_id):
 @requires_developer_settings
 @require_http_methods(["POST"])
 @developer_api
-def listing_api(request, listing_id, action):
-    if action == "claim":
-        developer.require_verified_developer(request)
-        project = developer.claim_listing(request.user, listing_id)
-        return state_response(request, projectId=str(project.id))
+def key_value_api(request, key_id):
+    """The value of one key, for its owner: the only way a key's value is sent after creation."""
     developer.require_developer(request)
-    developer.dismiss_listing(request.user, listing_id)
-    return state_response(request)
+    return jsonResponse({"value": developer.reveal_key(request.user, key_id)})
