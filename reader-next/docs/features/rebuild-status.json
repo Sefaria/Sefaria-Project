@@ -4184,5 +4184,25 @@
   "status": "done",
   "note": "Kept and highlighted, sidebar open or closed, long ranges of whole sections included (legacy parity, verified 2026-11-10)",
   "by": "src/lib/text/range-selection.ts, src/features/reader/TextPanel.tsx"
+ },
+ "SHL-076": {
+  "status": "done",
+  "note": "Built behind the social lab (off by default); the surface itself is the social repository's",
+  "by": "src/features/surfaces/, src/routes/social.*"
+ },
+ "SHL-077": {
+  "status": "done",
+  "note": "Built; integrity enforcement checked in Chromium only",
+  "by": "src/lib/surfaces/load.ts, src/lib/surfaces/manifest.ts"
+ },
+ "SHL-078": {
+  "status": "done",
+  "note": "Built; identityToken() needs Django's POST /api/social/token (separate change)",
+  "by": "src/lib/surfaces/host.ts, contract/surface-host.v1.ts"
+ },
+ "RTE-066": {
+  "status": "done",
+  "note": "Built",
+  "by": "src/lib/reader/ctx.ts"
  }
 }
