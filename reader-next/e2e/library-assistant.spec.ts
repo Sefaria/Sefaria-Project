@@ -49,3 +49,17 @@ test.describe("the Library Assistant's links", () => {
     expect(new URL(page.url()).pathname).toBe("/collections/shabbat");
   });
 });
+
+// master #4004: the assistant's "Hide Ask button" switch is saved for a signed-in reader only (src/lib/assistant/floating-button.ts,
+// unit-tested signed in); a signed-out visitor's choice stays in the widget's own browser storage
+test("a signed-out visitor's 'Hide Ask button' choice is not posted to an account", async ({ page }) => {
+  const posts: string[] = [];
+  page.on("request", (r) => {
+    if (r.method() === "POST" && new URL(r.url()).pathname.startsWith("/api/profile")) posts.push(r.url());
+  });
+  await open(page, "/Genesis.1?lang=bi");
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent("chatbot:launcher_visibility", { detail: { hidden: true } })));
+  await page.waitForTimeout(300);
+  expect(posts).toEqual([]);
+});
+

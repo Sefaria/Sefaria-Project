@@ -5043,21 +5043,27 @@ def library_assistant_api(request):
     (library_assistant.is_enabled) and the same token (build_chatbot_user_token with CHATBOT_USER_ID_SECRET) as the page props.
     The client chooses the build and API itself (?chatbot_version=, CHATBOT_API_BASE_URL). Never cached: it names the reader.
 
-    Returns {"enabled": bool, "userToken": str | None, "isModerator": bool}.
+    Returns {"enabled": bool, "userToken": str | None, "isModerator": bool, "floatingButtonHidden": bool}. floatingButtonHidden
+    is the reader's saved "Hide Ask button" choice (library_assistant.is_floating_button_hidden, base_props'
+    chatbot_hide_launcher); always False when the assistant is off for them or they are signed out.
     """
     if request.method != "GET":
         response = jsonResponse({"error": "Unsupported HTTP method."}, status=405)
         patch_cache_control(response, private=True, no_store=True)
         return response
-    enabled, token = False, None
-    if request.user.is_authenticated and library_assistant.is_enabled(UserProfile(user_obj=request.user)):
-        token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-        enabled = token is not None
+    enabled, token, floating_button_hidden = False, None, False
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        if library_assistant.is_enabled(profile):
+            token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+            enabled = token is not None
+            floating_button_hidden = enabled and library_assistant.is_floating_button_hidden(profile)
     response = jsonResponse(
         {
             "enabled": enabled,
             "userToken": token,
             "isModerator": bool(request.user.is_authenticated and request.user.is_staff),
+            "floatingButtonHidden": floating_button_hidden,
         }
     )
     patch_cache_control(response, private=True, no_store=True)

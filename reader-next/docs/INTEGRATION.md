@@ -10,6 +10,7 @@ Installed once per page by the shell (`src/routes/__root.tsx`), as sefaria.org's
 | -------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sefaria:bootstrap-url`    | a URL, or `{url, replaceHistory?}` | A page of this client (a text, the library, search): a navigation in the app, replacing the history entry when `replaceHistory` is set. The address is the whole workspace, so a ref closes all panels, as on sefaria.org. A page Django serves (`src/lib/routing/django-paths.ts`: sheets, collections, profiles…) or another Sefaria site: a full page load. Any other site, or a non-http(s) URL: ignored. |
 | `sefaria:settings-updated` | the changed settings               | What was read about the reader (account, settings) is read again.                                                                                                                                                                                                                                                                                                                                        |
+| `chatbot:launcher_visibility` | `{hidden: boolean}` | The Library Assistant's "Hide Ask button" switch. Signed in: saved to the account (`POST /api/profile`, `settings.library_assistant_floating_button_hidden`) and kept for the widget's `hide-launcher` (`src/lib/assistant/floating-button.ts`). Signed out: nothing (the widget keeps it in the browser). |
 
 ## The Library Assistant (`<lc-chatbot>`)
 
@@ -31,9 +32,16 @@ registration and password-reset pages, on the Voices host, or when remote config
 | `sefaria:bootstrap-url` | `{url: path+query+hash, replaceHistory: true}` (a source in an answer) | navigation in the app, replacing the entry                                                                                                          |
 | `sefaria:bootstrap-url` | `{url}` (a full Sefaria URL)                                           | navigation in the app, or a page load for Django's pages and other Sefaria sites                                                                    |
 | `sefaria:bootstrap-url` | `{url: "/topics/<slug>"}` (a topic suggestion)                         | navigation in the app (topics are this client's on the Library host; only the moderators' topic editors, `?editor=1`, are Django's)                 |
+| `chatbot:launcher_visibility` | `{hidden}`, on `document`, when the visitor hides or shows its floating Ask button from its menu | signed in: saved to their account (below); signed out: nothing, the widget keeps it in that browser |
 | `appetizer_click`       | `{topicSlug, sessionId}`, on the element (bubbles, composed)           | not the page's: the assistant's own analytics. sefaria.org has no listener; the topic navigation it goes with is the `sefaria:bootstrap-url` above. |
 
 Links to other sites the assistant opens in a new tab itself.
+
+**The "Hide Ask button" choice** (sefaria.org master #4004). A signed-in reader's choice is saved to their account, so it follows
+them between this client, the legacy client and other devices: `GET /api/library-assistant` answers it as `floatingButtonHidden`
+(Django: `library_assistant.is_floating_button_hidden`; always `false` while the assistant is off for them), the widget gets it as
+`hide-launcher`, and flipping it in the widget (`chatbot:launcher_visibility`) updates the access query, so a remounted widget gets
+the current value, and posts it to `/api/profile`. Turning the assistant back on clears a hidden choice (Django's side).
 
 **Its attributes** (`src/lib/assistant/config.ts` `assistantAttributes`, as sefaria.org's ReaderApp sets them):
 
@@ -47,6 +55,7 @@ Links to other sites the assistant opens in a new tab itself.
 | `max-input-chars`, `max-prompts`    | remote config `feature.chatbot.max_input_chars` / `max_prompts` (10000 / 100)                                              |
 | `interface-lang`                    | `en` / `he`                                                                                                                |
 | `anon-free-answers`                 | signed out only: remote config `feature.chatbot.anonymous_free_answers`, when it holds a value                             |
+| `hide-launcher`                     | signed in only: their saved "Hide Ask button" choice (`floatingButtonHidden` from `GET /api/library-assistant`, then the current choice once they flip it); left off for a signed-out visitor |
 | `design-system-preview`             | outside production only: the design-system version to preview                                                              |
 
 **Which build** (first match wins), the same rules as Django's context processor:
@@ -58,5 +67,5 @@ Links to other sites the assistant opens in a new tab itself.
 4. `CHATBOT_API_BASE_URL` (server env, Django's variable; the helm chart passes the same secret key to the reader pod): its static build
    at `<base without /api>/static/js/lc-chatbot.umd.cjs`. Default `https://chat-dev.sefaria.org/api`, as Django's.
 
-Tests: `src/lib/assistant/*.test.ts`, `src/features/assistant/LibraryAssistant.test.tsx`, `src/lib/integration/legacy-events.test.ts`,
+Tests: `src/lib/assistant/*.test.ts` (`floating-button.test.ts`: the save), `src/features/assistant/LibraryAssistant.test.tsx`, `src/lib/integration/legacy-events.test.ts`,
 `e2e/library-assistant.spec.ts` (the three payloads on a real page). Django: `reader/tests/library_assistant_api_test.py`.

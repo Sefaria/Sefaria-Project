@@ -32,6 +32,7 @@ import { RouteError } from "~/features/shared/RouteError";
 import { openAssistantFromHeader, useAssistantShown } from "~/features/shell/assistant-pill";
 import { LibraryAssistant } from "~/features/assistant/LibraryAssistant";
 import { installLegacyEvents } from "~/lib/integration/legacy-events";
+import { saveFloatingButtonHidden } from "~/lib/assistant/floating-button";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
 import { installSignupSourceCapture } from "~/features/auth/signup-source";
@@ -246,6 +247,8 @@ function Shell() {
         navigate: (to, { replace }) => void router.navigate({ href: `${to.pathname}${to.search}${to.hash}`, replace }),
         load: (href, { replace }) => (replace ? window.location.replace(href) : window.location.assign(href)),
         refreshReader: () => void queryClient.invalidateQueries({ queryKey: ["user"] }),
+        // the assistant's "Hide Ask button" switch: a signed-in reader's choice goes to their account (master #4004)
+        launcherVisibility: (hidden) => void saveFloatingButtonHidden(queryClient, queryClient.getQueryData(viewerQuery.queryKey)?.id ?? null, hidden),
       }),
     [router, queryClient],
   );

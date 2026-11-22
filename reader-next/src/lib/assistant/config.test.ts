@@ -58,6 +58,15 @@ describe("assistantAttributes", () => {
     });
     expect(assistantAttributes({ enabled: true, userToken: "t", isModerator: true }, assistantBuild(null, env), env, { interfaceLang: "en" })["is-moderator"]).toBe("true");
   });
+  // master #4004: a signed-in reader's saved "Hide Ask button" choice, as `hide-launcher`
+  it("hide-launcher: the signed-in reader's saved choice, either way; left off when signed out or unknown", () => {
+    const build = assistantBuild(null, env);
+    const attrs = (access: Parameters<typeof assistantAttributes>[0]) => assistantAttributes(access, build, env, { interfaceLang: "en" });
+    expect(attrs({ enabled: true, userToken: "t", isModerator: false, floatingButtonHidden: true })["hide-launcher"]).toBe("true");
+    expect(attrs({ enabled: true, userToken: "t", isModerator: false, floatingButtonHidden: false })["hide-launcher"]).toBe("false");
+    expect(attrs({ enabled: true, userToken: "t", isModerator: false })).not.toHaveProperty("hide-launcher");
+    expect(attrs({ enabled: true, userToken: null, isModerator: false, floatingButtonHidden: true })).not.toHaveProperty("hide-launcher");
+  });
 });
 
 // sefaria/utils/design_system.py (master #4045), and its tests (sefaria/utils/tests/design_system_test.py)
