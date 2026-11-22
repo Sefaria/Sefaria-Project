@@ -42,7 +42,6 @@ export function SidebarSearch({ query = "", onSearch, results, loading, loadingM
   const id = useId();
   const [value, setValue] = useState(query);
   const input = useRef<HTMLInputElement>(null);
-  const [focused, setFocused] = useState(false);
   useEffect(() => setValue(query), [query]);
   const label = hebrew ? "חפש בטקסט" : "Search in this text";
   const submit = (e?: FormEvent) => {
@@ -63,10 +62,11 @@ export function SidebarSearch({ query = "", onSearch, results, loading, loadingM
     <div className={styles.view}>
       <form role="search" className={styles.search} onSubmit={submit}>
         <button type="submit" className={styles.searchButton} aria-label={hebrew ? "חיפוש" : "Search"}>
-          <Icon name="search" size="1.1em" />
+          <Icon name="search" size="18px" />
         </button>
-        <input ref={input} id={id} type="search" value={value} maxLength={MAX_QUERY_LENGTH} onChange={(e) => setValue(e.target.value)} onFocus={() => setFocused(true)} onBlur={(e) => !e.currentTarget.form?.contains(e.relatedTarget as Node) && setFocused(false)} placeholder={label} aria-label={label} title={label} dir="auto" />
-        {!hebrew ? <KeyboardLauncher inputRef={input} value={value} onChange={setValue} onEnter={() => submit()} focused={focused} /> : null}
+        <input ref={input} id={id} type="search" value={value} maxLength={MAX_QUERY_LENGTH} onChange={(e) => setValue(e.target.value)} placeholder={label} aria-label={label} title={label} dir="auto" />
+        {/* always shown, as in the old sidebar box (the header's shows only while its box has focus) */}
+        {!hebrew ? <KeyboardLauncher inputRef={input} value={value} onChange={setValue} onEnter={() => submit()} focused /> : null}
       </form>
       {banner}
       {query ? (

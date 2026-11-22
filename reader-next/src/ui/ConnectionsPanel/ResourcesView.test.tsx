@@ -24,6 +24,16 @@ describe("ResourcesView", () => {
     expect(link).toHaveAttribute("href", "/Genesis.1.1?with=Commentary+ConnectionsList");
   });
 
+  // the design review (2026-11-22): the sidebar's aleph / ayin button changed nothing on Resources. sefaria.org's category rows are
+  // ContentText, so they follow the sidebar's language; the tools keep the interface's words.
+  it("shows the related texts in the sidebar's language, the tools in the interface's", () => {
+    render(<ResourcesView summary={topLevelSummary([cat("Commentary", 3, true)])} catalog={STORY_CATALOG} basePath="/Genesis.1.1" lang="he" />);
+    const row = related().getByRole("link", { name: /מפרשים/ });
+    expect(row).toHaveTextContent("(3)");
+    expect(row).not.toHaveTextContent("EN"); // the English-available tag is for an English sidebar
+    expect(screen.getByRole("link", { name: /About this Text/ })).toBeInTheDocument();
+  });
+
   it("carries display state on every link", () => {
     render(<ResourcesView summary={topLevelSummary([cat("Commentary", 1)])} catalog={STORY_CATALOG} basePath="/Genesis.1.1" search="&lang=en" />);
     expect(screen.getByRole("link", { name: /Commentary/ })).toHaveAttribute("href", "/Genesis.1.1?with=Commentary+ConnectionsList&lang=en");

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { licenseUrl } from "~/lib/versions/translations";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import styles from "./VersionInfo.module.css";
@@ -22,6 +23,11 @@ export interface VersionInfoProps {
   urlRef: string;
   /** Show the picture of the printed edition (the About box does; compact lists do not). */
   showImage?: boolean;
+  /** One fact or link per line, the cover beside them at the top: the translation card's open details (sefaria.org's
+   *  .versionDetailsInformation, a column). Default: the facts, then the links on one line. */
+  stacked?: boolean;
+  /** A heading over the facts, beside the cover (the translation card's full title). */
+  heading?: ReactNode;
 }
 
 /**
@@ -47,12 +53,13 @@ const hostOf = (url: string): string => {
  *
  * @feature VER-017 Version information rows
  */
-export function VersionInfo({ version: v, urlRef, showImage }: VersionInfoProps) {
+export function VersionInfo({ version: v, urlRef, showImage, stacked, heading }: VersionInfoProps) {
   const license = licenseUrl(v.license);
   const buyHref = v.purchaseInformationURL || (v.versionSource && isSourceAddress(v.versionSource) ? sourceHref(v.versionSource) : undefined);
   return (
-    <div className={styles.info}>
+    <div className={styles.info} data-stacked={stacked || undefined}>
       <div className={styles.text}>
+        {heading}
         <dl className={styles.facts}>
           {v.versionSource ? (
             <div>

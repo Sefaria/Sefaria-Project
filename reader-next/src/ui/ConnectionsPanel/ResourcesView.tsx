@@ -34,6 +34,9 @@ export interface ResourcesViewProps {
   /** Where the Sheets row goes: the Voices "sheets with this ref" page, in a new tab (CON-017). */
   sheetsHref?: string;
   /** Compare Text is offered only when panels can sit side by side (old multiPanel). */
+  /** The sidebar's content language (`lang2`, its aleph / ayin button): the related texts' names follow it, as the old ContentText
+   *  did; the tools keep the interface's words. Default: the interface language. */
+  lang?: "en" | "he";
   showCompare?: boolean;
   /** Whether a reader is signed in (the account tools report their mode only then). */
   signedIn?: boolean;
@@ -70,7 +73,7 @@ const visible = (r: ToolRow) => r.count === undefined || r.count === null || r.c
  * @feature CON-023 Top-level summary: Quoting Commentary merged, collapse to 4
  * @feature CON-024 Essay links in summary
  */
-export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false }: ResourcesViewProps) {
+export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false, lang }: ResourcesViewProps) {
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   const [expanded, setExpanded] = useState(false);
   // section names in the interface's language, the old client's words
@@ -139,6 +142,7 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
         <FilterRow
           key={e.sourceRef}
           label={e.title}
+          contentLang={lang}
           icon="file"
           color="var(--sefaria-cat-targum)"
           href={href_({ view: "texts", filter: `${e.title.en}|Essay` })}
@@ -149,6 +153,7 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
         <FilterRow
           key={c.category}
           label={categoryLabel(c.category, catalog)}
+          contentLang={lang}
           count={c.count}
           hasEnglish={c.hasEnglish}
           color={categoryColor(c.category)}

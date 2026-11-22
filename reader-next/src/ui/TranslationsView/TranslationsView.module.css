@@ -43,3 +43,9 @@
 /* A version's facts may hold a long bare link ("modernizedtanakh.blogspot.com"): at 320px it ended 1.5px past the screen.
    It breaks inside its column instead. */
 .view :global(dd) { min-width: 0; overflow-wrap: anywhere; }
+
+/* The open details, as sefaria.org's .version-block-with-preview-details (the design review, 2026-11-22, kept the old look): a light
+   grey box with 6px corners and 10px of padding; the full title black (the facts and links: VersionInfo stacked); Open Text a plain grey link with the open icon, 15px below, not a button. */
+.meta { margin-block-start: var(--sefaria-space-2); padding: 10px; border-radius: 6px; background: var(--sefaria-color-chip); font-size: 14px; line-height: 20px; color: var(--sefaria-color-text-dark-grey); }
+.fullTitle { margin-block-end: 0; color: var(--sefaria-color-text-strong); }
+.open { display: inline-flex; align-items: center; gap: 5px; margin-block-start: 15px; padding: 0; border: 0; border-radius: 0; font-size: 14px; line-height: 15px; color: var(--sefaria-color-text-dark-grey); }

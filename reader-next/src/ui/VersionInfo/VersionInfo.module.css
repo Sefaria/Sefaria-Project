@@ -9,3 +9,13 @@
 .image { flex: none; }
 .image img { display: block; width: 80px; height: auto; border: 1px solid var(--sefaria-color-border); }
 .buy { color: var(--sefaria-color-link, #4b71b7) !important; }
+
+/* Stacked (the translation card): sefaria.org's .versionDetails, 14px/20px #666, one fact or link a line, no underlines, Buy in Print
+   in the brand blue (--sefaria-blue), the cover 120px tall at the top right */
+.info[data-stacked] { align-items: flex-start; font-size: 14px; line-height: 20px; color: var(--sefaria-color-text-dark-grey); }
+.info[data-stacked] .links { flex-direction: column; margin: 0; }
+.info[data-stacked] a { text-decoration: none; }
+.info[data-stacked] a:hover { text-decoration: underline; }
+.info[data-stacked] .buy { color: var(--sefaria-color-brand) !important; }
+.info[data-stacked] .image { margin-block-start: 5px; }
+.info[data-stacked] .image img { width: auto; height: 120px; border: 0; }

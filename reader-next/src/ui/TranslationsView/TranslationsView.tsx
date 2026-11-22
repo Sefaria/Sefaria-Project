@@ -4,6 +4,7 @@ import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { previewHtml, type TranslationVersion } from "~/lib/versions/translations";
 import { VersionInfo } from "../VersionInfo/VersionInfo";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
+import { Icon } from "../Icon/Icon";
 import { Link } from "../Link/Link";
 import { SegmentText } from "../SegmentText/SegmentText";
 import { PanelSectionHeading } from "../ConnectionsPanel/FilterRow";
@@ -113,8 +114,13 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
                     <span className={styles.title}>{title}</span>
                   </summary>
                   <div className={styles.meta}>
-                    <div className={styles.fullTitle}>{hebrew && v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle}</div>
-                    <VersionInfo version={v} urlRef={urlRef} />
+                    <VersionInfo
+                      version={v}
+                      urlRef={urlRef}
+                      showImage
+                      stacked
+                      heading={<div className={styles.fullTitle}>{hebrew && v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle}</div>}
+                    />
                     <Link
                       href={openHref(v)}
                       className={styles.open}
@@ -125,6 +131,7 @@ export function TranslationsView({ languages, currentTitle, selectHref, onSelect
                         }
                       }}
                     >
+                      <Icon name="external-link" size="16px" />
                       <InterfaceText en="Open Text" he="פתיחת טקסט" />
                     </Link>
                   </div>

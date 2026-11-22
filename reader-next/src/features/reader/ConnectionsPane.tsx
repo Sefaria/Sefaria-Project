@@ -789,6 +789,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         ) : (
           <>
             <ResourcesView
+              lang={shownLang}
               summary={topLevelSummary(summary, essaysFor(sectionLinks, props.shownVersions))}
               catalog={catalog}
               hrefFor={hrefFor}

@@ -18,3 +18,9 @@
 .nested { margin-block-start: var(--sefaria-space-3); padding-inline-start: var(--sefaria-space-3); border-inline-start: 1px solid var(--sefaria-color-border); }
 .message { margin: 0; text-align: center; color: var(--sefaria-color-text-muted); font-family: var(--sefaria-font-ui-en); }
 .sentinel { height: 1px; }
+
+/* The box as sefaria.org's .sidebarSearch .searchBox (the design review, 2026-11-22: it had no visible background): the light grey
+   pill, 30px tall, the 18px magnifier and the keyboard icon inside it */
+.search { height: 30px; box-sizing: border-box; padding: 0 10px; gap: 8px; background: var(--sefaria-color-chip); border-radius: 250px; }
+.search input { height: 100%; padding: 0; font-size: 18px; }
+.searchButton { color: var(--sefaria-color-text-dark-grey); }
