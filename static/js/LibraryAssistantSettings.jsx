@@ -70,9 +70,21 @@ export const isPreviewBase = (base) => {
   }
 };
 
-// The Back to Learning target: only a same-site path (starts with one slash, no backslash) is kept.
-export const safeReturnPath = (raw) =>
-  typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//') && !raw.includes('\\') ? raw : '/';
+// The Back to Learning target: only a same-site path is kept. Browsers drop tabs and newlines from a URL, so
+// "/\n/evil.example" would become "//evil.example"; control characters and backslashes are refused, and the
+// result must still resolve to this site.
+export const safeReturnPath = (raw) => {
+  // eslint-disable-next-line no-control-regex
+  if (typeof raw !== 'string' || !raw.startsWith('/') || raw.startsWith('//') || /[\\\u0000-\u001f\u007f]/.test(raw)) {
+    return '/';
+  }
+  try {
+    const url = new URL(raw, 'https://same-site.invalid');
+    return url.origin === 'https://same-site.invalid' ? raw : '/';
+  } catch (e) {
+    return '/';
+  }
+};
 
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const MAX_RUNS = 10;

@@ -35,7 +35,7 @@ def test_param_is_saved_to_the_session_and_returned_on_the_same_request():
 
 def test_clear_removes_the_session_value():
     request = _request({"chatbot_version": "clear"}, {"chatbot_version": "9298"})
-    apply_chatbot_version_param(request)
+    assert apply_chatbot_version_param(request) == ""
     assert "chatbot_version" not in request.session
 
 

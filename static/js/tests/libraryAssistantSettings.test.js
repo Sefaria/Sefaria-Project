@@ -680,6 +680,9 @@ describe('Library Assistant settings: card order, testing helper lines, Back to 
     ['//x.com', '/'],
     ['/\\x.com', '/'],
     ['javascript:alert(1)', '/'],
+    ['/\n/evil.example', '/'],
+    ['/\t/evil.example', '/'],
+    ['/Genesis.1?lang=he#v3', '/Genesis.1?lang=he#v3'],
   ])('safeReturnPath(%p) returns %p', (raw, expected) => {
     expect(safeReturnPath(raw)).toBe(expected);
   });
