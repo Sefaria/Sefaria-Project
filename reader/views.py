@@ -5748,10 +5748,27 @@ def search_wrapper_api(request, es6_compat=False):
 
     if request.method == "POST":
         if "json" in request.POST:
-            j = request.POST.get("json")  # using form-urlencoded
+            raw_body = request.POST.get("json")  # using form-urlencoded
         else:
-            j = request.body  # using content-type: application/json
-        j = json.loads(j)
+            raw_body = request.body  # using content-type: application/json
+
+        def reject_body(message, reason):
+            # The caller is the only thing that identifies who sends bodies this endpoint cannot use.
+            logger.info(
+                "search_wrapper_invalid_body",
+                reason=reason,
+                user_agent=request.headers.get("User-Agent", ""),
+            )
+            return jsonResponse({"error": message}, callback=request.GET.get("callback", None), status=400)
+
+        try:
+            j = json.loads(raw_body)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return reject_body("Invalid JSON body.", "invalid_json")
+        if not isinstance(j, dict):
+            return reject_body("JSON body must be an object.", "not_an_object")
+        if not isinstance(j.get("query"), str):
+            return reject_body("Parameter 'query' is required and must be a string.", "invalid_query")
         es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
