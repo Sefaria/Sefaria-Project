@@ -247,11 +247,9 @@ jobs:
       group: dev-mongo
       cancel-in-progress: false
     needs: [ build-derived, check-python-files ]
-    # Every non-draft PR gets a sandbox: the e2e gate (e2e-job) runs against it.
-    # Pushes to master keep the old rule (only when Python changed, for pytest).
     if: >
       github.event.pull_request.draft == false &&
-      (github.event_name == 'pull_request' || needs.check-python-files.outputs.python_files_changed == 'true')
+      needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -301,12 +299,10 @@ jobs:
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
   sandbox-ready:
-    # Every non-draft PR gets a sandbox: the e2e gate (e2e-job) runs against it.
-    # Pushes to master keep the old rule (only when Python changed, for pytest).
     if: >
       github.event.pull_request.draft == false &&
-      (github.event_name == 'pull_request' || needs.check-python-files.outputs.python_files_changed == 'true')
-    needs: [ sandbox-deploy, check-python-files ]
+      needs.check-python-files.outputs.python_files_changed == 'true'
+    needs: sandbox-deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -387,66 +383,85 @@ jobs:
         if: always()
   e2e-job:
     name: "Continuous Testing: Playwright e2e"   # BDD stories + chrome @pr core journeys
-    # Not in the dev-mongo concurrency group: it only drives a browser against the sandbox.
-    needs: [ sandbox-ready ]
+    # No sandbox and no cluster: the whole site runs on this runner (build/ci/start-e2e-app.sh)
+    # against a fresh MongoDB restored from the public dump, the way the pytest jobs get theirs
+    # (build/ci/restore-test-mongo.sh). Each run has its own data, so PRs never queue on dev-mongo.
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      WORK: /mnt/e2e-app
+      # The test accounts are created in this run's throwaway database, so no secrets are needed.
+      PLAYWRIGHT_USER_EMAIL: e2e-user@example.com
+      PLAYWRIGHT_SUPERUSER_EMAIL: e2e-admin@example.com
+      SANDBOX_URL: https://www.sefaria.test   # Voices is derived: voices.sefaria.test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set outputs
-        id: get-sha
-        # Same derivation as sandbox-deploy, so this points at the sandbox it deployed.
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Point Playwright at this PR's sandbox
+      - name: Test account passwords
         run: |
-          host="sandbox-${{ steps.get-sha.outputs.sha_short }}.cauldron.sefaria.org"
-          echo "SANDBOX_URL=https://$host" >> $GITHUB_ENV
-          echo "E2E_LIBRARY_URL=https://$host" >> $GITHUB_ENV
-          echo "E2E_VOICES_URL=https://sheets.$host" >> $GITHUB_ENV
+          for v in PLAYWRIGHT_USER_PASSWORD PLAYWRIGHT_SUPERUSER_PASSWORD; do
+            p=$(openssl rand -hex 16); echo "::add-mask::$p"; echo "$v=$p" >> "$GITHUB_ENV"
+          done
+      # The restore is the slowest step (about 7 minutes), so it runs in the background while
+      # dependencies install and the bundles build. Background processes outlive their step.
+      - name: Restore the public test dump into a local MongoDB (background)
+        run: |
+          mkdir -p "$RUNNER_TEMP/mongo"
+          (bash build/ci/restore-test-mongo.sh > "$RUNNER_TEMP/mongo/restore.log" 2>&1; echo $? > "$RUNNER_TEMP/mongo/exit") &
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: |
+          pip install -r requirements.txt
+          npm ci
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
+      - name: Build production bundles
+        run: npm run build-prod --silent
+      - name: Wait for the MongoDB restore
+        run: |
+          timeout 1200 bash -c 'until [ -f "$RUNNER_TEMP/mongo/exit" ]; do sleep 5; done'
+          cat "$RUNNER_TEMP/mongo/restore.log"
+          exit "$(cat "$RUNNER_TEMP/mongo/exit")"
+      - name: Start Sefaria on this runner
+        run: bash build/ci/start-e2e-app.sh
+        env:
+          SKIP_WEBPACK: '1'   # built above, while Mongo was restoring
       - name: BDD story tests (blocking)
         id: bdd
         run: npm run test:bdd
-        env:
-          PLAYWRIGHT_USER_EMAIL: "${{ secrets.PLAYWRIGHT_USER_EMAIL }}"
-          PLAYWRIGHT_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_USER_PASSWORD }}"
-          PLAYWRIGHT_SUPERUSER_EMAIL: "${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}"
-          PLAYWRIGHT_SUPERUSER_PASSWORD: "${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}"
       - name: Chrome @pr core journeys
         id: pr_suite
         if: ${{ !cancelled() }}
-        # The @pr subset of @sanity: read-only core journeys that work on a cauldron sandbox
-        # (see e2e-tests/Sanity/README.md). Starts non-blocking: failures are a warning only until
+        # The @pr subset of @sanity: core journeys that work on the runner's site (see
+        # e2e-tests/Sanity/README.md §6a). Starts non-blocking: failures are a warning only until
         # the repo variable E2E_PR_BLOCKING is set to 'true'.
         continue-on-error: ${{ vars.E2E_PR_BLOCKING != 'true' }}
         run: npm run test:pr -- --reporter=github,html
         env:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-pr
           PLAYWRIGHT_HTML_OPEN: never
-          PLAYWRIGHT_USER_EMAIL: "${{ secrets.PLAYWRIGHT_USER_EMAIL }}"
-          PLAYWRIGHT_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_USER_PASSWORD }}"
-          PLAYWRIGHT_SUPERUSER_EMAIL: "${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}"
-          PLAYWRIGHT_SUPERUSER_PASSWORD: "${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}"
       - name: Note non-blocking @pr failure
         if: ${{ !cancelled() && steps.pr_suite.outcome == 'failure' && vars.E2E_PR_BLOCKING != 'true' }}
         run: echo "::warning::Chrome @pr core journeys failed (not blocking because E2E_PR_BLOCKING is not 'true'). See the playwright-reports artifact."
-      - name: Upload Playwright reports
+      - name: Upload Playwright reports and server logs
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-reports-${{ steps.get-sha.outputs.sha_short }}
+          name: playwright-reports-${{ github.run_id }}
           path: |
             playwright-report-bdd/
             playwright-report-pr/
+            ${{ env.WORK }}/*.log
+            ${{ env.WORK }}/gunicorn.out
           retention-days: 14
           if-no-files-found: ignore
   ending-notification:
@@ -543,14 +558,14 @@ jobs:
               echo "Jest or auth-service tests failed"
               exit 1
             fi
-            if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
-               [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
-               [ "${{ needs.e2e-job.result }}" != "success" ]; then
-              echo "Sandbox or Playwright e2e job failed"
+            if [ "${{ needs.e2e-job.result }}" != "success" ]; then
+              echo "Playwright e2e job failed"
               exit 1
             fi
             if [ "${{ needs.check-python-files.outputs.python_files_changed }}" == "true" ]; then
-              if [ "${{ needs.pytest-job.result }}" != "success" ]; then
+              if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
+                 [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
+                 [ "${{ needs.pytest-job.result }}" != "success" ]; then
                 echo "One or more Python-related test jobs failed"
                 exit 1
               fi

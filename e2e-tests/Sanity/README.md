@@ -126,19 +126,26 @@ So a full release-gate pass is **two commands**: `npm run test:sanity` (desktop)
 
 ## 6a. The `@pr` subset: what blocks a pull request
 
-Every non-draft PR gets its own sandbox (`sandbox-<sha>.cauldron.sefaria.org`), and CI runs the
-**`@pr`** tests against it (`npm run test:pr` = `playwright test --project=chrome-pr`). When the
-`E2E_PR_BLOCKING` repo variable is `true`, a failing `@pr` test blocks the merge. **It starts as
-`false`:** a failure shows as a warning on the PR while we confirm the suite is stable on PR
-sandboxes. Flip it to `true` once it is.
+CI runs the **`@pr`** tests on every non-draft PR (`npm run test:pr` = `playwright test
+--project=chrome-pr`), in the `Continuous Testing: Playwright e2e` job. There is no sandbox: the
+job runs the whole site on the GitHub runner, built from the PR's own code, at
+`https://www.sefaria.test` (Voices at `voices.sefaria.test`), against a fresh MongoDB restored
+from the public `dump_small`. `build/ci/start-e2e-app.sh` sets that up; its header lists how the
+runner's site differs from production. When the `E2E_PR_BLOCKING` repo variable is `true`, a
+failing `@pr` test blocks the merge. **It starts as `false`:** a failure shows as a warning on the
+PR while we confirm the suite is stable. Flip it to `true` once it is.
 
 `@pr` is a subset of `@sanity`. A test may carry `@pr` only if it:
 
-- **only reads.** PR sandboxes share the dev database, so nothing that creates or edits sheets,
-  notes, bookmarks, profiles or account settings, and no UI logout (see `../CLAUDE.md` §2.21).
-- **runs on the English domain.** PR sandboxes have no `.org.il` host, so no Hebrew-domain or
+- **doesn't need sheets or user profiles that already exist.** The public dump has none, so
+  Voices topic sheet lists, other people's profiles and the "Users" search section are empty.
+- **doesn't need search results.** There is no Elasticsearch on the runner. Autocomplete works
+  (it is built in memory); the results page is empty.
+- **runs on the English domain.** The runner has no `.org.il` host, so no Hebrew-domain or
   language-switch-to-Hebrew tests.
-- **doesn't need the Library Assistant.** The chatbot isn't guaranteed on a sandbox.
+- **doesn't need the Library Assistant or Strapi content.** Neither runs on the runner.
+- **doesn't log out through the UI.** Logged-in tests share one session per account
+  (see `../CLAUDE.md` §2.21). Writing data is fine: each run's database is thrown away.
 - **passes on master today.** A test that fails because of a known bug stays out until the bug
   is fixed, or every PR is blocked.
 

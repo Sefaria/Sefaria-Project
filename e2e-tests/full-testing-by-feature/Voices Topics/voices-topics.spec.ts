@@ -30,7 +30,7 @@ test.describe('Voices Topics — display & content (English)', () => {
     await hideAllModalsAndPopups(page);
   });
 
-  test('TOV-001: Topic page loads with core content', { tag: ['@sanity', '@pr'] }, async () => {
+  test('TOV-001: Topic page loads with core content', { tag: ['@sanity'] }, async () => {
     await pm.onVoicesTopic().open(MODULE_URLS.EN.VOICES, TOPIC_SLUG);
     await pm.onVoicesTopic().expectTitleText(TOPIC_TITLE_EN);
     await pm.onVoicesTopic().expectDescriptionPresent(100);
@@ -121,7 +121,7 @@ test.describe('Voices Topics — sheet listing & interaction', () => {
     await pm.onVoicesTopic().expectSheetsHaveMetadata();
   });
 
-  test('TOV-007: Click a sheet → navigates to /sheets/<id>', { tag: ['@sanity', '@pr'] }, async () => {
+  test('TOV-007: Click a sheet → navigates to /sheets/<id>', { tag: ['@sanity'] }, async () => {
     await pm.onVoicesTopic().open(MODULE_URLS.EN.VOICES, TOPIC_SLUG);
     await pm.onVoicesTopic().clickFirstSheetAndExpectNavigation();
     await expect(page).toHaveURL(/\/sheets\/\d+/);

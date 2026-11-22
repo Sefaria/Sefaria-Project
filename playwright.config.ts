@@ -18,18 +18,14 @@ if (!process.env.CI) {
 // Extract domain from SANDBOX_URL
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
 const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
-// E2E_LIBRARY_URL / E2E_VOICES_URL override the derivation (per-PR CI sandboxes
-// don't use www./voices. hosts). Same override as e2e-tests/constants.ts.
-const LIBRARY_OVERRIDE = process.env.E2E_LIBRARY_URL
-const VOICES_OVERRIDE = process.env.E2E_VOICES_URL ?? LIBRARY_OVERRIDE
 const MODULE_URLS = {
   EN: {
-    LIBRARY: LIBRARY_OVERRIDE ?? `https://www.${SANDBOX_DOMAIN}`,
-    VOICES: VOICES_OVERRIDE ?? `https://voices.${SANDBOX_DOMAIN}`
+    LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
+    VOICES: `https://voices.${SANDBOX_DOMAIN}`
   },
   HE: {
-    LIBRARY: LIBRARY_OVERRIDE ?? `https://www.${SANDBOX_DOMAIN_IL}`,
-    VOICES: VOICES_OVERRIDE ?? `https://chiburim.${SANDBOX_DOMAIN_IL}`
+    LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
+    VOICES: `https://chiburim.${SANDBOX_DOMAIN_IL}`
   }
 } as const;
 
@@ -184,11 +180,12 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
-    // PR gate = every test tagged `@pr`: core journeys that run against a per-PR
-    // cauldron sandbox and block merge. Members must be read-only (no sheets,
-    // notes, bookmarks or profile edits on the shared dev database), must not
-    // need the Hebrew .org.il domain (PR sandboxes have none) or the Library
-    // Assistant. See e2e-tests/Sanity/README.md "The @pr subset".
+    // PR gate = every test tagged `@pr`: core journeys that CI runs on every PR
+    // against the PR's own code, served on the runner (build/ci/start-e2e-app.sh,
+    // https://www.sefaria.test). Members must not need the Hebrew .org.il domain,
+    // the Library Assistant, Elasticsearch results, or sheets and user profiles
+    // (the runner's database is the public dump, which has none).
+    // See e2e-tests/Sanity/README.md "The @pr subset".
     {
       name: 'chrome-pr',
       testDir: './e2e-tests',
