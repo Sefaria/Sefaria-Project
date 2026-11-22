@@ -13,22 +13,28 @@ const parashahHeader = Sefaria.util.parashahHeader;
 //     branch, carries the aliyah + parasha metadata the reader needs.
 //   - Genesis 2:4 starts the second aliyah mid-chapter: aliyah/parasha metadata
 //     but no `whole` marker.
-const genesis = { categories: ["Tanakh", "Torah"], alts: [{}], isDependant: false };
+const genesis = { categories: ['Tanakh', 'Torah'], alts: [{}], isDependant: false };
 
 const rishonSegment = {
   alt: {
     whole: true,
-    en: ["Bereshit"], he: ["בראשית"],
-    aliyah_en: "First", aliyah_he: "ראשון",
-    parasha_en: "Bereshit", parasha_he: "בראשית",
+    en: ['Bereshit'],
+    he: ['בראשית'],
+    aliyah_en: 'First',
+    aliyah_he: 'ראשון',
+    parasha_en: 'Bereshit',
+    parasha_he: 'בראשית',
   },
 };
 
 const secondAliyahSegment = {
   alt: {
-    en: ["Second"], he: ["שני"],
-    aliyah_en: "Second", aliyah_he: "שני",
-    parasha_en: "Bereshit", parasha_he: "בראשית",
+    en: ['Second'],
+    he: ['שני'],
+    aliyah_en: 'Second',
+    aliyah_he: 'שני',
+    parasha_en: 'Bereshit',
+    parasha_he: 'בראשית',
   },
 };
 
@@ -36,8 +42,8 @@ describe('Util.parashahHeader (Genesis / Parashat Bereshit)', () => {
   // Case 7
   it('aliyot OFF, parasha start: shows just the parasha name', () => {
     expect(parashahHeader(genesis, rishonSegment, false)).toEqual({
-      en: "Bereshit",
-      he: "בראשית",
+      en: 'Bereshit',
+      he: 'בראשית',
       parashaTitle: true,
     });
   });
@@ -45,8 +51,8 @@ describe('Util.parashahHeader (Genesis / Parashat Bereshit)', () => {
   // Case 8
   it('aliyot ON, the Rishon: renders as an aliyah header naming the parasha', () => {
     expect(parashahHeader(genesis, rishonSegment, true)).toEqual({
-      en: "Bereshit: First",
-      he: "בראשית: ראשון",
+      en: 'Bereshit: First',
+      he: 'בראשית: ראשון',
       parashaTitle: false,
     });
   });
@@ -54,8 +60,8 @@ describe('Util.parashahHeader (Genesis / Parashat Bereshit)', () => {
   // Case 9
   it('aliyot ON, a mid-parasha aliyah: shows "<parasha>: <aliyah>"', () => {
     expect(parashahHeader(genesis, secondAliyahSegment, true)).toEqual({
-      en: "Bereshit: Second",
-      he: "בראשית: שני",
+      en: 'Bereshit: Second',
+      he: 'בראשית: שני',
       parashaTitle: false,
     });
   });

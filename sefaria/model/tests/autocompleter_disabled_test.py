@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for the DISABLE_AUTOCOMPLETER guards that support the standalone name
 service.  The flag is strict: a disabled process neither builds completers
@@ -78,7 +77,8 @@ def test_unknown_lexicon_does_not_trigger_rebuild(empty_completer_state):
 
 
 def test_name_service_urlconf_routes():
-    from django.urls import get_resolver, Resolver404
+    from django.urls import Resolver404, get_resolver
+
     import reader.views as reader_views
 
     resolver = get_resolver("sefaria.urls_name")

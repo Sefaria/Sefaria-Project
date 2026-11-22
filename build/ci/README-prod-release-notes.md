@@ -21,12 +21,24 @@ Argo post-promotion analysis (prod)
 Only the release-notes prose step and the opt-in triage explainer are LLM
 steps; everything else is deterministic Python or a REST call.
 
+## Post-deploy steps
+
+A manual step that must happen after a change reaches prod goes on its
+Shortcut story as a checklist item starting with `Post-deploy:`. While such
+an item is unticked, neither `mark_stories_deployed.py` nor
+`reconcile_deploy_ready.py` moves the story to Done, and
+`build/ci/post_deploy.py` lists the item verbatim in the tech release
+notes, in the release that shipped the story. Once it's ticked, the next
+release's reconcile sweep moves the story to Done. Nothing runs the steps
+automatically.
+
 ## Running the scripts
 
 ```
 python3 build/ci/shipped_stories.py --version 6.111.0-prod.2 [--out shipped-stories.json] [--repo Sefaria/Sefaria-Project] [--chart-version 0.87.5-prod.1]
 python3 build/ci/shipped_stories.py --range <prev-tag>..<cur-tag> [--out shipped-stories.json]
 ```
+
 Requires `git` and `gh` on PATH. `SHORTCUT_API_TOKEN` is optional; without
 it, story ids are still emitted but hydration and the PR-link fallback are
 skipped.
@@ -35,6 +47,7 @@ skipped.
 python3 build/ci/mark_stories_deployed.py --input shipped-stories.json [--dry-run] \
     [--workflow-id 500000005] [--from-state-id 500000045] [--done-state-id 500000010]
 ```
+
 Requires `SHORTCUT_API_TOKEN` unless `--dry-run` is passed.
 
 ```
@@ -42,6 +55,7 @@ python3 build/ci/reconcile_deploy_ready.py [--dry-run]
 python3 build/ci/reconcile_deploy_ready.py --apply
 python3 build/ci/reconcile_deploy_ready.py --apply --prod-tag prod/6.111.0-prod.2+chart.0.87.5-prod.1 --out report.json
 ```
+
 `--dry-run` is the default; nothing is transitioned without `--apply`.
 Requires `git`, `gh`, and `SHORTCUT_API_TOKEN` (required even for `--dry-run`).
 
@@ -89,10 +103,10 @@ falls through `|| /bin/true`, and the whole feature is a silent no-op.
 
 Add these under repo Settings → Secrets and variables → Actions:
 
-| Secret | Purpose | Notes |
-|---|---|---|
-| `SHORTCUT_API_TOKEN` | Story hydration, PR-link fallback, and state transitions for all three CI scripts | Shortcut → Settings → API Tokens |
-| `SLACK_PRODUCT_WEBHOOK` | Non-technical release announcement | A second Slack incoming webhook. Until set, that post step is a guarded no-op |
+| Secret                  | Purpose                                                                           | Notes                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `SHORTCUT_API_TOKEN`    | Story hydration, PR-link fallback, and state transitions for all three CI scripts | Shortcut → Settings → API Tokens                                              |
+| `SLACK_PRODUCT_WEBHOOK` | Non-technical release announcement                                                | A second Slack incoming webhook. Until set, that post step is a guarded no-op |
 
 Already exist and are reused as-is: `SLACK_DEPLOY_WEBHOOK`, `GITHUB_TOKEN`,
 `ANTHROPIC_API_KEY`.

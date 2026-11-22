@@ -1655,3 +1655,36 @@ msgstr "%(title)s | %(suffix)s"
 #: reader/views.py
 msgid "Untitled"
 msgstr "ללא כותרת"
+
+#: templates/developer/email_confirmation_subject.txt
+msgid "Confirm your email for Sefaria Developer Settings"
+msgstr "אישור כתובת הדוא״ל להגדרות המפתחים בספריא"
+
+#: templates/developer/email_confirmation_message.html
+#: templates/developer/email_confirmation_message.txt
+msgid ""
+"A request has been made to turn on Developer Settings on the Sefaria account "
+"that uses this address."
+msgstr "התקבלה בקשה להפעיל את הגדרות המפתחים בחשבון ספריא שמשתמש בכתובת הזו."
+
+#: templates/developer/email_confirmation_message.html
+msgid "Confirm your email address"
+msgstr "אישור כתובת הדוא״ל"
+
+#: templates/developer/email_confirmation_message.txt
+msgid "Confirm your email address:"
+msgstr "לאישור כתובת הדוא״ל:"
+
+#: templates/developer/email_confirmation_message.html
+#: templates/developer/email_confirmation_message.txt
+msgid "This link works for 3 days."
+msgstr "הקישור בתוקף ל־3 ימים."
+
+#: templates/developer/email_confirmation_message.html
+#: templates/developer/email_confirmation_message.txt
+msgid "If you did not request this link, you can ignore this email."
+msgstr "אם לא ביקשת את הקישור הזה, אפשר להתעלם מהמייל הזה."
+
+#: templates/developer/email_confirmation_message.html
+msgid "If the button doesn't work, copy this link into your browser:"
+msgstr "אם הכפתור לא עובד, אפשר להעתיק את הקישור הזה לדפדפן:"

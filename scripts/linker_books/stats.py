@@ -1,4 +1,5 @@
 import django
+
 django.setup()
 from sefaria.model import *
 
@@ -21,7 +22,7 @@ def linker_supported_indexes(indexes=None, reverse=False):
     unsupported = []
     for index in indexes:
         root = index.nodes
-        if bool(getattr(root, 'match_templates', None)) ^ reverse:
+        if bool(getattr(root, "match_templates", None)) ^ reverse:
             unsupported.append(index)
     return unsupported
 
@@ -50,7 +51,7 @@ def where_term_is_used(slug):
         print(index.title)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # print(len(get_simple_indexes()))
     # print("All", len(library.all_index_records()))
     # print("Not linker", len(linker_supported_indexes(reverse=True)))

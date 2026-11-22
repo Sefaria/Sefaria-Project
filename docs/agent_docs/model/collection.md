@@ -1,12 +1,15 @@
 # Collection
+
 > Source: `sefaria/model/collection.py`
 
 ## Purpose
+
 A Collection is a user-curated group of source sheets. Collections have members (admins and regular members), can be public ("listed") or private, and appear at `/collections/{slug}`. Despite the class name `Collection`, the underlying MongoDB collection is called `groups` (a legacy naming artifact).
 
 ## Key Classes
 
 ### Collection
+
 - **Inherits**: `AbstractMongoRecord`
 - **MongoDB Collection**: `groups`
 - **Role**: Represents a single collection of sheets with membership, slug-based URLs, and optional TOC integration.
@@ -20,6 +23,7 @@ A Collection is a user-curated group of source sheets. Collections have members 
   - `_pre_save()` -- Enforces publishing rules: unique name, image required, minimum 3 public sheets. Also detects image field changes and deletes old images from Google Cloud Storage.
 
 ### CollectionSet
+
 - **Inherits**: `AbstractMongoSet`
 - **Role**: Query helper for sets of collections.
 - **Key methods**:
@@ -27,6 +31,7 @@ A Collection is a user-curated group of source sheets. Collections have members 
   - `get_collection_listing(userid)` -- Returns `{"private": [...], "public": [...]}` dict of listing contents.
 
 ## Non-Obvious Patterns
+
 - **MongoDB collection is `groups`**, not `collections`. Queries hit `db.groups`.
 - **`track_pkeys = True`**: The record tracks previous values of `name`, `slug`, `listed`, `headerUrl`, `imageUrl`, `coverUrl` via `pkeys_orig_values`. This powers slug-change subscriptions and image cleanup.
 - **Slug lifecycle on publish/unpublish**: Publishing assigns a new name-based slug and stashes the old random slug in `privateSlug`. Unpublishing restores `privateSlug`. This preserves private share links.
@@ -35,6 +40,7 @@ A Collection is a user-curated group of source sheets. Collections have members 
 - **`process_sheet_deletion_in_collections`** is NOT wired through `dependencies.py` because sheets don't use the standard Mongo model. It is called directly from `sourcesheets/views.py`.
 
 ## Relationships
+
 - **Sheets** (`db.sheets`): `Collection.sheets` stores sheet IDs. Sheets reference collections via `displayedCollection` (slug).
 - **Notifications** (`NotificationSet`): Cascade-deleted by `content.collection_slug` matching `slug` on collection delete.
 - **Dependency subscriptions** (in `dependencies.py`):
@@ -47,6 +53,7 @@ A Collection is a user-curated group of source sheets. Collections have members 
 ## Common Tasks
 
 **Add a sheet to a collection:**
+
 ```python
 collection = Collection().load({"slug": "my-collection"})
 collection.sheets.append(sheet_id)
@@ -54,18 +61,22 @@ collection.save()
 ```
 
 **Find all collections for a user:**
+
 ```python
 collections = CollectionSet().for_user(uid)
 ```
 
 **Publish a collection** (must have unique name, image, and 3+ public sheets):
+
 ```python
 collection.listed = True
 collection.save()  # raises InputError if requirements not met
 ```
 
 **Remove a sheet from all collections** (called from views, not via dependencies):
+
 ```python
 from sefaria.model.collection import process_sheet_deletion_in_collections
+
 process_sheet_deletion_in_collections(sheet_id)
 ```

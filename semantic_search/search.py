@@ -2,11 +2,19 @@ from django.conf import settings
 
 from semantic_search.embedder import embed_query
 from semantic_search.models import (
+    DEFAULT_EMBEDDING_MODEL_ID,
     ChunkMetadata,
     SemanticTextChunk,
     Vector,
-    DEFAULT_EMBEDDING_MODEL_ID,
 )
+
+
+def get_search_table_version() -> str:
+    """Backend selected for search; also reported by the authenticated API."""
+    table_version = getattr(settings, "SEMANTIC_SEARCH_TABLE_VERSION", "new")
+    if table_version not in ("new", "legacy"):
+        raise ValueError(f"Invalid SEMANTIC_SEARCH_TABLE_VERSION: {table_version}")
+    return table_version
 
 
 def semantic_search(
@@ -31,11 +39,9 @@ def semantic_search_by_embedding(
     limit: int = 10,
     embedding_model_id: int = DEFAULT_EMBEDDING_MODEL_ID,
 ) -> list[ChunkMetadata | SemanticTextChunk]:
-    table_version = getattr(settings, "SEMANTIC_SEARCH_TABLE_VERSION", "legacy")
+    table_version = get_search_table_version()
     if table_version == "new":
         return Vector().search_by_embedding(
             embedding, limit=limit, filters=filters, embedding_model_id=embedding_model_id
         )
-    if table_version != "legacy":
-        raise ValueError(f"Invalid SEMANTIC_SEARCH_TABLE_VERSION: {table_version}")
     return SemanticTextChunk().search_by_embedding(embedding, limit=limit, filters=filters)

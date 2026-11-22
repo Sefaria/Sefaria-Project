@@ -13,7 +13,7 @@ class TestKnownDomainHostnamesCache:
     the suite happens to still pass."""
 
     def test_cache_is_invalidated_across_overridden_settings(self):
-        request = RequestFactory().get('/', HTTP_REFERER='https://www.sefaria.org/texts')
+        request = RequestFactory().get("/", HTTP_REFERER="https://www.sefaria.org/texts")
 
         with override_settings(DOMAIN_MODULES=CONFIG_A):
             assert referer_is_sefaria_domain(request) is True

@@ -1,0 +1,61 @@
+:root {
+  --bp-tablet-min: 843px;
+  --bp-desktop-min: 1087px;
+}
+
+.cookiesNotification {
+  position: fixed;
+  z-index: 9999;
+  color: var(--white);
+  background-color: #212e50;
+  border-top: 1px solid var(--light-grey);
+  bottom: 0;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 0;
+  line-height: 1.1;
+  text-align: center;
+  unicode-bidi: plaintext;
+}
+.cookiesNotification a {
+  text-decoration: underline;
+  color: inherit;
+  margin-inline-start: 5px;
+}
+.cookiesNotification .button {
+  margin-inline-start: 12px;
+}
+
+@media (max-width: 842px) {
+  body:has(#s2.headerOnly) {
+    padding-bottom: var(--bottom-bar-height, 0);
+  }
+  /* stylelint-disable selector-id-pattern -- existing ids from the React app */
+  #s2:not(.headerOnly) #readerAppWrap,
+  .mobileNavMenu {
+    padding-bottom: var(--bottom-bar-height, 0);
+  }
+  #s2:not(.headerOnly) #readerAppWrap {
+    box-sizing: border-box;
+  }
+  /* stylelint-enable selector-id-pattern */
+}
+@media (min-width: 843px) {
+  :root {
+    --lc-launcher-bottom-offset: 0px !important;
+  }
+  .cookiesNotification {
+    width: 360px;
+    margin: 10px;
+    padding: 15px;
+    text-align: start;
+    border-radius: 10px;
+    border-top: none;
+  }
+  .cookiesNotification .button {
+    display: block;
+    margin: 10px 0 0;
+  }
+}
+
+/*# sourceMappingURL=cookies-notification.css.map */

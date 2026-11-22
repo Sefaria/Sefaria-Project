@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types";
-import $ from "./sefaria/sefariaJquery";
-import Sefaria from "./sefaria/sefaria";
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import $ from './sefaria/sefariaJquery';
+import Sefaria from './sefaria/sefaria';
 
 const DEFAULT_PROMO_SESSION_LENGTH_SECONDS = 30 * 60;
 const MAX_MAYBE_LATER_CLICKS = 3;
@@ -31,7 +31,7 @@ const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
   const nowSec = Math.floor(Date.now() / 1000);
   const lastSessionAtSec = Number(localStorage.getItem(storageKeys.lastSessionAtSec));
   const currentSessionCounter = Number(localStorage.getItem(storageKeys.sessionCounter)) || 0;
-  const isNewSession = !Number.isFinite(lastSessionAtSec) || (nowSec - lastSessionAtSec) >= sessionLengthSeconds;
+  const isNewSession = !Number.isFinite(lastSessionAtSec) || nowSec - lastSessionAtSec >= sessionLengthSeconds;
 
   if (!isNewSession) {
     return currentSessionCounter;
@@ -102,20 +102,18 @@ const readPromoBackoffState = (storageKeys) => {
 };
 
 // Whether the "Maybe later" backoff schedule says to keep a promo hidden right now.
-const isPromoHiddenForBackoff = ({ storageKeys, promoSessionCounter, nudgeSchedule }) => shouldHideForBackoff({
-  state: readPromoBackoffState(storageKeys),
-  sessionCounter: promoSessionCounter,
-  nudgeSchedule: nudgeSchedule || NUDGE_SCHEDULE,
-});
+const isPromoHiddenForBackoff = ({ storageKeys, promoSessionCounter, nudgeSchedule }) =>
+  shouldHideForBackoff({
+    state: readPromoBackoffState(storageKeys),
+    sessionCounter: promoSessionCounter,
+    nudgeSchedule: nudgeSchedule || NUDGE_SCHEDULE,
+  });
 
 // Records one "Maybe later" click in the backoff state. Shared by every promo surface
 // (banner, modal) so the nudge schedule sees the same history wherever it was dismissed.
 const recordPromoMaybeLater = ({ storageKeys, promoSessionCounter }) => {
   const previousState = readPromoBackoffState(storageKeys);
-  const nextMaybeLaterCount = Math.min(
-    Number(previousState.maybeLaterCount || 0) + 1,
-    MAX_MAYBE_LATER_CLICKS,
-  );
+  const nextMaybeLaterCount = Math.min(Number(previousState.maybeLaterCount || 0) + 1, MAX_MAYBE_LATER_CLICKS);
   const nextState = {
     maybeLaterCount: nextMaybeLaterCount,
     lastDismissalTime: Math.floor(Date.now() / 1000),
@@ -126,7 +124,7 @@ const recordPromoMaybeLater = ({ storageKeys, promoSessionCounter }) => {
 };
 
 const trackPromoClick = (gtagParams, feature_name) => {
-  gtag("event", "promo_clicked", { ...gtagParams, feature_name });
+  gtag('event', 'promo_clicked', { ...gtagParams, feature_name });
 };
 
 // Client-only promo bookkeeping, run once on mount: migrates the legacy cookie and
@@ -159,8 +157,8 @@ const usePromoViewedEvent = (cookieName, gtagParams, isVisible = true) => {
     }
     const promoViewedSessionKey = `promo_viewed_${cookieName}`;
     if (!sessionStorage.getItem(promoViewedSessionKey)) {
-      sessionStorage.setItem(promoViewedSessionKey, "1");
-      gtag("event", "promo_viewed", gtagParams);
+      sessionStorage.setItem(promoViewedSessionKey, '1');
+      gtag('event', 'promo_viewed', gtagParams);
     }
   }, [cookieName, gtagParams, isVisible]);
 };
@@ -178,11 +176,13 @@ const SiteWideBanner = ({
   promoSessionLengthSeconds,
   imgSrc,
 }) => {
-  const [bannerVisibility, setBannerVisibility] = useState("");
+  const [bannerVisibility, setBannerVisibility] = useState('');
   // The first client render matches the server HTML (no banner); the real
   // decision is made once usePromoBackoffSession has mounted.
   const { isMounted, promoSessionCounter, storageKeys } = usePromoBackoffSession({
-    cookieName, enableBackoffDismissal, promoSessionLengthSeconds,
+    cookieName,
+    enableBackoffDismissal,
+    promoSessionLengthSeconds,
   });
   usePromoViewedEvent(cookieName, gtagParams);
 
@@ -195,7 +195,7 @@ const SiteWideBanner = ({
 
   const dismiss = () => {
     const cookieDomain = Sefaria.util.getCookieDomain();
-    const cookieOptions = { path: "/", expires: 20 * 365 };
+    const cookieOptions = { path: '/', expires: 20 * 365 };
     if (cookieDomain) {
       cookieOptions.domain = cookieDomain;
     }
@@ -205,61 +205,56 @@ const SiteWideBanner = ({
   const trackBannerInteraction = (feature_name) => trackPromoClick(gtagParams, feature_name);
 
   const closeBanner = () => {
-    setBannerVisibility("hidden");
+    setBannerVisibility('hidden');
     if (enableBackoffDismissal) {
       recordPromoMaybeLater({ storageKeys, promoSessionCounter });
-      trackBannerInteraction("maybe_later");
+      trackBannerInteraction('maybe_later');
       return;
     }
     dismiss();
-    trackBannerInteraction("close");
+    trackBannerInteraction('close');
   };
 
   if (!isMounted) {
     return null;
   }
-  return (!isDismissed() && <div className={`siteWideBanner ${bannerVisibility}`}>
-    <div className="siteWideBannerContent">
-      {imgSrc && <img className="siteWideBannerIcon" src={imgSrc} alt="" aria-hidden="true" />}
-      <div className="siteWideBannerTextBox">
-        <span className="bannerMainText">{mainText}</span>
-        {secondaryText && (
-          <span className="bannerSecondaryText">{secondaryText}</span>
-        )}
+  return (
+    !isDismissed() && (
+      <div className={`siteWideBanner ${bannerVisibility}`}>
+        <div className="siteWideBannerContent">
+          {imgSrc && <img className="siteWideBannerIcon" src={imgSrc} alt="" aria-hidden="true" />}
+          <div className="siteWideBannerTextBox">
+            <span className="bannerMainText">{mainText}</span>
+            {secondaryText && <span className="bannerSecondaryText">{secondaryText}</span>}
+          </div>
+          <div className="siteWideBannerButtonBox">
+            {actionButtons(trackBannerInteraction)}
+            {enableBackoffDismissal && (
+              <button type="button" className="button small siteWideBannerMaybeLater" onClick={closeBanner}>
+                <span>{Sefaria._('site_wide_banner.maybe_later')}</span>
+              </button>
+            )}
+          </div>
+          {learnMoreUrl && (
+            <a
+              href={learnMoreUrl}
+              className="bannerLearnMore"
+              target="_blank"
+              onClick={() => trackBannerInteraction('learn_more')}
+              rel="noreferrer"
+            >
+              {Sefaria._(learnMoreText) || Sefaria._('common.learn_more')}
+            </a>
+          )}
+          {!enableBackoffDismissal && (
+            <button className="siteWideBannerClose" onClick={closeBanner} aria-label="Close banner">
+              &times;
+            </button>
+          )}
+        </div>
       </div>
-      <div className="siteWideBannerButtonBox">
-        {actionButtons(trackBannerInteraction)}
-        {enableBackoffDismissal && (
-          <button
-            type="button"
-            className="button small siteWideBannerMaybeLater"
-            onClick={closeBanner}
-          >
-            <span>{Sefaria._("site_wide_banner.maybe_later")}</span>
-          </button>
-        )}
-      </div>
-      {learnMoreUrl && (
-        <a
-          href={learnMoreUrl}
-          className="bannerLearnMore"
-          target="_blank"
-          onClick={() => trackBannerInteraction("learn_more")}
-        >
-          {Sefaria._(learnMoreText) || Sefaria._("common.learn_more")}
-        </a>
-      )}
-      {!enableBackoffDismissal && (
-        <button
-          className="siteWideBannerClose"
-          onClick={closeBanner}
-          aria-label="Close banner"
-        >
-          &times;
-        </button>
-      )}
-    </div>
-  </div>);
+    )
+  );
 };
 
 SiteWideBanner.propTypes = {
@@ -276,7 +271,7 @@ SiteWideBanner.propTypes = {
   imgSrc: PropTypes.string,
 };
 
-const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset/confirm"];
+const CHATBOT_BANNER_EXCLUDED_PATHS = ['/login', '/register', '/password/reset/confirm'];
 
 // Keep authentication and password-recovery screens focused on the task at hand.
 const isChatbotBannerExcludedPath = (path, moduleUrl) => {
@@ -285,12 +280,12 @@ const isChatbotBannerExcludedPath = (path, moduleUrl) => {
     // moduleUrl can be false (getModuleURL falls back to apiHost, which is empty
     // during server-side rendering); only the pathname matters here, so any valid
     // base keeps URL parsing from throwing mid-render.
-    pathname = new URL(path, moduleUrl || "https://www.sefaria.org").pathname;
+    pathname = new URL(path, moduleUrl || 'https://www.sefaria.org').pathname;
   } catch (e) {
     return false;
   }
   return CHATBOT_BANNER_EXCLUDED_PATHS.some(
-    excludedPath => pathname === excludedPath || pathname.startsWith(`${excludedPath}/`)
+    (excludedPath) => pathname === excludedPath || pathname.startsWith(`${excludedPath}/`)
   );
 };
 

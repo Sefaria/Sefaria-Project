@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 Migrate category structure for Commentary2 texts
 """
+
 from sefaria.model import *
 
 indexes = IndexSet({"categories.0": "Commentary2"})

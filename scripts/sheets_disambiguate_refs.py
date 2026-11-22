@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
-
 # using the pre-calculated file, 'sheet_ref_disambiguated.csv', replaces refs with updated refs
 
-import unicodecsv
-import django
 from collections import defaultdict
+
+import django
+import unicodecsv
+
 django.setup()
 from sefaria.model import *
 from sefaria.system.database import db
@@ -51,8 +51,7 @@ for i, id in enumerate(ids):
                 mapping["used"] = True
                 break
 
-
-    db.sheets.update({'_id': sheet["_id"]}, sheet)
+    db.sheets.update({"_id": sheet["_id"]}, sheet)
 
 print("checking not used...")
 num_not_used = 0
@@ -63,4 +62,4 @@ for k, v in list(disambiguated_dict.items()):
                 num_not_used += 1
                 print("{} {} {}".format(k, k1, m["Old Ref"]))
 
-print("not used {}".format(num_not_used))
+print(f"not used {num_not_used}")

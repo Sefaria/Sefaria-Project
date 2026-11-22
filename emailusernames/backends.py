@@ -1,17 +1,16 @@
-from django.contrib.auth.models import User
 from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.models import User
 
 from emailusernames.utils import get_user
 
 
 class EmailAuthBackend(ModelBackend):
-
     """Allow users to log in with their email address"""
 
     def authenticate(self, request=None, email=None, password=None, **kwargs):
         # Some authenticators expect to authenticate by 'username'
         if email is None:
-            email = kwargs.get('username')
+            email = kwargs.get("username")
 
         try:
             user = get_user(email)

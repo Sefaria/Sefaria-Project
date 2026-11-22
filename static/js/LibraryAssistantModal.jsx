@@ -1,18 +1,13 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types";
-import Sefaria from "./sefaria/sefaria";
-import Modal from "./common/modal";
-import {
-  usePromoBackoffSession,
-  usePromoViewedEvent,
-  recordPromoMaybeLater,
-  trackPromoClick,
-} from "./SiteWideBanner";
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import Sefaria from './sefaria/sefaria';
+import Modal from './common/modal';
+import { usePromoBackoffSession, usePromoViewedEvent, recordPromoMaybeLater, trackPromoClick } from './SiteWideBanner';
 
 // Same campaign identity the Library Assistant stand-alone promo banner reported,
 // so analytics for the modal line up with the banner's history.
-const CAMPAIGN_ID = "LA Stand Alone Promo";
-const PROJECT = "Library Assistant";
+const CAMPAIGN_ID = 'LA Stand Alone Promo';
+const PROJECT = 'Library Assistant';
 const GTAG_PARAMS = { campaignID: CAMPAIGN_ID, project: PROJECT };
 
 // ReaderApp owns the modal; entry points deep in the tree (the Sources null page, the
@@ -20,16 +15,15 @@ const GTAG_PARAMS = { campaignID: CAMPAIGN_ID, project: PROJECT };
 const OPEN_LIBRARY_ASSISTANT_EVENT = 'sefaria:open-library-assistant';
 const openLibraryAssistant = () => document.dispatchEvent(new CustomEvent(OPEN_LIBRARY_ASSISTANT_EVENT));
 
-const getLibraryAssistantPromoCookieName = (isLoggedIn) => (
-  isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"
-);
+const getLibraryAssistantPromoCookieName = (isLoggedIn) =>
+  isLoggedIn ? 'chatbot_experiment_banner_dismissed' : 'signup_promo_banner_dismissed';
 
 // Route anon login/register through /enable-library-assistant so that, once they
 // authenticate, the assistant is turned on and they're returned here — it then
 // appears on reload with no extra "Join" click.
 const getLibraryAssistantLoginHref = (currentPath) => {
-  const enableDest = "/enable-library-assistant?next=" + encodeURIComponent(currentPath);
-  return "/login?next=" + encodeURIComponent(enableDest);
+  const enableDest = '/enable-library-assistant?next=' + encodeURIComponent(currentPath);
+  return '/login?next=' + encodeURIComponent(enableDest);
 };
 
 // Logged-in "Try It": turns the assistant on, then reloads so it appears. Shared by
@@ -39,11 +33,10 @@ const useLibraryAssistantJoin = () => {
   const handleJoin = async () => {
     setIsActionPending(true);
     try {
-      await Sefaria.editProfileAPI({settings: {library_assistant: true}})
-        .then(() => {
-          window.location.reload();
-          return new Promise(() => {}); // never resolves
-        });
+      await Sefaria.editProfileAPI({ settings: { library_assistant: true } }).then(() => {
+        window.location.reload();
+        return new Promise(() => {}); // never resolves
+      });
     } finally {
       setIsActionPending(false);
     }
@@ -61,20 +54,22 @@ const LibraryAssistantModal = ({ onClose, promoSessionLengthSeconds }) => {
   const isLoggedIn = !!Sefaria._uid;
   const cookieName = getLibraryAssistantPromoCookieName(isLoggedIn);
   const { promoSessionCounter, storageKeys } = usePromoBackoffSession({
-    cookieName, enableBackoffDismissal: true, promoSessionLengthSeconds,
+    cookieName,
+    enableBackoffDismissal: true,
+    promoSessionLengthSeconds,
   });
   usePromoViewedEvent(cookieName, GTAG_PARAMS);
   const track = (featureName) => trackPromoClick(GTAG_PARAMS, featureName);
 
   const handleMaybeLater = () => {
     recordPromoMaybeLater({ storageKeys, promoSessionCounter });
-    track("maybe_later");
+    track('maybe_later');
     onClose();
   };
 
   // ×, Escape and backdrop clicks: tracked, but no dismissal state is written.
   const handleClose = () => {
-    track("close");
+    track('close');
     onClose();
   };
 
@@ -85,44 +80,45 @@ const LibraryAssistantModal = ({ onClose, promoSessionLengthSeconds }) => {
           type="button"
           className="libraryAssistantModalClose"
           onClick={handleClose}
-          aria-label={Sefaria._("common.close")}
+          aria-label={Sefaria._('common.close')}
         >
           &times;
         </button>
         <img className="libraryAssistantModalIcon" src="/static/icons/ai-double-star.svg" alt="" aria-hidden="true" />
         <h2 id="libraryAssistantModalTitle" className="libraryAssistantModalTitle">
-          {Sefaria._("site_wide_banner.ask_the_library_assistant")}
+          {Sefaria._('site_wide_banner.ask_the_library_assistant')}
         </h2>
-        <p className="libraryAssistantModalText">
-          {Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
-        </p>
+        <p className="libraryAssistantModalText">{Sefaria._('site_wide_banner.discover_answers_to_your_questions')}</p>
         <div className="libraryAssistantModalButtons">
           {isLoggedIn ? (
             <button
               type="button"
               className="button libraryAssistantModalPrimary"
-              onClick={() => { track("join"); handleJoin(); }}
+              onClick={() => {
+                track('join');
+                handleJoin();
+              }}
               disabled={isActionPending}
             >
-              <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
+              <span>{isActionPending ? Sefaria._('common.loading') : Sefaria._('site_wide_banner.try_it')}</span>
             </button>
           ) : (
             <a
               className="button libraryAssistantModalPrimary logInToTry"
               href={getLibraryAssistantLoginHref(Sefaria.util.currentPath())}
+              data-signup-source="la_banner"
               // Handled in-app (ReaderApp.handleInAppLinkClick), so close the dialog
               // or it would stay open over the login page.
-              onClick={() => { track("login"); onClose(); }}
+              onClick={() => {
+                track('login');
+                onClose();
+              }}
             >
-              <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
+              <span>{Sefaria._('site_wide_banner.log_in_to_try')}</span>
             </a>
           )}
-          <button
-            type="button"
-            className="button libraryAssistantModalMaybeLater"
-            onClick={handleMaybeLater}
-          >
-            <span>{Sefaria._("site_wide_banner.maybe_later")}</span>
+          <button type="button" className="button libraryAssistantModalMaybeLater" onClick={handleMaybeLater}>
+            <span>{Sefaria._('site_wide_banner.maybe_later')}</span>
           </button>
         </div>
       </div>

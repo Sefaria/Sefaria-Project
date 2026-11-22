@@ -10,19 +10,32 @@ import { authError, postJson } from './utils.js';
 // LoginView gets, so this view's banner renders the same "Continue with Google/Apple" links
 // and needs the same provider wiring to make them live (see ErrorBanner.jsx).
 const ForgotView = ({
-  emailValue, setField, csrf, onSuccess, onBack,
-  registerGoogleTarget, triggerApple, setActiveErrorHandler,
+  emailValue,
+  setField,
+  csrf,
+  onSuccess,
+  onBack,
+  registerGoogleTarget,
+  triggerApple,
+  setActiveErrorHandler,
 }) => {
   const onSubmit = async () => {
     const { ok, data } = await postJson('/api/auth/password/reset', { email: emailValue }, csrf);
-    if (ok) { onSuccess(); return; }
+    if (ok) {
+      onSuccess();
+      return;
+    }
     return { error: authError(data, 'auth.generic_error') };
   };
 
   return (
-    <FormView onBack={onBack} heading={<InterfaceText>auth.forgot_password</InterfaceText>}
-      formId="forgot-form" onSubmit={onSubmit}
-      registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+    <FormView
+      onBack={onBack}
+      heading={<InterfaceText>auth.forgot_password</InterfaceText>}
+      formId="forgot-form"
+      onSubmit={onSubmit}
+      registerGoogleTarget={registerGoogleTarget}
+      triggerApple={triggerApple}
       setActiveErrorHandler={setActiveErrorHandler}
     >
       {({ submitting }) => (

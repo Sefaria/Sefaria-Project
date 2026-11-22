@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Embed Library to pgvector
 
@@ -36,27 +35,34 @@ from datetime import datetime
 from typing import Optional
 
 import django
+
 django.setup()
 
+import tqdm as _tqdm_module
+import tqdm.auto as _tqdm_auto_module
 from django.conf import settings as django_settings
+from tqdm import tqdm
+
 from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.embedder import GeminiEmbedder
 from semantic_search.models import (
-    ChunkMetadata, Vector, SectionTextHash, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID,
+    DEFAULT_CHUNKING_SCHEME_ID,
+    DEFAULT_EMBEDDING_MODEL_ID,
+    ChunkMetadata,
+    SectionTextHash,
+    Vector,
 )
-
-import tqdm as _tqdm_module
-import tqdm.auto as _tqdm_auto_module
-from tqdm import tqdm
 
 # Patot's internal tqdm bars hardcode disable=False and ignore TQDM_DISABLE.
 # Patch the class before patot is imported so all tqdm instances respect the env var.
 if os.environ.get("TQDM_DISABLE"):
     _orig_tqdm_init = _tqdm_module.tqdm.__init__
+
     def _patched_tqdm_init(self, *args, **kwargs):
         kwargs["disable"] = True
         _orig_tqdm_init(self, *args, **kwargs)
+
     _tqdm_module.tqdm.__init__ = _patched_tqdm_init
     _tqdm_auto_module.tqdm.__init__ = _patched_tqdm_init
 
@@ -66,8 +72,8 @@ if os.environ.get("TQDM_DISABLE"):
 # the runtime case.
 try:
     from patot import ChunkerConfig, PatotChunker
-    from patot.records import SegmentRecord
     from patot.analytics import ChunkingRuntimeAnalytics
+    from patot.records import SegmentRecord
 except ModuleNotFoundError:
     ChunkerConfig = PatotChunker = SegmentRecord = ChunkingRuntimeAnalytics = None
 
@@ -100,13 +106,15 @@ class EmbeddingResult:
 
     def record_failure(self, index_title, lang, vtitle, section_ref, error):
         with self._lock:
-            self.failures.append({
-                "index_title": index_title,
-                "language": lang,
-                "version_title": vtitle,
-                "ref": section_ref,
-                "error": str(error),
-            })
+            self.failures.append(
+                {
+                    "index_title": index_title,
+                    "language": lang,
+                    "version_title": vtitle,
+                    "ref": section_ref,
+                    "error": str(error),
+                }
+            )
         logger.error(
             f"Failed section - index: {index_title}, lang: {lang}, version: {vtitle}, "
             f"ref: {section_ref}, error: {error}"
@@ -147,35 +155,43 @@ class EmbeddingResult:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Chunk and embed the Sefaria library into pgvector.")
     parser.add_argument(
-        "--limit-indexes", type=int, default=None,
+        "--limit-indexes",
+        type=int,
+        default=None,
         help="Process only the first N indexes (for smoke testing).",
     )
     parser.add_argument(
-        "--threads", type=int,
+        "--threads",
+        type=int,
         default=int(os.environ.get("EMBED_THREADS", 10)),
         help="Number of parallel threads for index processing (defaults to EMBED_THREADS env var, or 10).",
     )
     parser.add_argument(
-        "--max-versions", type=int, default=None,
+        "--max-versions",
+        type=int,
+        default=None,
         help="Skip indexes with more than N versions (debug flag to avoid high-version bottlenecks).",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
     parser.add_argument(
-        "--mode", choices=["full", "metadata-only"], default="full",
+        "--mode",
+        choices=["full", "metadata-only"],
+        default="full",
         help="'full' (default): chunk+embed via patot/Gemini, gated by resume-skip and "
-             "text-hash change detection (today's behavior). 'metadata-only': skip "
-             "chunking/embedding entirely (no patot, no Gemini, no GEMINI_API_KEY "
-             "required) and instead refresh the metadata-derived fields on chunk_metadata "
-             "rows that already exist in Postgres, for every index/version that has any - "
-             "no hash pre-pass, no resume-skip; every existing chunk is refreshed every run.",
+        "text-hash change detection (today's behavior). 'metadata-only': skip "
+        "chunking/embedding entirely (no patot, no Gemini, no GEMINI_API_KEY "
+        "required) and instead refresh the metadata-derived fields on chunk_metadata "
+        "rows that already exist in Postgres, for every index/version that has any - "
+        "no hash pre-pass, no resume-skip; every existing chunk is refreshed every run.",
     )
     parser.add_argument(
-        "--buffer-size", type=int,
+        "--buffer-size",
+        type=int,
         default=int(os.environ.get("EMBED_BUFFER_SIZE", 500)),
         help="Rows accumulated in memory before a single bulk upsert flush (defaults to "
-             "EMBED_BUFFER_SIZE env var, or 500). In --mode=full this counts "
-             "ChunkAndVector pairs (chunk_metadata + vector rows flushed together); in "
-             "--mode=metadata-only it counts ChunkMetadata rows alone.",
+        "EMBED_BUFFER_SIZE env var, or 500). In --mode=full this counts "
+        "ChunkAndVector pairs (chunk_metadata + vector rows flushed together); in "
+        "--mode=metadata-only it counts ChunkMetadata rows alone.",
     )
     return parser.parse_args()
 
@@ -186,7 +202,7 @@ def is_passage_based(index) -> bool:
 
 def get_passages_for_index(index) -> list:
     prefix = re.escape(index.title)
-    return list(PassageSet({"full_ref": {"$regex": fr"^{prefix} \d"}}))
+    return list(PassageSet({"full_ref": {"$regex": rf"^{prefix} \d"}}))
 
 
 def collect_segment_records_by_section(version) -> dict:
@@ -312,6 +328,7 @@ def chunk_ref_from_segments(source_segment_refs: list):
     Footnote pseudo-refs (containing '::fn:') are not parseable by Sefaria's Ref
     class, so we strip them — using only the base segment part of the ref string.
     """
+
     def to_base_ref(r: str) -> str:
         return r.split("::fn:")[0] if "::fn:" in r else r
 
@@ -338,10 +355,11 @@ class ChunkAndVector:
     the unit this chunk came from - the flush callback only writes it to `section_text_hash`
     once this chunk (and its sibling vector) have actually been upserted, so a "text unchanged"
     marker is never persisted ahead of - or independent from - the data it describes."""
+
     chunk: ChunkMetadata
     text: str
     embedding: list
-    section_hash_update: Optional[tuple[str, str, str, str]] = None
+    section_hash_update: tuple[str, str, str, str] | None = None
 
 
 class UpsertBuffer:
@@ -377,8 +395,9 @@ class UpsertBuffer:
             self._flush_fn(to_flush)
 
 
-def _flush_chunk_and_vector_batch(batch: list[ChunkAndVector], chunk_store: ChunkMetadata,
-                                  vector_store: Vector, section_hash_store: SectionTextHash) -> None:
+def _flush_chunk_and_vector_batch(
+    batch: list[ChunkAndVector], chunk_store: ChunkMetadata, vector_store: Vector, section_hash_store: SectionTextHash
+) -> None:
     """Flush callback for `full`-mode's UpsertBuffer: chunk metadata first (surrogate `id`
     populated in-place via RETURNING on bulk_create/update_conflicts), then vectors, which
     need that id for their chunk_metadata_id FK. section_text_hash hashes for this batch's
@@ -387,25 +406,42 @@ def _flush_chunk_and_vector_batch(batch: list[ChunkAndVector], chunk_store: Chun
     upsert failed never gets marked "text unchanged" (which would otherwise cause it to be
     silently skipped forever on every future run)."""
     chunk_store.upsert([b.chunk for b in batch])
-    vector_store.upsert([
-        Vector(chunk_metadata=b.chunk, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
-               text=b.text, embedding=b.embedding)
-        for b in batch
-    ])
+    vector_store.upsert(
+        [
+            Vector(
+                chunk_metadata=b.chunk,
+                embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
+                text=b.text,
+                embedding=b.embedding,
+            )
+            for b in batch
+        ]
+    )
     hash_updates = {
         (section_ref, vtitle, lang): section_hash
-        for b in batch if b.section_hash_update is not None
+        for b in batch
+        if b.section_hash_update is not None
         for section_ref, vtitle, lang, section_hash in [b.section_hash_update]
     }
     if hash_updates:
-        section_hash_store.upsert([
-            SectionTextHash(section_ref=ref, version_title=vtitle, language=lang, section_text_hash=h)
-            for (ref, vtitle, lang), h in hash_updates.items()
-        ])
+        section_hash_store.upsert(
+            [
+                SectionTextHash(section_ref=ref, version_title=vtitle, language=lang, section_text_hash=h)
+                for (ref, vtitle, lang), h in hash_updates.items()
+            ]
+        )
 
 
-def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
-                     result, index_context: dict, version_context: dict) -> list[ChunkAndVector]:
+def build_chunk_data(
+    unit_ref,
+    lang: str,
+    vtitle: str,
+    index_title: str,
+    embedder: GeminiEmbedder,
+    result,
+    index_context: dict,
+    version_context: dict,
+) -> list[ChunkAndVector]:
     unit_normal = unit_ref.normal()
 
     # Chunks only share the same resulting ref when a single oversized segment was hard-split
@@ -469,10 +505,10 @@ def hash_section_text(section_ref: str, text: str) -> str:
     change alone - e.g. a section renumbering that leaves the text untouched - still produces
     a different hash and is treated as changed, rather than depending on key-lookup misses to
     catch it."""
-    return hashlib.sha256(f"{section_ref}\n{text}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{section_ref}\n{text}".encode()).hexdigest()
 
 
-def resolve_section_ref(tref: str, known_section_refs: set) -> Optional[str]:
+def resolve_section_ref(tref: str, known_section_refs: set) -> str | None:
     """
     Which of `known_section_refs` does `tref` (a raw segment ref string straight from
     Version.walk_thru_contents) fall under? A segment ref "is a superset of" its section ref,
@@ -483,9 +519,9 @@ def resolve_section_ref(tref: str, known_section_refs: set) -> Optional[str]:
     """
     candidate = tref
     while candidate not in known_section_refs:
-        if ':' not in candidate:
+        if ":" not in candidate:
             return None
-        candidate = candidate.rsplit(':', 1)[0]
+        candidate = candidate.rsplit(":", 1)[0]
     return candidate
 
 
@@ -533,9 +569,7 @@ def compute_current_unit_hashes(indexes, known_section_refs: set) -> dict:
             if passages:
                 segment_text_by_ref = collect_segment_text_by_ref(version)
                 for passage in passages:
-                    text = "\n".join(
-                        segment_text_by_ref[r] for r in passage.ref_list if r in segment_text_by_ref
-                    )
+                    text = "\n".join(segment_text_by_ref[r] for r in passage.ref_list if r in segment_text_by_ref)
                     if text:
                         unit_normal = Ref(passage.full_ref).normal()
                         hashes[(unit_normal, vtitle, lang)] = hash_section_text(unit_normal, text)
@@ -545,9 +579,17 @@ def compute_current_unit_hashes(indexes, known_section_refs: set) -> dict:
     return hashes
 
 
-def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   chunk_store: ChunkMetadata, buffer: UpsertBuffer, changed_units: set,
-                   current_hashes: dict, version_pbar=None):
+def _process_index(
+    index,
+    chunker,
+    result_tracker: EmbeddingResult,
+    get_units_for_version,
+    chunk_store: ChunkMetadata,
+    buffer: UpsertBuffer,
+    changed_units: set,
+    current_hashes: dict,
+    version_pbar=None,
+):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
@@ -590,8 +632,16 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                     if not chunk_result.chunks:
                         result_tracker.increment("sections_skipped_empty")
                     else:
-                        built = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
-                                                 chunk_result, index_context, version_context)
+                        built = build_chunk_data(
+                            unit_ref,
+                            lang,
+                            vtitle,
+                            index.title,
+                            thread_local.embedder,
+                            chunk_result,
+                            index_context,
+                            version_context,
+                        )
                         section_hash = current_hashes.get((unit_normal, vtitle, lang))
                         if section_hash is not None:
                             for b in built:
@@ -608,8 +658,16 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
             version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
-def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: ChunkMetadata,
-                  buffer: UpsertBuffer, changed_units: set, current_hashes: dict, version_pbar=None):
+def process_index(
+    index,
+    chunker,
+    result_tracker: EmbeddingResult,
+    chunk_store: ChunkMetadata,
+    buffer: UpsertBuffer,
+    changed_units: set,
+    current_hashes: dict,
+    version_pbar=None,
+):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
         if not passages:
@@ -622,15 +680,26 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
                 return [
                     (
                         Ref(passage.full_ref),
-                        [SegmentRecord(tref=r, text=segment_text_by_ref[r], segment_index=i)
-                         for i, r in enumerate(passage.ref_list) if r in segment_text_by_ref],
+                        [
+                            SegmentRecord(tref=r, text=segment_text_by_ref[r], segment_index=i)
+                            for i, r in enumerate(passage.ref_list)
+                            if r in segment_text_by_ref
+                        ],
                     )
                     for passage in passages
                 ]
 
-            _process_index(index, chunker, result_tracker, get_units_for_version,
-                           chunk_store=chunk_store, buffer=buffer, changed_units=changed_units,
-                           current_hashes=current_hashes, version_pbar=version_pbar)
+            _process_index(
+                index,
+                chunker,
+                result_tracker,
+                get_units_for_version,
+                chunk_store=chunk_store,
+                buffer=buffer,
+                changed_units=changed_units,
+                current_hashes=current_hashes,
+                version_pbar=version_pbar,
+            )
             return
 
     section_refs = index.all_section_refs()
@@ -642,13 +711,22 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
         segment_records_by_section = collect_segment_records_by_section(version)
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
-    _process_index(index, chunker, result_tracker, get_units_for_version,
-                   chunk_store=chunk_store, buffer=buffer, changed_units=changed_units,
-                   current_hashes=current_hashes, version_pbar=version_pbar)
+    _process_index(
+        index,
+        chunker,
+        result_tracker,
+        get_units_for_version,
+        chunk_store=chunk_store,
+        buffer=buffer,
+        changed_units=changed_units,
+        current_hashes=current_hashes,
+        version_pbar=version_pbar,
+    )
 
 
-def build_refreshed_chunk_metadata(existing_row: ChunkMetadata, index_context: dict,
-                                   version_context: dict) -> ChunkMetadata:
+def build_refreshed_chunk_metadata(
+    existing_row: ChunkMetadata, index_context: dict, version_context: dict
+) -> ChunkMetadata:
     """Brand-new ChunkMetadata instance (id left unset - bulk_create/update_conflicts only
     excludes the pk column from the INSERT when pk is unset on every passed-in instance;
     reusing an already-persisted instance here would make Django include an explicit id in
@@ -687,8 +765,9 @@ def build_refreshed_chunk_metadata(existing_row: ChunkMetadata, index_context: d
     )
 
 
-def process_index_metadata_only(index, result_tracker: EmbeddingResult, chunk_store: ChunkMetadata,
-                                buffer: UpsertBuffer, version_pbar=None) -> None:
+def process_index_metadata_only(
+    index, result_tracker: EmbeddingResult, chunk_store: ChunkMetadata, buffer: UpsertBuffer, version_pbar=None
+) -> None:
     """`metadata-only`-mode per-index loop: for every Version of `index`, fetch existing
     chunk_metadata rows for (index_title, version_title, language), recompute their
     metadata-derived fields, and feed refreshed rows into `buffer`. No chunking/embedding,
@@ -766,13 +845,14 @@ def main():
 
     if args.max_versions is not None:
         before = len(all_indexes)
-        all_indexes = [idx for idx in all_indexes
-                       if VersionSet({"title": idx.title}).count() <= args.max_versions]
-        logger.info(f"--max-versions={args.max_versions}: excluded {before - len(all_indexes)} index(es), "
-                    f"{len(all_indexes)} remaining")
+        all_indexes = [idx for idx in all_indexes if VersionSet({"title": idx.title}).count() <= args.max_versions]
+        logger.info(
+            f"--max-versions={args.max_versions}: excluded {before - len(all_indexes)} index(es), "
+            f"{len(all_indexes)} remaining"
+        )
 
     if args.limit_indexes is not None:
-        all_indexes = all_indexes[:args.limit_indexes]
+        all_indexes = all_indexes[: args.limit_indexes]
         logger.info(f"--limit-indexes set: processing only {len(all_indexes)} index(es)")
 
     changed_units = set()
@@ -786,8 +866,10 @@ def main():
         known_section_refs = collect_all_section_refs(all_indexes)
         current_hashes = compute_current_unit_hashes(all_indexes, known_section_refs)
         changed_units = {key for key, h in current_hashes.items() if cached_hashes.get(key) != h}
-        logger.info(f"Text-hash pre-pass: {len(current_hashes)} units hashed, "
-                    f"{len(changed_units)} changed or new since last run")
+        logger.info(
+            f"Text-hash pre-pass: {len(current_hashes)} units hashed, "
+            f"{len(changed_units)} changed or new since last run"
+        )
         # section_text_hash is NOT written here. Writing every changed unit's hash up front,
         # before that unit has actually been re-chunked/re-embedded, would mark a unit "text
         # unchanged" even if its embedding attempt later fails - silently skipping it forever on
@@ -796,9 +878,10 @@ def main():
         # unit's chunk/vector rows have actually been upserted.
 
     if full_mode:
-        buffer = UpsertBuffer(args.buffer_size,
-                              lambda batch: _flush_chunk_and_vector_batch(batch, chunk_store, vector_store,
-                                                                          section_hash_store))
+        buffer = UpsertBuffer(
+            args.buffer_size,
+            lambda batch: _flush_chunk_and_vector_batch(batch, chunk_store, vector_store, section_hash_store),
+        )
     else:
         buffer = UpsertBuffer(args.buffer_size, chunk_store.upsert)
 
@@ -806,12 +889,21 @@ def main():
     logger.info(f"Total versions: {total_versions}")
 
     with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr, disable=None) as version_pbar:
+
         def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:
                 if full_mode:
-                    process_index(index, thread_local.chunker, result, chunk_store, buffer,
-                                  changed_units, current_hashes, version_pbar)
+                    process_index(
+                        index,
+                        thread_local.chunker,
+                        result,
+                        chunk_store,
+                        buffer,
+                        changed_units,
+                        current_hashes,
+                        version_pbar,
+                    )
                 else:
                     process_index_metadata_only(index, result, chunk_store, buffer, version_pbar)
             except Exception as e:

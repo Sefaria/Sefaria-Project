@@ -8,37 +8,60 @@ import Button from '../common/Button.jsx';
 import { authError, safeNext, postJson } from './utils.js';
 
 const LoginView = ({
-  switchFlow, fields, setField, onBack, onForgotClick, next, csrf,
-  registerGoogleTarget, triggerApple, setActiveErrorHandler,
+  switchFlow,
+  fields,
+  setField,
+  onBack,
+  onForgotClick,
+  startProcess,
+  endProcess,
+  next,
+  csrf,
+  registerGoogleTarget,
+  triggerApple,
+  setActiveErrorHandler,
 }) => {
   const onSubmit = async () => {
+    startProcess();
     const { ok, data } = await postJson('/api/auth/login', { email: fields.email, password: fields.password }, csrf);
-    if (ok) { window.location.href = safeNext(next); return; }
-    return { error: authError(data, 'auth.invalid_credentials') };
+    if (ok) {
+      endProcess('success', null, 'existing_user_login');
+      window.location.href = safeNext(next);
+      return;
+    }
+    const error = authError(data, 'auth.invalid_credentials');
+    endProcess('failure', error.code || 'invalid_credentials');
+    return { error };
   };
 
   return (
-    <FormView cardClass="sefaria-auth-card--login-email" onBack={onBack}
+    <FormView
+      cardClass="sefaria-auth-card--login-email"
+      onBack={onBack}
       heading={<InterfaceText>header.log_in</InterfaceText>}
-      sub={(
+      sub={
         <>
-          <InterfaceText>auth.dont_have_an_account</InterfaceText>
-          {' '}
+          <InterfaceText>auth.dont_have_an_account</InterfaceText>{' '}
           <a href="/register" data-signup-source="login_crosslink" onClick={switchFlow('register')}>
             <InterfaceText>header.sign_up</InterfaceText>
           </a>
         </>
-      )}
-      formId="login-form" onSubmit={onSubmit}
-      registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+      }
+      formId="login-form"
+      onSubmit={onSubmit}
+      registerGoogleTarget={registerGoogleTarget}
+      triggerApple={triggerApple}
       setActiveErrorHandler={setActiveErrorHandler}
     >
       {({ submitting }) => (
         <>
           <div className="sefaria-auth-fields">
             <EmailInput value={fields.email} setField={setField} />
-            <PasswordInput value={fields.password} onChange={setField('password')}
-                   trailingLink={{ text: 'auth.forgot_password', onClick: onForgotClick }} />
+            <PasswordInput
+              value={fields.password}
+              onChange={setField('password')}
+              trailingLink={{ text: 'auth.forgot_password', onClick: onForgotClick }}
+            />
           </div>
           <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
             <InterfaceText>header.log_in</InterfaceText>
@@ -58,6 +81,8 @@ LoginView.propTypes = {
   setField: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
   onForgotClick: PropTypes.func.isRequired,
+  startProcess: PropTypes.func.isRequired,
+  endProcess: PropTypes.func.isRequired,
   next: PropTypes.string,
   csrf: PropTypes.string,
   registerGoogleTarget: PropTypes.func,

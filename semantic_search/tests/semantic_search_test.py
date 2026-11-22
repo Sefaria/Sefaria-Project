@@ -5,11 +5,12 @@ All tests run without a live pgvector connection and without a Gemini API key.
 ORM-touching code is mocked at the SemanticTextChunk.objects / ChunkMetadata.objects /
 Vector.objects boundary.
 """
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from django.test import override_settings
 import pytest
+from django.test import override_settings
 
 from semantic_search.embedder import embed_query, l2_normalize_vector
 from semantic_search.linked_refs import (
@@ -18,22 +19,22 @@ from semantic_search.linked_refs import (
     get_linked_ref_enhancements,
     get_mean_std_linked_ref_enhancements,
 )
-from semantic_search.router import SemanticSearchRouter
-from semantic_search.search import semantic_search, semantic_search_by_embedding
 from semantic_search.models import (
+    DEFAULT_CHUNKING_SCHEME_ID,
+    DEFAULT_EMBEDDING_MODEL_ID,
     ChunkMetadata,
     SemanticTextChunk,
     Vector,
-    DEFAULT_CHUNKING_SCHEME_ID,
-    DEFAULT_EMBEDDING_MODEL_ID,
 )
+from semantic_search.router import SemanticSearchRouter
+from semantic_search.search import semantic_search, semantic_search_by_embedding
 
 
 def make_chunk(**overrides):
-    defaults = dict(
-        ref="Genesis 1:1",
-        chunked_from_ref="Genesis 1",
-    )
+    defaults = {
+        "ref": "Genesis 1:1",
+        "chunked_from_ref": "Genesis 1",
+    }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)
 
@@ -45,6 +46,7 @@ def mapping_normalizer(mapping):
 # ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
+
 
 class TestSemanticSearchRouter:
     def _model(self, app_label):
@@ -75,14 +77,12 @@ class TestSemanticSearchRouter:
 # search_by_embedding filter allowlist
 # ---------------------------------------------------------------------------
 
+
 class TestSearchByEmbeddingFilters:
     def _run(self, filters):
         mock_objects = MagicMock()
         (
-            mock_objects.filter.return_value
-            .select_related.return_value
-            .order_by.return_value
-            .__getitem__.return_value
+            mock_objects.filter.return_value.select_related.return_value.order_by.return_value.__getitem__.return_value
         ) = []
         with patch(
             "semantic_search.models.Vector.objects",
@@ -121,10 +121,7 @@ class TestSearchByEmbeddingFilters:
     def test_defaults_to_default_embedding_model_id(self):
         mock_objects = MagicMock()
         (
-            mock_objects.filter.return_value
-            .select_related.return_value
-            .order_by.return_value
-            .__getitem__.return_value
+            mock_objects.filter.return_value.select_related.return_value.order_by.return_value.__getitem__.return_value
         ) = []
         with patch("semantic_search.models.Vector.objects", mock_objects):
             Vector().search_by_embedding([0.0] * 1536)
@@ -160,6 +157,7 @@ class TestLegacySearchByEmbeddingFilters:
 # upsert
 # ---------------------------------------------------------------------------
 
+
 class TestChunkMetadataUpsert:
     def test_empty_list_skips_bulk_create(self):
         with patch("semantic_search.models.ChunkMetadata") as mock_cls:
@@ -173,7 +171,11 @@ class TestChunkMetadataUpsert:
             _, kwargs = mock_cls.objects.bulk_create.call_args
             assert kwargs["update_conflicts"] is True
             assert kwargs["unique_fields"] == [
-                "ref", "version_title", "language", "chunk_ordinal", "chunking_scheme_id",
+                "ref",
+                "version_title",
+                "language",
+                "chunk_ordinal",
+                "chunking_scheme_id",
             ]
 
     def test_update_fields_excludes_unique_fields_and_created_at(self):
@@ -222,11 +224,14 @@ class TestVectorUpsert:
 # get_indexed_unit_refs
 # ---------------------------------------------------------------------------
 
+
 class TestGetIndexedUnitRefs:
     def test_returns_a_set(self):
         mock_objects = MagicMock()
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = [
-            "Genesis 1", "Genesis 1", "Genesis 2"
+            "Genesis 1",
+            "Genesis 1",
+            "Genesis 2",
         ]
         with patch("semantic_search.models.ChunkMetadata.objects", mock_objects):
             result = ChunkMetadata().get_indexed_unit_refs("Genesis", "en", "SCT")
@@ -258,6 +263,7 @@ class TestGetIndexedUnitRefs:
 # bulk_delete
 # ---------------------------------------------------------------------------
 
+
 class TestBulkDelete:
     def test_filters_by_ids(self):
         mock_objects = MagicMock()
@@ -276,6 +282,7 @@ class TestBulkDelete:
 # ---------------------------------------------------------------------------
 # linked ref enhancement
 # ---------------------------------------------------------------------------
+
 
 class TestLinkedRefEnhancement:
     def test_dictionary_ref_detection_matches_dictionary_node_types(self):
@@ -300,10 +307,12 @@ class TestLinkedRefEnhancement:
         )
 
     def test_collects_full_count_distribution(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Ref A", "Ref B"],
-            "Genesis 1:2": ["Ref B", "Ref C"],
-        }.get)
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Ref A", "Ref B"],
+                "Genesis 1:2": ["Ref B", "Ref C"],
+            }.get
+        )
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
@@ -315,10 +324,12 @@ class TestLinkedRefEnhancement:
         }
 
     def test_counts_direct_linked_refs_and_applies_threshold(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Ref A", "Ref B"],
-            "Genesis 1:2": ["Ref B", "Ref C"],
-        }.get)
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Ref A", "Ref B"],
+                "Genesis 1:2": ["Ref B", "Ref C"],
+            }.get
+        )
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
@@ -334,10 +345,12 @@ class TestLinkedRefEnhancement:
 
     def test_normalizes_and_dedupes_source_refs_before_retrieving_links(self):
         linked_refs_for = MagicMock(return_value=["Ref A"])
-        normalizer = mapping_normalizer({
-            "Rashi on Deut. 28:6:1": "Rashi on Deuteronomy 28:6:1",
-            "Rashi on Deuteronomy 28:6:1": "Rashi on Deuteronomy 28:6:1",
-        })
+        normalizer = mapping_normalizer(
+            {
+                "Rashi on Deut. 28:6:1": "Rashi on Deuteronomy 28:6:1",
+                "Rashi on Deuteronomy 28:6:1": "Rashi on Deuteronomy 28:6:1",
+            }
+        )
         chunks = [
             make_chunk(ref="Rashi on Deut. 28:6:1"),
             make_chunk(ref="Rashi on Deuteronomy 28:6:1"),
@@ -353,14 +366,18 @@ class TestLinkedRefEnhancement:
         assert result == {"Ref A": 1}
 
     def test_normalizes_linked_refs_before_counting(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Deut. 28:6"],
-            "Genesis 1:2": ["Deuteronomy 28:6"],
-        }.get)
-        normalizer = mapping_normalizer({
-            "Deut. 28:6": "Deuteronomy 28:6",
-            "Deuteronomy 28:6": "Deuteronomy 28:6",
-        })
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Deut. 28:6"],
+                "Genesis 1:2": ["Deuteronomy 28:6"],
+            }.get
+        )
+        normalizer = mapping_normalizer(
+            {
+                "Deut. 28:6": "Deuteronomy 28:6",
+                "Deuteronomy 28:6": "Deuteronomy 28:6",
+            }
+        )
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
@@ -375,22 +392,21 @@ class TestLinkedRefEnhancement:
         assert result == {"Deuteronomy 28:6": 2}
 
     def test_mean_2std_threshold_returns_statistical_outliers(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Ref A", "Ref Outlier"],
-            "Genesis 1:2": ["Ref B", "Ref Outlier"],
-            "Genesis 1:3": ["Ref C", "Ref Outlier"],
-            "Genesis 1:4": ["Ref D", "Ref Outlier"],
-            "Genesis 1:5": ["Ref E", "Ref Outlier"],
-            "Genesis 1:6": ["Ref F", "Ref Outlier"],
-            "Genesis 1:7": ["Ref G", "Ref Outlier"],
-            "Genesis 1:8": ["Ref H", "Ref Outlier"],
-            "Genesis 1:9": ["Ref I", "Ref Outlier"],
-            "Genesis 1:10": ["Ref J", "Ref Outlier"],
-        }.get)
-        chunks = [
-            make_chunk(ref=f"Genesis 1:{i}", chunked_from_ref="Genesis 1")
-            for i in range(1, 11)
-        ]
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Ref A", "Ref Outlier"],
+                "Genesis 1:2": ["Ref B", "Ref Outlier"],
+                "Genesis 1:3": ["Ref C", "Ref Outlier"],
+                "Genesis 1:4": ["Ref D", "Ref Outlier"],
+                "Genesis 1:5": ["Ref E", "Ref Outlier"],
+                "Genesis 1:6": ["Ref F", "Ref Outlier"],
+                "Genesis 1:7": ["Ref G", "Ref Outlier"],
+                "Genesis 1:8": ["Ref H", "Ref Outlier"],
+                "Genesis 1:9": ["Ref I", "Ref Outlier"],
+                "Genesis 1:10": ["Ref J", "Ref Outlier"],
+            }.get
+        )
+        chunks = [make_chunk(ref=f"Genesis 1:{i}", chunked_from_ref="Genesis 1") for i in range(1, 11)]
 
         result = get_mean_std_linked_ref_enhancements(chunks, linked_refs_for_func=linked_refs_for)
 
@@ -400,10 +416,12 @@ class TestLinkedRefEnhancement:
         assert result.count_threshold > result.mean_count
 
     def test_mean_std_threshold_uses_min_count_floor_when_counts_have_no_variance(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Ref A"],
-            "Genesis 1:2": ["Ref B"],
-        }.get)
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Ref A"],
+                "Genesis 1:2": ["Ref B"],
+            }.get
+        )
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
@@ -418,15 +436,14 @@ class TestLinkedRefEnhancement:
         assert result.min_count == 3
 
     def test_mean_std_threshold_accepts_std_multiplier(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Ref A", "Ref SemiOutlier"],
-            "Genesis 1:2": ["Ref B", "Ref SemiOutlier"],
-            "Genesis 1:3": ["Ref C", "Ref SemiOutlier"],
-        }.get)
-        chunks = [
-            make_chunk(ref=f"Genesis 1:{i}", chunked_from_ref="Genesis 1")
-            for i in range(1, 4)
-        ]
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Ref A", "Ref SemiOutlier"],
+                "Genesis 1:2": ["Ref B", "Ref SemiOutlier"],
+                "Genesis 1:3": ["Ref C", "Ref SemiOutlier"],
+            }.get
+        )
+        chunks = [make_chunk(ref=f"Genesis 1:{i}", chunked_from_ref="Genesis 1") for i in range(1, 4)]
 
         stricter = get_mean_std_linked_ref_enhancements(
             chunks,
@@ -443,10 +460,12 @@ class TestLinkedRefEnhancement:
         assert looser.appended_refs == ["Ref SemiOutlier"]
 
     def test_mean_std_threshold_allows_min_count_override(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Ref A"],
-            "Genesis 1:2": ["Ref B"],
-        }.get)
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Ref A"],
+                "Genesis 1:2": ["Ref B"],
+            }.get
+        )
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
@@ -462,10 +481,12 @@ class TestLinkedRefEnhancement:
         assert result.count_threshold == 1
 
     def test_excludes_original_result_refs(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Genesis 1:1", "Genesis 1", "Ref B"],
-            "Genesis 1:2": ["Ref B"],
-        }.get)
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Genesis 1:1", "Genesis 1", "Ref B"],
+                "Genesis 1:2": ["Ref B"],
+            }.get
+        )
         chunks = [
             make_chunk(ref="Genesis 1:1", chunked_from_ref="Genesis 1"),
             make_chunk(ref="Genesis 1:2"),
@@ -479,11 +500,13 @@ class TestLinkedRefEnhancement:
         assert result.appended_refs == ["Ref B"]
 
     def test_depth_two_fetches_and_counts_next_hop_links_from_source(self):
-        linked_refs_for = MagicMock(side_effect= {
-            "Genesis 1:1": ["Ref B", "Ref D"],
-            "Ref B": ["Ref D", "Ref E"],
-            "Ref D": [],
-        }.get)
+        linked_refs_for = MagicMock(
+            side_effect={
+                "Genesis 1:1": ["Ref B", "Ref D"],
+                "Ref B": ["Ref D", "Ref E"],
+                "Ref D": [],
+            }.get
+        )
         chunks = [
             make_chunk(ref="Genesis 1:1"),
         ]
@@ -510,6 +533,7 @@ class TestLinkedRefEnhancement:
 # l2_normalize_vector
 # ---------------------------------------------------------------------------
 
+
 class TestL2NormalizeVector:
     def test_unit_vector_unchanged(self):
         v = [1.0, 0.0, 0.0]
@@ -530,6 +554,7 @@ class TestL2NormalizeVector:
 # embed_query
 # ---------------------------------------------------------------------------
 
+
 class TestEmbedQuery:
     @patch("semantic_search.embedder.l2_normalize_vector")
     @patch("semantic_search.embedder.GeminiEmbedder")
@@ -537,9 +562,7 @@ class TestEmbedQuery:
         mock_embedder_cls.return_value.embed_text.return_value = [0.1] * 1536
         mock_norm.return_value = [0.2] * 1536
         embed_query("love thy neighbor", api_key="test-key")
-        mock_embedder_cls.return_value.embed_text.assert_called_once_with(
-            "love thy neighbor", "RETRIEVAL_QUERY"
-        )
+        mock_embedder_cls.return_value.embed_text.assert_called_once_with("love thy neighbor", "RETRIEVAL_QUERY")
 
     @patch("semantic_search.embedder.l2_normalize_vector")
     @patch("semantic_search.embedder.GeminiEmbedder")
@@ -565,24 +588,23 @@ class TestEmbedQuery:
 # semantic_search helper
 # ---------------------------------------------------------------------------
 
+
 class TestSemanticSearch:
-    @override_settings(GEMINI_API_KEY="test-key")
+    @override_settings(GEMINI_API_KEY="test-key", SEMANTIC_SEARCH_TABLE_VERSION="legacy")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_calls_embed_query_then_legacy_search_by_default(self, mock_embed, mock_chunk_cls):
+    def test_calls_embed_query_then_legacy_search_when_selected(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.5] * 1536
         mock_chunk_cls.return_value.search_by_embedding.return_value = []
         semantic_search("what is shabbat")
         mock_embed.assert_called_once()
         assert mock_embed.call_args[0][0] == "what is shabbat"
-        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
-            [0.5] * 1536, limit=10, filters=None
-        )
+        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with([0.5] * 1536, limit=10, filters=None)
 
-    @override_settings(GEMINI_API_KEY="test-key")
+    @override_settings(GEMINI_API_KEY="test-key", SEMANTIC_SEARCH_TABLE_VERSION="legacy")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_forwards_filters_and_limit_to_legacy_by_default(self, mock_embed, mock_chunk_cls):
+    def test_forwards_filters_and_limit_to_legacy_when_selected(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.1] * 1536
         mock_chunk_cls.return_value.search_by_embedding.return_value = []
         semantic_search("query", filters={"language": "en"}, limit=5)
@@ -590,17 +612,18 @@ class TestSemanticSearch:
             [0.1] * 1536, limit=5, filters={"language": "en"}
         )
 
-    @override_settings(GEMINI_API_KEY="test-key")
+    @override_settings(GEMINI_API_KEY="test-key", SEMANTIC_SEARCH_TABLE_VERSION="legacy")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_returns_legacy_search_results_by_default(self, mock_embed, mock_chunk_cls):
+    def test_returns_legacy_search_results_when_selected(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.0] * 1536
         expected = [MagicMock()]
         mock_chunk_cls.return_value.search_by_embedding.return_value = expected
         assert semantic_search("query") == expected
 
+    @override_settings(SEMANTIC_SEARCH_TABLE_VERSION="legacy")
     @patch("semantic_search.search.SemanticTextChunk")
-    def test_search_by_embedding_uses_legacy_table_by_default(self, mock_chunk_cls):
+    def test_search_by_embedding_uses_legacy_table_when_selected(self, mock_chunk_cls):
         embedding = [0.25] * 1536
         expected = [MagicMock()]
         mock_chunk_cls.return_value.search_by_embedding.return_value = expected
@@ -624,3 +647,16 @@ class TestSemanticSearch:
     def test_search_by_embedding_rejects_invalid_table_version(self):
         with pytest.raises(ValueError, match="Invalid SEMANTIC_SEARCH_TABLE_VERSION"):
             semantic_search_by_embedding([0.25] * 1536)
+
+
+class TestSemanticSearchCutover:
+    def test_missing_setting_defaults_to_new_backend(self):
+        with (
+            patch("semantic_search.search.settings", SimpleNamespace()),
+            patch("semantic_search.search.Vector") as vector,
+            patch("semantic_search.search.SemanticTextChunk") as legacy,
+        ):
+            vector.return_value.search_by_embedding.return_value = []
+            assert semantic_search_by_embedding([0.1] * 1536) == []
+            vector.return_value.search_by_embedding.assert_called_once()
+            legacy.assert_not_called()

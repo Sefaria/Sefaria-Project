@@ -1,8 +1,10 @@
 import django
+
 django.setup()
+import sys
+
 from sefaria.helper.crm.crm_mediator import CrmMediator
 
-import sys
 """
 Mutiple "only" flags can be run at once. If none are run, everything will be run.
 Flags:
@@ -20,7 +22,7 @@ nonexistent_nb_id_only = False
 gt = 0
 skip = []
 i = 1
-while(i < len(sys.argv)):
+while i < len(sys.argv):
     if sys.argv[i] == "--trends-only":
         trends_only = True
     elif sys.argv[i] == "--tags-only":
@@ -33,7 +35,7 @@ while(i < len(sys.argv)):
         nonexistent_nb_id_only = True
     elif sys.argv[i] == "--gt=":
         gt = int(sys.argv[i][5:])
-    i+=1
+    i += 1
 
     crm_mediator = CrmMediator()
     crm_mediator.sync_sustainers()
