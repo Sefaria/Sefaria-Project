@@ -129,7 +129,11 @@ touches `features/`, the check passes by itself.
   lock's own workflow and `build/ci/check-feature-spec-lock.sh`, so nobody can quietly switch it off.
 - **The check can't be edited by the PR it checks.** It runs on `pull_request_target`, which always
   uses `master`'s copy of the workflow and script.
-- **Merging `master` into your branch is fine.** Merge commits are skipped.
+- **Merging `master` into your branch is fine.** A clean merge adds nothing of its own, so it
+  passes. If you edit a locked file *while* merging (for example when resolving a conflict), that
+  edit counts as yours, and the check fails unless you are a spec editor.
+- **Every locked file the PR changes must trace back to a commit.** If a change to a locked file
+  can't be attributed to one of the PR's commits, the check fails.
 - **Don't squash the branch yourself** if it contains a spec editor's commit: that makes you the
   author of their change, and the check fails. GitHub's "Squash and merge" button is fine, because
   the check has already passed by then.
@@ -137,8 +141,9 @@ touches `features/`, the check passes by itself.
   commit of yours touches `features/`.
 - **Authorship comes from the commit's email.** Anyone can set that, so the check stops mistakes
   and shortcuts, not someone determined to cheat. Setting the repo variable
-  `SPEC_LOCK_REQUIRE_SIGNED=true` also requires a verified signature on spec commits. Edits made in
-  GitHub's web editor are signed automatically.
+  `SPEC_LOCK_REQUIRE_SIGNED=true` also requires a verified signature on spec commits, and that the
+  commit was *committed* by a spec editor, since GitHub verifies the signature against the
+  committer, not the author. Edits made in GitHub's web editor are signed automatically and pass.
 
 Local git hooks are deliberately not used. They can be bypassed with `--no-verify`.
 

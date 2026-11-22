@@ -13,13 +13,23 @@
 #   build/ci/check-feature-spec-lock.sh        this script
 # Step definitions, page objects and fixtures are NOT locked.
 #
-# Merge commits are skipped (git diff-tree lists no files for them), so merging master into a
-# branch is fine. Squashing a spec editor's commit into your own makes you its author, and the
-# check fails, which is intended.
+# Merge commits are checked by what they add beyond their parents (git diff-tree --cc). A clean
+# merge of master adds nothing, so merging master into a branch is fine. A merge that also edits a
+# locked file, for example while resolving a conflict, is attributed to whoever made the merge.
+# Squashing a spec editor's commit into your own makes you its author, and the check fails, which
+# is intended.
+#
+# Backstop: every locked file in the PR's net diff must be changed by at least one of the PR's
+# commits that this script inspected. A change it can't attribute to a commit fails the check.
 #
 # Commit authorship comes from the commit's email, which anyone can set. SPEC_LOCK_REQUIRE_SIGNED
-# closes that gap by also requiring a verified signature on commits that touch locked paths
-# (edits made in the GitHub web editor are signed automatically).
+# closes that gap by also requiring a verified signature on commits that touch locked paths, made
+# by a spec editor: GitHub verifies a signature against the COMMITTER, not the author, so the
+# committer must be a spec editor too. Otherwise anyone could set an editor as the author and sign
+# with their own key. Edits made in the GitHub web editor are signed by GitHub with the committer
+# `web-flow`; those are accepted, because the web editor makes the signed-in user the author.
+# Unverified: whether GitHub's REST API can also produce a web-flow-signed commit with a caller-
+# chosen author. If it can, that is a remaining way around SPEC_LOCK_REQUIRE_SIGNED.
 #
 # Required env:
 #   BASE_SHA, HEAD_SHA   PR base and head commits (both must be in the local clone)
@@ -27,8 +37,8 @@
 #   PR_NUMBER, REPO      used to list the PR's commits with `gh api` (needs GH_TOKEN)
 # Optional:
 #   SPEC_LOCK_REQUIRE_SIGNED  'true' to require verified signatures on locked-path commits
-#   COMMITS_FILE         read "<sha> <login> <verified>" lines from this file instead of the API
-#                        (for local testing; use "-" for a commit with no GitHub login)
+#   COMMITS_FILE         read "<sha> <author-login> <committer-login> <verified>" lines from this
+#                        file instead of the API (for local testing; use "-" for no GitHub login)
 set -euo pipefail
 
 LOCKED=(
@@ -39,7 +49,7 @@ LOCKED=(
   "build/ci/check-feature-spec-lock.sh"
 )
 
-changed=$(git diff --name-only "$BASE_SHA"..."$HEAD_SHA" -- "${LOCKED[@]}")
+changed=$(git diff --no-renames --name-only "$BASE_SHA"..."$HEAD_SHA" -- "${LOCKED[@]}")
 if [[ -z "$changed" ]]; then
   echo "No locked files changed. Nothing to check."
   exit 0
@@ -71,24 +81,44 @@ if [[ -n "${COMMITS_FILE:-}" ]]; then
   commits=$(cat "$COMMITS_FILE")
 else
   commits=$(gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/commits" \
-    --jq '.[] | "\(.sha) \(.author.login // "-") \(.commit.verification.verified)"')
+    --jq '.[] | "\(.sha) \(.author.login // "-") \(.committer.login // "-") \(.commit.verification.verified)"')
 fi
 
+# GitHub signs commits made in its web editor with this committer.
+GITHUB_WEB_COMMITTER="web-flow"
+
 violations=()
-while read -r sha login verified; do
+touched=""   # every locked file some inspected commit changed, one per line
+while read -r sha login committer verified; do
   [[ -z "${sha:-}" ]] && continue
-  files=$(git diff-tree --no-commit-id --name-only -r "$sha" -- "${LOCKED[@]}")
+  # --cc: a non-merge commit lists its changes as usual; a merge lists only files that differ from
+  # every parent, i.e. what the merge itself added (nothing, for a clean merge of master).
+  files=$(git diff-tree --no-commit-id --name-only -r --cc "$sha" -- "${LOCKED[@]}")
   [[ -z "$files" ]] && continue
+  touched+="$files"$'\n'
   files_flat=$(echo $files)
   if [[ "$login" == "-" ]] || ! is_editor "$login"; then
     who=$([[ "$login" == "-" ]] && echo "an author with no GitHub account" || echo "@$login")
     violations+=("${sha:0:10} by $who changes $files_flat")
   elif [[ "${SPEC_LOCK_REQUIRE_SIGNED:-}" == "true" && "$verified" != "true" ]]; then
     violations+=("${sha:0:10} by @$login changes $files_flat but is not signed (verified signatures are required)")
+  elif [[ "${SPEC_LOCK_REQUIRE_SIGNED:-}" == "true" && "$committer" != "$GITHUB_WEB_COMMITTER" ]] \
+       && { [[ "$committer" == "-" ]] || ! is_editor "$committer"; }; then
+    by=$([[ "$committer" == "-" ]] && echo "a committer with no GitHub account" || echo "@$committer")
+    violations+=("${sha:0:10} names @$login as author but was committed and signed by $by, who is not a spec editor")
   else
     echo "OK: ${sha:0:10} by @$login (spec editor) changes $files_flat"
   fi
 done <<< "$commits"
+
+# Backstop: a locked file in the net diff that no inspected commit changed can't be attributed to
+# anyone, so it can't be allowed.
+while read -r f; do
+  [[ -z "$f" ]] && continue
+  if ! grep -qxF -- "$f" <<< "$touched"; then
+    violations+=("$f differs from the base branch, but no commit in this PR that the check could inspect changed it")
+  fi
+done <<< "$changed"
 
 if (( ${#violations[@]} == 0 )); then
   echo "Every change to a locked file was made by a spec editor. Allowed."
