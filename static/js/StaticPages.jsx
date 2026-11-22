@@ -3285,11 +3285,11 @@ const DevBox = () => {
         <InterfaceText>
           <HebrewText>
             נסו את המוצרים שמפתחי תוכנה וידידי ספריא מרחבי העולם בנו עבורכם!{' '}
-            <a href="https://developers.sefaria.org/docs/powered-by-sefaria">גלו את הפרויקטים</a>
+            <a href="https://powered-by.sefaria.org">גלו את הפרויקטים</a>
           </HebrewText>
           <EnglishText>
             Check out the products our software developer friends from around the world have been building for you!{' '}
-            <a href="https://developers.sefaria.org/docs/powered-by-sefaria">Explore</a>
+            <a href="https://powered-by.sefaria.org">Explore</a>
           </EnglishText>
         </InterfaceText>
       </div>

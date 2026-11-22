@@ -4,6 +4,7 @@ from django.views.generic.base import RedirectView
 
 import dedications.views as dedications_views
 import reader.views as reader_views
+from powered_by.developer_views import requires_developer_settings
 from sefaria.settings import STATIC_URL
 from sites.sefaria.site_settings import SITE_SETTINGS
 
@@ -74,6 +75,7 @@ site_urlpatterns = [
     re_path(r"^llms\.txt/?$", reader_views.serve_llms_txt),
     re_path(r"^(%s)/?$" % "|".join(static_pages), reader_views.serve_static),
     re_path(r"^(%s)/?$" % "|".join(static_pages_by_lang), reader_views.serve_static, {"by_lang": True}),
+    re_path(r"^(api-terms)/?$", requires_developer_settings(reader_views.serve_static)),
     re_path(r"^dedication/(?P<slug>[\w-]+)/?$", dedications_views.dedication),
     re_path(
         r"^healthz/?$", reader_views.application_health_api
@@ -101,7 +103,7 @@ site_urlpatterns += [
     ),
     re_path(
         r"^powered-by/?$",
-        lambda x: HttpResponsePermanentRedirect("https://developers.sefaria.org/docs/powered-by-sefaria"),
+        lambda x: HttpResponsePermanentRedirect("https://powered-by.sefaria.org"),
     ),
     re_path(r"^wiki/?$", lambda x: HttpResponseRedirect("https://developers.sefaria.org/docs/welcome")),
     re_path(r"^developers/?$", lambda x: HttpResponseRedirect("https://developers.sefaria.org")),
