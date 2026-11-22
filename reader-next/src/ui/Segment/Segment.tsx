@@ -118,8 +118,9 @@ function SegmentImpl({
       }
     >
       {address !== undefined ? (
+        // the outer box has the first line's font and line height, so the 12px number inside sits on that line's baseline
         <span className={styles.number} aria-hidden="true" data-number="true" data-lang={numLang}>
-          {segmentNumber(address, numLang)}
+          <span className={styles.numberInner}>{segmentNumber(address, numLang)}</span>
         </span>
       ) : null}
       {linkCount !== undefined ? (
