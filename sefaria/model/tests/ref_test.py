@@ -711,6 +711,78 @@ class Test_Ref:
         assert Ref("Kohelet Rabbah to 6:9") is Ref("Kohelet Rabbah 6.9")
 
 
+class Test_Segment_Ref_Navigation_In_Complex_Text:
+    """prev_segment_ref and next_segment_ref must count subrefs in the state of the schema node
+    that holds the segment. A complex book stores each part as its own JaggedArrayNode, so for the
+    first segment of a part the code used to count in the state of the part it was leaving. The
+    count came back None, and GET /api/ref raised instead of answering the ref.
+    """
+
+    TITLE = "Test Complex Navigation"
+    CATEGORY = "Test Complex Navigation Category"
+
+    @classmethod
+    def setup_class(cls):
+        cls.category = Category({"path": [cls.CATEGORY], "lastPath": cls.CATEGORY, "depth": 1})
+        cls.category.add_primary_titles(cls.CATEGORY, "קטגוריית ניווט מורכב")
+        cls.category.save()
+        root = SchemaNode()
+        root.add_primary_titles(cls.TITLE, "ניווט מורכב")
+        for name, he_name in (("First", "ראשון"), ("Second", "שני")):
+            leaf = JaggedArrayNode()
+            leaf.add_primary_titles(name, he_name)
+            leaf.add_structure(["Siman", "Paragraph"])
+            root.append(leaf)
+        root.validate()
+        cls.index = Index({"title": cls.TITLE, "categories": [cls.CATEGORY], "schema": root.serialize()})
+        cls.index.save()
+        skeleton = cls.index.nodes.create_skeleton()
+        skeleton["First"] = [["a1", "a2"], ["b1"], ["c1", "c2", "c3"]]
+        skeleton["Second"] = [["d1", "d2"]]
+        cls.version = Version(
+            {
+                "title": cls.TITLE,
+                "chapter": skeleton,
+                "versionTitle": "Test Complex Navigation Version",
+                "versionSource": "test",
+                "language": "en",
+                "isSource": True,
+                "isPrimary": True,
+                "actualLanguage": "en",
+                "languageFamilyName": "english",
+                "direction": "ltr",
+            }
+        )
+        cls.version.save()
+        cls.index.versionState().refresh()
+        library.rebuild()
+
+    @classmethod
+    def teardown_class(cls):
+        cls.index.delete()
+        cls.version.delete()
+        cls.category.delete()
+        library.rebuild()
+
+    def test_prev_segment_ref_moves_into_the_part_before(self):
+        assert Ref(f"{self.TITLE}, Second 1:1").prev_segment_ref() == Ref(f"{self.TITLE}, First 3:3")
+
+    def test_next_segment_ref_moves_into_the_part_after(self):
+        assert Ref(f"{self.TITLE}, First 3:3").next_segment_ref() == Ref(f"{self.TITLE}, Second 1:1")
+
+    def test_prev_segment_ref_inside_a_part(self):
+        assert Ref(f"{self.TITLE}, First 3:1").prev_segment_ref() == Ref(f"{self.TITLE}, First 2:1")
+
+    def test_next_segment_ref_inside_a_part(self):
+        assert Ref(f"{self.TITLE}, First 1:2").next_segment_ref() == Ref(f"{self.TITLE}, First 2:1")
+
+    def test_first_segment_has_no_previous(self):
+        assert Ref(f"{self.TITLE}, First 1:1").prev_segment_ref() is None
+
+    def test_last_segment_has_no_next(self):
+        assert Ref(f"{self.TITLE}, Second 1:2").next_segment_ref() is None
+
+
 class Test_Cache:
     def test_index_flush_from_cache(self):
         r1 = Ref("Genesis 1")
