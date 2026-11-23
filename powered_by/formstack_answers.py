@@ -4,8 +4,8 @@ Old Formstack answers in the format of the new publish form (developer settings,
 The Formstack form stored labels and free text: categories as labels joined with commas or spaces (two labels
 contain commas themselves), tools mixed with the endpoint answers, monthly users as the option's text. The new form
 stores ids. These functions convert one value at a time; the intake uses them so a Formstack submission is saved in
-the new format, and migration 0014 holds a frozen copy for the rows saved before (keep the two in step until the
-Formstack intake is retired; powered_by/tests/migration_convert_formstack_answers_test.py checks they agree).
+the new format, and the `convert_formstack_answers` management command converts the rows saved before
+(run it whenever: it changes only rows still in the old format).
 
 Anything that can't be kept in the new format (the text typed under "Other", an answer that matches no option) is
 returned as a note line, for the staff-only `notes`.
@@ -185,3 +185,17 @@ def append_notes(notes, lines, heading):
         return notes
     block = heading + "\n" + "\n".join(f"- {line}" for line in lines)
     return f"{notes.rstrip()}\n\n{block}" if (notes or "").strip() else block
+
+
+NOTES_HEADING = "Formstack answers that didn't fit the new form:"
+ROW_FIELDS = ("project_category", "sefaria_tools_used", "project_reach", "notes")
+
+
+def convert_row(project):
+    """One Project's converted values, as field -> value, only for the fields that change."""
+    category, category_notes = convert_category(project.project_category)
+    tools, tool_notes = convert_tools(project.sefaria_tools_used)
+    reach = convert_reach(project.project_reach)
+    notes = append_notes(project.notes, category_notes + tool_notes, NOTES_HEADING)
+    new = {"project_category": category, "sefaria_tools_used": tools, "project_reach": reach, "notes": notes}
+    return {field: value for field, value in new.items() if value != getattr(project, field)}

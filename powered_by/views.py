@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods
 from sefaria.client.util import jsonResponse
 from sefaria.system.decorators import catch_error_as_json
 
-from .formstack_answers import append_notes, convert_category, convert_reach, convert_tools
+from .formstack_answers import NOTES_HEADING, append_notes, convert_category, convert_reach, convert_tools
 from .models import ApiProject, Project, SubmissionSource, TechnicalExperience
 
 REQUIRED_FIELDS = ("project_name", "project_link")
@@ -376,7 +376,7 @@ def _convert_to_publish_form_format(cleaned):
         lines += tool_lines
     if "project_reach" in cleaned:
         cleaned["project_reach"] = convert_reach(cleaned["project_reach"])
-    notes = append_notes(cleaned.get("notes"), lines, "Formstack answers that didn't fit the new form:")
+    notes = append_notes(cleaned.get("notes"), lines, NOTES_HEADING)
     if notes:
         cleaned["notes"] = notes
 
