@@ -70,6 +70,12 @@ def delete_user_account(uid, confirm=True):
 
     # History is left for posterity, but will no longer be tied to a user profile
 
+    # Tell other services (Sefaria Social) through USER_DELETED_WEBHOOK_URLS. Queued only after the
+    # deletion succeeded; never raises, so it can't fail or slow the delete beyond the enqueue.
+    from sso.user_deleted_webhook import queue_user_deleted_webhooks
+
+    queue_user_deleted_webhooks(uid)
+
     print("User %d deleted." % uid)
     return True
 

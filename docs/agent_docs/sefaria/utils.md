@@ -77,7 +77,7 @@ Each function queries a MongoDB collection and returns a standardized dict with 
 
 ### `user.py` -- User Account Management
 
-- `delete_user_account(uid)` -- deletes user data across all MongoDB collections (sheets, notes, notifications, following, profiles, likes, history) and Django User object; marks user for CRM review first
+- `delete_user_account(uid)` -- deletes user data across all MongoDB collections (sheets, notes, notifications, following, profiles, likes, history) and Django User object; marks user for CRM review first. After the delete succeeds it calls `sso.user_deleted_webhook.queue_user_deleted_webhooks(uid)`, which queues one signed `user.deleted` webhook per `USER_DELETED_WEBHOOK_URLS` entry (nothing when empty) and never raises; see `docs/agent_docs/apps/README.md` (sso/)
 - `merge_user_accounts(from_uid, into_uid)` -- moves all content ownership between accounts, optionally copies profile data, then deletes source account
 - `generate_api_key(uid)` -- creates and stores a random API key
 - `reset_all_api_keys()` -- regenerates all existing API keys
