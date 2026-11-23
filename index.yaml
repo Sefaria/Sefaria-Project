@@ -137,6 +137,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.95.1-sc-48158-rebuild-self-hosted-readme-for-010499c.1.tgz
     version: 0.95.1-sc-48158-rebuild-self-hosted-readme-for-010499c.1
   - apiVersion: v2
+    appVersion: v7.17.3
+    created: "2026-11-23T11:02:34.546639243Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: f36b5514908aa0dbcf73efe9409a658b78c64b701d9cbbda4a43726c7a0913f7
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.95.1-sc-45520-pytest-mongo-decoupling.1.tgz
+    version: 0.95.1-sc-45520-pytest-mongo-decoupling.1
+  - apiVersion: v2
     appVersion: v7.17.2
     created: "2026-11-21T21:31:16.408595297Z"
     description: Chart to deploy complete Sefaria environment
@@ -25785,4 +25800,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-22T22:51:27.621942587Z"
+generated: "2026-11-23T11:02:34.542215955Z"
