@@ -25,6 +25,7 @@ import { createWorkspaceCommands, urlDefaultsFor, type WorkspaceRouter } from "~
 import type { UrlDefaults } from "~/lib/workspace/url";
 import type { Viewer } from "~/lib/auth/session";
 import { getSurface } from "~/lib/surfaces/load";
+import { socialEnvForPage } from "~/lib/surfaces/version";
 import { createIdentityTokenSource } from "~/lib/surfaces/identity";
 import { createSurfaceHost, type SurfaceRouter, type UiState } from "~/lib/surfaces/host";
 import { viewerQuery } from "~/features/auth/viewer";
@@ -109,7 +110,7 @@ function useHostFactory(): HostFactory | null {
           void router.navigate({ href: withNext("/login", `${l.pathname}${l.search}${l.hash}`) });
         },
         ui,
-        config: PUBLIC_CONFIG.social,
+        config: socialEnvForPage(PUBLIC_CONFIG.social),
         version,
         leavesClient: (pathname) => leavesClient(pathname, browserHost(), PUBLIC_CONFIG.voicesOrigin),
         siteOrigin: SITE_ORIGIN,
@@ -136,7 +137,7 @@ function Mount({ kind }: { kind: "page" | "persistent" }) {
     const target = el.current;
     let unmount: (() => void) | undefined;
     let gone = false;
-    getSurface(PUBLIC_CONFIG.social, router.history.location.pathname).then(
+    getSurface(socialEnvForPage(PUBLIC_CONFIG.social), router.history.location.pathname).then(
       ({ surface, version }) => {
         if (gone) return;
         try {
