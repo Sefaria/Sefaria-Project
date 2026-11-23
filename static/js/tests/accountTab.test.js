@@ -218,6 +218,14 @@ describe('Account tab save', () => {
     expect(cookieOrder).toBeLessThan($.post.mock.invocationCallOrder[0]);
   });
 
+  it.each([null, 'null'])('sends no translation language as null and sets no cookie for it (%p)', (stored) => {
+    mount({ translationLanguagePreference: stored });
+    const { payload } = save();
+    expect(payload.settings.translation_language_preference).toBeNull();
+    expect($.cookie.mock.calls.filter(([name]) => name === 'translation_language_preference')).toEqual([]);
+    expect($.cookie).toHaveBeenCalledWith('translation_language_preference_suggested', '1', { path: '/' });
+  });
+
   it('tracks and reloads on an interface language change, without the settings event', () => {
     mount();
     choose('siteLanguage', 'hebrew');
