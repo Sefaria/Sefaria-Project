@@ -63,7 +63,7 @@ jobs:
       with:
         token_format: 'access_token'
         workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
-        service_account: '${{ secrets.DEV_GKE_SA }}'
+        service_account: 'github-integration-restore@development-205018.iam.gserviceaccount.com'
     - name: Setup GCloud
       uses: google-github-actions/setup-gcloud@v2
       with:
