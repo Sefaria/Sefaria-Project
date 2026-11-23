@@ -262,6 +262,7 @@ class ReaderApp extends Component {
     window.addEventListener('popstate', this.handlePopState);
     window.addEventListener('resize', this.setPanelCap);
     window.addEventListener('beforeprint', this.handlePrint);
+    window.addEventListener('pagehide', this.flushPendingHistorySaves);
     document.addEventListener('copy', this.handleCopyEvent);
     this.setPanelCap();
     if (this.props.headerMode) {
@@ -310,6 +311,7 @@ class ReaderApp extends Component {
     window.removeEventListener('popstate', this.handlePopState);
     window.removeEventListener('resize', this.setPanelCap);
     window.removeEventListener('beforeprint', this.handlePrint);
+    window.removeEventListener('pagehide', this.flushPendingHistorySaves);
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
@@ -1120,6 +1122,21 @@ class ReaderApp extends Component {
         this.saveLastPlace(this.state.panels[n], n);
       }
       this.panelScrollIntentTimer[n] = null;
+    });
+  }
+  flushPendingHistorySaves() {
+    // A read is saved once the reader has stayed on it for a few seconds (checkPanelScrollIntentAndSaveRecent).
+    // When the page is left before that, save it now, with a beacon so the request survives the unload.
+    (this.panelScrollIntentTimer || []).forEach((timer, n) => {
+      if (!timer) {
+        return;
+      }
+      clearTimeout(timer);
+      this.panelScrollIntentTimer[n] = null;
+      const panel = this.state.panels[n];
+      if (panel) {
+        this.saveLastPlace(panel, n, false, { beacon: true });
+      }
     });
   }
   checkIntentTimer(timer, cb, intentDelay) {
@@ -2412,14 +2429,14 @@ class ReaderApp extends Component {
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n + 1 && this.state.panels[n + 1].mode == 'Connections';
   }
-  saveLastPlace(panel, n, openingSidebar) {
-    //openingSidebar is true when you call `saveLastPlace` at the time you're opening the sidebar. In this case, `doesPanelHaveSidebar` will be false
-    const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
+  saveLastPlace(panel, n, openingSidebar, { beacon = false } = {}) {
     // if panel is sheet, panel.refs isn't set
     if ((panel.mode !== 'Sheet' && !panel.refs.length) || panel.mode === 'Connections') {
       return;
     }
-    Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
+    // History records the segment at the reading line, which TextColumn keeps in highlightedRefs whether or not
+    // the sidebar is open, so it's read as if the sidebar were open.
+    Sefaria.saveUserHistory(this.getHistoryObject(panel, true), { beacon });
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open

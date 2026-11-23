@@ -63,7 +63,15 @@ from .queue import IndexQueue, IndexQueueSet
 from .lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
 from .following import FollowRelationship, FollowersSet, FolloweesSet
 from .blocking import BlockRelationship, BlockersSet, BlockeesSet
-from .user_profile import UserWrapper, UserProfile, UserHistory, UserHistorySet, annotate_user_list
+from .user_profile import (
+    UserWrapper,
+    UserProfile,
+    UserHistory,
+    UserHistorySet,
+    UserLastPlace,
+    UserLastPlaceSet,
+    annotate_user_list,
+)
 from .collection import Collection, CollectionSet
 from .version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
 from .timeperiod import TimePeriod, TimePeriodSet

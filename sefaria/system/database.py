@@ -281,6 +281,8 @@ def ensure_indices(active_db=None):
             [[("uid", pymongo.ASCENDING), ("secondary", pymongo.ASCENDING), ("time_stamp", pymongo.ASCENDING)]],
             {},
         ),
+        ("user_last_place", [[("uid", pymongo.ASCENDING), ("book", pymongo.ASCENDING)]], {"unique": True}),
+        ("user_last_place", [[("uid", pymongo.ASCENDING), ("time_stamp", pymongo.DESCENDING)]], {}),
         ("trend", ["name"], {}),
         ("trend", ["uid"], {}),
         ("webpages", ["refs"], {}),
