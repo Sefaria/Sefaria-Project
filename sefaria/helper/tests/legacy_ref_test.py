@@ -197,3 +197,75 @@ class TestLegacyRefsRandomIndex:
         err = get_partial_ref_error(tref_no_legacy_parser)
         with pytest.raises(NoLegacyRefParserError):
             legacy_ref_parser_handler[Ref(err.matched_part).index.title]
+
+
+@pytest.fixture(scope="module")
+def test_alt_struct_index():
+    """
+    Index with a "Daf" alt structure whose volume node is an intermediate AltStructNode.
+    Such a node is part of a longer ref and has no ref of its own.
+    """
+    en_title = "Test Alt Struct Book"
+    existing = Index().load({"title": en_title})
+    if existing:
+        existing.delete()
+
+    schema = {
+        "key": en_title,
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": ["Integer", "Integer"],
+        "sectionNames": ["Chapter", "Paragraph"],
+        "titles": [
+            {"lang": "en", "text": en_title, "primary": True},
+            {"lang": "he", "text": "ספר בדיקה", "primary": True},
+        ],
+    }
+    alt_structs = {
+        "Daf": {
+            "nodes": [
+                {
+                    "titles": [
+                        {"lang": "en", "text": "Volume I", "primary": True},
+                        {"lang": "he", "text": "חלק א", "primary": True},
+                    ],
+                    "nodes": [
+                        {
+                            "nodeType": "ArrayMapNode",
+                            "depth": 1,
+                            "addressTypes": ["Talmud"],
+                            "sectionNames": ["Daf"],
+                            "titles": [
+                                {"lang": "en", "text": "1a", "primary": True},
+                                {"lang": "he", "text": "א", "primary": True},
+                            ],
+                            "refs": [f"{en_title} 1:1-1:2"],
+                            "wholeRef": f"{en_title} 1:1-1:2",
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+    i = Index({"title": en_title, "schema": schema, "alt_structs": alt_structs, "categories": ["Kabbalah"]})
+    i.save()
+
+    yield i
+
+    i.delete()
+
+
+class TestAltStructIntermediateNode:
+    def test_alt_struct_leaf_ref_still_resolves(self, test_alt_struct_index):
+        assert Ref("Test Alt Struct Book, Volume I, 1a").normal() == "Test Alt Struct Book 1:1-2"
+
+    def test_intermediate_alt_struct_title_raises_input_error(self, test_alt_struct_index):
+        # "Test Alt Struct Book, Volume I" names an AltStructNode, which cannot be the end of a ref
+        with pytest.raises(PartialRefInputError):
+            Ref("Test Alt Struct Book, Volume I")
+
+    def test_legacy_fallback_reports_partial_ref_for_intermediate_alt_struct_title(self, test_alt_struct_index):
+        tref = "Test Alt Struct Book, Volume I.4a"
+        with pytest.raises(PartialRefInputError) as excinfo:
+            Ref.instantiate_ref_with_legacy_parse_fallback(tref)
+        assert excinfo.value.matched_part == "Test Alt Struct Book, Volume I"
