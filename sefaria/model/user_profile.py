@@ -311,10 +311,13 @@ class UserHistory(abst.AbstractMongoRecord):
         annotate=False,
         limit=0,
         skip=0,
+        book=None,
     ):
         query = {}
         if uid is not None:
             query["uid"] = uid
+        if book is not None:
+            query["book"] = book
         if oref is not None:
             regex_list = oref.context_ref().regex(as_list=True)
             ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
@@ -873,10 +876,12 @@ class UserProfile:
         annotate=False,
         limit=0,
         skip=0,
+        book=None,
     ):
         """
         personal user history
         :param oref:
+        :param book: index title, to only get items of this book
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
         :param last_place: ditto
@@ -898,6 +903,7 @@ class UserProfile:
             annotate=annotate,
             limit=limit,
             skip=skip,
+            book=book,
         )
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):

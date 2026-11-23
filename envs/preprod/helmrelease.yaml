@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.92.5-preprod.1"
+      version: "0.95.1-preprod.1"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -45,12 +45,15 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.11.8-preprod.1"
+        tag: "v7.17.4-preprod.1"
       replicaCount: 2
       resources:
         web:
           gunicornWorkerCount: 3
           gunicornThreadCount: 8
+          # ~31k requests per worker per hour in prod: a restart about every 1.6 h
+          maxRequests: 50000
+          maxRequestsJitter: 5000
           resources:
             requests:
               memory: "14Gi"
@@ -72,7 +75,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v7.11.8-preprod.1"
+        tag: "v7.17.4-preprod.1"
       replicaCount: 1
       resources:
         requests:
@@ -93,7 +96,12 @@ spec:
           memory: "18Gi"
           cpu: "1500m"
       tuning:
-        malloc: "14440m"
+        # The varnish store plus Varnish's ~24% allocator overhead must stay under the 18Gi
+        # limit. 14440m left only ~0.5GiB of headroom, so the kubelet OOMKilled the single
+        # varnish pod about daily and every restart returned origin 502/503/504 to readers.
+        # 13056m is ~75% of the 17Gi request (the rule in helm-chart/sefaria/values.yaml)
+        # and leaves ~2GiB of headroom, so the store nukes LRU instead of the pod being killed.
+        malloc: "13056m"
         nuke_limit: "400"
         thread_pools: 2
         thread_pool_max: 5000
@@ -157,10 +165,44 @@ spec:
       enabled: false
     gateway:
       enabled: true
+    # API Key Program authService (Phase 1). Ships disabled: merging this must not change what this environment runs.
+    # Enabling it attaches an ext_authz SecurityPolicy to the HTTPRoute (the preprod pass: projects/api-key-program/preprod-pass).
+    authService:
+      # Flip to true only in the preprod pass, step 1 (observe). Also turns on the HTTPS-only redirect and the x-sefaria-* header strip.
+      # Before flipping, two things must be true, or Helm rendering or the pod fails:
+      #  1. A release has run first: deploy-static.yaml writes authService.image.tag, and that tag must exist in the registry.
+      #     Flipping enabled alone fails rendering (image.tag is empty and required).
+      #  2. The Secret auth-service-registry (key AUTH_PG_DSN) exists in this environment's namespace (preprod), provisioned via the
+      #     infrastructure repo. It does not exist yet.
+      enabled: false
+      # observe: never denies; records what would be rejected in x-sefaria-auth-result. enforce only after the preprod pass.
+      mode: observe
+      replicaCount: 1
+      image:
+        # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
+        repository: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
+        tag: "v7.17.4-preprod.1"
+      extAuth:
+        # Fail open: if the auth service is down or slower than the timeout, the request goes through as the anonymous tier.
+        failOpen: true
+        timeout: 200ms
+      postgres:
+        secrets:
+          dsn:
+            # Name only. This Secret is not provisioned yet: before enabling, create auth-service-registry (key AUTH_PG_DSN)
+            # via infrastructure in the default namespace (prod) and the preprod namespace (preprod).
+            ref: auth-service-registry
+            key: AUTH_PG_DSN
+      rateLimit:
+        # Needs the controller rateLimit backend (infrastructure repo) first.
+        enabled: false
+      nginxLogFields: true
+      monitoring:
+        enabled: true
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v7.11.8-preprod.1"
+        tag: "v7.17.4-preprod.1"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
@@ -226,3 +268,7 @@ spec:
       SERVER_EMAIL: "dev@sefaria.org"
       CRM_TYPE: "SALESFORCE"
       FAIL_GRACEFULLY: "True"
+      # The chart default is also "False". Pinned here on purpose: preprod shares prod's database, and
+      # the release preflight (preflight.sh, on branch tooling/api-keys-phase1-testing) requires this explicit "False"
+      # until prod runs the release.
+      DEVELOPER_SETTINGS_ENABLED: "False"
