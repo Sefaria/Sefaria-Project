@@ -59,7 +59,6 @@ def mark_donor_the_way_the_webhook_does(user_id):
 
 
 class TestDonorFieldsSurviveSave:
-
     def test_a_donation_recorded_after_loading_survives_the_save(self, unused_user_id):
         """The race this design exists for: a request loads the profile, the webhook marks a donor, the request saves."""
         create_stored_profile(unused_user_id)
@@ -76,9 +75,7 @@ class TestDonorFieldsSurviveSave:
         )
         assert stored["bio"] == "Edited while the donation was being recorded"
 
-    def test_changing_the_donor_attributes_on_the_object_does_not_write_them(
-        self, unused_user_id
-    ):
+    def test_changing_the_donor_attributes_on_the_object_does_not_write_them(self, unused_user_id):
         """Only the webhook path changes donor status; code that sets the attribute and saves changes nothing."""
         create_stored_profile(unused_user_id)
         profile = UserProfile(id=unused_user_id)
@@ -90,10 +87,7 @@ class TestDonorFieldsSurviveSave:
 
 
 class TestEverythingElseIsStillWritten:
-
-    def test_every_other_field_is_stored_as_to_mongo_dict_gives_it(
-        self, unused_user_id
-    ):
+    def test_every_other_field_is_stored_as_to_mongo_dict_gives_it(self, unused_user_id):
         """The switch from replace_one to $set must not change what the other fields store."""
         create_stored_profile(unused_user_id)
         profile = UserProfile(id=unused_user_id)
@@ -124,7 +118,6 @@ class TestEverythingElseIsStillWritten:
 
 
 class TestCreatingTheDocument:
-
     def test_a_new_profile_starts_as_unknown(self, unused_user_id):
         """Creation is the one save that writes the donor fields: nobody can have donated yet."""
         profile = UserProfile(id=unused_user_id)
@@ -135,9 +128,7 @@ class TestCreatingTheDocument:
         stored = stored_profile(unused_user_id)
         assert (stored["donor_status"], stored["became_donor_at"]) == ("unknown", None)
 
-    def test_a_document_deleted_since_loading_is_recreated_with_its_donor_fields(
-        self, unused_user_id
-    ):
+    def test_a_document_deleted_since_loading_is_recreated_with_its_donor_fields(self, unused_user_id):
         """$setOnInsert: when the update has to recreate the document, the donor fields are written too."""
         create_stored_profile(unused_user_id)
         profile = UserProfile(id=unused_user_id)

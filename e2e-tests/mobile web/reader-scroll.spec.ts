@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, devices } from '@playwright/test';
 import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
@@ -52,6 +52,8 @@ const PSALMS_117 = `${MODULE_URLS.EN.LIBRARY}/Psalms.117`;
 // actually scroll to reach it (R11).
 const GENESIS_24_40 = `${MODULE_URLS.EN.LIBRARY}/Genesis.24.40`;
 const EXODUS_1 = `${MODULE_URLS.EN.LIBRARY}/Exodus.1`;
+// A weekly-parsha range opening mid-book, as linked from the home page.
+const LECH_LECHA_PATH = '/Genesis.12.1-17.27';
 
 test.describe('Mobile Reader — document-level scrolling (SC-30249)', () => {
   let page: Page;
@@ -237,6 +239,27 @@ test.describe('Mobile Reader — document-level scrolling (SC-30249)', () => {
   // showed the reader renders no `.headerInner` and no hamburger button at all —
   // only `.readerControlsOuter`. The drawer is reachable from nav surfaces, so the
   // row lives in mobile-surfaces-scroll.spec.ts where it can actually run.
+
+  test.describe('re-entering a text without a page reload', () => {
+    // iPhone 13 viewport and touch in both projects; the browser engine stays the project's.
+    const { defaultBrowserType, ...iPhone13 } = devices['iPhone 13'];
+    test.use(iPhone13);
+
+    test('MW-025: scrolling up prepends one section per visit and keeps the current chapter in view', async ({ context }) => {
+      await openReader(context, `${MODULE_URLS.EN.LIBRARY}${LECH_LECHA_PATH}`);
+      // Each visit leaves earlier chapters in the client text cache; every scroll-up
+      // must still prepend only the immediately previous section.
+      for (let visit = 1; visit <= 3; visit++) {
+        await pm.onReaderScroll().waitForSection('Genesis 12');
+        const prepended = await pm.onReaderScroll().scrollWindowUpOnceAndGetPrepended();
+        expect(prepended, `visit ${visit}: sections prepended on one scroll-up`).toEqual(['Genesis 11']);
+        await pm.onReaderScroll().expectSectionInViewport('Genesis 12');
+
+        await pm.onReaderScroll().openPathInApp('/texts');
+        await pm.onReaderScroll().openPathInApp(LECH_LECHA_PATH);
+      }
+    });
+  });
 
   test('MW-013: browser Back restores the reading position on mobile', async ({ context }) => {
     await openReader(context, GENESIS_1);

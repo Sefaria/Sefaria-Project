@@ -33,6 +33,9 @@ const MODULE_URLS = {
 export default defineConfig({
   testDir: './e2e-tests/mobile web',
   outputDir: './e2e-tests/e2e-test-logs/test-results',
+  // Logs the test accounts in once before any worker starts (same as the desktop
+  // config). The Library Assistant phone tests need the LA-enabled account.
+  globalSetup: './e2e-tests/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   timeout: t(60000),

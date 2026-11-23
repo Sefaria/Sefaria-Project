@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from sefaria.model.linker.category_resolver import ResolvedCategory
 
 

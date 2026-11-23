@@ -3,17 +3,38 @@
 jest.mock('../sefaria/sefaria', () => ({
   __esModule: true,
   default: {
-    _: (k) => k, _bilingual: (s) => ({ en: s, he: s }), interfaceLang: 'english', apiHost: '',
-    hebrew: { isHebrew: () => false }, util: { clone: (x) => x }, terms: {}, _tocOrderLookup: {},
-    toc: [], search: { entitySearch: jest.fn() },
+    _: (k) => k,
+    _bilingual: (s) => ({ en: s, he: s }),
+    interfaceLang: 'english',
+    apiHost: '',
+    hebrew: { isHebrew: () => false },
+    util: { clone: (x) => x },
+    terms: {},
+    _tocOrderLookup: {},
+    toc: [],
+    search: { entitySearch: jest.fn() },
   },
 }));
-jest.mock("../Misc", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
-jest.mock("../ImageCropper", () => new Proxy({}, {
-  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
-}));
+jest.mock(
+  '../Misc',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
+jest.mock(
+  '../ImageCropper',
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === '__esModule' ? true : () => null),
+      }
+    )
+);
 
 import SearchPage from '../SearchPage.jsx';
 import { SearchTotal } from '../sefaria/searchTotal';
@@ -24,7 +45,11 @@ const proto = SearchPage.prototype;
 const makePage = ({ query = 'moses', tab = 'sources', sources, books, authors, topics, ...props } = {}) => {
   const page = {
     props: {
-      query, tab, correctedQuery: null, disableAutocorrect: false, setTab: jest.fn(),
+      query,
+      tab,
+      correctedQuery: null,
+      disableAutocorrect: false,
+      setTab: jest.fn(),
       totalResults: new SearchTotal({ value: sources ?? 0 }),
       totalsFor: sources === undefined ? null : query,
       ...props,
@@ -39,11 +64,11 @@ const makePage = ({ query = 'moses', tab = 'sources', sources, books, authors, t
   page.searchedQuery = proto.searchedQuery.bind(page);
   page.entityResultsKey = proto.entityResultsKey.bind(page);
   page.setTab = proto.setTab.bind(page);
-  const entry = total => total === undefined ? null : { total, forKey: page.entityResultsKey() };
+  const entry = (total) => (total === undefined ? null : { total, forKey: page.entityResultsKey() });
   page.state.entityData = { book: entry(books), author: entry(authors), topic: entry(topics) };
   return page;
 };
-const run = page => proto.maybeAutoSwitchFromEmptyTab.call(page);
+const run = (page) => proto.maybeAutoSwitchFromEmptyTab.call(page);
 
 describe('maybeAutoSwitchFromEmptyTab', () => {
   test('does not leave Sources while its total is only the empty placeholder', () => {
@@ -55,7 +80,7 @@ describe('maybeAutoSwitchFromEmptyTab', () => {
 
   test('ignores a Sources total that was counted for a different search', () => {
     const page = makePage({ sources: 0, books: 5 });
-    page.props.totalsFor = 'mosses';  // the correction changed under it
+    page.props.totalsFor = 'mosses'; // the correction changed under it
     run(page);
     expect(page.props.setTab).not.toHaveBeenCalled();
   });

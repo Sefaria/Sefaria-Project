@@ -56,9 +56,7 @@ def look_up_classy_supporter_email_address(
             "classy_api_not_configured",
             setting_names="CLASSY_API_CLIENT_ID, CLASSY_API_CLIENT_SECRET",
         )
-        return DonorEmailAddressCouldNotBeResolved(
-            ReasonDonorEmailAddressCouldNotBeResolved.CLASSY_API_NOT_CONFIGURED
-        )
+        return DonorEmailAddressCouldNotBeResolved(ReasonDonorEmailAddressCouldNotBeResolved.CLASSY_API_NOT_CONFIGURED)
 
     response = classy_api_session.get(
         f"{CLASSY_API_BASE_URL}/2.0/supporters/{classy_supporter_id}",
@@ -66,9 +64,7 @@ def look_up_classy_supporter_email_address(
         timeout=CLASSY_API_TIMEOUT_SECONDS,
     )
     if response.status_code == 404:
-        return DonorEmailAddressCouldNotBeResolved(
-            ReasonDonorEmailAddressCouldNotBeResolved.CLASSY_SUPPORTER_NOT_FOUND
-        )
+        return DonorEmailAddressCouldNotBeResolved(ReasonDonorEmailAddressCouldNotBeResolved.CLASSY_SUPPORTER_NOT_FOUND)
     # A supporter that exists but belongs to another organization answers 403, not 404 (checked
     # against the live API). The supporter id comes from our own organization's webhook, so a 403
     # means the API app is attached to the wrong organization: a configuration problem, which
@@ -101,9 +97,6 @@ def _raise_for_unsuccessful_response(response: requests.Response) -> None:
     # 5xx, 429 and 408 are temporary (retry). Any other 4xx — bad credentials above all — is a
     # configuration problem that retrying can't fix, so it raises HTTPError and fails the task
     # at once.
-    if (
-        response.status_code >= 500
-        or response.status_code in TIMEOUT_AND_RATE_LIMIT_STATUS_CODES
-    ):
+    if response.status_code >= 500 or response.status_code in TIMEOUT_AND_RATE_LIMIT_STATUS_CODES:
         raise ClassyApiTemporaryFailure(f"Classy API answered {response.status_code}")
     response.raise_for_status()

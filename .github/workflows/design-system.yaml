@@ -1,0 +1,111 @@
+name: Design system update
+
+# A Sefaria/design-system release (its release.yml dispatches design-system-release with the tag)
+# opens or updates one PR here, "fix(design-system): update to vX", and turns on auto-merge. master
+# requires an approving review, so it merges once someone approves it and CI passes. It then deploys
+# to staging, and ships to prod with the next promotion.
+#
+# Previews of unreleased design-system changes don't come through here: ?design_system=<branch or
+# commit> outside production loads them over the pinned version (sefaria/utils/design_system.py).
+#
+# Setup: the sefaria-design-system GitHub App installed on this repo (org variable
+# DESIGN_SYSTEM_APP_ID; its private key is the secret DESIGN_SYSTEM_APP_PRIVATE_KEY of this repo's
+# `design-system` environment, which only `master` may use), and "Allow auto-merge" on.
+
+on:
+  repository_dispatch:
+    types: [design-system-release]
+
+permissions:
+  contents: read
+
+# A newer release replaces a pending older one; the update PR only ever moves forward.
+concurrency: design-system-release
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    # Holds the app's private key; only master may use it, and repository_dispatch runs on master.
+    environment: design-system
+    env:
+      TAG: ${{ github.event.client_payload.tag }}
+    steps:
+      - name: Validate the tag
+        run: '[[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Unexpected tag: $TAG"; exit 1; }'
+
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          persist-credentials: false
+
+      # Skip a late or re-run event for a release that isn't newer than both master's version and the
+      # one an open update PR already holds: the update PR only ever moves forward.
+      - name: Is it newer than master's and the update PR's version?
+        id: newer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          version_in() { node -e 'const s = JSON.parse(require("fs").readFileSync(0, "utf8")).dependencies?.["@sefaria/design-system"] || ""; console.log(s.split("#")[1] || "")'; }
+          on_master=$(version_in < package.json)
+          # The branch may not exist (no open update PR); then it doesn't count.
+          on_update=$(gh api "repos/$REPO/contents/package.json?ref=design-system/update" -H "Accept: application/vnd.github.raw" 2>/dev/null | version_in || true)
+          echo "master uses ${on_master:-nothing}; the update branch has ${on_update:-nothing}; release is $TAG"
+          update=true
+          for current in "$on_master" "$on_update"; do
+            if [[ "$current" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+               [[ "$(printf '%s\n%s\n' "${current#v}" "${TAG#v}" | sort -V | tail -1)" == "${current#v}" ]]; then
+              echo "$TAG isn't newer than $current; nothing to do."
+              update=false
+            fi
+          done
+          echo "update=$update" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        if: steps.newer.outputs.update == 'true'
+        with:
+          node-version: 22
+
+      - name: Update to the release
+        if: steps.newer.outputs.update == 'true'
+        run: npm install --package-lock-only --ignore-scripts "github:Sefaria/design-system#$TAG"
+
+      # A short-lived token from the sefaria-design-system App, for this repo only. Unlike
+      # GITHUB_TOKEN, the PR it opens runs CI. Passed only to the steps that need it.
+      - name: Get the design-system app's token
+        if: steps.newer.outputs.update == 'true'
+        id: app
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
+        with:
+          app-id: ${{ vars.DESIGN_SYSTEM_APP_ID }}
+          private-key: ${{ secrets.DESIGN_SYSTEM_APP_PRIVATE_KEY }}
+          owner: Sefaria
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open or update the update PR
+        if: steps.newer.outputs.update == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
+        with:
+          token: ${{ steps.app.outputs.token }}
+          base: master
+          branch: design-system/update
+          author: ${{ steps.app.outputs.app-slug }}[bot] <${{ steps.app.outputs.app-slug }}[bot]@users.noreply.github.com>
+          committer: ${{ steps.app.outputs.app-slug }}[bot] <${{ steps.app.outputs.app-slug }}[bot]@users.noreply.github.com>
+          commit-message: "fix(design-system): update to ${{ env.TAG }}"
+          title: "fix(design-system): update to ${{ env.TAG }}"
+          body: |
+            Updates the Sefaria design system to [${{ env.TAG }}](https://github.com/Sefaria/design-system/releases/tag/${{ env.TAG }}).
+
+            **Needs one approval**, then merges itself once CI passes. It then deploys to staging, and to prod with the next promotion. A later release updates this PR, which dismisses an earlier approval.
+
+            Opened by `.github/workflows/design-system.yaml`.
+
+      # Fails the run (rather than warning) if auto-merge can't be turned on.
+      - name: Merge it once approved and CI passes
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --repo "${{ github.repository }}" --auto --squash

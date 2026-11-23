@@ -1,26 +1,18 @@
 import pytest
-from sefaria.model.schema import NonUniqueTerm
+
 from sefaria.model.abstract import SluggedAbstractMongoRecord
-
-
+from sefaria.model.schema import NonUniqueTerm
 
 pytestmark = pytest.mark.needs_linker
 
-@pytest.fixture(scope='module')
+
+@pytest.fixture(scope="module")
 def duplicate_terms():
     initial_slug = "rashiBLAHBLAH"
-    t = NonUniqueTerm({"slug": initial_slug, "titles": [{
-        "text": "Rashi",
-        "lang": "en",
-        "primary": True
-    }]})
+    t = NonUniqueTerm({"slug": initial_slug, "titles": [{"text": "Rashi", "lang": "en", "primary": True}]})
     t.save()
 
-    s = NonUniqueTerm({"slug": initial_slug, "titles": [{
-        "text": "Rashi",
-        "lang": "en",
-        "primary": True
-    }]})
+    s = NonUniqueTerm({"slug": initial_slug, "titles": [{"text": "Rashi", "lang": "en", "primary": True}]})
 
     s.save()
 

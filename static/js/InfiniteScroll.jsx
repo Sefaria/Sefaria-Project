@@ -9,7 +9,7 @@ const SCROLL_MARGIN = 300;
 
 // Weblate-managed strings (static/js/sefaria/i18n/interface/{en,he}.json). Resolved per
 // language so LoadingMessage's bilingual EnglishText/HebrewText split still works.
-const LOADING_MORE_STRING_ID = "search_page.loading_more_results";
+const LOADING_MORE_STRING_ID = 'search_page.loading_more_results';
 
 /**
  * Wraps a results list and fires `loadMore` when the user scrolls near the bottom of the
@@ -25,8 +25,15 @@ const LOADING_MORE_STRING_ID = "search_page.loading_more_results";
  *   it only when appending to an existing list, so an *initial* load (skeleton / "Searching...")
  *   is left to the parent.
  */
-const InfiniteScroll = ({ className, hasMore, isLoading, isLoadingMore, loadMore,
-                          scrollableSelector = '.content', children }) => {
+const InfiniteScroll = ({
+  className,
+  hasMore,
+  isLoading,
+  isLoadingMore,
+  loadMore,
+  scrollableSelector = '.content',
+  children,
+}) => {
   const ref = useRef(null);
   const pending = useRef(false);
 
@@ -34,14 +41,18 @@ const InfiniteScroll = ({ className, hasMore, isLoading, isLoadingMore, loadMore
   // then back off. Without this, rapid scroll events between the loadMore() call and the next
   // render (when isLoading becomes true) can dispatch duplicate page fetches.
   useEffect(() => {
-    if (!isLoading) { pending.current = false; }
+    if (!isLoading) {
+      pending.current = false;
+    }
   }, [isLoading]);
 
   useScrollNearBottom({
     getScrollCandidate: () => $(ref.current).closest(scrollableSelector)[0],
     margin: SCROLL_MARGIN,
     onNearBottom: () => {
-      if (!hasMore || isLoading || pending.current) { return; }
+      if (!hasMore || isLoading || pending.current) {
+        return;
+      }
       pending.current = true;
       loadMore();
     },
@@ -51,12 +62,13 @@ const InfiniteScroll = ({ className, hasMore, isLoading, isLoadingMore, loadMore
   return (
     <div className={className} ref={ref}>
       {children}
-      {isLoadingMore
-        ? <LoadingMessage
-            className="searchLoadMore"
-            message={Sefaria._keyedString(LOADING_MORE_STRING_ID, "en")}
-            heMessage={Sefaria._keyedString(LOADING_MORE_STRING_ID, "he")} />
-        : null}
+      {isLoadingMore ? (
+        <LoadingMessage
+          className="searchLoadMore"
+          message={Sefaria._keyedString(LOADING_MORE_STRING_ID, 'en')}
+          heMessage={Sefaria._keyedString(LOADING_MORE_STRING_ID, 'he')}
+        />
+      ) : null}
     </div>
   );
 };

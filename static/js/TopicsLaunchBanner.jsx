@@ -1,14 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
-import TopicsLaunchBannerGraphics from "./TopicsLaunchBannerGraphics";
-import TopicsLaunchBannerMobileGraphics from "./TopicsLaunchBannerMobileGraphics";
-import { OnInView } from "./Misc";
+import React, { useEffect, useRef, useState } from 'react';
+import TopicsLaunchBannerGraphics from './TopicsLaunchBannerGraphics';
+import TopicsLaunchBannerMobileGraphics from './TopicsLaunchBannerMobileGraphics';
+import { OnInView } from './Misc';
 import Sefaria from './sefaria/sefaria';
 
 const TopicsLaunchBanner = ({ onClose }) => {
-  const bannerName = "2025-topics_launch";
+  const bannerName = '2025-topics_launch';
   const bannerKey = `banner_${bannerName}`;
 
-  const [bannerVisibility, setBannerVisibility] = useState("hidden");
+  const [bannerVisibility, setBannerVisibility] = useState('hidden');
   const [shouldRender, setShouldRender] = useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
 
@@ -16,25 +16,25 @@ const TopicsLaunchBanner = ({ onClose }) => {
   const desktopButtonRef = useRef(null);
   const mobileButtonRef = useRef(null);
 
-  const bannerVisibilityRef = useRef("hidden");
+  const bannerVisibilityRef = useRef('hidden');
 
   const markBannerAsHasBeenInteractedWith = () => {
-    sessionStorage.setItem(bannerKey, "true");
+    sessionStorage.setItem(bannerKey, 'true');
   };
 
   const hasBannerBeenInteractedWith = () => {
-    return sessionStorage.getItem(bannerKey) === "true";
+    return sessionStorage.getItem(bannerKey) === 'true';
   };
 
   const trackBannerInteraction = (eventDescription) => {
-    gtag("event", `banner_interacted_with_${eventDescription}`, {
+    gtag('event', `banner_interacted_with_${eventDescription}`, {
       campaignID: bannerName,
-      adType: "banner",
+      adType: 'banner',
     });
   };
 
   const trackBannerImpression = () => {
-    gtag("event", "banner_viewed", {
+    gtag('event', 'banner_viewed', {
       campaignID: bannerName,
       adType: bannerName,
     });
@@ -42,10 +42,10 @@ const TopicsLaunchBanner = ({ onClose }) => {
 
   const shouldShow = () => {
     return (
-      Sefaria.interfaceLang !== "hebrew" &&
+      Sefaria.interfaceLang !== 'hebrew' &&
       !hasBannerBeenInteractedWith() &&
-      window.location.pathname !== "/topics" &&
-      !window.location.pathname.startsWith("/sheets")
+      window.location.pathname !== '/topics' &&
+      !window.location.pathname.startsWith('/sheets')
     );
   };
 
@@ -72,37 +72,36 @@ const TopicsLaunchBanner = ({ onClose }) => {
   const closeBanner = (eventDescription) => {
     if (onClose) onClose();
 
-    setBannerVisibility("hidden");
+    setBannerVisibility('hidden');
 
     trackBannerInteraction(eventDescription);
   };
-
 
   useEffect(() => {
     const bannerElement = bannerRef.current;
 
     if (bannerElement) {
       const handleTransitionEnd = (event) => {
-        if (event.propertyName === "height") {
-          if (bannerVisibility === "") {
+        if (event.propertyName === 'height') {
+          if (bannerVisibility === '') {
             restartButtonAnimations();
           }
 
-          if (bannerVisibility === "hidden") {
+          if (bannerVisibility === 'hidden') {
             setHasInteractedWithBanner(true);
             markBannerAsHasBeenInteractedWith();
 
-            if (document.body.classList.contains("hasBannerMessage")) {
-              document.body.classList.remove("hasBannerMessage");
+            if (document.body.classList.contains('hasBannerMessage')) {
+              document.body.classList.remove('hasBannerMessage');
             }
           }
         }
       };
 
-      bannerElement.addEventListener("transitionend", handleTransitionEnd);
+      bannerElement.addEventListener('transitionend', handleTransitionEnd);
 
       return () => {
-        bannerElement.removeEventListener("transitionend", handleTransitionEnd);
+        bannerElement.removeEventListener('transitionend', handleTransitionEnd);
       };
     }
   }, [bannerVisibility]);
@@ -112,11 +111,11 @@ const TopicsLaunchBanner = ({ onClose }) => {
       setShouldRender(true);
 
       const timeoutId = setTimeout(() => {
-        if (document.getElementById("s2")?.classList.contains("headerOnly")) {
-          document.body.classList.add("hasBannerMessage");
+        if (document.getElementById('s2')?.classList.contains('headerOnly')) {
+          document.body.classList.add('hasBannerMessage');
         }
 
-        setBannerVisibility("");
+        setBannerVisibility('');
       }, 2000);
 
       return () => clearTimeout(timeoutId);
@@ -132,16 +131,19 @@ const TopicsLaunchBanner = ({ onClose }) => {
       <div id="bannerMessage" className={bannerVisibility} ref={bannerRef}>
         <div id="topicsLaunchBanner">
           <TopicsLaunchBannerGraphics
-            onExploreButtonClick={() => closeBanner("banner_button_clicked")}
+            onExploreButtonClick={() => closeBanner('banner_button_clicked')}
             buttonRef={desktopButtonRef}
           />
           <TopicsLaunchBannerMobileGraphics
-            onExploreButtonClick={() => closeBanner("banner_button_clicked")}
+            onExploreButtonClick={() => closeBanner('banner_button_clicked')}
             buttonRef={mobileButtonRef}
           />
         </div>
-        <div id="topicsLaunchBannerMessageClose" onClick={() => closeBanner("close_clicked")}>
-          <img src="/static/img/topics-launch-banner-close-button-final.svg" alt={Sefaria._("topics_launch_banner.close_banner")} />
+        <div id="topicsLaunchBannerMessageClose" onClick={() => closeBanner('close_clicked')}>
+          <img
+            src="/static/img/topics-launch-banner-close-button-final.svg"
+            alt={Sefaria._('topics_launch_banner.close_banner')}
+          />
         </div>
       </div>
     </OnInView>

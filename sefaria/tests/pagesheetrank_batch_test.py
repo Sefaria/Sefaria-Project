@@ -7,6 +7,7 @@ socketTimeoutMS (300s), so the weekly reindex died with
 pymongo.errors.NetworkTimeout after ~12h and lost the entire run's work
 before ever reaching Elasticsearch.
 """
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -34,7 +35,7 @@ def captured_batches(monkeypatch):
 
 
 def test_writes_are_split_into_bounded_batches(captured_batches):
-    data = {"Ref {}".format(i): float(i) for i in range(25001)}
+    data = {f"Ref {i}": float(i) for i in range(25001)}
 
     result = pagesheetrank._bulk_write_pagesheetranks(data, batch_size=10000)
 
@@ -45,9 +46,7 @@ def test_writes_are_split_into_bounded_batches(captured_batches):
 
 
 def test_batches_are_unordered(captured_batches):
-    pagesheetrank._bulk_write_pagesheetranks(
-        {"Ref {}".format(i): float(i) for i in range(5)}, batch_size=2
-    )
+    pagesheetrank._bulk_write_pagesheetranks({f"Ref {i}": float(i) for i in range(5)}, batch_size=2)
     assert all(c["ordered"] is False for c in captured_batches)
 
 
@@ -110,14 +109,10 @@ class TestEnsureRefDataIndex:
     def test_runs_before_any_expensive_work(self, monkeypatch):
         """Ordering is the whole point -- the guard is worthless after the walk."""
         order = []
-        monkeypatch.setattr(pagesheetrank, "_ensure_ref_data_index",
-                            lambda: order.append("ensure_index"))
-        monkeypatch.setattr(pagesheetrank, "calculate_pagerank",
-                            lambda: order.append("pagerank") or {})
-        monkeypatch.setattr(pagesheetrank, "calculate_sheetrank",
-                            lambda: order.append("sheetrank") or {})
-        monkeypatch.setattr(pagesheetrank, "_bulk_write_pagesheetranks",
-                            lambda d: order.append("write"))
+        monkeypatch.setattr(pagesheetrank, "_ensure_ref_data_index", lambda: order.append("ensure_index"))
+        monkeypatch.setattr(pagesheetrank, "calculate_pagerank", lambda: order.append("pagerank") or {})
+        monkeypatch.setattr(pagesheetrank, "calculate_sheetrank", lambda: order.append("sheetrank") or {})
+        monkeypatch.setattr(pagesheetrank, "_bulk_write_pagesheetranks", lambda d: order.append("write"))
 
         pagesheetrank.update_pagesheetrank()
 
@@ -127,9 +122,7 @@ class TestEnsureRefDataIndex:
 def test_each_op_upserts_by_ref(captured_batches):
     pagesheetrank._bulk_write_pagesheetranks({"Genesis 1:1": 3.5}, batch_size=10)
 
-    op = captured_batches[0]["ops"][0]._doc if hasattr(
-        captured_batches[0]["ops"][0], "_doc"
-    ) else None
+    op = captured_batches[0]["ops"][0]._doc if hasattr(captured_batches[0]["ops"][0], "_doc") else None
     # UpdateOne internals vary across pymongo versions; assert on the public repr
     rendered = repr(captured_batches[0]["ops"][0])
     assert "Genesis 1:1" in rendered

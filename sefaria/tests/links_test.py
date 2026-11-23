@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """get_links client-format behavior, against a tiny synthetic library.
 
 These used to query the full dump (Exodus plus every linked book). That is a
@@ -7,14 +6,15 @@ here are the same behaviors: range union, category filter, exclusion of
 Talmud-perek / parasha anchors, and real version metadata when a linked
 segment is empty.
 """
-import pytest
+
 from unittest.mock import patch
 
-from sefaria.client.wrapper import get_links
-from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
-from sefaria.model.legacy_text import TextFamily
-from sefaria.model import Index, IndexSet, Link, LinkSet, Ref, VersionSet, VersionState, library
+import pytest
 
+from sefaria.client.wrapper import get_links
+from sefaria.helper.text import get_parasha_ref_set, get_talmud_perek_ref_set
+from sefaria.model import Index, IndexSet, Link, LinkSet, Ref, VersionSet, VersionState, library
+from sefaria.model.legacy_text import TextFamily
 
 BASE = "Synth GetLinks Base"
 COMMENTARY = "Synth GetLinks Commentary"
@@ -67,12 +67,14 @@ def _save_text(title, chapter):
 
 
 def _save_link(left, right, link_type):
-    Link({
-        "auto": True,
-        "generated_by": GENERATED_BY,
-        "type": link_type,
-        "refs": [left, right],
-    }).save()
+    Link(
+        {
+            "auto": True,
+            "generated_by": GENERATED_BY,
+            "type": link_type,
+            "refs": [left, right],
+        }
+    ).save()
 
 
 @pytest.fixture
@@ -80,7 +82,8 @@ def synth_get_links_library():
     _delete_synth()
     _save_index(BASE, "בסיס סינתטי", ["Liturgy"])
     _save_index(
-        COMMENTARY, "פירוש סינתטי",
+        COMMENTARY,
+        "פירוש סינתטי",
         ["Liturgy", "Haggadah", "Commentary"],
         dependence="commentary",
         base_text_titles=[BASE],
@@ -106,7 +109,6 @@ def synth_get_links_library():
 
 @pytest.mark.needs_mongo
 class Test_get_links:
-
     def test_get_links_on_range(self, synth_get_links_library):
         r3 = [l["ref"] + l["type"] for l in get_links(f"{BASE} 1:3", with_text=False)]
         r4 = [l["ref"] + l["type"] for l in get_links(f"{BASE} 1:4", with_text=False)]
@@ -136,30 +138,38 @@ class Test_get_links:
     @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_excludes_talmud_perek_refs(self, mock_collections, synth_get_links_library):
         perek = f"{BASE} 1:3"
-        with patch("sefaria.client.wrapper.get_talmud_perek_ref_set", return_value=frozenset({perek})), \
-             patch("sefaria.client.wrapper.get_parasha_ref_set", return_value=frozenset()):
+        with (
+            patch("sefaria.client.wrapper.get_talmud_perek_ref_set", return_value=frozenset({perek})),
+            patch("sefaria.client.wrapper.get_parasha_ref_set", return_value=frozenset()),
+        ):
             links = get_links(perek, with_text=False)
         assert perek not in {l["anchorRef"] for l in links}
 
     @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_excludes_parasha_refs(self, mock_collections, synth_get_links_library):
         parasha = f"{BASE} 1:3"
-        with patch("sefaria.client.wrapper.get_talmud_perek_ref_set", return_value=frozenset()), \
-             patch("sefaria.client.wrapper.get_parasha_ref_set", return_value=frozenset({parasha})):
+        with (
+            patch("sefaria.client.wrapper.get_talmud_perek_ref_set", return_value=frozenset()),
+            patch("sefaria.client.wrapper.get_parasha_ref_set", return_value=frozenset({parasha})),
+        ):
             links = get_links(parasha, with_text=False)
         assert parasha not in {l["anchorRef"] for l in links}
 
     @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_without_exclusion_would_include_perek_refs(self, mock_collections, synth_get_links_library):
         perek = f"{BASE} 1:3"
-        with patch("sefaria.client.wrapper.get_talmud_perek_ref_set", return_value=frozenset()), \
-             patch("sefaria.client.wrapper.get_parasha_ref_set", return_value=frozenset()):
+        with (
+            patch("sefaria.client.wrapper.get_talmud_perek_ref_set", return_value=frozenset()),
+            patch("sefaria.client.wrapper.get_parasha_ref_set", return_value=frozenset()),
+        ):
             links = get_links(perek, with_text=False)
         assert perek in {l["anchorRef"] for l in links}
         assert links
 
     @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
-    def test_get_links_version_metadata_is_real_even_without_content_at_position(self, mock_collections, synth_get_links_library):
+    def test_get_links_version_metadata_is_real_even_without_content_at_position(
+        self, mock_collections, synth_get_links_library
+    ):
         """A linked segment can be empty in a chapter that still has a real version.
 
         get_links() should report that version's metadata, not invent one and not
@@ -178,7 +188,7 @@ class Test_get_links:
 
 
 @pytest.mark.needs_corpus
-class Test_get_links_real_library():
+class Test_get_links_real_library:
     """Original real-library versions of Test_get_links, restored from master.
 
     These exercise get_links() against the full restored corpus (Exodus and
@@ -188,30 +198,30 @@ class Test_get_links_real_library():
 
     def test_get_links_on_range(self):
         r3 = [l["ref"] + l["type"] for l in get_links("Exodus 2:3")]
-        r4 = [l["ref"] + l["type"]  for l in get_links("Exodus 2:4")]
-        r34 = [l["ref"] + l["type"]  for l in get_links("Exodus 2:3-4")]
+        r4 = [l["ref"] + l["type"] for l in get_links("Exodus 2:4")]
+        r34 = [l["ref"] + l["type"] for l in get_links("Exodus 2:3-4")]
 
         # All links in first segment present in range
-        assert all([r in r34 for r in r3])
+        assert all(r in r34 for r in r3)
         # All links in second segment present in range
-        assert all([r in r34 for r in r4])
+        assert all(r in r34 for r in r4)
         # No links in range absent from segments
         assert all(r in r3 or r in r4 for r in r34)
 
-    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_filtered_by_single_category(self, mock_collections):
         links = get_links("Exodus 1:12", with_text=False, categories=["Commentary"])
         assert len(links) > 0
         assert all(link["category"] == "Commentary" for link in links)
 
-    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_filtered_by_multiple_categories(self, mock_collections):
         allowed_categories = {"Commentary", "Midrash"}
         links = get_links("Exodus 1:12", with_text=False, categories=list(allowed_categories))
         assert len(links) > 0
         assert all(link["category"] in allowed_categories for link in links)
 
-    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_excludes_talmud_perek_refs(self, mock_collections):
         """Links whose anchor ref is a Talmud perek ref should be excluded from results."""
         perek_refs = get_talmud_perek_ref_set()
@@ -231,7 +241,7 @@ class Test_get_links_real_library():
             f"Perek ref {perek_ref_with_links} should be excluded from link anchor refs"
         )
 
-    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_excludes_parasha_refs(self, mock_collections):
         """Links whose anchor ref is a parasha ref should be excluded from results."""
         parasha_refs = get_parasha_ref_set()
@@ -251,7 +261,7 @@ class Test_get_links_real_library():
             f"Parasha ref {parasha_ref_with_links} should be excluded from link anchor refs"
         )
 
-    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_version_metadata_is_real_even_without_content_at_position(self, mock_collections):
         """
         A link can have no content at its own specific position, in a chapter that otherwise has
@@ -272,7 +282,7 @@ class Test_get_links_real_library():
             )
 
     @pytest.mark.skip(reason="flaky after CI job retry corruption")
-    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
     def test_get_links_without_exclusion_would_include_perek_refs(self, mock_collections):
         """Verify that without the filtering, perek refs would appear — confirming the filter is necessary."""
         perek_refs = get_talmud_perek_ref_set()
@@ -286,8 +296,10 @@ class Test_get_links_real_library():
         assert perek_ref_with_links is not None, "Could not find a perek ref with links for testing"
 
         # Patch both ref sets to be empty, disabling the filter
-        with patch('sefaria.client.wrapper.get_talmud_perek_ref_set', return_value=frozenset()), \
-             patch('sefaria.client.wrapper.get_parasha_ref_set', return_value=frozenset()):
+        with (
+            patch("sefaria.client.wrapper.get_talmud_perek_ref_set", return_value=frozenset()),
+            patch("sefaria.client.wrapper.get_parasha_ref_set", return_value=frozenset()),
+        ):
             links_unfiltered = get_links(perek_ref_with_links, with_text=False)
 
         anchor_refs_unfiltered = {l["anchorRef"] for l in links_unfiltered}
@@ -297,8 +309,7 @@ class Test_get_links_real_library():
 
 
 @pytest.mark.needs_corpus
-class Test_links_from_get_text():
-
+class Test_links_from_get_text:
     def test_links_from_padded_ref(self):
         t1 = TextFamily(Ref("Exodus ")).contents()
         t2 = TextFamily(Ref("Exodus 1")).contents()

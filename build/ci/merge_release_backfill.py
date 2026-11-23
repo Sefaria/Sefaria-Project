@@ -53,7 +53,7 @@ def merge(shipped_stories_data, backfill_stories):
 def build_arg_parser():
     parser = argparse.ArgumentParser(
         description="Merge reconcile_deploy_ready.py's current-release backfill stories "
-                     "into shipped_stories.py's own output, before the release-notes prose step runs.",
+        "into shipped_stories.py's own output, before the release-notes prose step runs.",
     )
     parser.add_argument("--shipped-stories-out", required=True, help="Path to shipped_stories.py's own --out file")
     parser.add_argument("--reconcile-report", required=True, help="Path to reconcile_deploy_ready.py's own --out file")
@@ -88,8 +88,10 @@ def main():
         f.write("\n")
 
     if added_ids:
-        print(f"Merged {len(added_ids)} backfilled stor{'y' if len(added_ids) == 1 else 'ies'} "
-              f"that shipped in the current release: {added_ids}")
+        print(
+            f"Merged {len(added_ids)} backfilled stor{'y' if len(added_ids) == 1 else 'ies'} "
+            f"that shipped in the current release: {added_ids}"
+        )
     else:
         print("No backfilled stories belong to the current release -- nothing to merge.")
 

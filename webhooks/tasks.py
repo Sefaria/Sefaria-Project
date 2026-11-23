@@ -63,14 +63,10 @@ def retry_countdown_seconds(retries_so_far: int) -> int:
     reject_on_worker_lost=True,
     ignore_result=True,
 )
-def process_event_indicating_person_is_donor_task(
-    self: Any, serialized_event: dict
-) -> None:
+def process_event_indicating_person_is_donor_task(self: Any, serialized_event: dict) -> None:
     event = deserialize_event(serialized_event)
     try:
-        process_event_indicating_person_is_donor(
-            event, look_up_classy_supporter_email_address
-        )
+        process_event_indicating_person_is_donor(event, look_up_classy_supporter_email_address)
     except TRANSIENT_ERRORS as error:
         if self.request.retries >= self.max_retries:
             logger.error(
@@ -92,6 +88,4 @@ def process_event_indicating_person_is_donor_task(
             error_type=type(error).__name__,
             attempt=self.request.retries + 1,
         )
-        raise self.retry(
-            exc=error, countdown=retry_countdown_seconds(self.request.retries)
-        )
+        raise self.retry(exc=error, countdown=retry_countdown_seconds(self.request.retries))

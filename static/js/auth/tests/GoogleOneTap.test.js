@@ -6,7 +6,11 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import GoogleOneTap from '../GoogleOneTap.jsx';
 import {
-  fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
+  fireFlowStarted,
+  fireMethodChosen,
+  fireProcessStarted,
+  fireProcessEnded,
+  fireFlowEnded,
   AUTH_METHOD,
 } from '../authAnalytics';
 import { makeUuid } from '../utils';
@@ -30,18 +34,24 @@ let container = null;
 function mount(props = { googleClientId: 'gid' }) {
   container = document.createElement('div');
   document.body.appendChild(container);
-  act(() => { ReactDOM.render(React.createElement(GoogleOneTap, props), container); });
+  act(() => {
+    ReactDOM.render(React.createElement(GoogleOneTap, props), container);
+  });
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
 
 // Fires the 1200ms internal delay before GoogleOneTap.jsx calls initialize()/prompt() at all.
 function flushInitialDelay() {
-  act(() => { jest.advanceTimersByTime(1200); });
+  act(() => {
+    jest.advanceTimersByTime(1200);
+  });
 }
 
 function getCredentialCallback() {
@@ -70,7 +80,9 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn(() => new Promise(() => {})); // never resolves within this test
     const credentialCallback = getCredentialCallback();
 
-    act(() => { credentialCallback({ credential: 'tok' }); });
+    act(() => {
+      credentialCallback({ credential: 'tok' });
+    });
 
     expect(fireFlowStarted).toHaveBeenCalledWith('id-1', 'one_tap_widget', 'one_tap_login');
     expect(fireMethodChosen).toHaveBeenCalledWith('id-1', 'id-2', AUTH_METHOD.GOOGLE_ONE_TAP);
@@ -84,12 +96,17 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn(() => new Promise(() => {}));
     const credentialCallback = getCredentialCallback();
 
-    act(() => { credentialCallback({ credential: 'tok' }); });
+    act(() => {
+      credentialCallback({ credential: 'tok' });
+    });
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/auth/google/callback', expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify({ id_token: 'tok' }),
-    }));
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/auth/google/callback',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ id_token: 'tok' }),
+      })
+    );
   });
 
   it('reports success and threads the backend-provided outcome once our backend confirms the token', async () => {
@@ -98,7 +115,9 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ outcome: 'existing_user_login' }) });
     const credentialCallback = getCredentialCallback();
 
-    await act(async () => { await credentialCallback({ credential: 'tok' }); });
+    await act(async () => {
+      await credentialCallback({ credential: 'tok' });
+    });
 
     expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'success', null, 'existing_user_login');
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'success', null, 'existing_user_login');
@@ -110,7 +129,9 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ error: 'invalid_token' }) });
     const credentialCallback = getCredentialCallback();
 
-    await act(async () => { await credentialCallback({ credential: 'tok' }); });
+    await act(async () => {
+      await credentialCallback({ credential: 'tok' });
+    });
 
     expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'failure', 'invalid_token', null);
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'invalid_token', null);
@@ -122,7 +143,9 @@ describe('handleCredential (fires on click — the credential callback — not o
     global.fetch = jest.fn().mockRejectedValue(new Error('offline'));
     const credentialCallback = getCredentialCallback();
 
-    await act(async () => { await credentialCallback({ credential: 'tok' }); });
+    await act(async () => {
+      await credentialCallback({ credential: 'tok' });
+    });
 
     expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'failure', 'network_error');
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'network_error');
@@ -143,7 +166,9 @@ describe('no engagement', () => {
 });
 
 describe('auth path guard', () => {
-  afterEach(() => { window.history.pushState({}, '', '/'); });
+  afterEach(() => {
+    window.history.pushState({}, '', '/');
+  });
 
   it('never shows One Tap if already on an auth path at mount (no timer even scheduled)', () => {
     window.history.pushState({}, '', '/login');
@@ -159,7 +184,9 @@ describe('auth path guard', () => {
     // remounting GoogleOneTap, so the mount-time-only check above can't catch this — the
     // pending timer has to re-check the path itself before it fires.
     mount();
-    act(() => { window.history.pushState({}, '', '/login'); });
+    act(() => {
+      window.history.pushState({}, '', '/login');
+    });
     flushInitialDelay();
 
     expect(window.google.accounts.id.initialize).not.toHaveBeenCalled();
@@ -168,10 +195,31 @@ describe('auth path guard', () => {
 
   it('still shows One Tap when navigation during the delay lands somewhere that is not an auth path', () => {
     mount();
-    act(() => { window.history.pushState({}, '', '/texts/Genesis'); });
+    act(() => {
+      window.history.pushState({}, '', '/texts/Genesis');
+    });
     flushInitialDelay();
 
     expect(window.google.accounts.id.prompt).toHaveBeenCalled();
+  });
+});
+
+describe('another Google sign-in button on the page', () => {
+  afterEach(() => {
+    document.querySelectorAll('.sefaria-provider-sdk-overlay').forEach((el) => el.remove());
+  });
+
+  it("does not show One Tap, which would take over that button's sign-in", () => {
+    // Google's real button is placed over a .sefaria-provider-sdk-overlay (useSsoSignIn.jsx),
+    // e.g. by the Library Assistant's sign-up options.
+    const overlay = document.createElement('div');
+    overlay.className = 'sefaria-provider-sdk-overlay';
+    document.body.appendChild(overlay);
+    mount();
+    flushInitialDelay();
+
+    expect(window.google.accounts.id.initialize).not.toHaveBeenCalled();
+    expect(window.google.accounts.id.prompt).not.toHaveBeenCalled();
   });
 });
 

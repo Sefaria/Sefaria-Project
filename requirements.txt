@@ -412,3 +412,4 @@ setuptools==69.5.1
 Pympler==1.1
 kubernetes==31.0.0
 mongomock==4.3.0
+ruff==0.17.0

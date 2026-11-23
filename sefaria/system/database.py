@@ -2,11 +2,13 @@
 database.py -- connection to MongoDB
 The system attribute _called_from_test is set in the py.test conftest.py file
 """
+
 import sys
 import threading
+import urllib.parse
+
 import pymongo
 from pymongo import monitoring
-import urllib.parse
 from pymongo.errors import OperationFailure
 
 from sefaria.settings import *
@@ -37,46 +39,49 @@ class QueryCounter(monitoring.CommandListener):
         # stack trace and keep it in `queries` until the process exits.
         if self.tracked_commands is not None and event.command_name in self.tracked_commands:
             import traceback
+
             QueryCounter.count += 1
-            QueryCounter.queries.append({
-                'command': event.command_name,
-                'collection': event.command.get(event.command_name),
-                'traceback': ''.join(traceback.format_stack()[-6:-1])
-            })
+            QueryCounter.queries.append(
+                {
+                    "command": event.command_name,
+                    "collection": event.command.get(event.command_name),
+                    "traceback": "".join(traceback.format_stack()[-6:-1]),
+                }
+            )
 
         if QueryCounter.current_nodeid is None:
             return
         cmd = event.command_name
-        collection = event.command.get('collection') or event.command.get(cmd)
+        collection = event.command.get("collection") or event.command.get(cmd)
         filt = None
         insert_ids = None
-        if cmd == 'find':
-            filt = event.command.get('filter')
-        elif cmd == 'aggregate':
-            filt = event.command.get('pipeline')
-        elif cmd in ('count', 'distinct'):
-            filt = event.command.get('query') or event.command.get('filter')
-        elif cmd == 'update':
-            updates = event.command.get('updates') or []
-            filt = [u.get('q') for u in updates] or None
-        elif cmd == 'delete':
-            deletes = event.command.get('deletes') or []
-            filt = [d.get('q') for d in deletes] or None
-        elif cmd == 'findAndModify':
-            filt = event.command.get('query')
-        elif cmd == 'insert':
-            docs = event.command.get('documents') or []
-            insert_ids = [str(d.get('_id')) for d in docs if isinstance(d, dict) and '_id' in d]
+        if cmd == "find":
+            filt = event.command.get("filter")
+        elif cmd == "aggregate":
+            filt = event.command.get("pipeline")
+        elif cmd in ("count", "distinct"):
+            filt = event.command.get("query") or event.command.get("filter")
+        elif cmd == "update":
+            updates = event.command.get("updates") or []
+            filt = [u.get("q") for u in updates] or None
+        elif cmd == "delete":
+            deletes = event.command.get("deletes") or []
+            filt = [d.get("q") for d in deletes] or None
+        elif cmd == "findAndModify":
+            filt = event.command.get("query")
+        elif cmd == "insert":
+            docs = event.command.get("documents") or []
+            insert_ids = [str(d.get("_id")) for d in docs if isinstance(d, dict) and "_id" in d]
         with QueryCounter._record_lock:
             if QueryCounter.current_nodeid is None:
                 return
             QueryCounter._pending[event.request_id] = {
-                'nodeid': QueryCounter.current_nodeid,
-                'phase': QueryCounter.current_phase,
-                'command': cmd,
-                'collection': collection,
-                'filter': filt,
-                'insert_ids': insert_ids,
+                "nodeid": QueryCounter.current_nodeid,
+                "phase": QueryCounter.current_phase,
+                "command": cmd,
+                "collection": collection,
+                "filter": filt,
+                "insert_ids": insert_ids,
             }
 
     def succeeded(self, event):
@@ -87,41 +92,41 @@ class QueryCounter(monitoring.CommandListener):
         if pending is None:
             return
         reply = event.reply or {}
-        cmd = pending['command']
+        cmd = pending["command"]
         doc_ids = []
         n_returned = None
-        if cmd in ('find', 'aggregate', 'getMore'):
-            cursor = reply.get('cursor', {}) or {}
-            batch = cursor.get('firstBatch')
+        if cmd in ("find", "aggregate", "getMore"):
+            cursor = reply.get("cursor", {}) or {}
+            batch = cursor.get("firstBatch")
             if batch is None:
-                batch = cursor.get('nextBatch', [])
-            doc_ids = [str(d.get('_id')) for d in batch if isinstance(d, dict) and '_id' in d]
+                batch = cursor.get("nextBatch", [])
+            doc_ids = [str(d.get("_id")) for d in batch if isinstance(d, dict) and "_id" in d]
             n_returned = len(batch)
-        elif cmd == 'insert':
-            doc_ids = pending.get('insert_ids') or []
-            n_returned = reply.get('n', len(doc_ids))
-        elif cmd in ('update', 'delete'):
-            n_returned = reply.get('n', 0)
-        elif cmd == 'findAndModify':
-            value = reply.get('value')
-            doc_ids = [str(value['_id'])] if isinstance(value, dict) and '_id' in value else []
+        elif cmd == "insert":
+            doc_ids = pending.get("insert_ids") or []
+            n_returned = reply.get("n", len(doc_ids))
+        elif cmd in ("update", "delete"):
+            n_returned = reply.get("n", 0)
+        elif cmd == "findAndModify":
+            value = reply.get("value")
+            doc_ids = [str(value["_id"])] if isinstance(value, dict) and "_id" in value else []
             n_returned = 1 if value else 0
         else:
-            n_returned = reply.get('n')
+            n_returned = reply.get("n")
 
         record = {
-            'nodeid': pending['nodeid'],
-            'phase': pending['phase'],
-            'command': cmd,
-            'collection': pending.get('collection'),
-            'filter': pending.get('filter'),
-            'doc_ids': doc_ids,
-            'n_returned': n_returned,
+            "nodeid": pending["nodeid"],
+            "phase": pending["phase"],
+            "command": cmd,
+            "collection": pending.get("collection"),
+            "filter": pending.get("filter"),
+            "doc_ids": doc_ids,
+            "n_returned": n_returned,
         }
         with QueryCounter._record_lock:
             # A command that started in an earlier phase belongs to that phase's
             # list, which end_recording() has already handed off; drop it.
-            if (pending['nodeid'], pending['phase']) == (QueryCounter.current_nodeid, QueryCounter.current_phase):
+            if (pending["nodeid"], pending["phase"]) == (QueryCounter.current_nodeid, QueryCounter.current_phase):
                 QueryCounter.recorded.append(record)
 
     def failed(self, event):
@@ -155,6 +160,7 @@ class QueryCounter(monitoring.CommandListener):
             cls._pending = {}
         return records
 
+
 def check_db_exists(db_name):
     dbnames = client.list_database_names()
     return db_name in dbnames
@@ -162,8 +168,9 @@ def check_db_exists(db_name):
 
 def connect_to_db(db_name):
     if not check_db_exists(db_name):
-        raise SystemError(f'Database {db_name} does not exist!')
+        raise SystemError(f"Database {db_name} does not exist!")
     return client[db_name]
+
 
 def get_test_db():
     return client[TEST_DB]
@@ -175,45 +182,53 @@ def get_test_db():
 # until OS TCP keepalive (~2h) notices. 5 min is 2-3x the slowest legitimate
 # query and lets AutoReconnect retry / retryReads recover quickly.
 MONGO_CLIENT_TIMEOUT_KWARGS = {
-    "socketTimeoutMS": 300_000,         # 5 min ceiling on any single socket read
-    "connectTimeoutMS": 20_000,         # pymongo default, set explicitly
-    "serverSelectionTimeoutMS": 60_000, # wait through a full replica election
+    "socketTimeoutMS": 300_000,  # 5 min ceiling on any single socket read
+    "connectTimeoutMS": 20_000,  # pymongo default, set explicitly
+    "serverSelectionTimeoutMS": 60_000,  # wait through a full replica election
 }
 
-if hasattr(sys, '_doc_build'):
+if hasattr(sys, "_doc_build"):
     db = ""
 else:
     # TEST_DB = SEFARIA_DB + "_test"
     TEST_DB = SEFARIA_DB
 
-    #If we have jsut a single instance mongo (such as for development) the MONGO_HOST param should contain jsut the host string e.g "localhost")
-    _event_listeners = [QueryCounter()] if hasattr(sys, '_called_from_test') else []
+    # If we have jsut a single instance mongo (such as for development) the MONGO_HOST param should contain jsut the host string e.g "localhost")
+    _event_listeners = [QueryCounter()] if hasattr(sys, "_called_from_test") else []
 
     if MONGO_REPLICASET_NAME is None:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD, event_listeners=_event_listeners, **MONGO_CLIENT_TIMEOUT_KWARGS)
+            client = pymongo.MongoClient(
+                MONGO_HOST,
+                MONGO_PORT,
+                username=SEFARIA_DB_USER,
+                password=SEFARIA_DB_PASSWORD,
+                event_listeners=_event_listeners,
+                **MONGO_CLIENT_TIMEOUT_KWARGS,
+            )
         else:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, event_listeners=_event_listeners, **MONGO_CLIENT_TIMEOUT_KWARGS)
-    #Else if we are using a replica set mongo, we need to connect with a URI that containts a comma separated list of 'host:port' strings
+            client = pymongo.MongoClient(
+                MONGO_HOST, MONGO_PORT, event_listeners=_event_listeners, **MONGO_CLIENT_TIMEOUT_KWARGS
+            )
+    # Else if we are using a replica set mongo, we need to connect with a URI that containts a comma separated list of 'host:port' strings
     else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             # and also escape user/pass
             username = urllib.parse.quote_plus(SEFARIA_DB_USER)
             password = urllib.parse.quote_plus(SEFARIA_DB_PASSWORD)
-            connection_uri = 'mongodb://{}:{}@{}/?ssl=false&readPreference=primaryPreferred&replicaSet={}'.format(username, password, MONGO_HOST, MONGO_REPLICASET_NAME)
+            connection_uri = f"mongodb://{username}:{password}@{MONGO_HOST}/?ssl=false&readPreference=primaryPreferred&replicaSet={MONGO_REPLICASET_NAME}"
         else:
-            connection_uri = 'mongodb://{}/?ssl=false&readPreference=primaryPreferred&replicaSet={}'.format(MONGO_HOST, MONGO_REPLICASET_NAME)
+            connection_uri = (
+                f"mongodb://{MONGO_HOST}/?ssl=false&readPreference=primaryPreferred&replicaSet={MONGO_REPLICASET_NAME}"
+            )
         # Now connect to the mongo server
         client = pymongo.MongoClient(connection_uri, event_listeners=_event_listeners, **MONGO_CLIENT_TIMEOUT_KWARGS)
 
-
-
     # Now set the db variable to point to the Sefaria database in the server
-    if not hasattr(sys, '_called_from_test'):
+    if not hasattr(sys, "_called_from_test"):
         db = connect_to_db(SEFARIA_DB)
     else:
         db = connect_to_db(TEST_DB)
-
 
 
 def drop_test():
@@ -234,128 +249,184 @@ def drop_test():
 def ensure_indices(active_db=None):
     active_db = active_db or db
     indices = [
-        ('following', ["follower"],{}),
-        ('following', ["followee"],{}),
-        ('groups', ["name"], {}),
-        ('groups', ["sheets"], {}),
-        ('groups', ["slug"], {'unique': True}),
-        ('groups', ["privateSlug"], {'unique': True}),
-        ('groups', ["members"], {}),
-        ('groups', ["admins"], {}),
-        ('history', ["revision"],{}),
-        ('history', ["method"],{}),
-        ('history', [[("ref", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]],{}),
-        ('history', ["date"],{}),
-        ('history', ["ref"],{}),
-        ('history', ["user"],{}),
-        ('history', ["rev_type"],{}),
-        ('history', ["version"],{}),
-        ('history', ["new.refs"],{}),
-        ('history', ["new.ref"],{}),
-        ('history', ["old.refs"],{}),
-        ('history', ["old.ref"],{}),
-        ('history', ["title"],{}),
-        ('index', ["title"],{}),
-        ('index_queue', [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],{'unique': True}),
-        ('index', ["categories.0"], {}),
-        ('index', ["order.0"], {}),
-        ('index', ["order.1"], {}),
+        ("following", ["follower"], {}),
+        ("following", ["followee"], {}),
+        ("groups", ["name"], {}),
+        ("groups", ["sheets"], {}),
+        ("groups", ["slug"], {"unique": True}),
+        ("groups", ["privateSlug"], {"unique": True}),
+        ("groups", ["members"], {}),
+        ("groups", ["admins"], {}),
+        ("history", ["revision"], {}),
+        ("history", ["method"], {}),
+        (
+            "history",
+            [[("ref", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]],
+            {},
+        ),
+        ("history", ["date"], {}),
+        ("history", ["ref"], {}),
+        ("history", ["user"], {}),
+        ("history", ["rev_type"], {}),
+        ("history", ["version"], {}),
+        ("history", ["new.refs"], {}),
+        ("history", ["new.ref"], {}),
+        ("history", ["old.refs"], {}),
+        ("history", ["old.ref"], {}),
+        ("history", ["title"], {}),
+        ("index", ["title"], {}),
+        (
+            "index_queue",
+            [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],
+            {"unique": True},
+        ),
+        ("index", ["categories.0"], {}),
+        ("index", ["order.0"], {}),
+        ("index", ["order.1"], {}),
         # ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}),
-        ('links', [[("refs", pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
-        ('links', ["refs.0"],{}),
-        ('links', ["refs.1"],{}),
-        ('links', ["expandedRefs0"],{}),
-        ('links', ["expandedRefs1"],{}),
-        ('links', ["source_text_oid"],{}),
-        ('links', ["is_first_comment"],{}),
-        ('links', ["inline_citation"],{}),
-        ('metrics', ["timestamp"], {'unique': True}),
-        ('media', ["ref.sefaria_ref"], {}),
-        ('notes', [[("owner", pymongo.ASCENDING), ("ref", pymongo.ASCENDING), ("public", pymongo.ASCENDING)]],{}),
-        ('notifications', [[("uid", pymongo.ASCENDING), ("read", pymongo.ASCENDING)]],{}),
-        ('notifications', ["uid"],{}),
-        ('notifications', ["content.sheet_id"], {}),
-        ('parshiot', ["date"],{}),
-        ('place', [[("point", pymongo.GEOSPHERE)]],{}),
-        ('place', [[("area", pymongo.GEOSPHERE)]],{}),
-        ('place', ["key"],{}),
-        ('person', ["key"],{}),
-        ('profiles', ["slug"],{}),
-        ('profiles', ["id"],{}),
-        ('sheets', ["id"],{}),
-        ('sheets', ["dateModified"],{}),
-        ('sheets', ["sources.ref"],{}),
-        ('sheets', ["includedRefs"],{}),
-        ('sheets', ["expandedRefs"], {}),
-        ('sheets', ["tags"],{}),
-        ('sheets', ["owner"],{}),
-        ('sheets', ["assignment_id"],{}),
-        ('sheets', ["is_featured"],{}),
-        ('sheets', ["displayedCollection"], {}),
-        ('sheets', ["sheetLanguage"], {}),
-        ('sheets', [[("views", pymongo.DESCENDING)]],{}),
-        ('sheets', ["categories"], {}),
-        ('links', [[("owner", pymongo.ASCENDING), ("date_modified", pymongo.DESCENDING)]], {}),
-        ('texts', ["title"],{}),
-        ('texts', [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]],{}),
-        ('texts', [[("versionTitle", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]],{}),
-        ('texts', ["actualLanguage"], {}),
-        ('texts', [[("digitizedBySefaria", pymongo.ASCENDING), ("title", pymongo.ASCENDING)]], {}),
-        ('topics', ["titles.text"], {}),
-        ('topic_links', ["class"], {}),
-        ('topic_links', ["expandedRefs"], {}),
-        ('topic_links', ["toTopic"], {}),
-        ('topic_links', ["fromTopic"], {}),
-        ('word_form', ["form"],{}),
-        ('word_form', ["c_form"],{}),
-        ('word_form', ["refs"], {}),
-        ('term', ["titles.text"], {'unique': True}),
-        ('term', ["category"],{}),
-        ('lexicon_entry', [[("headword", pymongo.ASCENDING), ("parent_lexicon", pymongo.ASCENDING)]],{}),
-        ('user_story', ["uid"],{}),
-        ('user_story', [[("uid", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]],{}),
-        ('user_story', [[("timestamp", pymongo.DESCENDING)]],{}),
-        ('passage', ["ref_list"],{}),
+        ("links", [[("refs", pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]], {}),
+        ("links", ["refs.0"], {}),
+        ("links", ["refs.1"], {}),
+        ("links", ["expandedRefs0"], {}),
+        ("links", ["expandedRefs1"], {}),
+        ("links", ["source_text_oid"], {}),
+        ("links", ["is_first_comment"], {}),
+        ("links", ["inline_citation"], {}),
+        ("metrics", ["timestamp"], {"unique": True}),
+        ("media", ["ref.sefaria_ref"], {}),
+        ("notes", [[("owner", pymongo.ASCENDING), ("ref", pymongo.ASCENDING), ("public", pymongo.ASCENDING)]], {}),
+        ("notifications", [[("uid", pymongo.ASCENDING), ("read", pymongo.ASCENDING)]], {}),
+        ("notifications", ["uid"], {}),
+        ("notifications", ["content.sheet_id"], {}),
+        ("parshiot", ["date"], {}),
+        ("place", [[("point", pymongo.GEOSPHERE)]], {}),
+        ("place", [[("area", pymongo.GEOSPHERE)]], {}),
+        ("place", ["key"], {}),
+        ("person", ["key"], {}),
+        ("profiles", ["slug"], {}),
+        ("profiles", ["id"], {}),
+        ("sheets", ["id"], {}),
+        ("sheets", ["dateModified"], {}),
+        ("sheets", ["sources.ref"], {}),
+        ("sheets", ["includedRefs"], {}),
+        ("sheets", ["expandedRefs"], {}),
+        # Picked by the planner for get_sheets_for_ref (public / collection / owner queries); they exist on prod.
+        (
+            "sheets",
+            [
+                [
+                    ("expandedRefs", pymongo.ASCENDING),
+                    ("status", pymongo.ASCENDING),
+                    ("group", pymongo.ASCENDING),
+                    ("views", pymongo.DESCENDING),
+                ]
+            ],
+            {},
+        ),
+        (
+            "sheets",
+            [[("expandedRefs", pymongo.ASCENDING), ("status", pymongo.ASCENDING), ("views", pymongo.DESCENDING)]],
+            {},
+        ),
+        (
+            "sheets",
+            [[("expandedRefs", pymongo.ASCENDING), ("owner", pymongo.ASCENDING), ("views", pymongo.DESCENDING)]],
+            {},
+        ),
+        ("sheets", ["tags"], {}),
+        ("sheets", ["owner"], {}),
+        ("sheets", ["assignment_id"], {}),
+        ("sheets", ["is_featured"], {}),
+        ("sheets", ["displayedCollection"], {}),
+        ("sheets", ["sheetLanguage"], {}),
+        ("sheets", [[("views", pymongo.DESCENDING)]], {}),
+        ("sheets", ["categories"], {}),
+        ("links", [[("owner", pymongo.ASCENDING), ("date_modified", pymongo.DESCENDING)]], {}),
+        ("texts", ["title"], {}),
+        ("texts", [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]], {}),
+        ("texts", [[("versionTitle", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]], {}),
+        ("texts", ["actualLanguage"], {}),
+        ("texts", [[("digitizedBySefaria", pymongo.ASCENDING), ("title", pymongo.ASCENDING)]], {}),
+        ("topics", ["titles.text"], {}),
+        ("topic_links", ["class"], {}),
+        ("topic_links", ["expandedRefs"], {}),
+        ("topic_links", ["toTopic"], {}),
+        ("topic_links", ["fromTopic"], {}),
+        ("word_form", ["form"], {}),
+        ("word_form", ["c_form"], {}),
+        ("word_form", ["refs"], {}),
+        ("term", ["titles.text"], {"unique": True}),
+        ("term", ["category"], {}),
+        ("lexicon_entry", [[("headword", pymongo.ASCENDING), ("parent_lexicon", pymongo.ASCENDING)]], {}),
+        ("user_story", ["uid"], {}),
+        ("user_story", [[("uid", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
+        ("user_story", [[("timestamp", pymongo.DESCENDING)]], {}),
+        ("passage", ["ref_list"], {}),
         # update_pagesheetrank() upserts one UpdateOne({"ref": ...}) per tref into
         # ref_data. Unindexed, each upsert is a COLLSCAN of the whole collection
         # (~1.27M docs, ~434ms each), so the weekly reindex dies on NetworkTimeout
         # long before it reaches Elasticsearch.
-        ('ref_data', ["ref"],{}),
-        ('user_history', ["uid"],{}),
-        ('user_history', ["sheet_id"],{}),
-        ('user_history', ["datetime"],{}),
-        ('user_history', ["ref"], {}),
-        ('user_history', [[("time_stamp", pymongo.DESCENDING)]], {}),
-        ('user_history', [[("uid", pymongo.ASCENDING), ("server_time_stamp", pymongo.ASCENDING)]], {}),
-        ('user_history', [[("uid", pymongo.ASCENDING), ("saved", pymongo.ASCENDING)]], {}),
-        ('user_history', [[("uid", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]], {}),
-        ('user_history', [[("uid", pymongo.ASCENDING), ("book", pymongo.ASCENDING), ("last_place", pymongo.ASCENDING)]], {}),
-        ('user_history', [[("uid", pymongo.ASCENDING), ("secondary", pymongo.ASCENDING), ("last_place", pymongo.ASCENDING), ("time_stamp", pymongo.ASCENDING)]], {}),
-        ('user_history', [[("uid", pymongo.ASCENDING), ("secondary", pymongo.ASCENDING), ("time_stamp", pymongo.ASCENDING)]], {}),
-        ('trend', ["name"],{}),
-        ('trend', ["uid"],{}),
-        ('webpages', ["refs"],{}),
-        ('webpages', ["expandedRefs"],{}),
-        ('websites', ["domains"], {}),
-        ('manuscript_pages', ['expanded_refs'], {}),
-        ('manuscript_pages', [[("manuscript_slug", pymongo.ASCENDING), ("page_id", pymongo.ASCENDING)]], {'unique': True}),
-        ('manuscripts', ['slug'], {}),
-        ('manuscripts', ['title'], {}),
-        ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
-        ('vstate', ["title"], {}),
-        ('vstate', ["flags.enComplete"], {}),
-        ('guide', ["expanded_refs"], {}),
-        ('topics', ["parasha"], {}),
-        ('webpages_text', ["url"], {}),
-        ('linker_editor_history', ["uid"], {}),
-        ('linker_editor_history', ["action"], {}),
-        ('linker_editor_history', ["index_title"], {}),
-        ('linker_editor_history', ["slug"], {}),
-        ('linker_editor_history', ["created"], {}),
+        ("ref_data", ["ref"], {}),
+        ("user_history", ["uid"], {}),
+        ("user_history", ["sheet_id"], {}),
+        ("user_history", ["datetime"], {}),
+        ("user_history", ["ref"], {}),
+        ("user_history", [[("time_stamp", pymongo.DESCENDING)]], {}),
+        ("user_history", [[("uid", pymongo.ASCENDING), ("server_time_stamp", pymongo.ASCENDING)]], {}),
+        ("user_history", [[("uid", pymongo.ASCENDING), ("saved", pymongo.ASCENDING)]], {}),
+        ("user_history", [[("uid", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]], {}),
+        (
+            "user_history",
+            [[("uid", pymongo.ASCENDING), ("book", pymongo.ASCENDING), ("last_place", pymongo.ASCENDING)]],
+            {},
+        ),
+        (
+            "user_history",
+            [
+                [
+                    ("uid", pymongo.ASCENDING),
+                    ("secondary", pymongo.ASCENDING),
+                    ("last_place", pymongo.ASCENDING),
+                    ("time_stamp", pymongo.ASCENDING),
+                ]
+            ],
+            {},
+        ),
+        (
+            "user_history",
+            [[("uid", pymongo.ASCENDING), ("secondary", pymongo.ASCENDING), ("time_stamp", pymongo.ASCENDING)]],
+            {},
+        ),
+        ("trend", ["name"], {}),
+        ("trend", ["uid"], {}),
+        ("webpages", ["refs"], {}),
+        ("webpages", [[("expandedRefs", pymongo.ASCENDING), ("lastUpdated", pymongo.DESCENDING)]], {}),
+        ("webpages", ["lastUpdated"], {}),
+        ("websites", ["domains"], {}),
+        ("manuscript_pages", ["expanded_refs"], {}),
+        (
+            "manuscript_pages",
+            [[("manuscript_slug", pymongo.ASCENDING), ("page_id", pymongo.ASCENDING)]],
+            {"unique": True},
+        ),
+        ("manuscripts", ["slug"], {}),
+        ("manuscripts", ["title"], {}),
+        ("messages", [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
+        ("vstate", ["title"], {}),
+        ("vstate", ["flags.enComplete"], {}),
+        ("guide", ["expanded_refs"], {}),
+        ("topics", ["parasha"], {}),
+        ("webpages_text", ["url"], {}),
+        ("linker_editor_history", ["uid"], {}),
+        ("linker_editor_history", ["action"], {}),
+        ("linker_editor_history", ["index_title"], {}),
+        ("linker_editor_history", ["slug"], {}),
+        ("linker_editor_history", ["created"], {}),
+        ("developer_confirmation_throttle", ["uid"], {"unique": True}),
     ]
 
     for col, args, kwargs in indices:
         try:
             getattr(active_db, col).create_index(*args, **kwargs)
         except OperationFailure as e:
-            print("Collection: {}, args: {}, kwargs: {}\n{}".format(col, args, kwargs, e))
+            print(f"Collection: {col}, args: {args}, kwargs: {kwargs}\n{e}")

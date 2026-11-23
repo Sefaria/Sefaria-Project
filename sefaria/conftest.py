@@ -1,5 +1,5 @@
-import json
 import hashlib
+import json
 import os
 import re
 import sys
@@ -18,8 +18,9 @@ import sys
 # it only fixes when the listener gets attached.
 sys._called_from_test = True
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 _MOCK_MONGO_ENABLED = os.environ.get("SEFARIA_MOCK_MONGO") == "1"
 _MOCK_MONGO_CLIENT = None
@@ -27,7 +28,8 @@ _MOCK_MONGO_SENTINEL = "__sefaria_mock_mongo_bootstrap__"
 # SEFARIA_MONGO_FIXTURE_DIR lets the re-record proof verify freshly written
 # fixtures in a temp dir; the base, the overlays and _shapes.json all come from it.
 _MONGO_FIXTURE_DIR = os.environ.get("SEFARIA_MONGO_FIXTURE_DIR") or os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "tests", "fixtures", "mongo")
+    os.path.dirname(os.path.abspath(__file__)), "tests", "fixtures", "mongo"
+)
 _MONGO_BASE_FIXTURE = os.path.join(_MONGO_FIXTURE_DIR, "_base.json")
 _SHAPES_FILE = os.path.join(_MONGO_FIXTURE_DIR, "_shapes.json")
 # check (default): fail a needs_mongo test that touches Mongo beyond its recorded shape;
@@ -41,8 +43,8 @@ _written_shapes = {}
 # so this must land first). Only takes effect when SEFARIA_TEST_MONGO=1; every
 # other env keeps loading Mongo settings from local_settings.py as normal.
 if os.environ.get("SEFARIA_TEST_MONGO") == "1":
-    from sefaria import settings as _sefaria_settings
     from sefaria import local_settings_pytest as _pytest_mongo_settings
+    from sefaria import settings as _sefaria_settings
 
     if _pytest_mongo_settings.MONGO_HOST not in ("127.0.0.1", "localhost"):
         raise RuntimeError(
@@ -51,9 +53,7 @@ if os.environ.get("SEFARIA_TEST_MONGO") == "1":
             "against a shared/cluster Mongo."
         )
     _sefaria_settings.MONGO_HOST = _pytest_mongo_settings.MONGO_HOST
-    _sefaria_settings.MONGO_PORT = int(
-        os.environ.get("LOCAL_TEST_MONGO_PORT", _pytest_mongo_settings.MONGO_PORT)
-    )
+    _sefaria_settings.MONGO_PORT = int(os.environ.get("LOCAL_TEST_MONGO_PORT", _pytest_mongo_settings.MONGO_PORT))
     _sefaria_settings.SEFARIA_DB = _pytest_mongo_settings.SEFARIA_DB
     _sefaria_settings.SEFARIA_DB_USER = _pytest_mongo_settings.SEFARIA_DB_USER
     _sefaria_settings.SEFARIA_DB_PASSWORD = _pytest_mongo_settings.SEFARIA_DB_PASSWORD
@@ -64,9 +64,9 @@ if os.environ.get("SEFARIA_TEST_MONGO") == "1":
 if _MOCK_MONGO_ENABLED:
     import mongomock
     from bson import json_util
-    from sefaria import settings as _sefaria_settings
 
-    from sefaria.tests.mongo_shapes import ShapeTracker, load_shapes, shape_drift, drift_message
+    from sefaria import settings as _sefaria_settings
+    from sefaria.tests.mongo_shapes import ShapeTracker, drift_message, load_shapes, shape_drift
 
     # One tracker per process: install() patches mongomock classes globally.
     _SHAPES = ShapeTracker()
@@ -105,8 +105,9 @@ _QueryCounter = None
 def _query_counter():
     global _QueryCounter
     if _QueryCounter is None:
-        from sefaria.system.database import QueryCounter as _QC
-        _QueryCounter = _QC
+        from sefaria.system import database
+
+        _QueryCounter = database.QueryCounter
     return _QueryCounter
 
 
@@ -126,7 +127,7 @@ def _recording_enabled():
 
 
 def _sanitize_nodeid(nodeid):
-    sanitized = re.sub(r'[^A-Za-z0-9_.-]', '_', nodeid)
+    sanitized = re.sub(r"[^A-Za-z0-9_.-]", "_", nodeid)
     if len(sanitized) <= 180:
         return sanitized
     digest = hashlib.sha256(nodeid.encode("utf-8")).hexdigest()[:16]
@@ -178,18 +179,18 @@ def _flush_phase():
     records = _query_counter().end_recording()
     if not records:
         return
-    nodeid = records[0]['nodeid']
+    nodeid = records[0]["nodeid"]
     os.makedirs(_ARTIFACT_DIR, exist_ok=True)
-    path = os.path.join(_ARTIFACT_DIR, _sanitize_nodeid(nodeid) + '.jsonl')
-    with open(path, 'a') as f:
+    path = os.path.join(_ARTIFACT_DIR, _sanitize_nodeid(nodeid) + ".jsonl")
+    with open(path, "a") as f:
         for r in records:
-            f.write(json.dumps(r, default=_json_default) + '\n')
-    entry = _recorder_index.setdefault(nodeid, {'commands': 0, 'collections': set(), 'total_docs': 0})
+            f.write(json.dumps(r, default=_json_default) + "\n")
+    entry = _recorder_index.setdefault(nodeid, {"commands": 0, "collections": set(), "total_docs": 0})
     for r in records:
-        entry['commands'] += 1
-        if r.get('collection'):
-            entry['collections'].add(r['collection'])
-        entry['total_docs'] += len(r.get('doc_ids') or [])
+        entry["commands"] += 1
+        if r.get("collection"):
+            entry["collections"].add(r["collection"])
+        entry["total_docs"] += len(r.get("doc_ids") or [])
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -221,7 +222,7 @@ def pytest_collection_modifyitems(session, config, items):
     # still present in _index.json (an absent .jsonl file plus a zero entry here
     # is the "made zero Mongo calls" signal, not just a missing key).
     for item in items:
-        _recorder_index.setdefault(item.nodeid, {'commands': 0, 'collections': set(), 'total_docs': 0})
+        _recorder_index.setdefault(item.nodeid, {"commands": 0, "collections": set(), "total_docs": 0})
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -229,7 +230,7 @@ def pytest_runtest_setup(item):
     if not _recording_enabled():
         yield
         return
-    _query_counter().begin_recording(item.nodeid, 'setup')
+    _query_counter().begin_recording(item.nodeid, "setup")
     yield
     _flush_phase()
 
@@ -239,7 +240,7 @@ def pytest_runtest_call(item):
     if not _recording_enabled():
         yield
         return
-    _query_counter().begin_recording(item.nodeid, 'call')
+    _query_counter().begin_recording(item.nodeid, "call")
     yield
     _flush_phase()
 
@@ -249,7 +250,7 @@ def pytest_runtest_teardown(item):
     if not _recording_enabled():
         yield
         return
-    _query_counter().begin_recording(item.nodeid, 'teardown')
+    _query_counter().begin_recording(item.nodeid, "teardown")
     yield
     _flush_phase()
 
@@ -257,12 +258,15 @@ def pytest_runtest_teardown(item):
 def _flush_shapes():
     """Merge this session's observed shapes into _shapes.json: entries not re-observed are kept."""
     from sefaria.tests.fixture_schema import schema_digests
+
     merged = {"shapes": {}}
     if os.path.isfile(_SHAPES_FILE):
         with open(_SHAPES_FILE) as f:
             merged = json.load(f)
     shapes = merged.get("shapes", {})
-    shapes.update({nodeid: {c: sorted(fields) for c, fields in cols.items()} for nodeid, cols in _written_shapes.items()})
+    shapes.update(
+        {nodeid: {c: sorted(fields) for c, fields in cols.items()} for nodeid, cols in _written_shapes.items()}
+    )
     payload = {"format": 1, "schema": schema_digests(), "shapes": shapes}
     with open(_SHAPES_FILE, "w") as f:
         json.dump(payload, f, indent=1, sort_keys=True)
@@ -277,15 +281,15 @@ def pytest_sessionfinish(session, exitstatus):
     os.makedirs(_ARTIFACT_DIR, exist_ok=True)
     serializable = {
         nodeid: {
-            'commands': v['commands'],
-            'collections': sorted(v['collections']),
-            'total_docs': v['total_docs'],
+            "commands": v["commands"],
+            "collections": sorted(v["collections"]),
+            "total_docs": v["total_docs"],
         }
         for nodeid, v in _recorder_index.items()
     }
     # Merge into any existing index rather than overwriting it: the index is the
     # union of every scoped recording run, not a snapshot of the last one.
-    index_path = os.path.join(_ARTIFACT_DIR, '_index.json')
+    index_path = os.path.join(_ARTIFACT_DIR, "_index.json")
     merged = {}
     if os.path.isfile(index_path):
         try:
@@ -294,7 +298,7 @@ def pytest_sessionfinish(session, exitstatus):
         except (ValueError, OSError):
             merged = {}
     merged.update(serializable)
-    with open(index_path, 'w') as f:
+    with open(index_path, "w") as f:
         json.dump(merged, f, indent=2, sort_keys=True)
 
 
@@ -311,11 +315,13 @@ def _build_real_mongo_library_toc():
     if _MOCK_MONGO_ENABLED:
         return
     import warnings
+
     from sefaria.model.text import library
+
     try:
         library.get_toc_tree()
     except Exception as e:  # noqa: BLE001 -- any bad record in a developer's DB
-        warnings.warn(f"Could not build the library TOC before tests: {e!r}")
+        warnings.warn(f"Could not build the library TOC before tests: {e!r}", stacklevel=2)
 
 
 # True after a needs_mongo teardown has restored the shared base but not yet
@@ -335,8 +341,10 @@ def _fixture_path_or_fail(nodeid, incomplete_ok, ci):
     # exit 0 while almost nothing ran (measured: 3 passed, 73 skipped), the
     # false-green shape this pipeline already has a history of. INCOMPLETE_OK is
     # for converting a set by hand, never CI.
-    msg = (f"SEFARIA_MOCK_MONGO=1 but no Mongo fixture exists for {nodeid}.\n"
-           f"Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py --only '{nodeid}'")
+    msg = (
+        f"SEFARIA_MOCK_MONGO=1 but no Mongo fixture exists for {nodeid}.\n"
+        f"Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py --only '{nodeid}'"
+    )
     if incomplete_ok:
         pytest.skip(msg)
     pytest.fail(msg, pytrace=False)
@@ -357,11 +365,13 @@ def reseed_mock_db(active_db, overlay_path=None, rebuild=True):
     # seed so refs resolved against a previous test's data are not reused.
     if rebuild:
         from sefaria.model.text import library
+
         library.rebuild(include_toc=True)
         _library_stale = False
     else:
         _library_stale = True
     from django.core.cache import caches
+
     for alias in _LOCMEM_CACHE_ALIASES:
         caches[alias].clear()
 
@@ -381,8 +391,11 @@ def _verify_shapes(nodeid, observed, flags, needs_corpus):
         _loaded_shapes = load_shapes(_SHAPES_FILE) or {}
     recorded = _loaded_shapes.get(nodeid)
     if recorded is None:
-        pytest.fail(f"No recorded Mongo shape for {nodeid} in {_SHAPES_FILE}.\n"
-                    f"Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py --only '{nodeid}'", pytrace=False)
+        pytest.fail(
+            f"No recorded Mongo shape for {nodeid} in {_SHAPES_FILE}.\n"
+            f"Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py --only '{nodeid}'",
+            pytrace=False,
+        )
     drift = shape_drift(observed, recorded)
     if drift or (flags and not needs_corpus):
         pytest.fail(drift_message(nodeid, drift, flags if not needs_corpus else ()), pytrace=False)
@@ -397,13 +410,15 @@ def _seed_mock_mongo(request):
     if request.node.get_closest_marker("needs_mongo") is None:
         if _library_stale:
             from sefaria.model.text import library
+
             library.rebuild(include_toc=True)
             _library_stale = False
         yield
         return
 
-    path = _fixture_path_or_fail(request.node.nodeid, os.environ.get("SEFARIA_MOCK_MONGO_INCOMPLETE_OK") == "1",
-                                 os.environ.get("CI") == "true")
+    path = _fixture_path_or_fail(
+        request.node.nodeid, os.environ.get("SEFARIA_MOCK_MONGO_INCOMPLETE_OK") == "1", os.environ.get("CI") == "true"
+    )
 
     from sefaria.system import database
 
@@ -413,8 +428,9 @@ def _seed_mock_mongo(request):
         reseed_mock_db(active_db, path)
         with _SHAPES.recording() as observed:
             yield
-        _verify_shapes(request.node.nodeid, observed, _SHAPES.flags,
-                       request.node.get_closest_marker("needs_corpus") is not None)
+        _verify_shapes(
+            request.node.nodeid, observed, _SHAPES.flags, request.node.get_closest_marker("needs_corpus") is not None
+        )
     finally:
         # Back to the session's starting state (sentinel + shared base), not an
         # empty DB: a later test in the same process that is not needs_mongo --
@@ -424,6 +440,7 @@ def _seed_mock_mongo(request):
         # _library_stale) to whichever test runs next.
         reseed_mock_db(active_db, rebuild=False)
 
+
 # Aliases the session overrides swapped to LocMemCache (see
 # sefaria/local_settings_pytest.py); _seed_mock_mongo clears them on every reseed
 # so a value cached from one test's fixture data is not read by a test seeded
@@ -431,19 +448,25 @@ def _seed_mock_mongo(request):
 _LOCMEM_CACHE_ALIASES = []
 
 
-mock_topics_pool = {'sheets_topic_only': ['sheets', 'general_en', 'torah_tab'],
- 'library_topic_only': ['library'],
- 'sheets_and_library_topic': ['library', 'sheets', 'general_en']}
+mock_topics_pool = {
+    "sheets_topic_only": ["sheets", "general_en", "torah_tab"],
+    "library_topic_only": ["library"],
+    "sheets_and_library_topic": ["library", "sheets", "general_en"],
+}
 
 
 def mock_get_pools(self):
     return mock_topics_pool.get(self.slug, [])
 
+
 _topic_pool_patch = None
+
 
 def pytest_configure(config):
     import sys
+
     import django
+
     sys._called_from_test = True
     django.setup()
 
@@ -460,6 +483,7 @@ def pytest_configure(config):
     # are skipped separately. Remove this once pgvector is reachable in CI.
     from django.conf import settings as _dj_settings
     from django.db import connections as _dj_connections
+
     _dj_settings.DATABASES.pop("vector_db", None)
     # Bust the ConnectionHandler's cached settings so the popped alias is really gone.
     _dj_connections.__dict__.pop("settings", None)
@@ -467,8 +491,9 @@ def pytest_configure(config):
     # ALLOWED_HOSTS, DummyCache -> LocMemCache, webpack-stats stubs and Varnish
     # off: every pytest-session settings override lives in one place,
     # sefaria/local_settings_pytest.py, and applies in CI and locally alike.
-    from sefaria import settings as sefaria_settings
     from sefaria import local_settings_pytest as _pytest_settings
+    from sefaria import settings as sefaria_settings
+
     _LOCMEM_CACHE_ALIASES[:] = _pytest_settings.apply_session_overrides(_dj_settings, sefaria_settings)
     for module in list(sys.modules.values()):
         if getattr(module, "USE_VARNISH", False):
@@ -478,6 +503,7 @@ def pytest_configure(config):
 
 def pytest_unconfigure(config):
     import sys
+
     global _topic_pool_patch
     if _topic_pool_patch is not None:
         _topic_pool_patch.stop()

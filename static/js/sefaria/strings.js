@@ -13,8 +13,8 @@ import interfaceHe from './i18n/interface/he.json';
 
 const Strings = {
   _i18nInterfaceStrings: {
-    en: {...interfaceEn},
-    he: {...interfaceHe},
+    en: { ...interfaceEn },
+    he: { ...interfaceHe },
   },
 };
 

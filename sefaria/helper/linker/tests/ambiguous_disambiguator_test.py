@@ -78,14 +78,11 @@ def test_ambiguous_disambiguator_integration(case):
         return
 
     if result is None:
-        assert None in expected, (
-            f"Expected one of {expected} for case {case['id']}, got None"
-        )
+        assert None in expected, f"Expected one of {expected} for case {case['id']}, got None"
         return
 
     assert result.resolved_ref in expected, (
-        f"Unexpected resolution for case {case['id']}: {result.resolved_ref} "
-        f"(expected one of {expected})"
+        f"Unexpected resolution for case {case['id']}: {result.resolved_ref} (expected one of {expected})"
     )
 
     if expected_matched:

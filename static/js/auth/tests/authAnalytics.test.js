@@ -1,8 +1,13 @@
 /* Testing done using Jest */
 import {
-  AUTH_EVENT, AUTH_METHOD, SSO_REFERRER_ORIGIN,
+  AUTH_EVENT,
+  AUTH_METHOD,
+  SSO_REFERRER_ORIGIN,
   fireFlowStarted,
-  persistPendingAttempt, persistActiveFlow, clearActiveFlow, clearPendingAttempt,
+  persistPendingAttempt,
+  persistActiveFlow,
+  clearActiveFlow,
+  clearPendingAttempt,
   resumePendingAuthAttempt,
 } from '../authAnalytics.js';
 
@@ -32,7 +37,10 @@ function mockCookieJar() {
   let store = {};
   Object.defineProperty(document, 'cookie', {
     configurable: true,
-    get: () => Object.entries(store).map(([k, v]) => `${k}=${v}`).join('; '),
+    get: () =>
+      Object.entries(store)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('; '),
     set: (str) => {
       const [pair] = str.split(';');
       const eq = pair.indexOf('=');
@@ -116,12 +124,27 @@ describe('resumePendingAuthAttempt', () => {
 
     resumePendingAuthAttempt();
 
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.PROCESS_ENDED, expect.objectContaining({
-      flow_id: 'flow-1', attempt_id: 'attempt-1', status: 'success', error: null, outcome: null,
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.FLOW_ENDED, expect.objectContaining({
-      flow_id: 'flow-1', status: 'success', error: null, outcome: null,
-    }));
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.PROCESS_ENDED,
+      expect.objectContaining({
+        flow_id: 'flow-1',
+        attempt_id: 'attempt-1',
+        status: 'success',
+        error: null,
+        outcome: null,
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.FLOW_ENDED,
+      expect.objectContaining({
+        flow_id: 'flow-1',
+        status: 'success',
+        error: null,
+        outcome: null,
+      })
+    );
     expect(sessionStorage.getItem(PENDING_ATTEMPT_KEY)).toBeNull();
     expect(sessionStorage.getItem(ACTIVE_FLOW_KEY)).toBeNull();
   });
@@ -133,12 +156,20 @@ describe('resumePendingAuthAttempt', () => {
 
     resumePendingAuthAttempt();
 
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.PROCESS_ENDED, expect.objectContaining({
-      outcome: 'created_new_account',
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.FLOW_ENDED, expect.objectContaining({
-      outcome: 'created_new_account',
-    }));
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.PROCESS_ENDED,
+      expect.objectContaining({
+        outcome: 'created_new_account',
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.FLOW_ENDED,
+      expect.objectContaining({
+        outcome: 'created_new_account',
+      })
+    );
     expect(document.cookie).not.toContain(OUTCOME_COOKIE);
   });
 
@@ -148,13 +179,24 @@ describe('resumePendingAuthAttempt', () => {
 
     resumePendingAuthAttempt();
 
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.FLOW_ENDED, expect.objectContaining({
-      status: 'failure', error: 'unexpected_return_without_provider_referrer', outcome: null,
-    }));
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.FLOW_ENDED,
+      expect.objectContaining({
+        status: 'failure',
+        error: 'unexpected_return_without_provider_referrer',
+        outcome: null,
+      })
+    );
   });
 
   it('an expired pending attempt (older than the 10-minute window) is ignored', () => {
-    const stale = { flowId: 'flow-1', attemptId: 'attempt-1', method: AUTH_METHOD.APPLE, ts: Date.now() - 11 * 60 * 1000 };
+    const stale = {
+      flowId: 'flow-1',
+      attemptId: 'attempt-1',
+      method: AUTH_METHOD.APPLE,
+      ts: Date.now() - 11 * 60 * 1000,
+    };
     sessionStorage.setItem(PENDING_ATTEMPT_KEY, JSON.stringify(stale));
     setReferrer(SSO_REFERRER_ORIGIN.APPLE);
 
@@ -170,18 +212,44 @@ describe('resumePendingAuthAttempt', () => {
 
     resumePendingAuthAttempt();
 
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.METHOD_CHOSEN, expect.objectContaining({
-      flow_id: 'flow-2', attempt_id: 'generated-uuid', method: AUTH_METHOD.GOOGLE,
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.PROCESS_STARTED, expect.objectContaining({
-      flow_id: 'flow-2', attempt_id: 'generated-uuid',
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.PROCESS_ENDED, expect.objectContaining({
-      flow_id: 'flow-2', attempt_id: 'generated-uuid', status: 'success', error: null, outcome: 'existing_user_login',
-    }));
-    expect(window.gtag).toHaveBeenCalledWith('event', AUTH_EVENT.FLOW_ENDED, expect.objectContaining({
-      flow_id: 'flow-2', status: 'success', error: null, outcome: 'existing_user_login',
-    }));
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.METHOD_CHOSEN,
+      expect.objectContaining({
+        flow_id: 'flow-2',
+        attempt_id: 'generated-uuid',
+        method: AUTH_METHOD.GOOGLE,
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.PROCESS_STARTED,
+      expect.objectContaining({
+        flow_id: 'flow-2',
+        attempt_id: 'generated-uuid',
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.PROCESS_ENDED,
+      expect.objectContaining({
+        flow_id: 'flow-2',
+        attempt_id: 'generated-uuid',
+        status: 'success',
+        error: null,
+        outcome: 'existing_user_login',
+      })
+    );
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AUTH_EVENT.FLOW_ENDED,
+      expect.objectContaining({
+        flow_id: 'flow-2',
+        status: 'success',
+        error: null,
+        outcome: 'existing_user_login',
+      })
+    );
     expect(sessionStorage.getItem(ACTIVE_FLOW_KEY)).toBeNull();
     expect(document.cookie).not.toContain(OUTCOME_COOKIE);
   });

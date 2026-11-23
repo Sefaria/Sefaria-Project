@@ -1,44 +1,43 @@
-import React from "react";
-import PropTypes from "prop-types";
-import {InterfaceText} from "../Misc";
-import Util from "../sefaria/util";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { InterfaceText } from '../Misc';
+import Util from '../sefaria/util';
 
-export default function RadioButton({isActive, onClick, value, name, label, id, onKeyDown, ...rest}) {
+export default function RadioButton({ isActive, onClick, value, name, label, id, onKeyDown, ...rest }) {
+  const handleChange = (e) => {
+    e.stopPropagation();
+    onClick();
+  };
 
-    const handleChange = (e) => {
-        e.stopPropagation();
-        onClick();
-    };
+  const handleKeyDown = (e) => {
+    Util.handleRadioKeyDown(e, {
+      name,
+      onSelect: onClick,
+      onKeyDown,
+    });
+  };
 
-    const handleKeyDown = (e) => {
-        Util.handleRadioKeyDown(e, {
-            name,
-            onSelect: onClick,
-            onKeyDown
-        });
-    };
-
-    return (
-        <label className='button'>
-            <InterfaceText>{label}</InterfaceText>
-            <input
-                type='radio'
-                id={id}
-                checked={isActive}
-                name={name}
-                value={value}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                {...rest}
-            />
-        </label>
-    );
+  return (
+    <label className="button">
+      <InterfaceText>{label}</InterfaceText>
+      <input
+        type="radio"
+        id={id}
+        checked={isActive}
+        name={name}
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        {...rest}
+      />
+    </label>
+  );
 }
 RadioButton.propTypes = {
-    isActive: PropTypes.bool.isRequired,
-    onClick: PropTypes.func.isRequired,
-    value: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    label: PropTypes.string,
-    onKeyDown: PropTypes.func,
-}
+  isActive: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
+  value: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  label: PropTypes.string,
+  onKeyDown: PropTypes.func,
+};

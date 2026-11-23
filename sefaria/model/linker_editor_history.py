@@ -10,6 +10,7 @@ Does NOT log rebuild_linker_resolvers (sefaria.model.text.Library, triggered fro
 sefaria/views.py) -- that's a global in-process cache rebuild, not scoped to a single
 uid+index mutation, and is out of scope by design.
 """
+
 import time
 
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet

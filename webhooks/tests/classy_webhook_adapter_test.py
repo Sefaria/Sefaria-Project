@@ -11,7 +11,7 @@ The fixture is a real GoFundMe Pro delivery with every identifying value replace
 """
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -29,12 +29,8 @@ from webhooks.webhook_source_adapter import (
 )
 
 TEST_SECRET = "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw"
-FIXTURE = json.loads(
-    (Path(__file__).parent / "fixtures" / "classy_transaction_created.json").read_text()
-)
-PARSE_HEADERS = {
-    "svix-id": "msg_parse"
-}  # parsing never verifies, so no signature is needed
+FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "classy_transaction_created.json").read_text())
+PARSE_HEADERS = {"svix-id": "msg_parse"}  # parsing never verifies, so no signature is needed
 ALL_CLASSY_TRANSACTION_STATUSES = [
     "test",
     "canceled",
@@ -49,10 +45,8 @@ ALL_CLASSY_TRANSACTION_STATUSES = [
 ]
 
 
-def signed_headers(
-    body: bytes, message_id="msg_2Kx", signed_at=None, secret=TEST_SECRET
-):
-    timestamp = int((signed_at or datetime.now(tz=timezone.utc)).timestamp())
+def signed_headers(body: bytes, message_id="msg_2Kx", signed_at=None, secret=TEST_SECRET):
+    timestamp = int((signed_at or datetime.now(tz=UTC)).timestamp())
     signature = svix_signature_for(secret, message_id, timestamp, body)
     # Title-case on purpose: Django delivers headers that way, and verification must not care.
     return {
@@ -81,7 +75,6 @@ def classy_secret(monkeypatch):
 
 
 class TestVerifyClassyRequestSignature:
-
     def test_accepts_a_freshly_signed_body(self):
         """A body signed with our secret just now verifies."""
         body = body_of(FIXTURE)
@@ -94,11 +87,7 @@ class TestVerifyClassyRequestSignature:
         headers = signed_headers(body)
         # Built from the fixture's own amount, so the tampering can't silently become a no-op
         # (which would make this test pass for the wrong reason) when the fixture changes.
-        tampered_body = body_of(
-            payload_with(
-                donation_gross_amount=FIXTURE["data"]["donation_gross_amount"] * 10
-            )
-        )
+        tampered_body = body_of(payload_with(donation_gross_amount=FIXTURE["data"]["donation_gross_amount"] * 10))
         assert tampered_body != body
         with pytest.raises(SignatureRejected):
             verify_classy_request_signature(tampered_body, headers)
@@ -106,9 +95,7 @@ class TestVerifyClassyRequestSignature:
     def test_rejects_an_expired_signature(self):
         """A delivery signed more than 5 minutes ago is refused (replay protection)."""
         body = body_of(FIXTURE)
-        stale = signed_headers(
-            body, signed_at=datetime.now(tz=timezone.utc) - timedelta(minutes=10)
-        )
+        stale = signed_headers(body, signed_at=datetime.now(tz=UTC) - timedelta(minutes=10))
         with pytest.raises(SignatureRejected):
             verify_classy_request_signature(body, stale)
 
@@ -140,16 +127,13 @@ class TestVerifyClassyRequestSignature:
 
 
 class TestParseClassyTransactionPayload:
-
     def test_a_successful_donation_becomes_an_event(self):
         """The fixture's success transaction becomes DonationReceivedFromClassy with svix-id as its event id."""
         body = body_of(FIXTURE)
         event = parse_classy_transaction_payload(body, {"svix-id": "msg_2Kx"})
         assert event == DonationReceivedFromClassy(
             event_id_assigned_by_source="msg_2Kx",
-            occurred_at_according_to_source=datetime(
-                2026, 10, 23, 3, 20, 35, tzinfo=timezone.utc
-            ),
+            occurred_at_according_to_source=datetime(2026, 10, 23, 3, 20, 35, tzinfo=UTC),
             person=PersonAsIdentifiedByClassy(
                 classy_supporter_id=5827,
                 email_address=NormalizedEmailAddress("donor@example.org"),
@@ -182,17 +166,13 @@ class TestParseClassyTransactionPayload:
         if status == "success":
             assert isinstance(result, DonationReceivedFromClassy)
         else:
-            assert result == WebhookEventIgnored(
-                ReasonWebhookEventWasIgnored.NOT_A_SUCCESSFUL_NONZERO_DONATION
-            )
+            assert result == WebhookEventIgnored(ReasonWebhookEventWasIgnored.NOT_A_SUCCESSFUL_NONZERO_DONATION)
 
     @pytest.mark.parametrize("amount", [0, 0.0, -5])
     def test_a_zero_or_negative_amount_is_ignored(self, amount):
         """A $0 'success' is not a donation."""
         body = body_of(payload_with(donation_gross_amount=amount))
-        assert parse_classy_transaction_payload(
-            body, PARSE_HEADERS
-        ) == WebhookEventIgnored(
+        assert parse_classy_transaction_payload(body, PARSE_HEADERS) == WebhookEventIgnored(
             ReasonWebhookEventWasIgnored.NOT_A_SUCCESSFUL_NONZERO_DONATION
         )
 
@@ -215,9 +195,9 @@ class TestParseClassyTransactionPayload:
     def test_other_event_types_are_ignored(self):
         """Subscribing to more events in the portal must not cause errors or retries."""
         body = body_of({"eventType": "campaign.updated", "data": {}})
-        assert parse_classy_transaction_payload(
-            body, PARSE_HEADERS
-        ) == WebhookEventIgnored(ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE)
+        assert parse_classy_transaction_payload(body, PARSE_HEADERS) == WebhookEventIgnored(
+            ReasonWebhookEventWasIgnored.UNHANDLED_EVENT_TYPE
+        )
 
     @pytest.mark.parametrize(
         "body",

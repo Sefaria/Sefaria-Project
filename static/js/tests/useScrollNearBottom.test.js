@@ -14,21 +14,21 @@ import { act } from 'react-dom/test-utils';
 import { useScrollNearBottom } from '../Hooks';
 
 // jsdom does no layout, so scroll geometry is always 0. Stamp it on by hand.
-const withGeometry = (el, {scrollHeight, clientHeight, scrollTop = 0}) => {
-  Object.defineProperty(el, 'scrollHeight', {value: scrollHeight, configurable: true});
-  Object.defineProperty(el, 'clientHeight', {value: clientHeight, configurable: true});
-  Object.defineProperty(el, 'scrollTop', {value: scrollTop, writable: true, configurable: true});
+const withGeometry = (el, { scrollHeight, clientHeight, scrollTop = 0 }) => {
+  Object.defineProperty(el, 'scrollHeight', { value: scrollHeight, configurable: true });
+  Object.defineProperty(el, 'clientHeight', { value: clientHeight, configurable: true });
+  Object.defineProperty(el, 'scrollTop', { value: scrollTop, writable: true, configurable: true });
   return el;
 };
 
-const setDocumentGeometry = ({scrollHeight, innerHeight, scrollY}) => {
-  Object.defineProperty(document.documentElement, 'scrollHeight', {value: scrollHeight, configurable: true});
-  Object.defineProperty(window, 'innerHeight', {value: innerHeight, writable: true, configurable: true});
-  Object.defineProperty(window, 'scrollY', {value: scrollY, writable: true, configurable: true});
+const setDocumentGeometry = ({ scrollHeight, innerHeight, scrollY }) => {
+  Object.defineProperty(document.documentElement, 'scrollHeight', { value: scrollHeight, configurable: true });
+  Object.defineProperty(window, 'innerHeight', { value: innerHeight, writable: true, configurable: true });
+  Object.defineProperty(window, 'scrollY', { value: scrollY, writable: true, configurable: true });
 };
 
-const Probe = ({candidate, onNearBottom, margin = 300}) => {
-  useScrollNearBottom({getScrollCandidate: () => candidate, margin, onNearBottom});
+const Probe = ({ candidate, onNearBottom, margin = 300 }) => {
+  useScrollNearBottom({ getScrollCandidate: () => candidate, margin, onNearBottom });
   return null;
 };
 
@@ -45,8 +45,13 @@ const mountHost = () => {
 
 const renderProbe = (props) => {
   const host = mountHost();
-  act(() => { ReactDOM.render(<Probe {...props} />, host); });
-  return () => act(() => { ReactDOM.unmountComponentAtNode(host); });
+  act(() => {
+    ReactDOM.render(<Probe {...props} />, host);
+  });
+  return () =>
+    act(() => {
+      ReactDOM.unmountComponentAtNode(host);
+    });
 };
 
 describe('useScrollNearBottom', () => {
@@ -56,22 +61,26 @@ describe('useScrollNearBottom', () => {
     candidate = document.createElement('div');
     document.body.appendChild(candidate);
     // A document far from its bottom, so any fire must have come from the element.
-    setDocumentGeometry({scrollHeight: 10000, innerHeight: 800, scrollY: 0});
+    setDocumentGeometry({ scrollHeight: 10000, innerHeight: 800, scrollY: 0 });
   });
 
   afterEach(() => {
-    act(() => { mountedHosts.splice(0).forEach(host => ReactDOM.unmountComponentAtNode(host)); });
+    act(() => {
+      mountedHosts.splice(0).forEach((host) => ReactDOM.unmountComponentAtNode(host));
+    });
     document.body.innerHTML = '';
   });
 
   test('desktop: fires on the container that scrolls', () => {
     // .readerNavMenu .content on desktop -- fixed height, own scrollbar, overflowing.
     candidate.style.overflowY = 'scroll';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 4000});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 800, scrollTop: 4000 });
     const onNearBottom = jest.fn();
-    renderProbe({candidate, onNearBottom});
+    renderProbe({ candidate, onNearBottom });
 
-    act(() => { candidate.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      candidate.dispatchEvent(new Event('scroll'));
+    });
 
     // 5000 - 4000 - 800 = 200px left, inside the 300px margin.
     expect(onNearBottom).toHaveBeenCalled();
@@ -79,11 +88,13 @@ describe('useScrollNearBottom', () => {
 
   test('desktop: stays quiet while the container is far from its bottom', () => {
     candidate.style.overflowY = 'scroll';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 0});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 800, scrollTop: 0 });
     const onNearBottom = jest.fn();
-    renderProbe({candidate, onNearBottom});
+    renderProbe({ candidate, onNearBottom });
 
-    act(() => { candidate.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      candidate.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).not.toHaveBeenCalled();
   });
@@ -91,12 +102,14 @@ describe('useScrollNearBottom', () => {
   test('mobile: falls back to the document when the container stops scrolling', () => {
     // .readerNavMenu .content on singlePanel: overflow-y: visible, height: auto.
     candidate.style.overflowY = 'visible';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 5000});
-    setDocumentGeometry({scrollHeight: 5000, innerHeight: 800, scrollY: 4000});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 5000 });
+    setDocumentGeometry({ scrollHeight: 5000, innerHeight: 800, scrollY: 4000 });
     const onNearBottom = jest.fn();
-    renderProbe({candidate, onNearBottom});
+    renderProbe({ candidate, onNearBottom });
 
-    act(() => { window.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).toHaveBeenCalled();
   });
@@ -107,12 +120,14 @@ describe('useScrollNearBottom', () => {
     // not implement that part of the cascade, so the computed result is set directly here.
     // Geometry is what disambiguates: the div grew to fit its content, so it cannot scroll.
     candidate.style.overflowY = 'auto';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 5000});
-    setDocumentGeometry({scrollHeight: 5000, innerHeight: 800, scrollY: 4000});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 5000 });
+    setDocumentGeometry({ scrollHeight: 5000, innerHeight: 800, scrollY: 4000 });
     const onNearBottom = jest.fn();
-    renderProbe({candidate, onNearBottom});
+    renderProbe({ candidate, onNearBottom });
 
-    act(() => { window.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).toHaveBeenCalled();
   });
@@ -121,40 +136,48 @@ describe('useScrollNearBottom', () => {
     // .textList .texts.content -- the connections-panel "Search in this Text" drawer. The
     // singlePanel override never reaches it, so watching the document here would be wrong.
     candidate.style.overflowY = 'scroll';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 400, scrollTop: 0});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 400, scrollTop: 0 });
     // Document sitting right at its bottom: if the hook watched it, this would fire.
-    setDocumentGeometry({scrollHeight: 800, innerHeight: 800, scrollY: 0});
+    setDocumentGeometry({ scrollHeight: 800, innerHeight: 800, scrollY: 0 });
     const onNearBottom = jest.fn();
-    renderProbe({candidate, onNearBottom});
+    renderProbe({ candidate, onNearBottom });
 
-    act(() => { window.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).not.toHaveBeenCalled();
 
     candidate.scrollTop = 4400;
-    act(() => { candidate.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      candidate.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).toHaveBeenCalled();
   });
 
   test('watches the document when there is no container at all', () => {
-    setDocumentGeometry({scrollHeight: 5000, innerHeight: 800, scrollY: 4000});
+    setDocumentGeometry({ scrollHeight: 5000, innerHeight: 800, scrollY: 4000 });
     const onNearBottom = jest.fn();
-    renderProbe({candidate: null, onNearBottom});
+    renderProbe({ candidate: null, onNearBottom });
 
-    act(() => { window.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).toHaveBeenCalled();
   });
 
   test('unbinds on unmount', () => {
     candidate.style.overflowY = 'scroll';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 4000});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 800, scrollTop: 4000 });
     const onNearBottom = jest.fn();
-    const unmount = renderProbe({candidate, onNearBottom});
+    const unmount = renderProbe({ candidate, onNearBottom });
 
     unmount();
-    act(() => { candidate.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      candidate.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).not.toHaveBeenCalled();
   });
@@ -163,14 +186,20 @@ describe('useScrollNearBottom', () => {
     // Callers gate on state that changes every render (isLoading, loadedToEnd). The hook
     // must see the current one, or infinite scroll would act on a stale snapshot.
     candidate.style.overflowY = 'scroll';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 4000});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 800, scrollTop: 4000 });
     const first = jest.fn();
     const second = jest.fn();
     const host = mountHost();
 
-    act(() => { ReactDOM.render(<Probe candidate={candidate} onNearBottom={first} />, host); });
-    act(() => { ReactDOM.render(<Probe candidate={candidate} onNearBottom={second} />, host); });
-    act(() => { candidate.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      ReactDOM.render(<Probe candidate={candidate} onNearBottom={first} />, host);
+    });
+    act(() => {
+      ReactDOM.render(<Probe candidate={candidate} onNearBottom={second} />, host);
+    });
+    act(() => {
+      candidate.dispatchEvent(new Event('scroll'));
+    });
 
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalled();
@@ -179,13 +208,17 @@ describe('useScrollNearBottom', () => {
   test('does not read computed style on scroll', () => {
     // Scroll handlers run many times a second; the CSS half of the check is resolved at bind time.
     candidate.style.overflowY = 'scroll';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 4000});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 800, scrollTop: 4000 });
     const onNearBottom = jest.fn();
-    renderProbe({candidate, onNearBottom});
+    renderProbe({ candidate, onNearBottom });
     const getComputedStyle = jest.spyOn(window, 'getComputedStyle');
 
-    act(() => { candidate.dispatchEvent(new Event('scroll')); });
-    act(() => { window.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      candidate.dispatchEvent(new Event('scroll'));
+    });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).toHaveBeenCalled();
     expect(getComputedStyle).not.toHaveBeenCalled();
@@ -195,17 +228,23 @@ describe('useScrollNearBottom', () => {
   test('re-reads overflow on resize, where a breakpoint can change it', () => {
     // Bound while the container scrolls; a resize then flips it to the singlePanel style.
     candidate.style.overflowY = 'scroll';
-    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 0});
-    setDocumentGeometry({scrollHeight: 5000, innerHeight: 800, scrollY: 4000});
+    withGeometry(candidate, { scrollHeight: 5000, clientHeight: 800, scrollTop: 0 });
+    setDocumentGeometry({ scrollHeight: 5000, innerHeight: 800, scrollY: 4000 });
     const onNearBottom = jest.fn();
-    renderProbe({candidate, onNearBottom});
+    renderProbe({ candidate, onNearBottom });
 
-    act(() => { window.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
     expect(onNearBottom).not.toHaveBeenCalled();
 
     candidate.style.overflowY = 'visible';
-    act(() => { window.dispatchEvent(new Event('resize')); });
-    act(() => { window.dispatchEvent(new Event('scroll')); });
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
 
     expect(onNearBottom).toHaveBeenCalled();
   });
