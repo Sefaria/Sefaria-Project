@@ -144,7 +144,12 @@ from sefaria.sheets import annotate_user_links, get_sheet_for_panel, get_sheets_
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache, gen_cache
 from sefaria.system.database import db
-from sefaria.system.decorators import catch_error_as_json, json_response_decorator, sanitize_get_params
+from sefaria.system.decorators import (
+    answer_options,
+    catch_error_as_json,
+    json_response_decorator,
+    sanitize_get_params,
+)
 from sefaria.system.exceptions import (
     BookNameError,
     DictionaryEntryNotFoundError,
@@ -2134,6 +2139,7 @@ def modify_bulk_text_api(request, title):
 
 @catch_error_as_json
 @csrf_exempt
+@answer_options("GET", "POST", "DELETE")
 def texts_api(request, tref):
     oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
     tref = oref.url()
@@ -2578,6 +2584,7 @@ def index_node_api(request, title):
 
 @csrf_exempt
 @catch_error_as_json
+@answer_options("GET", "POST", "DELETE")
 def index_api(request, title, raw=False):
     CONTENT_TYPE = "CONTENT"
     ADMIN_TYPE = "ADMIN"
@@ -2726,6 +2733,7 @@ def counts_api(request, title):
 
 
 @catch_error_as_json
+@answer_options("GET")
 def shape_api(request, title):
     """
     API for retrieving a shape document for a given text or category.
