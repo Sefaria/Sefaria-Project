@@ -253,6 +253,10 @@ jobs:
         run: bash build/ci/prepare-pytest-runner.sh
       - name: Install dependencies
         run: pip install -r requirements.txt
+        env:
+          # datrie has no wheel for Python 3.12 and its C source no longer compiles with the
+          # runner's GCC 14, which made incompatible pointer types an error. Keep it a warning.
+          CFLAGS: -Wno-error=incompatible-pointer-types
       - name: Run no-Mongo pytest tests
         # The complement of the other two jobs: everything master's single
         # `-m "not deep and not failing"` run selected that is not needs_mongo,
@@ -312,6 +316,10 @@ jobs:
         run: bash build/ci/prepare-pytest-runner.sh
       - name: Install dependencies
         run: pip install -r requirements.txt
+        env:
+          # datrie has no wheel for Python 3.12 and its C source no longer compiles with the
+          # runner's GCC 14, which made incompatible pointer types an error. Keep it a warning.
+          CFLAGS: -Wno-error=incompatible-pointer-types
       - name: Run mocked Mongo pytest tests
         run: >
           python -m pytest -q --reuse-db
@@ -343,6 +351,10 @@ jobs:
         run: bash build/ci/prepare-pytest-runner.sh
       - name: Install dependencies
         run: pip install -r requirements.txt
+        env:
+          # datrie has no wheel for Python 3.12 and its C source no longer compiles with the
+          # runner's GCC 14, which made incompatible pointer types an error. Keep it a warning.
+          CFLAGS: -Wno-error=incompatible-pointer-types
       - name: Run linker pytest tests
         run: >
           python -m pytest -q --reuse-db
@@ -377,6 +389,10 @@ jobs:
         run: bash build/ci/prepare-pytest-runner.sh
       - name: Install dependencies
         run: pip install -r requirements.txt
+        env:
+          # datrie has no wheel for Python 3.12 and its C source no longer compiles with the
+          # runner's GCC 14, which made incompatible pointer types an error. Keep it a warning.
+          CFLAGS: -Wno-error=incompatible-pointer-types
       - name: Restore the public test dump into a local MongoDB
         run: bash build/ci/restore-test-mongo.sh
       - name: Run corpus pytest tests
