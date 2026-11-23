@@ -275,7 +275,23 @@ jobs:
     # step (four --collect-only passes: three jobs plus master's baseline).
     # Hosted runners are several times slower.
     timeout-minutes: 45
+    # Master ran this suite in the sandbox pod against Postgres; powered_by's
+    # row-lock and race tests need it (SQLite has no SELECT ... FOR UPDATE and
+    # locks whole tables). prepare-pytest-runner.sh points `default` here.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
+      PYTEST_POSTGRES_HOST: localhost
       SEFARIA_MOCK_MONGO: "1"
       SEFARIA_TEST_MONGO: "1"
       LOCAL_TEST_MONGO_PORT: "27099"
@@ -338,7 +354,23 @@ jobs:
     # ~7.5 min locally: every needs_mongo test reseeds the ~17 MB shared base
     # and rebuilds the library (~5 s each). Hosted runners are slower.
     timeout-minutes: 45
+    # Master ran this suite in the sandbox pod against Postgres; powered_by's
+    # row-lock and race tests need it (SQLite has no SELECT ... FOR UPDATE and
+    # locks whole tables). prepare-pytest-runner.sh points `default` here.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
+      PYTEST_POSTGRES_HOST: localhost
       SEFARIA_MOCK_MONGO: "1"
       SEFARIA_TEST_MONGO: "1"
       LOCAL_TEST_MONGO_PORT: "27099"
@@ -373,7 +405,23 @@ jobs:
       needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Master ran this suite in the sandbox pod against Postgres; powered_by's
+    # row-lock and race tests need it (SQLite has no SELECT ... FOR UPDATE and
+    # locks whole tables). prepare-pytest-runner.sh points `default` here.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
+      PYTEST_POSTGRES_HOST: localhost
       SEFARIA_MOCK_MONGO: "1"
       SEFARIA_TEST_MONGO: "1"
       LOCAL_TEST_MONGO_PORT: "27099"
@@ -412,7 +460,23 @@ jobs:
       needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # Master ran this suite in the sandbox pod against Postgres; powered_by's
+    # row-lock and race tests need it (SQLite has no SELECT ... FOR UPDATE and
+    # locks whole tables). prepare-pytest-runner.sh points `default` here.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
+      PYTEST_POSTGRES_HOST: localhost
       SEFARIA_TEST_MONGO: "1"
       LOCAL_TEST_MONGO_PORT: "27017"
     steps:
