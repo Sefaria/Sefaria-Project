@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.92.1-prod.1"
+      version: "0.92.5-prod.1"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -45,7 +45,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.9.2-prod.1"
+        tag: "v7.11.8-prod.1"
       replicaCount: 7
       resources:
         web:
@@ -60,7 +60,7 @@ spec:
               cpu: "1500m"
             limits:
               memory: "18Gi"
-              cpu: "3"
+              cpu: "2"
       secrets:
         googleClient:
           ref: google-client-secret-production
@@ -83,7 +83,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v7.9.2-prod.1"
+        tag: "v7.11.8-prod.1"
       replicaCount: 4
       resources:
         requests:
@@ -216,7 +216,7 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v7.9.2-prod.1"
+        tag: "v7.11.8-prod.1"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
