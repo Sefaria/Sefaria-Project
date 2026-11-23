@@ -31,6 +31,7 @@ import { ReportingBoundary } from "~/lib/monitoring/ErrorBoundary";
 import { RouteError } from "~/features/shared/RouteError";
 import { openAssistantFromHeader, useAssistantShown } from "~/features/shell/assistant-pill";
 import { LibraryAssistant } from "~/features/assistant/LibraryAssistant";
+import { SurfacePersistentSlot } from "~/features/surfaces/SurfacePersistentSlot";
 import { installLegacyEvents } from "~/lib/integration/legacy-events";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
@@ -266,6 +267,8 @@ function Shell() {
           <Outlet />
         </main>
         <LibraryAssistant search={loc.searchStr ?? ""} />
+        {/* the social surface's persistent mount (src/features/surfaces), loaded only while its lab is on */}
+        <SurfacePersistentSlot />
       </div>
       <CookieNotice />
       <BannerImpressionProbe />

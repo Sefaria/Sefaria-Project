@@ -19,6 +19,12 @@ describe("routeOwner", () => {
     for (const p of ["/", "/texts", "/texts/Tanakh/Torah", "/translations/de", "/search", "/login", "/interface/hebrew", "/assets/x.js", "/calendars", "/calendars/", "/compare", "/topics", "/topics/category/authors", "/topics/all/a"]) expect(await routeOwner(p, { fetcher })).toBe("client");
     expect(fetcher).not.toHaveBeenCalled();
   });
+  // @feature SHL-076
+  it("the social surface's pages are this client's (rendered, or its not-found page while the lab is off), never a name check", async () => {
+    const fetcher = nameApi({});
+    for (const p of ["/social", "/social/", "/social/r/abcdefgh", "/social/settings"]) expect(await routeOwner(p, { fetcher })).toBe("client");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
   it("a text of the catalog renders here, without a name check", async () => {
     const fetcher = nameApi({});
     expect(await routeOwner("/Genesis.1.1", { fetcher })).toBe("client");

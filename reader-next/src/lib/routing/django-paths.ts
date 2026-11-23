@@ -30,7 +30,7 @@ const PREFIX_RE = new RegExp(`^/(?:${DJANGO_PREFIXES.map(escapeRe).join("|")})(?
  * they stay Django's: which pages each module serves is not decided yet, so a Voices request for them is
  * passed through as before (src/start.ts).
  */
-export const LIBRARY_ONLY_PREFIXES = ["translations", "calendars", "parashat-hashavua", "todays-daf-yomi", "compare", "topics", "saved", "history", "notifications", "torahtracker", "updates"];
+export const LIBRARY_ONLY_PREFIXES = ["translations", "calendars", "parashat-hashavua", "todays-daf-yomi", "compare", "topics", "saved", "history", "notifications", "torahtracker", "updates", "social"];
 /** @deprecated the translations, compare and topics ports' names for LIBRARY_ONLY_PREFIXES */
 export const LIBRARY_HOST_ONLY = LIBRARY_ONLY_PREFIXES;
 export const LIBRARY_HOST_ONLY_PREFIXES = LIBRARY_ONLY_PREFIXES;

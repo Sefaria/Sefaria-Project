@@ -56,6 +56,11 @@ export type PanelKind = PanelState["kind"];
 export interface Workspace {
   panels: Record<PanelId, PanelState>;
   layout: LayoutNode<PanelId> | null;
+  /**
+   * The reserved context a surface put on the address (`ctx`, lib/reader/ctx.ts): not the reader's state, carried through every
+   * operation and written back last so the reader's own rewrites (scroll, panels, canonicalize) keep it.
+   */
+  ctx?: string;
 }
 
 export const EMPTY_WORKSPACE: Workspace = { panels: {}, layout: null };

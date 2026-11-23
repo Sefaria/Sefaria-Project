@@ -9,6 +9,7 @@ import { frameOrTimeout } from "~/lib/reader-state/core/api";
 import type { AnyRouter } from "@tanstack/react-router";
 import type { ReaderHost, SliceRegistry } from "~/lib/reader-state/core/types";
 import type { NavState } from "~/lib/workspace/commands";
+import { ctxOf, withCtx, withoutCtx } from "~/lib/reader/ctx";
 import { acceptsUrl } from "./safe-url";
 
 /** The slice of TanStack's router the host uses (so tests and other hosts can pass something smaller). */
@@ -67,14 +68,17 @@ export function createSefariaHost(router: HostRouter, registry: SliceRegistry): 
 
   return {
     getLocation() {
-      // the history's own location is the address bar as written (a Hebrew path percent-encoded, the old grammar's query untouched)
+      // the history's own location is the address bar as written (a Hebrew path percent-encoded, the old grammar's query untouched),
+      // without the reserved `ctx` (lib/reader/ctx.ts): a context is where this reader is, not what it shows, and never travels
       const loc = router.history.location;
-      return { url: `${loc.pathname}${loc.search}`, nav: replayableNav(loc.state) };
+      return { url: withoutCtx(`${loc.pathname}${loc.search}`), nav: replayableNav(loc.state) };
     },
     async navigate(url, nav, mode) {
       // the API checks acceptsUrl first; checked again here because this is where an untrusted url would reach the router
       if (!acceptsUrl(url)) throw new Error(`reader-state: refused url ${JSON.stringify(url)}`);
-      await router.navigate({ href: url, replace: mode === "replace", state: replayableNav(nav) as never, resetScroll: false });
+      // a snapshot never carries a context: the reader keeps the one it is in (a room's stream applied inside that room stays in it)
+      const href = withCtx(withoutCtx(url), ctxOf(router.history.location.search));
+      await router.navigate({ href, replace: mode === "replace", state: replayableNav(nav) as never, resetScroll: false });
     },
     async settled() {
       await waitIdle();

@@ -15,6 +15,7 @@
  * @feature PLT-006 Page titles and meta descriptions
  */
 import { isCategory, type TocCategory, type TocNode } from "~/lib/catalog/toc";
+import { withoutCtx } from "~/lib/reader/ctx";
 
 type Lang = "english" | "hebrew";
 export type MetaTag = { title: string } | { name: string; content: string } | { property: string; content: string };
@@ -95,8 +96,11 @@ export type HeadLink = { rel: string; href: string; hrefLang?: string };
  * alternates are the path on the English and Hebrew sites. Search has no canonical (reader/views.py search sets no canonical_url).
  *
  * @feature PLT-008 Canonical URLs and hreflang
+ * @feature RTE-066 Reserved ctx parameter (left out)
  */
-export function pageUrls(href: string, origin: string, opts: { canonical?: boolean; english?: string; hebrew?: string } = {}): { meta: MetaTag[]; links: HeadLink[] } {
+export function pageUrls(href0: string, origin: string, opts: { canonical?: boolean; english?: string; hebrew?: string } = {}): { meta: MetaTag[]; links: HeadLink[] } {
+  // a surface's reserved context (lib/reader/ctx.ts) is where the reader is, not which page this is: never in the canonical or og:url
+  const href = withoutCtx(href0);
   const path = href.split(/[?#]/)[0] || "/";
   const url = `${origin}${href}`;
   return {

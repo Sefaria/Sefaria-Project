@@ -46,17 +46,20 @@ export function renumber(ws: Workspace): Workspace {
       ...(p.asideLayout ? { asideLayout: renameLeaves(p.asideLayout, (x) => asideMap.get(x as AsideId) ?? x) } : {}),
     } as PanelState;
   }
-  return { panels, layout: renameLeaves(ws.layout, (id) => map.get(id) ?? id) };
+  return { panels, layout: renameLeaves(ws.layout, (id) => map.get(id) ?? id), ...ctxOf(ws) };
 }
+
+/** The workspace's reserved context (Workspace.ctx), to carry onto a workspace an operation builds afresh. */
+const ctxOf = (ws: Workspace): Pick<Workspace, "ctx"> => (ws.ctx ? { ctx: ws.ctx } : {});
 
 function materialise(id: PanelId, p: NewPanel): PanelState {
   return { ...p, id, asides: (p.asides ?? []).map((a, i) => ({ ...a, id: `${id}a${i + 1}` as AsideId })) } as PanelState;
 }
 
 /** Open a panel on its own, replacing everything (header search, top-level links). */
-export function openOnly(_ws: Workspace, p: NewPanel): Workspace {
+export function openOnly(ws: Workspace, p: NewPanel): Workspace {
   const id: PanelId = "p1";
-  return { panels: { [id]: materialise(id, p) }, layout: leaf(id) };
+  return { panels: { [id]: materialise(id, p) }, layout: leaf(id), ...ctxOf(ws) };
 }
 
 /** Open a panel next to another one (default: after it, in the same row). Opening into an empty workspace opens it alone. */
@@ -74,7 +77,7 @@ export function openNextToWithId(ws: Workspace, target: PanelId | null, p: NewPa
   const tmp = "p0" as PanelId; // a temporary id no panel has: renumbering gives the new panel its place's id
   const layout = insert(ws.layout, target, leaf(tmp), placement);
   const id = `p${leaves(layout).indexOf(tmp) + 1}` as PanelId;
-  return [renumber({ panels: { ...ws.panels, [tmp]: materialise(tmp, p) }, layout }), id];
+  return [renumber({ panels: { ...ws.panels, [tmp]: materialise(tmp, p) }, layout, ...ctxOf(ws) }), id];
 }
 
 /** Open a panel after the last one (old `openPanelAtEnd`). */
@@ -85,14 +88,14 @@ export function replace(ws: Workspace, target: PanelId, p: NewPanel): Workspace 
   if (!ws.layout || !ws.panels[target]) return ws;
   // the new panel takes the old one's place, so (ids following position) its id too
   const { [target]: _gone, ...rest } = ws.panels;
-  return { panels: { ...rest, [target]: materialise(target, p) }, layout: ws.layout };
+  return { panels: { ...rest, [target]: materialise(target, p) }, layout: ws.layout, ...ctxOf(ws) };
 }
 
 /** Close a panel; its side panels close with it. Closing the last panel leaves an empty workspace (→ home). */
 export function close(ws: Workspace, target: PanelId): Workspace {
   if (!ws.layout || !ws.panels[target]) return ws;
   const { [target]: _gone, ...rest } = ws.panels;
-  return renumber({ panels: rest, layout: remove(ws.layout, target) });
+  return renumber({ panels: rest, layout: remove(ws.layout, target), ...ctxOf(ws) });
 }
 
 /** Change a panel's own fields (ref, versions, language…). */

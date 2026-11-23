@@ -4,7 +4,7 @@
  * a new one fails the test, and so does a baseline entry that has since been fixed (the baseline only shrinks).
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 
 export const ROOT = join(__dirname, "..", "..");
 const SRC = join(ROOT, "src");
@@ -85,6 +85,27 @@ const UI_FORBIDDEN = [/^~\/lib\/reader\/settings/, /^@tanstack\/react-router/, /
 /** Only lib adapters see API shapes (adapter-boundary): ui and features import none of the client or the generated types. */
 const API_SHAPES = [/^~\/lib\/api(\/|$)/, /^@vendor\/sefaria-toolkit\/client/];
 
+/** An import as a path from the reader-next root ("src/lib/surfaces/load"), or null for a package. */
+export function importTarget(file: string, spec: string): string | null {
+  if (spec.startsWith("~/")) return `src/${spec.slice(2)}`;
+  if (spec.startsWith("@vendor/")) return `vendor/${spec.slice(8)}`;
+  if (spec.startsWith("@fixtures/")) return `fixtures/api/${spec.slice(10)}`;
+  if (spec.startsWith(".")) return relative(ROOT, resolve(dirname(file), spec));
+  return null;
+}
+
+/**
+ * Surface code (surface-boundary): the loader and host (src/lib/surfaces), their React mounts (src/features/surfaces), the SurfaceHost
+ * contract (contract/) and the reference surface the e2e suite serves (e2e/fixtures/social-surface).
+ */
+const SURFACE_CODE = /^(?:src\/lib\/surfaces|src\/features\/surfaces|contract|e2e\/fixtures\/social-surface)(?:\/|$)/;
+/** ...which only itself and the shell may import: the root layout (persistent mount) and the /social routes (page mount). */
+const SURFACE_IMPORTERS = /^src\/(?:lib\/surfaces\/|features\/surfaces\/|routes\/__root\.tsx$|routes\/social\.[^/]+\.tsx$)/;
+
+/** The reader state core (reader-state-core-pure) is the future open-source package: no app, React, router or Sefaria imports. */
+const CORE_DIR = "src/lib/reader-state/core/";
+const CORE_FORBIDDEN_PACKAGES = /^(?:react|react-dom|@tanstack\/|@vendor\/|@fixtures\/)(?:\/|$)?/;
+
 export const RULES: Rule[] = [
   {
     id: "ui-boundary",
@@ -118,6 +139,31 @@ export const RULES: Rule[] = [
       /\.tsx?$/.test(f) && !rel(f).startsWith("src/lib/auth/http.ts") && !rel(f).startsWith("src/server/")
         ? fetchCalls(src).flatMap((c) => [...c.matchAll(/method:\s*["'](POST|PUT|PATCH|DELETE)["']/g)].map((m) => `fetch ${m[1]}`))
         : [],
+  },
+  {
+    id: "surface-boundary",
+    why: "nothing in the reader imports surface code (src/lib/surfaces, src/features/surfaces, contract/) except the loader itself and the shell (__root.tsx, the /social routes)",
+    check: (f, src) => {
+      const r = rel(f);
+      if (!/\.tsx?$/.test(f) || SURFACE_IMPORTERS.test(r)) return [];
+      return importsOf(src).filter((i) => {
+        const t = importTarget(f, i);
+        return t !== null && SURFACE_CODE.test(t);
+      });
+    },
+  },
+  {
+    id: "reader-state-core-pure",
+    why: "src/lib/reader-state/core imports nothing from the app (~/), React, the router or Sefaria's vendored code, and nothing outside itself",
+    check: (f, src) => {
+      const r = rel(f);
+      if (!r.startsWith(CORE_DIR) || !/\.tsx?$/.test(f)) return [];
+      return importsOf(src).filter((i) => {
+        if (i.startsWith("~/") || CORE_FORBIDDEN_PACKAGES.test(i)) return true;
+        const t = importTarget(f, i);
+        return t !== null && !t.startsWith(CORE_DIR);
+      });
+    },
   },
   {
     id: "lang-with-dir",

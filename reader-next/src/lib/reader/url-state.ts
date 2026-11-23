@@ -10,9 +10,11 @@
  * @feature RTE-043 Display language param (lang, lang2)
  * @feature RTE-046 Aliyot param
  * @feature RTE-028 Version parameter normalization
+ * @feature RTE-066 Reserved ctx parameter (kept when well formed: lib/reader/ctx.ts)
  */
 import type { ContentLanguage } from "./settings";
 import type { VersionSelection } from "~/lib/text/queries";
+import { parseCtx } from "./ctx";
 
 const LANG_PARAM: Record<string, ContentLanguage> = { bi: "bilingual", he: "hebrew", en: "english" };
 /** The old site's other spellings of a `lang` value (short_to_long_lang_code in sefaria/utils/util.py). */
@@ -41,6 +43,8 @@ export interface ReaderSearch {
   lookup?: string;
   /** The book page's tab. */
   tab?: "contents" | "versions";
+  /** The reserved context a surface put on the address (lib/reader/ctx.ts): kept when well formed, otherwise dropped. */
+  ctx?: string;
   /** Further panels: p2, w2, lang2, aliyot2, ven2, vhe2, p3… (lib/workspace/url.ts). */
   [panelParam: `${"p" | "w" | "lang" | "aliyot" | "ven" | "vhe" | "vside" | "lookup"}${number}`]: string | undefined;
 }
@@ -56,6 +60,8 @@ export function validateReaderSearch(raw: Record<string, unknown>): ReaderSearch
   if (typeof raw.vside === "string" && raw.vside) out.vside = raw.vside;
   if (typeof raw.lookup === "string" && raw.lookup) out.lookup = raw.lookup;
   if (raw.tab === "contents" || raw.tab === "versions") out.tab = raw.tab;
+  const ctx = parseCtx(raw.ctx);
+  if (ctx) out.ctx = ctx;
   if (typeof raw.with === "string") out.with = raw.with;
   else if (typeof raw.with === "number" || typeof raw.with === "boolean") out.with = String(raw.with);
   for (const k of ["ven", "vhe"] as const) {

@@ -19,6 +19,15 @@
  *  - Analytics (src/lib/analytics), the same settings Django's templates/base.html reads; each is off when unset, so development and
  *    tests send nothing: GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, SIMPLE_ANALYTICS_HOSTNAME ("sefaria.org" in
  *    production), APP_VERSION (gtag's site_version).
+ *  - The social surface (src/lib/surfaces; loaded only while the `social` lab is on):
+ *    PUBLIC_SOCIAL_MANIFEST_URL   the surface's release manifest (absolute http(s) URL); unset = no surface.
+ *    PUBLIC_SOCIAL_ORIGINS        the origins the manifest and every file it lists may come from, comma-separated. Fail closed: unset,
+ *                                 nothing loads.
+ *    PUBLIC_SOCIAL_DEV_ENTRY      development only (ignored when NODE_ENV is production, and for any host but localhost/127.0.0.1): the
+ *                                 entry module on a local social dev server ("http://localhost:3200/src/surface/entry.ts"), imported
+ *                                 directly, without a manifest or integrity.
+ *    PUBLIC_SOCIAL_API_ORIGIN, PUBLIC_SOCIAL_RELAY_ORIGIN, PUBLIC_SOCIAL_ENVIRONMENT (local | staging | production; default local):
+ *                                 handed to the surface as host.config.
  *  - PUBLIC_ERROR_ENDPOINT  where the browser beacons its error reports (src/lib/monitoring/error-reporter.ts); unset = no reports.
  *    PUBLIC_ERROR_SAMPLE_RATE (0..1, default 1) the share of page loads that report.
  *  - GOOGLE_SSO_CLIENT_ID, APPLE_SSO_CLIENT_ID, RECAPTCHA_PUBLIC_KEY   the sign-in providers' public client IDs and the reCAPTCHA site
@@ -54,6 +63,64 @@ export interface PublicConfig {
   errorSampleRate?: number;
   /** The Library Assistant (`<lc-chatbot>`): which build to load and which server it talks to (src/lib/assistant/config.ts). */
   assistant: AssistantEnv;
+  /** The social surface's deployment (src/lib/surfaces); absent = no surface even with its lab on. */
+  social?: SocialEnv;
+}
+
+/** Where the social surface comes from and what it is told (PUBLIC_SOCIAL_*: see the header). */
+export interface SocialEnv {
+  manifestUrl: string;
+  allowedOrigins: string[];
+  /** A local dev server's entry module: development only. */
+  devEntry?: string;
+  apiOrigin: string;
+  relayOrigin: string;
+  environment: "local" | "staging" | "production";
+}
+
+const isLocalhostUrl = (v: string) => {
+  try {
+    const u = new URL(v);
+    return (u.protocol === "http:" || u.protocol === "https:") && (u.hostname === "localhost" || u.hostname === "127.0.0.1");
+  } catch {
+    return false;
+  }
+};
+const originOf = (v: string) => {
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.origin : null;
+  } catch {
+    return null;
+  }
+};
+
+/** A relay's origin (ws:, wss:, http: or https:), else "". */
+const relayOriginOf = (v: string) => {
+  try {
+    const u = new URL(v.trim());
+    return ["ws:", "wss:", "http:", "https:"].includes(u.protocol) ? `${u.protocol}//${u.host}` : "";
+  } catch {
+    return "";
+  }
+};
+
+/** The social surface's settings from the environment; undefined when there is neither a manifest nor a dev entry. Pure, for tests. */
+export function socialEnvFrom(e: Record<string, string | undefined>): SocialEnv | undefined {
+  const manifestUrl = (e.PUBLIC_SOCIAL_MANIFEST_URL ?? "").trim();
+  const dev = (e.PUBLIC_SOCIAL_DEV_ENTRY ?? "").trim();
+  const devEntry = dev && e.NODE_ENV !== "production" && isLocalhostUrl(dev) ? dev : undefined;
+  if (!originOf(manifestUrl) && !devEntry) return undefined;
+  const allowedOrigins = (e.PUBLIC_SOCIAL_ORIGINS ?? "").split(",").map((s) => originOf(s.trim())).filter((o): o is string => !!o);
+  const env = e.PUBLIC_SOCIAL_ENVIRONMENT;
+  return {
+    manifestUrl: originOf(manifestUrl) ? manifestUrl : "",
+    allowedOrigins,
+    ...(devEntry ? { devEntry } : {}),
+    apiOrigin: originOf(e.PUBLIC_SOCIAL_API_ORIGIN ?? "") ?? "",
+    relayOrigin: relayOriginOf(e.PUBLIC_SOCIAL_RELAY_ORIGIN ?? ""),
+    environment: env === "staging" || env === "production" ? env : "local",
+  };
 }
 
 /** The Library Assistant's deployment settings, read from the same environment variables Django reads (sefaria/settings.py). */
@@ -120,6 +187,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
         useLocalScript: /^(1|true|yes)$/i.test(env("CHATBOT_USE_LOCAL_SCRIPT") ?? ""),
         origin: `sefaria-${env("SENTRY_ENVIRONMENT") || "local"}`,
       },
+      social: isServer && typeof process !== "undefined" ? socialEnvFrom(process.env) : undefined,
     }
   : {
       apiOrigin: window.__SEFARIA_CONFIG__?.apiOrigin ?? DEFAULT_ORIGIN,
@@ -135,6 +203,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
       errorEndpoint: window.__SEFARIA_CONFIG__?.errorEndpoint || undefined,
       errorSampleRate: window.__SEFARIA_CONFIG__?.errorSampleRate,
       assistant: { apiBaseUrl: DEFAULT_ASSISTANT_API, version: null, useLocalScript: false, origin: "sefaria-local", ...window.__SEFARIA_CONFIG__?.assistant },
+      social: window.__SEFARIA_CONFIG__?.social,
     };
 
 /** The API origin for this side: the internal one on the server, the public one in the browser. */
@@ -177,6 +246,9 @@ export function serverConfigProblems(e: Record<string, string | undefined>): str
   const canonical = e.PUBLIC_CANONICAL_ORIGIN;
   if (canonical !== undefined && canonical !== "" && !isOrigin(canonical))
     problems.push(`PUBLIC_CANONICAL_ORIGIN must be an http(s) origin without a path, not ${JSON.stringify(canonical)}`);
+  const social = socialEnvFrom(e);
+  if (social?.manifestUrl && !social.allowedOrigins.includes(new URL(social.manifestUrl).origin))
+    problems.push("PUBLIC_SOCIAL_MANIFEST_URL's origin is not in PUBLIC_SOCIAL_ORIGINS: the social surface will not load");
   if (e.SEFARIA_API_HOST !== undefined && !e.SEFARIA_API_ORIGIN) problems.push("SEFARIA_API_HOST is set but SEFARIA_API_ORIGIN is not: the Host rewrite would never apply");
   for (const k of ["SEFARIA_API_TIMEOUT_MS", "SEFARIA_PASS_THROUGH_TIMEOUT_MS"] as const) {
     const v = e[k];

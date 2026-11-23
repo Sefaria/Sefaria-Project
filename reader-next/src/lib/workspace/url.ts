@@ -20,6 +20,7 @@
 import { leaf, row } from "~/lib/layout/tree";
 import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { decodeVtitle, encodeVtitle, versionParamToApi } from "~/lib/reader/url-state";
+import { CTX_PARAM, parseCtx } from "~/lib/reader/ctx";
 import type { AsideState, PanelId, TextPanelState, Workspace } from "./types";
 import { panelOrder } from "./ops";
 
@@ -79,9 +80,11 @@ export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace 
     const id = `p${i + 2}` as PanelId;
     panels.push(panelFrom(id, urlToRef(String(search[`p${n}`])), search, String(n), sideLang(n)));
   });
+  const ctx = parseCtx(search[CTX_PARAM]);
   return {
     panels: Object.fromEntries(panels.map((p) => [p.id, p])),
     layout: panels.length === 1 ? leaf(panels[0]!.id) : row(...panels.map((p) => leaf(p.id))),
+    ...(ctx ? { ctx } : {}),
   };
 }
 
@@ -214,6 +217,9 @@ function workspaceParams(ws: Workspace, d: UrlDefaults): { path: string; params:
     if (d.singlePanel && i === 1 && cur.mode === "Connections" && prev.mode === "Text") continue;
     params.push(raw(`lang${i + 1}`, cur.lang), ...("aliyot" in cur ? [raw(`aliyot${i + 1}`, cur.aliyot!)] : []));
   }
+  // the reserved context (lib/reader/ctx.ts), last: not part of sefaria.org's grammar, so every legacy address is unchanged without it
+  const ctx = parseCtx(ws.ctx);
+  if (ctx) params.push(raw(CTX_PARAM, ctx));
   return { path, params };
 }
 
