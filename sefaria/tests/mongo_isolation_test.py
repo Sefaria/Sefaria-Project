@@ -59,7 +59,10 @@ def _probe(*args):
         cwd=ROOT,
         capture_output=True,
         text=True,
-        env={**os.environ, **MOCK},
+        # TOX_PARALLEL_ENV makes pytest-django suffix the child's test database name.
+        # On Postgres the child would otherwise create and destroy the very test
+        # database this session holds open (SQLite's in-memory one is per process).
+        env={**os.environ, **MOCK, "TOX_PARALLEL_ENV": "isolation_probe"},
         timeout=120,
     )
     assert r.returncode == 0, r.stdout[-800:]
