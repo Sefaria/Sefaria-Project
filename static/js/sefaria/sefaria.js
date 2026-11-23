@@ -3230,10 +3230,11 @@ Sefaria = extend(Sefaria, {
     }
     return trimmed;
   },
-  saveUserHistory: function (history_item) {
+  saveUserHistory: function (history_item, { beacon = false } = {}) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
     // optionally: `secondary`, `he_ref`, `language`
+    // `beacon`: send with navigator.sendBeacon, for a save made while the page unloads.
     if (!Sefaria.is_history_enabled || !history_item) {
       return;
     }
@@ -3242,14 +3243,17 @@ Sefaria = extend(Sefaria, {
       h.time_stamp = Sefaria.util.epoch_time();
     }
     if (Sefaria._uid) {
-      $.post(
-        Sefaria.apiHost + '/api/profile/sync?no_return=1&annotate=1',
-        { user_history: JSON.stringify(history_item_array) },
-        (data) => {
+      const syncUrl = `${Sefaria.apiHost}/api/profile/sync?no_return=1`;
+      const user_history = JSON.stringify(history_item_array);
+      if (beacon && navigator.sendBeacon) {
+        // A beacon can't set the CSRF header, so the token goes in the form body.
+        navigator.sendBeacon(syncUrl, new URLSearchParams({ user_history, csrfmiddlewaretoken: getCsrfToken() }));
+      } else {
+        $.post(`${syncUrl}&annotate=1`, { user_history }, (data) => {
           // Insert new items to beginning of history
           Sefaria.userHistory.items = data.created.concat(Sefaria.userHistory.items);
-        }
-      );
+        });
+      }
     } else {
       // we need to get the heRef for each history item
       Promise.all(

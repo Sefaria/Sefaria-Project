@@ -6,6 +6,7 @@ Uses MongoDB collections: apikeys, sheets, notes, profiles, notifications
 
 import structlog
 from django.contrib.auth.models import User
+from pymongo.errors import DuplicateKeyError
 
 import sefaria.model as model
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -96,6 +97,17 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
 
     # Move user reading history
     db.user_history.update_many({"uid": from_uid}, {"$set": {"uid": into_uid}})
+    # Move last places, keeping the newer one in a book both users read
+    for place in db.user_last_place.find({"uid": from_uid}, {"_id": 0}):
+        try:
+            db.user_last_place.update_one(
+                {"uid": into_uid, "book": place["book"], "time_stamp": {"$lt": place["time_stamp"]}},
+                {"$set": {**place, "uid": into_uid}},
+                upsert=True,
+            )
+        except DuplicateKeyError:
+            pass  # `into_uid` read this book more recently
+    db.user_last_place.delete_many({"uid": from_uid})
     # Move group admins
     db.groups.update({"admins": from_uid}, {"$set": {"admins.$": into_uid}})
     # Move group members
