@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.92.5-prod.1"
+      version: "0.95.1-prod.1"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -45,7 +45,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v7.11.8-prod.1"
+        tag: "v7.17.4-prod.1"
       replicaCount: 7
       resources:
         web:
@@ -83,7 +83,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v7.11.8-prod.1"
+        tag: "v7.17.4-prod.1"
       replicaCount: 4
       resources:
         requests:
@@ -195,7 +195,7 @@ spec:
       image:
         # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
         repository: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
-        tag: ""
+        tag: "v7.17.4-prod.1"
       extAuth:
         # Fail open: if the auth service is down or slower than the timeout, the request goes through as the anonymous tier.
         failOpen: true
@@ -216,7 +216,7 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v7.11.8-prod.1"
+        tag: "v7.17.4-prod.1"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
