@@ -6,6 +6,7 @@ The output is one Extended JSON fixture per pytest nodeid. Each fixture contains
 only documents selected by replaying that test's recorded Mongo filters against a
 local source database, with recorded returned _ids as the bounded fallback.
 """
+
 import argparse
 import hashlib
 import json
@@ -41,26 +42,24 @@ LINK_SAMPLE_SAFE = {
 MAX_BASE_BYTES = 17 * 1024 * 1024
 MAX_TOTAL_BYTES = 20 * 1024 * 1024
 LINK_RESPONSE_FIELDS = {
-    "anchorRef", "category", "ref", "type", "refs",
-    "is_first_comment", "first_comment_indexes", "first_comment_section_ref",
-    "expandedRefs0", "expandedRefs1", "generated_by",
-    "inline_citation"
+    "anchorRef",
+    "category",
+    "ref",
+    "type",
+    "refs",
+    "is_first_comment",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "expandedRefs0",
+    "expandedRefs1",
+    "generated_by",
+    "inline_citation",
 }
-TEXTS_RESPONSE_FIELDS = {
-    "title", "language", "versionTitle", "versionSource", "isPrimary", "isSource"
-}
-GROUPS_RESPONSE_FIELDS = {
-    "slug", "name", "listed", "toc"
-}
-TOPICS_RESPONSE_FIELDS = {
-    "slug", "titles", "isTopLevelDisplay", "displayOrder"
-}
-TOPIC_LINKS_RESPONSE_FIELDS = {
-    "toTopic", "fromTopic", "linkType", "class", "dataSource", "order"
-}
-VSTATE_RESPONSE_FIELDS = {
-    "title", "content"
-}
+TEXTS_RESPONSE_FIELDS = {"title", "language", "versionTitle", "versionSource", "isPrimary", "isSource"}
+GROUPS_RESPONSE_FIELDS = {"slug", "name", "listed", "toc"}
+TOPICS_RESPONSE_FIELDS = {"slug", "titles", "isTopLevelDisplay", "displayOrder"}
+TOPIC_LINKS_RESPONSE_FIELDS = {"toTopic", "fromTopic", "linkType", "class", "dataSource", "order"}
+VSTATE_RESPONSE_FIELDS = {"title", "content"}
 
 # Determined by reading the test body and its recorded call path. The default
 # is no chapter content; if a test genuinely needs segment text, add its title
@@ -215,11 +214,7 @@ def collect_docs(source_db, records):
         if not collection:
             continue
         filt = record.get("filter")
-        if (
-            isinstance(filt, dict)
-            and isinstance(filt.get("title"), str)
-            and record.get("n_returned", 0)
-        ):
+        if isinstance(filt, dict) and isinstance(filt.get("title"), str) and record.get("n_returned", 0):
             touched_titles.add(filt["title"])
         filters_to_replay[collection].extend(normalize_filters(record))
         # Also copy the reply's doc_ids when a filter was replayed: recorded filters
@@ -268,9 +263,7 @@ def collect_docs(source_db, records):
         if not missing:
             continue
         try:
-            cursor = source_db[collection].find(
-                {"_id": {"$in": [to_object_id(i) for i in missing]}}
-            ).sort("_id", 1)
+            cursor = source_db[collection].find({"_id": {"$in": [to_object_id(i) for i in missing]}}).sort("_id", 1)
         except OperationFailure as e:
             raise SystemExit(f"could not resolve doc_id fallback on {collection}: {e}") from e
         for doc in cursor:
@@ -302,9 +295,7 @@ def collect_docs(source_db, records):
             docs_by_collection["category"][str(doc["_id"])] = doc
         shared_titles.update(path)
 
-    already_loaded_terms = {
-        doc.get("name") for doc in docs_by_collection.get("term", {}).values()
-    }
+    already_loaded_terms = {doc.get("name") for doc in docs_by_collection.get("term", {}).values()}
     missing_terms = sorted(shared_titles - already_loaded_terms)
     if missing_terms:
         for doc in source_db["term"].find({"name": {"$in": missing_terms}}).sort("_id", 1):
@@ -388,10 +379,7 @@ def write_fixture(output_dir, nodeid, collections, records=None):
                 for key in list(doc):
                     if key not in fields:
                         del doc[key]
-    sorted_collections = {
-        coll: sorted(collections[coll], key=doc_id_sort_key)
-        for coll in sorted(collections.keys())
-    }
+    sorted_collections = {coll: sorted(collections[coll], key=doc_id_sort_key) for coll in sorted(collections.keys())}
     payload = {
         "nodeid": nodeid,
         "collections": sorted_collections,
@@ -434,29 +422,44 @@ def refresh_base_from_source(source_db, accumulator):
     vanished are dropped. Returns {collection: [dropped ids]}."""
     dropped = {}
     for collection, docs in accumulator.items():
-        if not docs: continue
-        fresh = {str(d["_id"]): d for d in source_db[collection].find({"_id": {"$in": [d["_id"] for d in docs.values()]}})}
+        if not docs:
+            continue
+        fresh = {
+            str(d["_id"]): d for d in source_db[collection].find({"_id": {"$in": [d["_id"] for d in docs.values()]}})
+        }
         for key in list(docs):
-            if key in fresh: docs[key] = fresh[key]
-            else: dropped.setdefault(collection, []).append(key); del docs[key]
+            if key in fresh:
+                docs[key] = fresh[key]
+            else:
+                dropped.setdefault(collection, []).append(key)
+                del docs[key]
     return dropped
 
 
 def write_manifest(output_dir, source=None):
     fixtures = {}
     for name in sorted(os.listdir(output_dir)):
-        if name.startswith("_") or not name.endswith(".json"): continue
+        if name.startswith("_") or not name.endswith(".json"):
+            continue
         raw = open(os.path.join(output_dir, name), "rb").read()
         payload = json.loads(raw)
-        fixtures[name] = {"nodeid": payload["nodeid"], "sha256": hashlib.sha256(raw).hexdigest(),
-                          "collections": sorted(payload["collections"])}
+        fixtures[name] = {
+            "nodeid": payload["nodeid"],
+            "sha256": hashlib.sha256(raw).hexdigest(),
+            "collections": sorted(payload["collections"]),
+        }
     base = os.path.join(output_dir, "_base.json")
     if not os.path.isfile(base):
         raise SystemExit(f"cannot write manifest: {base} is missing")
-    manifest = {"format": 1, "source": source or {}, "fixtures": fixtures,
-                "base": {"sha256": hashlib.sha256(open(base, "rb").read()).hexdigest()}}
+    manifest = {
+        "format": 1,
+        "source": source or {},
+        "fixtures": fixtures,
+        "base": {"sha256": hashlib.sha256(open(base, "rb").read()).hexdigest()},
+    }
     with open(os.path.join(output_dir, "_manifest.json"), "w") as fh:
-        json.dump(manifest, fh, indent=1, sort_keys=True); fh.write("\n")
+        json.dump(manifest, fh, indent=1, sort_keys=True)
+        fh.write("\n")
 
 
 def enrich_base_with_library_families(source_db, accumulator):
@@ -465,12 +468,9 @@ def enrich_base_with_library_families(source_db, accumulator):
     Deterministic for a given source database: every selection is a full query
     result, never a sample, and write_fixture sorts by _id.
     """
-    for doc in source_db["index"].find(
-        {"categories.0": {"$in": list(BASE_LIBRARY_CATEGORIES)}}
-    ).sort("_id", 1):
+    for doc in source_db["index"].find({"categories.0": {"$in": list(BASE_LIBRARY_CATEGORIES)}}).sort("_id", 1):
         accumulator["index"][str(doc["_id"])] = doc
-    for key in [k for k, doc in accumulator["index"].items()
-                if doc.get("title") in BASE_EXCLUDED_INDEX_TITLES]:
+    for key in [k for k, doc in accumulator["index"].items() if doc.get("title") in BASE_EXCLUDED_INDEX_TITLES]:
         del accumulator["index"][key]
 
     # A commentary whose base text is absent makes the TOC build log a
@@ -478,12 +478,14 @@ def enrich_base_with_library_families(source_db, accumulator):
     # as corruption. Close over base_text_titles until nothing new is found.
     while True:
         have = {doc.get("title") for doc in accumulator["index"].values()}
-        wanted = sorted({
-            title
-            for doc in accumulator["index"].values()
-            for title in (doc.get("base_text_titles") or [])
-            if title not in have and title not in BASE_EXCLUDED_INDEX_TITLES
-        })
+        wanted = sorted(
+            {
+                title
+                for doc in accumulator["index"].values()
+                for title in (doc.get("base_text_titles") or [])
+                if title not in have and title not in BASE_EXCLUDED_INDEX_TITLES
+            }
+        )
         added = 0
         for doc in source_db["index"].find({"title": {"$in": wanted}}).sort("_id", 1) if wanted else []:
             if str(doc["_id"]) not in accumulator["index"]:
@@ -553,9 +555,7 @@ def enrich_base_with_extra_titles(source_db, accumulator):
             accumulator["category"][str(doc["_id"])] = doc
         shared_titles.update(path)
 
-    already_loaded_terms = {
-        doc.get("name") for doc in accumulator.get("term", {}).values()
-    }
+    already_loaded_terms = {doc.get("name") for doc in accumulator.get("term", {}).values()}
     missing_terms = sorted(shared_titles - already_loaded_terms)
     if missing_terms:
         for doc in source_db["term"].find({"name": {"$in": missing_terms}}).sort("_id", 1):
@@ -606,22 +606,27 @@ def report_dropped(dropped):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("test_files", nargs="*", help="pytest file path(s) to export, e.g. sefaria/tests/recommendation_test.py")
+    ap.add_argument(
+        "test_files", nargs="*", help="pytest file path(s) to export, e.g. sefaria/tests/recommendation_test.py"
+    )
     ap.add_argument("--artifact-dir", default=DEFAULT_ARTIFACT_DIR)
     ap.add_argument("--output-dir", default=DEFAULT_FIXTURE_DIR)
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=27018)
     ap.add_argument("--source-db", default="sefaria")
     ap.add_argument(
-        "--base-only", action="store_true",
+        "--base-only",
+        action="store_true",
         help="rebuild _base.json only (existing base + library families); leave per-test overlays untouched",
     )
     ap.add_argument(
-        "--manifest-only", action="store_true",
+        "--manifest-only",
+        action="store_true",
         help="rewrite _manifest.json from the fixture files in --output-dir and exit",
     )
     ap.add_argument(
-        "--source-stamp-json", metavar="PATH",
+        "--source-stamp-json",
+        metavar="PATH",
         help="JSON object merged into the manifest's source (dump_url, last_modified, etag, recorded_at, git_sha)",
     )
     args = ap.parse_args()

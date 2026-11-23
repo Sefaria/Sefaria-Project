@@ -10,6 +10,7 @@ Idempotent: a test that already carries the marker is left alone, so re-running
 after a fresh measurement only adds what is genuinely new. Use --check to fail
 without writing (for CI drift detection) and --remove to strip the marker.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,8 +42,7 @@ def find_decorator_line(tree, path_parts, lines):
     for i, name in enumerate(path_parts):
         found = None
         for child in ast.iter_child_nodes(node):
-            if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) \
-                    and child.name == name:
+            if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and child.name == name:
                 found = child
                 break
         if found is None:
@@ -58,11 +58,9 @@ def already_marked(node_src, marker):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--marker", required=True)
-    ap.add_argument("--nodeids-file", required=True,
-                    help="one nodeid per line, as emitted by the measurement step")
+    ap.add_argument("--nodeids-file", required=True, help="one nodeid per line, as emitted by the measurement step")
     ap.add_argument("--check", action="store_true", help="report drift, write nothing")
     args = ap.parse_args()
 
@@ -90,7 +88,7 @@ def main():
             if line is None:
                 missing.append(f"{relpath}::{'::'.join(parts)}")
                 continue
-            seg = "".join(lines[max(0, line - 3):line + 1])
+            seg = "".join(lines[max(0, line - 3) : line + 1])
             if already_marked(seg, args.marker):
                 already += 1
                 continue

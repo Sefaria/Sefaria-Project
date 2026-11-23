@@ -14,6 +14,7 @@ there first and every step reads and writes that directory only.
 Exit 0: verified; 1: a step or the verification failed; 2: refused or no Mongo.
 Teardown of the restore container: docker rm -f sefaria-fixtures-mongo
 """
+
 import argparse
 import datetime
 import json
@@ -43,6 +44,7 @@ MAX_TOTAL = 20 * 1024 * 1024
 def default_probe(host, port):
     """Number of docs in sefaria.index on the Mongo at host:port, 0 when unreachable."""
     import pymongo
+
     try:
         client = pymongo.MongoClient(host, port, serverSelectionTimeoutMS=3000)
         return client["sefaria"].index.estimated_document_count()
@@ -52,8 +54,10 @@ def default_probe(host, port):
 
 def default_collect():
     import check_fixtures
+
     sys.path.insert(0, os.path.join(ROOT, "scripts", "test_impact"))
     import ci_parity
+
     return ci_parity.collect(["-m", SELECTION] + PATHS, check_fixtures.COLLECT_ENV, ROOT)
 
 
@@ -81,9 +85,13 @@ def ensure_mongo(host, port, restore, runner, probe):
 
 def dump_stamp(runner=subprocess.run):
     """Complete manifest `source` stamp. The dump headers are read with curl -sI; a failure leaves nulls."""
-    stamp = {"dump_url": DUMP_URL, "last_modified": None, "etag": None,
-             "recorded_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-             "git_sha": None}
+    stamp = {
+        "dump_url": DUMP_URL,
+        "last_modified": None,
+        "etag": None,
+        "recorded_at": datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds"),
+        "git_sha": None,
+    }
     try:
         headers = runner(["curl", "-sIL", "--max-time", "30", DUMP_URL], capture_output=True, text=True).stdout or ""
         for line in headers.splitlines():
@@ -112,26 +120,53 @@ def record(only, port, runner):
 
 
 def export(files, port, output_dir, stamp_path, runner):
-    cmd = [sys.executable, os.path.join(SCRIPT_DIR, "export_mongo_fixtures.py"), *files,
-           "--output-dir", output_dir, "--port", str(port), "--source-stamp-json", stamp_path]
+    cmd = [
+        sys.executable,
+        os.path.join(SCRIPT_DIR, "export_mongo_fixtures.py"),
+        *files,
+        "--output-dir",
+        output_dir,
+        "--port",
+        str(port),
+        "--source-stamp-json",
+        stamp_path,
+    ]
     return runner(cmd, cwd=ROOT).returncode
 
 
 def write_manifest(output_dir, stamp_path, runner):
-    cmd = [sys.executable, os.path.join(SCRIPT_DIR, "export_mongo_fixtures.py"), "--manifest-only",
-           "--output-dir", output_dir, "--source-stamp-json", stamp_path]
+    cmd = [
+        sys.executable,
+        os.path.join(SCRIPT_DIR, "export_mongo_fixtures.py"),
+        "--manifest-only",
+        "--output-dir",
+        output_dir,
+        "--source-stamp-json",
+        stamp_path,
+    ]
     return runner(cmd, cwd=ROOT).returncode
 
 
 def shapes_run(mode, only, output_dir, runner):
     env = dict(os.environ, **MOCK_ENV, SEFARIA_FIXTURE_SHAPES=mode, SEFARIA_MONGO_FIXTURE_DIR=output_dir)
-    cmd = [sys.executable, "-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider",
-           "-m", SELECTION, *(list(only) or PATHS)]
+    cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-q",
+        "--no-header",
+        "-p",
+        "no:cacheprovider",
+        "-m",
+        SELECTION,
+        *(list(only) or PATHS),
+    ]
     return runner(cmd, cwd=ROOT, env=env).returncode
 
 
 def orphans(collected, output_dir):
     import check_fixtures
+
     findings, _ = check_fixtures.check(collected, output_dir)
     return sorted(subject.split(" (")[0] for kind, subject, _ in findings if kind == "orphan")
 
@@ -142,8 +177,9 @@ def verify(output_dir, runner):
     if rc != 0:
         print(f"shape check failed (pytest exit {rc})", file=sys.stderr)
         ok = False
-    rc = runner([sys.executable, os.path.join(SCRIPT_DIR, "check_fixtures.py"), "--fixture-dir", output_dir],
-                cwd=ROOT).returncode
+    rc = runner(
+        [sys.executable, os.path.join(SCRIPT_DIR, "check_fixtures.py"), "--fixture-dir", output_dir], cwd=ROOT
+    ).returncode
     if rc != 0:
         print(f"check_fixtures.py failed (exit {rc})", file=sys.stderr)
         ok = False
@@ -151,8 +187,11 @@ def verify(output_dir, runner):
 
 
 def report_size(directory):
-    total = sum(os.path.getsize(os.path.join(directory, n)) for n in os.listdir(directory)
-                if os.path.isfile(os.path.join(directory, n)))
+    total = sum(
+        os.path.getsize(os.path.join(directory, n))
+        for n in os.listdir(directory)
+        if os.path.isfile(os.path.join(directory, n))
+    )
     print(f"fixtures total {total} bytes of {MAX_TOTAL} ({100 * total / MAX_TOTAL:.1f}%)")
 
 
@@ -168,18 +207,31 @@ def report(output_dir, runner):
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--only", nargs="+", metavar="NODEID", default=[],
-                        help="re-record just these test node ids (default: every needs_mongo test in the CI selection)")
-    parser.add_argument("--mongo-port", type=int, default=27018, help="port of the loopback source Mongo (default 27018)")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        "--only",
+        nargs="+",
+        metavar="NODEID",
+        default=[],
+        help="re-record just these test node ids (default: every needs_mongo test in the CI selection)",
+    )
+    parser.add_argument(
+        "--mongo-port", type=int, default=27018, help="port of the loopback source Mongo (default 27018)"
+    )
     parser.add_argument("--mongo-host", default="127.0.0.1", help="source Mongo host; only loopback is accepted")
-    parser.add_argument("--restore", choices=("auto", "never", "force"), default="auto",
-                        help="auto: reuse a Mongo on the port holding more than 1000 index docs, else restore the dump "
-                             "into container sefaria-fixtures-mongo; never: fail unless one is there; force: always restore")
-    parser.add_argument("--output-dir", default=COMMITTED_DIR,
-                        help="fixture directory to write (default: the committed sefaria/tests/fixtures/mongo); "
-                             "another directory gets a copy of the committed fixtures first and the committed files stay untouched")
+    parser.add_argument(
+        "--restore",
+        choices=("auto", "never", "force"),
+        default="auto",
+        help="auto: reuse a Mongo on the port holding more than 1000 index docs, else restore the dump "
+        "into container sefaria-fixtures-mongo; never: fail unless one is there; force: always restore",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=COMMITTED_DIR,
+        help="fixture directory to write (default: the committed sefaria/tests/fixtures/mongo); "
+        "another directory gets a copy of the committed fixtures first and the committed files stay untouched",
+    )
     parser.add_argument("--prune", action="store_true", help="delete fixtures of tests that no longer exist (orphans)")
     return parser
 

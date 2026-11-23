@@ -1,8 +1,10 @@
 """Drift and parity steps in .github/workflows/continuous.yaml (PR #3709 review, E14/E18/E23)."""
+
 import os
 import shlex
 
-import pytest, yaml
+import pytest
+import yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "continuous.yaml")
@@ -82,9 +84,11 @@ def test_no_mongo_run_line_passes_directories(wf):
     argv = shlex.split(_run_line(wf, "pytest-no-mongo-job").replace("\n", " "))
     assert "scripts/test_impact" in argv
     assert "scripts/pytest_minimal_dataset" in argv
-    for path in ("scripts/test_impact/test_ci_parity.py",
-                 "scripts/pytest_minimal_dataset/test_export_mongo_fixtures.py",
-                 "scripts/pytest_minimal_dataset/test_generate_minimal_dataset.py"):
+    for path in (
+        "scripts/test_impact/test_ci_parity.py",
+        "scripts/pytest_minimal_dataset/test_export_mongo_fixtures.py",
+        "scripts/pytest_minimal_dataset/test_generate_minimal_dataset.py",
+    ):
         assert path not in argv, path
 
 
@@ -92,8 +96,7 @@ def test_no_mongo_run_line_keeps_paths_and_marker(wf):
     argv = shlex.split(_run_line(wf, "pytest-no-mongo-job").replace("\n", " "))
     for path in ("./sefaria", "./sso", "./reader", "./powered_by", "./semantic_search"):
         assert path in argv, path
-    assert ("not deep and not failing and not needs_mongo and not needs_linker and not needs_corpus"
-            in argv)
+    assert "not deep and not failing and not needs_mongo and not needs_linker and not needs_corpus" in argv
 
 
 def test_no_stale_pytest_ini_comment_above_run_step(wf_text):

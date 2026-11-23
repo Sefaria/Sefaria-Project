@@ -22,6 +22,7 @@ MONGO_HOST/MONGO_PORT MUST stay loopback. This file backs a local mongod restore
 from Sefaria's public dump_small.tar.gz for a one-off decoupling investigation; it
 must never be pointed at a shared or cluster Mongo, which the suite would mutate.
 """
+
 import os as _os
 
 MONGO_HOST = "127.0.0.1"

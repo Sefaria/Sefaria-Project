@@ -1,4 +1,5 @@
 """Tests that the committed Mongo fixtures still match the model schemas."""
+
 import json
 import os
 
@@ -10,7 +11,8 @@ from sefaria.tests import fixture_schema
 from sefaria.tests.fixture_schema import schema_changes, schema_digests
 
 FIXTURE_DIR = os.environ.get("SEFARIA_MONGO_FIXTURE_DIR") or os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "fixtures", "mongo")
+    os.path.dirname(os.path.abspath(__file__)), "fixtures", "mongo"
+)
 RERECORD = "python scripts/pytest_minimal_dataset/rerecord_fixtures.py"
 
 
@@ -60,6 +62,7 @@ def test_base_docs_carry_required_attrs():
 
 def test_new_required_attr_is_reported(monkeypatch):
     from sefaria.model.text import Index
+
     recorded = schema_digests()
     monkeypatch.setattr(Index, "required_attrs", Index.required_attrs + ["x"])
     changed = schema_changes(recorded, schema_digests())

@@ -15,14 +15,14 @@ Tests that were never measured are deliberately NOT emitted. An unmarked test
 keeps running in the ordinary jobs, so an incomplete measurement costs CI time
 rather than coverage -- the safe direction.
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import os
-import sys
-
 import pathlib
+import sys
 
 import coverage
 
@@ -38,19 +38,20 @@ def _module_index():
     named linker_test.py in different packages must not be silently conflated.
     """
     import collections
+
     hits = collections.defaultdict(list)
     for path in pathlib.Path(REPO_ROOT).rglob("*test*.py"):
         rel = os.path.relpath(path, REPO_ROOT)
-        parts = rel.split(os.sep)
+        parts = pathlib.Path(rel).parts
         # .claude/worktrees and .worktrees hold whole copies of the repo; without
         # excluding them every test basename looks ambiguous and the whole index
         # collapses to empty.
-        if any(p in parts for p in ("venv", "node_modules", ".git", ".claude",
-                                     ".worktrees", ".artifacts", "build", "node")):
+        if any(
+            p in parts for p in ("venv", "node_modules", ".git", ".claude", ".worktrees", ".artifacts", "build", "node")
+        ):
             continue
         hits[path.stem].append(rel)
-    return {k: v[0] for k, v in hits.items() if len(v) == 1}, \
-           {k: v for k, v in hits.items() if len(v) > 1}
+    return {k: v[0] for k, v in hits.items() if len(v) == 1}, {k: v for k, v in hits.items() if len(v) > 1}
 
 
 def context_to_nodeid(ctx, index=None, ambiguous=None):
@@ -80,15 +81,13 @@ def context_to_nodeid(ctx, index=None, ambiguous=None):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data-file", default=".artifacts/linker-coverage/.coverage")
     ap.add_argument("--format", choices=["json", "nodeids", "files"], default="json")
     args = ap.parse_args()
 
     if not os.path.exists(args.data_file):
-        print(f"error: no coverage data at {args.data_file}; run the coverage pass first",
-              file=sys.stderr)
+        print(f"error: no coverage data at {args.data_file}; run the coverage pass first", file=sys.stderr)
         return 2
 
     data = coverage.CoverageData(basename=args.data_file)
@@ -113,8 +112,7 @@ def main():
     result = {
         "nodeids": sorted(nodeids),
         "files": files,
-        "measured_linker_sources": sorted(
-            os.path.relpath(f) for f in data.measured_files()),
+        "measured_linker_sources": sorted(os.path.relpath(f) for f in data.measured_files()),
     }
 
     if args.format == "json":

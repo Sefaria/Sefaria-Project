@@ -1,6 +1,7 @@
 """Plain pytest, no Django. Run with:
 ./venv/bin/python -m pytest -q -p no:django -c /dev/null scripts/test_impact/test_ci_parity.py
 """
+
 from __future__ import annotations
 
 import json
@@ -11,9 +12,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import ci_parity  # noqa: E402
-
 import yaml  # noqa: E402
-
 
 SAMPLE_WORKFLOW_YAML = """
 name: Continuous
@@ -70,6 +69,7 @@ def load_sample():
 # YAML extraction
 # ---------------------------------------------------------------------------
 
+
 class TestExtractPytestJobs:
     def test_extracts_all_pytest_jobs_by_default(self):
         workflow = load_sample()
@@ -115,6 +115,7 @@ class TestExtractPytestJobs:
 # nodeid parsing
 # ---------------------------------------------------------------------------
 
+
 class TestParseNodeids:
     def test_parses_realistic_collect_only_output(self):
         stdout = (
@@ -151,8 +152,7 @@ class TestParseNodeids:
 
     def test_indented_continuation_lines_are_ignored(self):
         stdout = (
-            "sefaria/tests/foo_test.py::test_one\n"
-            "    some::indented::looking::line::that::is::actually::a::traceback\n"
+            "sefaria/tests/foo_test.py::test_one\n    some::indented::looking::line::that::is::actually::a::traceback\n"
         )
         nodeids = ci_parity.parse_nodeids(stdout)
         assert nodeids == {"sefaria/tests/foo_test.py::test_one"}
@@ -161,6 +161,7 @@ class TestParseNodeids:
 # ---------------------------------------------------------------------------
 # diff / exit codes, with collect() monkeypatched
 # ---------------------------------------------------------------------------
+
 
 def _fake_collect_factory(mapping, calls=None):
     def _fake_collect(argv, env, root):
@@ -209,11 +210,19 @@ class TestDiffAndExitCodes:
             },
         }
         monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping))
-        rc = ci_parity.main([
-            "--root", str(tmp_path),
-            "--baseline-paths", "./sefaria", "./sso", "./reader", "./powered_by",
-            "--baseline-env", "FOO=1",
-        ])
+        rc = ci_parity.main(
+            [
+                "--root",
+                str(tmp_path),
+                "--baseline-paths",
+                "./sefaria",
+                "./sso",
+                "./reader",
+                "./powered_by",
+                "--baseline-env",
+                "FOO=1",
+            ]
+        )
         assert rc == 1
 
     def test_no_missing_tests_yield_exit_0(self, tmp_path, monkeypatch):
@@ -223,11 +232,19 @@ class TestDiffAndExitCodes:
         both = {"sefaria/tests/a_test.py::test_a", "sefaria/tests/b_test.py::test_b"}
         mapping = {job_argv: set(both), baseline_argv: set(both)}
         monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping))
-        rc = ci_parity.main([
-            "--root", str(tmp_path),
-            "--baseline-paths", "./sefaria", "./sso", "./reader", "./powered_by",
-            "--baseline-env", "FOO=1",
-        ])
+        rc = ci_parity.main(
+            [
+                "--root",
+                str(tmp_path),
+                "--baseline-paths",
+                "./sefaria",
+                "./sso",
+                "./reader",
+                "./powered_by",
+                "--baseline-env",
+                "FOO=1",
+            ]
+        )
         assert rc == 0
 
     def test_allow_list_subtracts_from_missing(self, tmp_path, monkeypatch):
@@ -243,15 +260,28 @@ class TestDiffAndExitCodes:
         }
         monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping))
         allow_path = tmp_path / "allow.json"
-        allow_path.write_text(json.dumps([
-            {"nodeid": "sefaria/tests/b_test.py::test_b", "reason": "covered by nightly workflow"},
-        ]))
-        rc = ci_parity.main([
-            "--root", str(tmp_path),
-            "--baseline-paths", "./sefaria", "./sso", "./reader", "./powered_by",
-            "--baseline-env", "FOO=1",
-            "--allow", str(allow_path),
-        ])
+        allow_path.write_text(
+            json.dumps(
+                [
+                    {"nodeid": "sefaria/tests/b_test.py::test_b", "reason": "covered by nightly workflow"},
+                ]
+            )
+        )
+        rc = ci_parity.main(
+            [
+                "--root",
+                str(tmp_path),
+                "--baseline-paths",
+                "./sefaria",
+                "./sso",
+                "./reader",
+                "./powered_by",
+                "--baseline-env",
+                "FOO=1",
+                "--allow",
+                str(allow_path),
+            ]
+        )
         assert rc == 0
 
     def test_stale_allow_entry_is_reported_not_fatal(self, tmp_path, monkeypatch, capsys):
@@ -264,15 +294,28 @@ class TestDiffAndExitCodes:
         }
         monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping))
         allow_path = tmp_path / "allow.json"
-        allow_path.write_text(json.dumps([
-            {"nodeid": "sefaria/tests/gone_test.py::test_gone", "reason": "no longer exists"},
-        ]))
-        rc = ci_parity.main([
-            "--root", str(tmp_path),
-            "--baseline-paths", "./sefaria", "./sso", "./reader", "./powered_by",
-            "--baseline-env", "FOO=1",
-            "--allow", str(allow_path),
-        ])
+        allow_path.write_text(
+            json.dumps(
+                [
+                    {"nodeid": "sefaria/tests/gone_test.py::test_gone", "reason": "no longer exists"},
+                ]
+            )
+        )
+        rc = ci_parity.main(
+            [
+                "--root",
+                str(tmp_path),
+                "--baseline-paths",
+                "./sefaria",
+                "./sso",
+                "./reader",
+                "./powered_by",
+                "--baseline-env",
+                "FOO=1",
+                "--allow",
+                str(allow_path),
+            ]
+        )
         assert rc == 0  # nothing missing; stale entry is a warning only
         captured = capsys.readouterr()
         assert "stale" in captured.err.lower()
@@ -287,11 +330,16 @@ class TestDiffAndExitCodes:
             raise AssertionError("baseline should not be reached before job collection error")
 
         monkeypatch.setattr(ci_parity, "collect", _fake_collect)
-        rc = ci_parity.main([
-            "--root", str(tmp_path),
-            "--baseline-paths", "./sefaria",
-            "--baseline-env", "FOO=1",
-        ])
+        rc = ci_parity.main(
+            [
+                "--root",
+                str(tmp_path),
+                "--baseline-paths",
+                "./sefaria",
+                "--baseline-env",
+                "FOO=1",
+            ]
+        )
         assert rc == 2
 
     def test_json_output_shape(self, tmp_path, monkeypatch, capsys):
@@ -306,12 +354,17 @@ class TestDiffAndExitCodes:
             },
         }
         monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping))
-        rc = ci_parity.main([
-            "--root", str(tmp_path),
-            "--baseline-paths", "./sefaria",
-            "--baseline-env", "FOO=1",
-            "--json",
-        ])
+        rc = ci_parity.main(
+            [
+                "--root",
+                str(tmp_path),
+                "--baseline-paths",
+                "./sefaria",
+                "--baseline-env",
+                "FOO=1",
+                "--json",
+            ]
+        )
         assert rc == 1
         captured = capsys.readouterr()
         data = json.loads(captured.out)
@@ -341,12 +394,18 @@ jobs:
             baseline_argv: {"sefaria/tests/a_test.py::test_a"},
         }
         monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping, calls))
-        rc = ci_parity.main([
-            "--root", str(tmp_path),
-            "--baseline-paths", "./sefaria",
-            "--baseline-env", "FOO=1",
-            "--exclude-job", "job-b",
-        ])
+        rc = ci_parity.main(
+            [
+                "--root",
+                str(tmp_path),
+                "--baseline-paths",
+                "./sefaria",
+                "--baseline-env",
+                "FOO=1",
+                "--exclude-job",
+                "job-b",
+            ]
+        )
         assert rc == 0
         # only job-a and baseline should have been collected -- job-b excluded
         assert len(calls) == 2
@@ -355,6 +414,7 @@ jobs:
 # ---------------------------------------------------------------------------
 # collect() nodeid-filtering and CollectionError plumbing
 # ---------------------------------------------------------------------------
+
 
 class TestCollectHelpers:
     def test_parse_env_kv_rejects_missing_equals(self):
@@ -377,6 +437,7 @@ class TestCollectHelpers:
 # ---------------------------------------------------------------------------
 # real-Mongo jobs: collected with the baseline env, not their own port
 # ---------------------------------------------------------------------------
+
 
 def test_real_mongo_job_is_collected_with_baseline_env(tmp_path, monkeypatch):
     workflow_yaml = """
@@ -415,11 +476,13 @@ jobs:
 # --baseline-ref: master collected from a materialized copy; HEAD decides failures
 # ---------------------------------------------------------------------------
 
+
 def _git(cwd, *args):
     subprocess.run(
-        ["git", "-c", "user.email=test@example.com", "-c", "user.name=test",
-         "-c", "commit.gpgsign=false", *args],
-        cwd=cwd, check=True, capture_output=True,
+        ["git", "-c", "user.email=test@example.com", "-c", "user.name=test", "-c", "commit.gpgsign=false", *args],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
     )
 
 
@@ -454,8 +517,14 @@ def test_baseline_ref_hidden_test_fails_removed_test_informational(tmp_path, mon
     monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping, calls))
     monkeypatch.setattr(ci_parity, "materialize_ref", lambda ref, root, dest, overlay=None: None)
     argv = [
-        "--root", str(tmp_path), "--baseline-paths", "./sefaria", "--baseline-env", "FOO=1",
-        "--baseline-ref", "origin/master",
+        "--root",
+        str(tmp_path),
+        "--baseline-paths",
+        "./sefaria",
+        "--baseline-env",
+        "FOO=1",
+        "--baseline-ref",
+        "origin/master",
     ]
 
     assert ci_parity.main(argv) == 1  # b exists at HEAD and no job runs it: hidden
@@ -476,10 +545,18 @@ def test_unavailable_ref_exits_2(tmp_path, monkeypatch, capsys):
     job_argv = ("-q", "-m", "not deep", "./sefaria")
     mapping = {job_argv: {"sefaria/tests/a_test.py::test_a"}}
     monkeypatch.setattr(ci_parity, "collect", _fake_collect_factory(mapping))
-    rc = ci_parity.main([
-        "--root", str(tmp_path), "--baseline-paths", "./sefaria", "--baseline-env", "FOO=1",
-        "--baseline-ref", "origin/no-such-ref",
-    ])
+    rc = ci_parity.main(
+        [
+            "--root",
+            str(tmp_path),
+            "--baseline-paths",
+            "./sefaria",
+            "--baseline-env",
+            "FOO=1",
+            "--baseline-ref",
+            "origin/no-such-ref",
+        ]
+    )
     assert rc == 2
     assert "origin/no-such-ref" in capsys.readouterr().err
 
@@ -488,10 +565,14 @@ def test_unavailable_ref_exits_2(tmp_path, monkeypatch, capsys):
 # sandbox and PARITY_BASELINE_ENV leftovers are gone
 # ---------------------------------------------------------------------------
 
+
 def test_no_sandbox_leftovers():
     for name in (
-        "SANDBOX_LAUNCHER_SCRIPT", "_sandbox_job_spec", "UnresolvedExpressionError",
-        "PARITY_BASELINE_ENV", "_resolve_env_expr",
+        "SANDBOX_LAUNCHER_SCRIPT",
+        "_sandbox_job_spec",
+        "UnresolvedExpressionError",
+        "PARITY_BASELINE_ENV",
+        "_resolve_env_expr",
     ):
         assert not hasattr(ci_parity, name), name
     assert "createJobFromRollout" not in (ci_parity.__doc__ or "")

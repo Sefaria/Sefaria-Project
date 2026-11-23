@@ -35,6 +35,7 @@ def test_incomplete_ok_refused_in_ci():
 
 def _base_counts():
     from bson import json_util
+
     with open(sc._MONGO_BASE_FIXTURE) as f:
         return {c: len(d) for c, d in json_util.loads(f.read())["collections"].items()}
 
@@ -42,6 +43,7 @@ def _base_counts():
 @pytest.mark.skipif(not MOCK, reason="needs the mocked client")
 def test_reseed_restores_base():
     from sefaria.system import database
+
     db = database.db
     db["junk_collection"].insert_one({"_id": 1})
     some = next(iter(_base_counts()))
@@ -56,7 +58,8 @@ def test_reseed_restores_base():
 
 def test_sanitize_matches_exporter():
     spec = importlib.util.spec_from_file_location(
-        "export_mongo_fixtures", os.path.join(ROOT, "scripts", "pytest_minimal_dataset", "export_mongo_fixtures.py"))
+        "export_mongo_fixtures", os.path.join(ROOT, "scripts", "pytest_minimal_dataset", "export_mongo_fixtures.py")
+    )
     exporter = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(exporter)
     ids = ["a/b_test.py::T::test[x]", "a/" + "long_" * 60 + "::t", "r/t.py::test[ab-cd]", "r/t.py::test[שלום]"]
@@ -73,6 +76,7 @@ def test_no_not_mockable_manifest_remains():
 @pytest.mark.skipif(not MOCK, reason="needs the mocked client")
 def test_leak_never_reaches_a_needs_mongo_test():
     from sefaria.system import database
+
     db = database.db
     db["leaked_scratch"].insert_one({"_id": 1})
     db[next(iter(_base_counts()))].insert_one({"_id": "leaked-doc"})
@@ -84,6 +88,7 @@ def test_leak_never_reaches_a_needs_mongo_test():
 @pytest.mark.skipif(not MOCK, reason="needs the mocked client")
 def test_unmarked_scratch_collection_needs_no_fixture():
     from sefaria.system import database
+
     coll = database.db["scratch_without_fixture"]
     coll.insert_one({"_id": 1, "v": 2})
     assert coll.find_one({"_id": 1})["v"] == 2

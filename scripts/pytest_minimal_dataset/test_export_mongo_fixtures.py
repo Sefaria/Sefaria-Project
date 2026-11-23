@@ -90,12 +90,8 @@ def test_base_fixture_is_compact_json(tmp_path):
 
 def test_write_base_fixture_does_not_dump_entire_index(tmp_path):
     source = FakeDB()
-    source["index"] = FakeCollection(
-        [{"_id": n, "title": f"Book{n}", "categories": ["Tanakh"]} for n in range(20)]
-    )
-    source["category"] = FakeCollection(
-        [{"_id": "c1", "path": ["Tanakh"]}]
-    )
+    source["index"] = FakeCollection([{"_id": n, "title": f"Book{n}", "categories": ["Tanakh"]} for n in range(20)])
+    source["category"] = FakeCollection([{"_id": "c1", "path": ["Tanakh"]}])
     source["term"] = FakeCollection([])
     needed = {
         "index": [source["index"].docs[0]],
@@ -112,12 +108,8 @@ def test_write_base_fixture_does_not_dump_entire_index(tmp_path):
 
 def test_collect_docs_splits_overlay_from_library_metadata():
     source = FakeDB()
-    source["texts"] = FakeCollection(
-        [{"_id": "t1", "title": "Exodus", "language": "en", "chapter": [["x"]]}]
-    )
-    source["index"] = FakeCollection(
-        [{"_id": "i1", "title": "Exodus", "categories": ["Tanakh"], "schema": {}}]
-    )
+    source["texts"] = FakeCollection([{"_id": "t1", "title": "Exodus", "language": "en", "chapter": [["x"]]}])
+    source["index"] = FakeCollection([{"_id": "i1", "title": "Exodus", "categories": ["Tanakh"], "schema": {}}])
     source["category"] = FakeCollection([{"_id": "c1", "path": ["Tanakh"]}])
     source["term"] = FakeCollection([])
     records = [
@@ -143,12 +135,7 @@ def test_oversized_base_does_not_replace_existing(tmp_path):
     # Sized from the constant so the test keeps meaning if the cap moves again.
     pad = 20000
     count = exp.MAX_BASE_BYTES // pad + 10
-    huge = {
-        "index": [
-            {"_id": str(i), "title": "T" * 200, "pad": "x" * pad}
-            for i in range(count)
-        ]
-    }
+    huge = {"index": [{"_id": str(i), "title": "T" * 200, "pad": "x" * pad} for i in range(count)]}
     result = exp.write_base_fixture(str(tmp_path), huge)
     assert result is None
     assert path.read_bytes() == original
@@ -160,23 +147,29 @@ def test_base_cap_stays_inside_the_total_budget():
 
 def _family_source():
     source = FakeDB()
-    source["index"] = FakeCollection([
-        {"_id": "i1", "title": "Genesis", "categories": ["Tanakh", "Torah"]},
-        {"_id": "i2", "title": "Shabbat", "categories": ["Talmud", "Bavli", "Seder Moed"]},
-        {"_id": "i3", "title": "Mishnah Avot", "categories": ["Mishnah", "Seder Nezikin"]},
-        {"_id": "i4", "title": "Shulchan Arukh", "categories": ["Halakhah"]},
-        {"_id": "i5", "title": "Delete Me", "categories": ["Tanakh"]},
-    ])
+    source["index"] = FakeCollection(
+        [
+            {"_id": "i1", "title": "Genesis", "categories": ["Tanakh", "Torah"]},
+            {"_id": "i2", "title": "Shabbat", "categories": ["Talmud", "Bavli", "Seder Moed"]},
+            {"_id": "i3", "title": "Mishnah Avot", "categories": ["Mishnah", "Seder Nezikin"]},
+            {"_id": "i4", "title": "Shulchan Arukh", "categories": ["Halakhah"]},
+            {"_id": "i5", "title": "Delete Me", "categories": ["Tanakh"]},
+        ]
+    )
     source["term"] = FakeCollection([{"_id": "t1", "name": "Torah"}])
     source["category"] = FakeCollection([{"_id": "c1", "path": ["Tanakh"]}])
-    source["topic_link_types"] = FakeCollection([
-        {"_id": "l1", "slug": "is-a", "validFrom": ["people"], "validTo": ["people"]},
-    ])
+    source["topic_link_types"] = FakeCollection(
+        [
+            {"_id": "l1", "slug": "is-a", "validFrom": ["people"], "validTo": ["people"]},
+        ]
+    )
     source["websites"] = FakeCollection([{"_id": "w1", "domains": ["opensiddur.org"]}])
-    source["topics"] = FakeCollection([
-        {"_id": "p1", "slug": "people"},
-        {"_id": "p2", "slug": "moses"},
-    ])
+    source["topics"] = FakeCollection(
+        [
+            {"_id": "p1", "slug": "people"},
+            {"_id": "p2", "slug": "moses"},
+        ]
+    )
     return source
 
 
@@ -227,6 +220,7 @@ def test_existing_base_merge_does_not_duplicate_objectids(tmp_path):
     # export re-queried was written twice -- and conftest bulk-inserts the base,
     # which rejects a duplicate _id.
     from collections import defaultdict
+
     from bson import ObjectId
 
     oid = ObjectId("5f0000000000000000000001")
@@ -266,9 +260,7 @@ def test_library_families_pull_in_missing_base_texts():
     from collections import defaultdict
 
     source = _family_source()
-    source["index"].docs.append(
-        {"_id": "i6", "title": "Netivot Olam", "categories": ["Jewish Thought"]}
-    )
+    source["index"].docs.append({"_id": "i6", "title": "Netivot Olam", "categories": ["Jewish Thought"]})
     acc = defaultdict(dict)
     acc["index"]["i7"] = {
         "_id": "i7",
@@ -334,17 +326,33 @@ def test_rejected_base_aborts_full_export(tmp_path, monkeypatch):
     exp.write_base_fixture(str(out), {"index": [{"_id": "a", "title": "Genesis"}]})
     original = (out / "_base.json").read_bytes()
     artifacts = tmp_path / "artifacts"
-    _write_artifact(artifacts, [{
-        "nodeid": NODEID, "collection": "index", "command": "find",
-        "filter": {"title": "Genesis"}, "n_returned": 1, "doc_ids": ["a"],
-    }])
+    _write_artifact(
+        artifacts,
+        [
+            {
+                "nodeid": NODEID,
+                "collection": "index",
+                "command": "find",
+                "filter": {"title": "Genesis"},
+                "n_returned": 1,
+                "doc_ids": ["a"],
+            }
+        ],
+    )
     client = _mock_source(index=[{"_id": "a", "title": "Genesis", "categories": ["Tanakh"], "pad": "x" * 5000}])
     monkeypatch.setattr(exp, "MAX_BASE_BYTES", 200)
     with pytest.raises(SystemExit) as info:
-        _run_main(monkeypatch, [
-            "sefaria/tests/example_test.py", "--artifact-dir", str(artifacts),
-            "--output-dir", str(out),
-        ], client)
+        _run_main(
+            monkeypatch,
+            [
+                "sefaria/tests/example_test.py",
+                "--artifact-dir",
+                str(artifacts),
+                "--output-dir",
+                str(out),
+            ],
+            client,
+        )
     assert info.value.code not in (None, 0)
     assert (out / "_base.json").read_bytes() == original
 
@@ -353,17 +361,33 @@ def test_oversized_overlay_is_an_error(tmp_path, monkeypatch):
     out = tmp_path / "fixtures"
     exp.write_base_fixture(str(out), {"index": [{"_id": "a", "title": "Genesis"}]})
     artifacts = tmp_path / "artifacts"
-    _write_artifact(artifacts, [{
-        "nodeid": NODEID, "collection": "texts", "command": "find",
-        "filter": {"title": "Exodus", "language": "en"}, "n_returned": 1, "doc_ids": ["t1"],
-    }])
+    _write_artifact(
+        artifacts,
+        [
+            {
+                "nodeid": NODEID,
+                "collection": "texts",
+                "command": "find",
+                "filter": {"title": "Exodus", "language": "en"},
+                "n_returned": 1,
+                "doc_ids": ["t1"],
+            }
+        ],
+    )
     client = _mock_source(texts=[{"_id": "t1", "title": "Exodus", "language": "en", "chapter": [["x" * 500]]}])
     monkeypatch.setattr(exp, "MAX_FIXTURE_BYTES", 50)
     with pytest.raises(SystemExit) as info:
-        _run_main(monkeypatch, [
-            "sefaria/tests/example_test.py", "--artifact-dir", str(artifacts),
-            "--output-dir", str(out),
-        ], client)
+        _run_main(
+            monkeypatch,
+            [
+                "sefaria/tests/example_test.py",
+                "--artifact-dir",
+                str(artifacts),
+                "--output-dir",
+                str(out),
+            ],
+            client,
+        )
     message = str(info.value.code)
     assert NODEID in message
     assert "needs_corpus" in message
@@ -371,14 +395,22 @@ def test_oversized_overlay_is_an_error(tmp_path, monkeypatch):
 
 
 def test_find_and_modify_filter_is_replayed():
-    client = _mock_source(texts=[
-        {"_id": "t1", "title": "Exodus", "language": "en", "chapter": [["x"]]},
-        {"_id": "t2", "title": "Leviticus", "language": "en", "chapter": [["y"]]},
-    ])
-    records = [{
-        "nodeid": NODEID, "command": "findAndModify", "collection": "texts",
-        "filter": {"title": "Exodus", "language": "en"}, "n_returned": 1, "doc_ids": [],
-    }]
+    client = _mock_source(
+        texts=[
+            {"_id": "t1", "title": "Exodus", "language": "en", "chapter": [["x"]]},
+            {"_id": "t2", "title": "Leviticus", "language": "en", "chapter": [["y"]]},
+        ]
+    )
+    records = [
+        {
+            "nodeid": NODEID,
+            "command": "findAndModify",
+            "collection": "texts",
+            "filter": {"title": "Exodus", "language": "en"},
+            "n_returned": 1,
+            "doc_ids": [],
+        }
+    ]
     overlay, _ = exp.collect_docs(client["sefaria"], records)
     assert [d["_id"] for d in overlay["texts"]] == ["t1"]
 
@@ -388,10 +420,18 @@ def test_refuses_non_loopback(tmp_path, monkeypatch):
         raise AssertionError("must not open a Mongo client for a non-loopback host")
 
     monkeypatch.setattr(exp.pymongo, "MongoClient", no_client)
-    monkeypatch.setattr(sys, "argv", [
-        "export_mongo_fixtures.py", "sefaria/tests/example_test.py",
-        "--host", "10.1.2.3", "--output-dir", str(tmp_path),
-    ])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "export_mongo_fixtures.py",
+            "sefaria/tests/example_test.py",
+            "--host",
+            "10.1.2.3",
+            "--output-dir",
+            str(tmp_path),
+        ],
+    )
     with pytest.raises(SystemExit) as info:
         exp.main()
     assert "non-loopback" in str(info.value.code)
@@ -400,7 +440,9 @@ def test_refuses_non_loopback(tmp_path, monkeypatch):
 def test_manifest_lists_every_fixture_with_sha256(tmp_path):
     exp.write_base_fixture(str(tmp_path), {"index": [{"_id": "a", "title": "Genesis"}]})
     exp.write_fixture(
-        str(tmp_path), NODEID, {"links": [{"_id": "a", "ref": "1"}]},
+        str(tmp_path),
+        NODEID,
+        {"links": [{"_id": "a", "ref": "1"}]},
         records=[{"collection": "links", "filter": {"ref": "1"}}],
     )
     exp.write_manifest(str(tmp_path))
@@ -426,10 +468,18 @@ def test_output_dir_is_honoured_for_manifest(tmp_path, monkeypatch):
     monkeypatch.setattr(exp, "DEFAULT_FIXTURE_DIR", str(default_dir))
     stamp = tmp_path / "stamp.json"
     stamp.write_text(json.dumps({"dump_url": "https://example.test/dump", "etag": "e1"}))
-    monkeypatch.setattr(sys, "argv", [
-        "export_mongo_fixtures.py", "--manifest-only", "--output-dir", str(out),
-        "--source-stamp-json", str(stamp),
-    ])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "export_mongo_fixtures.py",
+            "--manifest-only",
+            "--output-dir",
+            str(out),
+            "--source-stamp-json",
+            str(stamp),
+        ],
+    )
     exp.main()
     manifest = json.loads((out / "_manifest.json").read_text())
     assert manifest["source"]["dump_url"] == "https://example.test/dump"

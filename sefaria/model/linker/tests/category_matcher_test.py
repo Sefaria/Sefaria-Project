@@ -5,9 +5,8 @@ import pytest
 from sefaria.model.category import Category
 from sefaria.model.linker.category_resolver import CategoryMatcher
 
-
-
 pytestmark = pytest.mark.needs_linker
+
 
 def make_title(text, lang):
     return {"text": text, "lang": lang}

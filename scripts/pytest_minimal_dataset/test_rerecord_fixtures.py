@@ -12,8 +12,7 @@ import rerecord_fixtures as rr
 
 NODEID = "sefaria/tests/foo_test.py::test_a"
 OTHER = "sefaria/tests/bar_test.py::test_b[x]"
-HEADERS = ("HTTP/2 200\r\nlast-modified: Mon, 19 Oct 2026 04:00:00 GMT\r\n"
-           'ETag: "abc123"\r\ncontent-length: 5\r\n\r\n')
+HEADERS = 'HTTP/2 200\r\nlast-modified: Mon, 19 Oct 2026 04:00:00 GMT\r\nETag: "abc123"\r\ncontent-length: 5\r\n\r\n'
 
 
 class Fake:
@@ -35,9 +34,11 @@ class Fake:
             out = "deadbeef\n"
         elif cmd[:2] == ["git", "diff"]:
             out = " sefaria/tests/fixtures/mongo/x.json | 2 +-\n 1 file changed\n"
-        elif "check_fixtures.py" in " ".join(cmd):
-            rc = self.verify_rc
-        elif "pytest" in cmd and kw.get("env", {}).get("SEFARIA_FIXTURE_SHAPES") == "check":
+        elif (
+            "check_fixtures.py" in " ".join(cmd)
+            or "pytest" in cmd
+            and kw.get("env", {}).get("SEFARIA_FIXTURE_SHAPES") == "check"
+        ):
             rc = self.verify_rc
         elif "pytest" in cmd and "SEFARIA_RECORD_MONGO" in kw.get("env", {}):
             rc = self.record_rc
@@ -53,9 +54,12 @@ class Fake:
 def run_main(tmp_path, argv, fake=None, populated=True, collected=None):
     fake = fake or Fake()
     out = tmp_path / "out"
-    rc = rr.main(["--output-dir", str(out)] + argv, runner=fake,
-                 probe=lambda host, port: 5000 if populated else 0,
-                 collect=lambda: set(collected or {NODEID, OTHER}))
+    rc = rr.main(
+        ["--output-dir", str(out)] + argv,
+        runner=fake,
+        probe=lambda host, port: 5000 if populated else 0,
+        collect=lambda: set(collected or {NODEID, OTHER}),
+    )
     return rc, fake, out
 
 
@@ -72,7 +76,9 @@ def committed(tmp_path, monkeypatch):
 
 def test_plan_files_from_only_nodeids():
     assert rr.test_files_for([NODEID, OTHER, NODEID + "[p]"]) == [
-        "sefaria/tests/bar_test.py", "sefaria/tests/foo_test.py"]
+        "sefaria/tests/bar_test.py",
+        "sefaria/tests/foo_test.py",
+    ]
 
 
 def test_restore_excludes_nothing(tmp_path):
@@ -130,7 +136,9 @@ def test_order_of_steps(tmp_path):
 
 def test_only_scopes_record_export_and_shapes(tmp_path):
     rc, fake, out = run_main(tmp_path, ["--only", NODEID])
-    record = fake.find("SEFARIA_RECORD_MONGO") or [c for c in fake.calls if "SEFARIA_RECORD_MONGO" in c[1].get("env", {})]
+    record = fake.find("SEFARIA_RECORD_MONGO") or [
+        c for c in fake.calls if "SEFARIA_RECORD_MONGO" in c[1].get("env", {})
+    ]
     assert NODEID in record[0][0]
     export = fake.find("export_mongo_fixtures.py")[0][0]
     assert "sefaria/tests/foo_test.py" in export and "sefaria/tests/bar_test.py" not in export
@@ -187,6 +195,7 @@ def test_dump_stamp_parsed_from_headers():
 def test_dump_stamp_soft_fails():
     def boom(cmd, **kw):
         raise OSError("no curl")
+
     stamp = rr.dump_stamp(runner=boom)
     assert stamp["last_modified"] is None and stamp["etag"] is None
     assert set(stamp) == {"dump_url", "last_modified", "etag", "recorded_at", "git_sha"}

@@ -7,6 +7,7 @@ that sefaria/tests/fixtures/mongo holds exactly one canonical, manifest-listed
 fixture per test, plus a size budget. Needs no Mongo, so it runs in the no-Mongo
 CI job. Exit 0: ok, 1: findings, 2: internal error (collection failed).
 """
+
 import argparse
 import difflib
 import hashlib
@@ -27,8 +28,10 @@ SELECTION = "needs_mongo and not needs_corpus and not deep and not failing"
 PATHS = ["./sefaria", "./sso", "./reader", "./powered_by"]
 RERECORD = "python scripts/pytest_minimal_dataset/rerecord_fixtures.py"
 MANIFEST_FIX = "python scripts/pytest_minimal_dataset/export_mongo_fixtures.py --manifest-only"
-SHAPES_MSG = ("_shapes.json is missing; it is written by a re-record run with SEFARIA_FIXTURE_SHAPES=write "
-              "(rerecord_fixtures.py does this)")
+SHAPES_MSG = (
+    "_shapes.json is missing; it is written by a re-record run with SEFARIA_FIXTURE_SHAPES=write "
+    "(rerecord_fixtures.py does this)"
+)
 RESERVED = {"_base.json", "_manifest.json", "_shapes.json"}
 MIB = 1024 * 1024
 COLLECT_ENV = {"SEFARIA_MOCK_MONGO": "1", "SEFARIA_TEST_MONGO": "1", "LOCAL_TEST_MONGO_PORT": "27099"}
@@ -60,8 +63,13 @@ def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
     missing_stems = [w[:-5] for w in wanted if w not in present]
     for name in sorted(present - set(wanted)):
         hint = difflib.get_close_matches(name[:-5], missing_stems, n=1)
-        findings.append(("orphan", name + (f" (renamed to {hint[0]}?)" if hint else ""),
-                         f"git rm sefaria/tests/fixtures/mongo/{name}"))
+        findings.append(
+            (
+                "orphan",
+                name + (f" (renamed to {hint[0]}?)" if hint else ""),
+                f"git rm sefaria/tests/fixtures/mongo/{name}",
+            )
+        )
 
     manifest_path = os.path.join(fixture_dir, "_manifest.json")
     manifest = None
@@ -80,7 +88,9 @@ def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
             continue
         fix = f"{RERECORD} --only '{wanted[name]}'"
         if payload.get("nodeid") != wanted[name]:
-            findings.append(("nodeid", f"{name} holds nodeid {payload.get('nodeid')!r}, expected {wanted[name]!r}", fix))
+            findings.append(
+                ("nodeid", f"{name} holds nodeid {payload.get('nodeid')!r}, expected {wanted[name]!r}", fix)
+            )
         canon = (json_util.dumps(payload, sort_keys=True, indent=2) + "\n").encode("utf-8")
         if canon != raw:
             findings.append(("canonical", f"{name} is not byte-identical to its canonical encoding", fix))
@@ -102,7 +112,9 @@ def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
             base_raw = fh.read()
         extras = sorted(set(json.loads(base_raw).get("collections", {})) - set(BASE_COLLECTIONS))
         if extras:
-            findings.append(("base", f"_base.json has collections outside BASE_COLLECTIONS: {', '.join(extras)}", RERECORD))
+            findings.append(
+                ("base", f"_base.json has collections outside BASE_COLLECTIONS: {', '.join(extras)}", RERECORD)
+            )
         if manifest is not None and manifest.get("base", {}).get("sha256") != _sha(base_raw):
             findings.append(("sha", "_base.json does not match its _manifest.json sha256", MANIFEST_FIX))
         if len(base_raw) > max_base:
@@ -117,8 +129,11 @@ def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
             if wanted[name] not in shapes:
                 findings.append(("shapes", wanted[name], RERECORD))
 
-    total = sum(os.path.getsize(os.path.join(fixture_dir, n)) for n in os.listdir(fixture_dir)
-                if os.path.isfile(os.path.join(fixture_dir, n)))
+    total = sum(
+        os.path.getsize(os.path.join(fixture_dir, n))
+        for n in os.listdir(fixture_dir)
+        if os.path.isfile(os.path.join(fixture_dir, n))
+    )
     if total > max_total:
         findings.append(("size", f"fixtures total {total} bytes (> {max_total})", None))
     elif total >= 0.95 * max_total:
@@ -128,11 +143,16 @@ def check(collected, fixture_dir, max_total=20 * MIB, max_base=17 * MIB):
 
 def main(argv=None, collected=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fixture-dir", default=os.environ.get(
-        "SEFARIA_MONGO_FIXTURE_DIR", os.path.join(ROOT, "sefaria", "tests", "fixtures", "mongo")))
+    parser.add_argument(
+        "--fixture-dir",
+        default=os.environ.get(
+            "SEFARIA_MONGO_FIXTURE_DIR", os.path.join(ROOT, "sefaria", "tests", "fixtures", "mongo")
+        ),
+    )
     args = parser.parse_args(argv)
     if collected is None:
         import ci_parity
+
         try:
             collected = ci_parity.collect(["-m", SELECTION] + PATHS, COLLECT_ENV, ROOT)
         except ci_parity.CollectionError as exc:

@@ -178,7 +178,17 @@ class TestRerunForwardsPortAndSource:
         monkeypatch.setattr(gen, "rerun_recording", fake_rerun)
         monkeypatch.setattr(gen, "ARTIFACT_DIR", gen.ARTIFACT_DIR)  # restored after the test
         with pytest.raises(_Stop):
-            gen.main(["--port", "27019", "--source-db", "foo", "--target-db", "bar",
-                      "--artifact-dir", str(tmp_path / "missing")])
+            gen.main(
+                [
+                    "--port",
+                    "27019",
+                    "--source-db",
+                    "foo",
+                    "--target-db",
+                    "bar",
+                    "--artifact-dir",
+                    str(tmp_path / "missing"),
+                ]
+            )
         assert seen["port"] == 27019
         assert seen["source_db"] == "foo"

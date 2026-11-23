@@ -1,6 +1,8 @@
 from types import SimpleNamespace
+
 import pytest
 from bson import ObjectId
+
 from sefaria.system.database import QueryCounter
 
 
@@ -22,8 +24,11 @@ def _run(cmd_name, command, reply):
 
 def test_find_and_modify_is_recorded():
     oid = ObjectId()
-    (rec,) = _run("findAndModify", {"findAndModify": "sheets", "query": {"id": 5}, "update": {"$set": {"a": 1}}},
-                  {"value": {"_id": oid, "id": 5}, "ok": 1.0})
+    (rec,) = _run(
+        "findAndModify",
+        {"findAndModify": "sheets", "query": {"id": 5}, "update": {"$set": {"a": 1}}},
+        {"value": {"_id": oid, "id": 5}, "ok": 1.0},
+    )
     assert rec["filter"] == {"id": 5} and rec["doc_ids"] == [str(oid)] and rec["n_returned"] == 1
 
 
@@ -34,30 +39,34 @@ def test_find_and_modify_without_match_returns_zero():
 
 def test_find_is_recorded_with_filter_and_doc_ids():
     oid = ObjectId()
-    (rec,) = _run("find", {"find": "sheets", "filter": {"id": 5}},
-                  {"cursor": {"firstBatch": [{"_id": oid, "id": 5}], "id": 0}, "ok": 1.0})
+    (rec,) = _run(
+        "find",
+        {"find": "sheets", "filter": {"id": 5}},
+        {"cursor": {"firstBatch": [{"_id": oid, "id": 5}], "id": 0}, "ok": 1.0},
+    )
     assert rec["command"] == "find" and rec["collection"] == "sheets"
     assert rec["filter"] == {"id": 5} and rec["doc_ids"] == [str(oid)] and rec["n_returned"] == 1
 
 
 def test_update_is_recorded_with_filter():
-    (rec,) = _run("update", {"update": "sheets", "updates": [{"q": {"id": 5}, "u": {"$set": {"a": 1}}}]},
-                  {"n": 1, "nModified": 1, "ok": 1.0})
+    (rec,) = _run(
+        "update",
+        {"update": "sheets", "updates": [{"q": {"id": 5}, "u": {"$set": {"a": 1}}}]},
+        {"n": 1, "nModified": 1, "ok": 1.0},
+    )
     assert rec["command"] == "update" and rec["collection"] == "sheets"
     assert rec["filter"] == [{"id": 5}] and rec["doc_ids"] == [] and rec["n_returned"] == 1
 
 
 def test_delete_is_recorded_with_filter():
-    (rec,) = _run("delete", {"delete": "sheets", "deletes": [{"q": {"id": 5}, "limit": 1}]},
-                  {"n": 1, "ok": 1.0})
+    (rec,) = _run("delete", {"delete": "sheets", "deletes": [{"q": {"id": 5}, "limit": 1}]}, {"n": 1, "ok": 1.0})
     assert rec["command"] == "delete" and rec["collection"] == "sheets"
     assert rec["filter"] == [{"id": 5}] and rec["doc_ids"] == [] and rec["n_returned"] == 1
 
 
 def test_insert_is_recorded_with_doc_ids():
     oid = ObjectId()
-    (rec,) = _run("insert", {"insert": "sheets", "documents": [{"_id": oid, "id": 5}]},
-                  {"n": 1, "ok": 1.0})
+    (rec,) = _run("insert", {"insert": "sheets", "documents": [{"_id": oid, "id": 5}]}, {"n": 1, "ok": 1.0})
     assert rec["command"] == "insert" and rec["collection"] == "sheets"
     assert rec["filter"] is None and rec["doc_ids"] == [str(oid)] and rec["n_returned"] == 1
 
@@ -65,8 +74,11 @@ def test_insert_is_recorded_with_doc_ids():
 def test_aggregate_is_recorded_with_pipeline_and_doc_ids():
     oid = ObjectId()
     pipeline = [{"$match": {"id": 5}}]
-    (rec,) = _run("aggregate", {"aggregate": "sheets", "pipeline": pipeline, "cursor": {}},
-                  {"cursor": {"firstBatch": [{"_id": oid, "id": 5}], "id": 0}, "ok": 1.0})
+    (rec,) = _run(
+        "aggregate",
+        {"aggregate": "sheets", "pipeline": pipeline, "cursor": {}},
+        {"cursor": {"firstBatch": [{"_id": oid, "id": 5}], "id": 0}, "ok": 1.0},
+    )
     assert rec["command"] == "aggregate" and rec["collection"] == "sheets"
     assert rec["filter"] == pipeline and rec["doc_ids"] == [str(oid)] and rec["n_returned"] == 1
 
@@ -80,5 +92,6 @@ def test_inert_when_not_recording():
 
 def test_recording_flag_off_by_default(monkeypatch):
     import sefaria.conftest as c
+
     monkeypatch.delenv("SEFARIA_RECORD_MONGO", raising=False)
     assert c._recording_enabled() is False

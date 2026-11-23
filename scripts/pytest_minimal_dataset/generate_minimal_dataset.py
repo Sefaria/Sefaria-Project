@@ -56,6 +56,7 @@ If the artifact directory is empty or missing, this script re-runs the
 recording pass itself (pytest against --source-db) before generating,
 per the work item's instructions, rather than failing outright.
 """
+
 import argparse
 import json
 import os
@@ -63,11 +64,11 @@ import sys
 from collections import defaultdict
 
 import pymongo
+import recording
 from bson import ObjectId
 from pymongo.errors import BulkWriteError, OperationFailure
-
-import recording
 from recording import REPO_ROOT
+
 DEFAULT_ARTIFACT_DIR = os.path.join(REPO_ROOT, ".artifacts", "mongo-usage")
 
 # Mutated by main() to point at whatever --artifact-dir was passed (default:
@@ -82,17 +83,21 @@ def index_path():
 
 
 def artifacts_present():
-    return os.path.isdir(ARTIFACT_DIR) and os.path.isfile(index_path()) and any(
-        f.endswith(".jsonl") for f in os.listdir(ARTIFACT_DIR)
+    return (
+        os.path.isdir(ARTIFACT_DIR)
+        and os.path.isfile(index_path())
+        and any(f.endswith(".jsonl") for f in os.listdir(ARTIFACT_DIR))
     )
 
 
 def rerun_recording(test_target="sefaria/tests", port=27018, source_db="sefaria"):
-    print(f"[generate_minimal_dataset] no recorder artifacts found under {ARTIFACT_DIR}; "
-          f"re-running the recording pass: pytest {test_target}", file=sys.stderr)
+    print(
+        f"[generate_minimal_dataset] no recorder artifacts found under {ARTIFACT_DIR}; "
+        f"re-running the recording pass: pytest {test_target}",
+        file=sys.stderr,
+    )
     # runner is resolved at call time so the recorder env is the one run_recording builds.
-    returncode = recording.run_recording([test_target], port=port, db_name=source_db,
-                                         runner=recording.subprocess.run)
+    returncode = recording.run_recording([test_target], port=port, db_name=source_db, runner=recording.subprocess.run)
     # Recording is a side effect of running the suite; a nonzero exit code
     # from the suite itself does not mean the recording failed, so we do not
     # treat it as fatal here -- but we do require the artifacts to now exist.
@@ -117,8 +122,7 @@ def load_records():
                 try:
                     yield json.loads(line)
                 except json.JSONDecodeError:
-                    print(f"[generate_minimal_dataset] WARNING: skipping malformed line in {fname}",
-                          file=sys.stderr)
+                    print(f"[generate_minimal_dataset] WARNING: skipping malformed line in {fname}", file=sys.stderr)
 
 
 def load_index():
@@ -155,7 +159,7 @@ def extract_match_filter(pipeline):
     for stage in pipeline:
         if not isinstance(stage, dict) or len(stage) != 1:
             break
-        (name, body), = stage.items()
+        ((name, body),) = stage.items()
         if name == "$match":
             matches.append(body)
         elif name not in _PASS_THROUGH:
@@ -233,23 +237,22 @@ def copy_indexes(source_db, target_db, collection):
         # client-side validator rejects anything that is not int/str, raising
         # TypeError before the server is ever contacted -- which aborted the whole
         # generator run mid-way. Coerce integral floats back to int here.
-        key = [(k, int(v) if isinstance(v, float) and v.is_integer() else v)
-               for k, v in idx.pop("key").items()]
+        key = [(k, int(v) if isinstance(v, float) and v.is_integer() else v) for k, v in idx.pop("key").items()]
         idx.pop("v", None)
         idx.pop("ns", None)
         name = idx.pop("name")
         try:
-            target_db[collection].create_indexes(
-                [pymongo.IndexModel(key, name=name, **idx)]
-            )
+            target_db[collection].create_indexes([pymongo.IndexModel(key, name=name, **idx)])
             copied += 1
         except (OperationFailure, TypeError, ValueError) as e:
             # TypeError/ValueError come from pymongo's own client-side index-spec
             # validation (text indexes report synthetic _fts/_ftsx keys that cannot
             # be replayed). An index we cannot recreate must never abort the run.
             failed.append(name)
-            print(f"[generate_minimal_dataset] WARNING: could not recreate index "
-                  f"{collection}.{name}: {e}", file=sys.stderr)
+            print(
+                f"[generate_minimal_dataset] WARNING: could not recreate index {collection}.{name}: {e}",
+                file=sys.stderr,
+            )
     return copied, failed
 
 
@@ -259,7 +262,7 @@ def insert_batched(collection_handle, docs, batch_size=1000):
     written = 0
     docs = list(docs)
     for i in range(0, len(docs), batch_size):
-        batch = docs[i:i + batch_size]
+        batch = docs[i : i + batch_size]
         try:
             collection_handle.insert_many(batch, ordered=False)
             written += len(batch)
@@ -269,9 +272,11 @@ def insert_batched(collection_handle, docs, batch_size=1000):
             other = [we for we in write_errors if we.get("code") != 11000]
             written += len(batch) - len(write_errors)
             if other:
-                print(f"[generate_minimal_dataset] WARNING: {len(other)} non-duplicate "
-                      f"write error(s) inserting into {collection_handle.name}: {other[:3]}",
-                      file=sys.stderr)
+                print(
+                    f"[generate_minimal_dataset] WARNING: {len(other)} non-duplicate "
+                    f"write error(s) inserting into {collection_handle.name}: {other[:3]}",
+                    file=sys.stderr,
+                )
     return written
 
 
@@ -281,13 +286,17 @@ def main(argv=None):
     ap.add_argument("--port", type=int, default=27018)
     ap.add_argument("--source-db", default="sefaria")
     ap.add_argument("--target-db", default="sefaria_min")
-    ap.add_argument("--test-target", default="sefaria/tests",
-                     help="pytest target used to (re)generate recorder artifacts if absent")
-    ap.add_argument("--artifact-dir", default=DEFAULT_ARTIFACT_DIR,
-                     help="Directory of recorder JSONL files + _index.json to generate from. "
-                          "Point this at a frozen copy (e.g. .artifacts/mongo-usage.recording) "
-                          "to avoid the verification pytest run (which is itself instrumented "
-                          "by the same conftest.py) overwriting the very artifacts you generated from.")
+    ap.add_argument(
+        "--test-target", default="sefaria/tests", help="pytest target used to (re)generate recorder artifacts if absent"
+    )
+    ap.add_argument(
+        "--artifact-dir",
+        default=DEFAULT_ARTIFACT_DIR,
+        help="Directory of recorder JSONL files + _index.json to generate from. "
+        "Point this at a frozen copy (e.g. .artifacts/mongo-usage.recording) "
+        "to avoid the verification pytest run (which is itself instrumented "
+        "by the same conftest.py) overwriting the very artifacts you generated from.",
+    )
     args = ap.parse_args(argv)
 
     if args.source_db == args.target_db:
@@ -360,8 +369,10 @@ def main(argv=None):
             try:
                 cursor = source_db[collection].find(filt, projection=None)
             except OperationFailure as e:
-                print(f"[generate_minimal_dataset] WARNING: could not replay filter on "
-                      f"{collection}: {filt!r}: {e}", file=sys.stderr)
+                print(
+                    f"[generate_minimal_dataset] WARNING: could not replay filter on {collection}: {filt!r}: {e}",
+                    file=sys.stderr,
+                )
                 continue
             matched = 0
             for doc in cursor:
@@ -385,8 +396,10 @@ def main(argv=None):
                     docs_by_collection[collection][str(doc["_id"])] = doc
                     found_here += 1
             except OperationFailure as e:
-                print(f"[generate_minimal_dataset] WARNING: could not resolve doc_id fallback on "
-                      f"{collection}: {e}", file=sys.stderr)
+                print(
+                    f"[generate_minimal_dataset] WARNING: could not resolve doc_id fallback on {collection}: {e}",
+                    file=sys.stderr,
+                )
         doc_id_resolution[collection] = (len(id_strs), len(id_strs) - len(missing) + found_here)
 
     # Write documents + indexes into the target DB.
@@ -404,13 +417,18 @@ def main(argv=None):
 
     print(f"[generate_minimal_dataset] records processed: {stats['records']}")
     print(f"[generate_minimal_dataset] filter-replay (strategy b) filters issued: {stats['filter_replays']}")
-    print(f"[generate_minimal_dataset] doc_id-fallback (strategy a) ids requested: {stats['doc_id_fallback_requested']}")
+    print(
+        f"[generate_minimal_dataset] doc_id-fallback (strategy a) ids requested: {stats['doc_id_fallback_requested']}"
+    )
     print(f"[generate_minimal_dataset] insert commands seen (not copied from source): {stats['inserts_seen']}")
     print(f"[generate_minimal_dataset] collections materialized: {len(touched_collections)}")
     print(f"[generate_minimal_dataset] total documents written to '{args.target_db}': {total_docs_written}")
     if zero_match_filters:
-        print(f"[generate_minimal_dataset] WARNING: {len(zero_match_filters)} replayed filter(s) matched "
-              f"zero documents in source (possible non-determinism / already-mutated data):", file=sys.stderr)
+        print(
+            f"[generate_minimal_dataset] WARNING: {len(zero_match_filters)} replayed filter(s) matched "
+            f"zero documents in source (possible non-determinism / already-mutated data):",
+            file=sys.stderr,
+        )
         for collection, filt in zero_match_filters[:10]:
             print(f"    {collection}: {filt!r}", file=sys.stderr)
     print("[generate_minimal_dataset] doc_id fallback resolution per collection (requested -> found):")
@@ -418,9 +436,12 @@ def main(argv=None):
         marker = "" if found >= requested else "  <-- UNDER-COLLECTED"
         print(f"    {collection}: {requested} -> {found}{marker}")
     if index_failures:
-        print(f"[generate_minimal_dataset] WARNING: index recreation failed for "
-              f"{sum(len(v) for v in index_failures.values())} index(es) "
-              f"(text indexes cannot be replayed from listIndexes output):", file=sys.stderr)
+        print(
+            f"[generate_minimal_dataset] WARNING: index recreation failed for "
+            f"{sum(len(v) for v in index_failures.values())} index(es) "
+            f"(text indexes cannot be replayed from listIndexes output):",
+            file=sys.stderr,
+        )
         for collection, names in index_failures.items():
             print(f"    {collection}: {names}", file=sys.stderr)
 

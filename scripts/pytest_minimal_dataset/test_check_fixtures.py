@@ -34,11 +34,13 @@ def build(tmp_path, nodeids, shapes=True, manifest=True):
     base = json.dumps({"nodeid": "_base", "collections": {"index": []}}, sort_keys=True) + "\n"
     (tmp_path / "_base.json").write_text(base)
     if manifest:
-        (tmp_path / "_manifest.json").write_text(json.dumps(
-            {"format": 1, "source": {}, "fixtures": fixtures, "base": {"sha256": sha(base)}}))
+        (tmp_path / "_manifest.json").write_text(
+            json.dumps({"format": 1, "source": {}, "fixtures": fixtures, "base": {"sha256": sha(base)}})
+        )
     if shapes:
-        (tmp_path / "_shapes.json").write_text(json.dumps(
-            {"format": 1, "shapes": {n: {} for n in nodeids}, "schema": {}}))
+        (tmp_path / "_shapes.json").write_text(
+            json.dumps({"format": 1, "shapes": {n: {} for n in nodeids}, "schema": {}})
+        )
     return tmp_path
 
 

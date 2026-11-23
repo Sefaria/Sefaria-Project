@@ -1,4 +1,5 @@
 """Tests for the mongomock query-shape tracker."""
+
 import importlib.util
 import json
 import os
@@ -9,7 +10,14 @@ from pymongo.errors import OperationFailure
 
 from sefaria.tests import mongo_shapes
 from sefaria.tests.mongo_shapes import (
-    FORMAT, ShapeTracker, drift_message, load_shapes, projection_fields, referenced_fields, shape_drift)
+    FORMAT,
+    ShapeTracker,
+    drift_message,
+    load_shapes,
+    projection_fields,
+    referenced_fields,
+    shape_drift,
+)
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 EXPORTER = os.path.join(REPO_ROOT, "scripts", "pytest_minimal_dataset", "export_mongo_fixtures.py")
@@ -30,6 +38,7 @@ def db():
 def test_install_is_idempotent(tracker):
     tracker.install()
     from mongomock import collection as mc
+
     wrapped = mc.Collection.find
     tracker.install()
     assert mc.Collection.find is wrapped
@@ -100,7 +109,10 @@ def test_hint_is_flagged(tracker, db):
 
 def test_drift_message_ends_with_fix_command():
     message = drift_message("a/b_test.py::T::t", [("index", ["slug"])])
-    assert message.splitlines()[-1] == "Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py --only 'a/b_test.py::T::t'"
+    assert (
+        message.splitlines()[-1]
+        == "Fix: python scripts/pytest_minimal_dataset/rerecord_fixtures.py --only 'a/b_test.py::T::t'"
+    )
     assert "new fields ['slug']" in message
 
 

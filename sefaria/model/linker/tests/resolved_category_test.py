@@ -4,9 +4,8 @@ import pytest
 
 from sefaria.model.linker.category_resolver import ResolvedCategory
 
-
-
 pytestmark = pytest.mark.needs_linker
+
 
 @pytest.fixture
 def mock_raw_ref():

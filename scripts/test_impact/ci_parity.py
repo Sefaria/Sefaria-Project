@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""""No test left behind" checker for pytest CI selection.
+""" "No test left behind" checker for pytest CI selection.
 
 Why this exists
 ----------------
@@ -30,11 +30,13 @@ Collection itself runs in a real pytest subprocess -- no import of Django or
 Sefaria happens in this process, so `--help` and the YAML-parsing tests work
 without either.
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import pathlib
 import shlex
 import shutil
 import subprocess
@@ -48,10 +50,14 @@ DEFAULT_BASELINE_PATHS = ["./sefaria", "./sso", "./reader", "./powered_by"]
 
 # This checkout's Mongo-mock infrastructure, copied over the extracted baseline ref.
 BASELINE_OVERLAY_FILES = (
-    "sefaria/conftest.py", "sefaria/system/database.py",
-    "sefaria/local_settings_pytest.py", "sefaria/local_settings.py",
-    "sefaria/tests/mongo_shapes.py", "sefaria/tests/fixture_schema.py",  # imported by sefaria/conftest.py
-    "sefaria/tests/fixtures/mongo/_base.json", "sefaria/tests/fixtures/mongo/_shapes.json",
+    "sefaria/conftest.py",
+    "sefaria/system/database.py",
+    "sefaria/local_settings_pytest.py",
+    "sefaria/local_settings.py",
+    "sefaria/tests/mongo_shapes.py",
+    "sefaria/tests/fixture_schema.py",  # imported by sefaria/conftest.py
+    "sefaria/tests/fixtures/mongo/_base.json",
+    "sefaria/tests/fixtures/mongo/_shapes.json",
 )
 
 
@@ -111,7 +117,7 @@ def extract_pytest_jobs(workflow, exclude_jobs=()):
             # "python3 -m pytest", leading shell noise is not expected in this workflow).
             if "pytest" in tokens:
                 idx = tokens.index("pytest")
-                argv = tokens[idx + 1:]
+                argv = tokens[idx + 1 :]
             else:
                 argv = tokens
             jobs[job_id] = {"env": merged_env, "argv": argv}
@@ -122,7 +128,7 @@ def extract_pytest_jobs(workflow, exclude_jobs=()):
 def load_workflow(path):
     import yaml  # deferred: keep --help free of non-stdlib imports
 
-    with open(path, "r", encoding="utf-8") as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh)
 
 
@@ -170,7 +176,12 @@ def collect(argv, env, root):
     full_env = dict(os.environ)
     full_env.update({k: str(v) for k, v in env.items()})
     proc = subprocess.run(
-        cmd, cwd=root, env=full_env, capture_output=True, text=True, timeout=1800,
+        cmd,
+        cwd=root,
+        env=full_env,
+        capture_output=True,
+        text=True,
+        timeout=1800,
     )
     if proc.returncode not in (0, 5):
         raise CollectionError(" ".join(cmd), proc.returncode, proc.stdout, proc.stderr)
@@ -182,9 +193,13 @@ def materialize_ref(ref, root, dest, overlay=BASELINE_OVERLAY_FILES):
     own test files and markers are collected under the mock (master cannot import without a Mongo)."""
     git = subprocess.Popen(["git", "archive", ref], cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     tar = subprocess.run(["tar", "-x", "-C", dest], stdin=git.stdout)
-    git.stdout.close(); err = git.stderr.read().decode(errors="replace"); rc = git.wait()
+    git.stdout.close()
+    err = git.stderr.read().decode(errors="replace")
+    rc = git.wait()
     if rc != 0 or tar.returncode != 0:
-        raise BaselineRefError(f"cannot extract {ref!r}: {err[-400:]} (shallow clone? run: git fetch --no-tags --depth=1 origin <base>)")
+        raise BaselineRefError(
+            f"cannot extract {ref!r}: {err[-400:]} (shallow clone? run: git fetch --no-tags --depth=1 origin <base>)"
+        )
     for rel in overlay:
         src = os.path.join(root, rel)
         if os.path.isfile(src):
@@ -222,44 +237,55 @@ def parse_env_kv(pairs):
 
 
 def load_allowlist(path):
-    with open(path, "r", encoding="utf-8") as fh:
+    with open(path, encoding="utf-8") as fh:
         entries = json.load(fh)
     return entries
 
 
 def build_parser():
     ap = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument(
-        "--workflow", default=os.path.join(".github", "workflows", "continuous.yaml"),
+        "--workflow",
+        default=os.path.join(".github", "workflows", "continuous.yaml"),
         help="path to the workflow YAML, relative to --root unless absolute.",
     )
     ap.add_argument(
-        "--root", default=None,
+        "--root",
+        default=None,
         help="repo root (directory containing pytest.ini). Default: walk up from this script.",
     )
     ap.add_argument(
-        "--exclude-job", action="append", default=[],
+        "--exclude-job",
+        action="append",
+        default=[],
         help="job id to ignore even if it runs pytest. Repeatable.",
     )
     ap.add_argument("--baseline-expr", default=DEFAULT_BASELINE_EXPR)
     ap.add_argument(
-        "--baseline-paths", nargs="+", default=None,
+        "--baseline-paths",
+        nargs="+",
+        default=None,
         help=f"default: {DEFAULT_BASELINE_PATHS}",
     )
     ap.add_argument(
-        "--baseline-env", action="append", default=None,
+        "--baseline-env",
+        action="append",
+        default=None,
         help="KEY=VAL, repeatable. Default: env of the first pytest job found in the workflow.",
     )
     ap.add_argument(
-        "--baseline-ref", default=None,
+        "--baseline-ref",
+        default=None,
         help="git ref (e.g. origin/master) to collect the baseline from, with this checkout's "
-             "Mongo-mock infrastructure overlaid. Without it the baseline is this checkout.",
+        "Mongo-mock infrastructure overlaid. Without it the baseline is this checkout.",
     )
     ap.add_argument(
-        "--allow", default=None,
-        help="JSON file: list of {\"nodeid\": ..., \"reason\": ...} entries to subtract from missing.",
+        "--allow",
+        default=None,
+        help='JSON file: list of {"nodeid": ..., "reason": ...} entries to subtract from missing.',
     )
     ap.add_argument("--json", action="store_true", help="machine-readable output instead of text summary.")
     return ap
@@ -270,7 +296,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     root = args.root or find_root()
-    workflow_path = args.workflow if os.path.isabs(args.workflow) else os.path.join(root, args.workflow)
+    workflow_path = args.workflow if pathlib.Path(args.workflow).is_absolute() else os.path.join(root, args.workflow)
 
     workflow = load_workflow(workflow_path)
     jobs = extract_pytest_jobs(workflow, exclude_jobs=set(args.exclude_job))
@@ -324,7 +350,7 @@ def main(argv=None):
     allowed_entries = []
     stale_entries = []
     if args.allow:
-        allow_path = args.allow if os.path.isabs(args.allow) else os.path.join(root, args.allow)
+        allow_path = args.allow if pathlib.Path(args.allow).is_absolute() else os.path.join(root, args.allow)
         for entry in load_allowlist(allow_path):
             nodeid = entry.get("nodeid")
             if nodeid in baseline_nodeids:
@@ -363,8 +389,9 @@ def main(argv=None):
             for nodeid in sorted(missing):
                 print(f"  {nodeid}")
         else:
-            print(f"missing: {len(missing)} tests ({len(removed)} removed, informational; "
-                  f"{len(hidden)} hidden, failing)")
+            print(
+                f"missing: {len(missing)} tests ({len(removed)} removed, informational; {len(hidden)} hidden, failing)"
+            )
             for nodeid in sorted(removed):
                 print(f"  removed: {nodeid}")
             for nodeid in sorted(hidden):

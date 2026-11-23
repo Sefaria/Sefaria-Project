@@ -15,8 +15,12 @@ def test_env_turns_on_recorder_and_points_at_port_and_db():
 
 
 def test_inherited_mock_flags_are_removed():
-    base = {"SEFARIA_MOCK_MONGO": "1", "SEFARIA_MOCK_MONGO_INCOMPLETE_OK": "1",
-            "SEFARIA_FIXTURE_SHAPES": "off", "KEEP_ME": "yes"}
+    base = {
+        "SEFARIA_MOCK_MONGO": "1",
+        "SEFARIA_MOCK_MONGO_INCOMPLETE_OK": "1",
+        "SEFARIA_FIXTURE_SHAPES": "off",
+        "KEEP_ME": "yes",
+    }
     env = recording.recording_env(27018, "sefaria", base_env=base)
     assert "SEFARIA_MOCK_MONGO" not in env
     assert "SEFARIA_MOCK_MONGO_INCOMPLETE_OK" not in env
