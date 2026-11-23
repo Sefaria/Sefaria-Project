@@ -21,3 +21,10 @@ Then('I see the scratch mobile drawer', async ({ visitor }) => {
   // From: e2e-tests/feature-specs/features/scratch/stubs-test.feature:11:5
   throw new Error('Step not implemented yet: Then I see the scratch mobile drawer');
 });
+
+// Stubs added by CI (build/ci/bdd-stubs) for e2e-tests/feature-specs/features/scratch/stubs-test.feature.
+Then('I see the scratch amendment notice', async ({ visitor }) => {
+  // Step: And I see the scratch amendment notice
+  // From: e2e-tests/feature-specs/features/scratch/stubs-test.feature:12:5
+  throw new Error('Step not implemented yet: And I see the scratch amendment notice');
+});
