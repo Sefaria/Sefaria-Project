@@ -28,6 +28,8 @@
  *                                 directly, without a manifest or integrity.
  *    PUBLIC_SOCIAL_API_ORIGIN, PUBLIC_SOCIAL_RELAY_ORIGIN, PUBLIC_SOCIAL_ENVIRONMENT (local | staging | production; default local):
  *                                 handed to the surface as host.config.
+ *    PUBLIC_SOCIAL_PREVIEWS       "1": `?social_version=<n>` loads pull request n's Coolify preview (src/lib/surfaces/version.ts).
+ *                                 Ignored in production.
  *  - PUBLIC_ERROR_ENDPOINT  where the browser beacons its error reports (src/lib/monitoring/error-reporter.ts); unset = no reports.
  *    PUBLIC_ERROR_SAMPLE_RATE (0..1, default 1) the share of page loads that report.
  *  - GOOGLE_SSO_CLIENT_ID, APPLE_SSO_CLIENT_ID, RECAPTCHA_PUBLIC_KEY   the sign-in providers' public client IDs and the reCAPTCHA site
@@ -76,6 +78,8 @@ export interface SocialEnv {
   apiOrigin: string;
   relayOrigin: string;
   environment: "local" | "staging" | "production";
+  /** PUBLIC_SOCIAL_PREVIEWS=1: a page may ask for a pull request's preview with ?social_version=<n> (never in production). */
+  previews?: boolean;
 }
 
 const isLocalhostUrl = (v: string) => {
@@ -120,6 +124,7 @@ export function socialEnvFrom(e: Record<string, string | undefined>): SocialEnv 
     apiOrigin: originOf(e.PUBLIC_SOCIAL_API_ORIGIN ?? "") ?? "",
     relayOrigin: relayOriginOf(e.PUBLIC_SOCIAL_RELAY_ORIGIN ?? ""),
     environment: env === "staging" || env === "production" ? env : "local",
+    ...(e.PUBLIC_SOCIAL_PREVIEWS === "1" && env !== "production" ? { previews: true } : {}),
   };
 }
 
