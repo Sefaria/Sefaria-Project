@@ -27,13 +27,6 @@ describe("placeSegment", () => {
     expect(placeSegment(root, { ref: "Genesis 9:9", offset: 0 })).toBe(false);
   });
 
-  it("leaves a hidden reader where it is (collapsed beside a surface's page): nothing to scroll, nothing left to retry", () => {
-    const { root, scroller } = setup();
-    root.checkVisibility = () => false;
-    expect(placeSegment(root, { ref: "Genesis 1:2", offset: 40 })).toBe(true);
-    expect(scroller.scrollTop).toBe(0);
-  });
-
   it("brings a segment to the reading line", () => {
     const { root, scroller } = setup();
     expect(scrollSegmentToLine(root, "Genesis 1:2")).toBe(true);

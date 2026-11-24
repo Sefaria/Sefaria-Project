@@ -145,7 +145,7 @@ describe("a text beside the social page (openBeside, contract 1.1)", () => {
     expect(router.history.location.pathname).toBe("/social");
   });
 
-  it("a new text opened beside the page comes in expanded, whatever was collapsed before", async () => {
+  it("a text opened beside the page comes in with the page's column open, whatever was collapsed before", async () => {
     setBesideCollapsed(true);
     const { host, router } = hostWith({}, "/social");
     await router.load();
