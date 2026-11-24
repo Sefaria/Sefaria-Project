@@ -28,7 +28,7 @@ CHART = ROOT / "helm-chart" / "sefaria"
 ENVS = ("staging", "preprod", "prod")
 # What each env file ships, changed only on purpose: staging rehearses every prod step first, so it is turned on before
 # preprod and prod (Yotam, 2026-11-18). A flip here must come with the flip in envs/<env>/helmrelease.yaml.
-SHIPPED_ENABLED = {"staging": True, "preprod": False, "prod": False}
+SHIPPED_ENABLED = {"staging": True, "preprod": True, "prod": True}
 # The auth service's mode per env file, with the same rule: staging enforces on the gated paths first (R4).
 SHIPPED_MODE = {"staging": "enforce", "preprod": "observe", "prod": "observe"}
 SEFARIA_HEADERS = {
@@ -299,13 +299,13 @@ def check_release_rules(env, release, rendered_on):
             f"{env} on: a PodDisruptionBudget keeps one auth-service pod up",
         )
     if env == "preprod":
-        # preprod migrates prod's shared database. A developer project created there before prod runs this release
-        # cannot be deleted by prod's older code, so the flag stays off on preprod until prod runs the release. Turn it
-        # on (and relax this check) only then.
+        # preprod shares prod's database; prod runs the same release, so developer settings are on, for staff only.
         local_settings = find(rendered_on, "ConfigMap", r"^local-settings-preprod$")
+        data = local_settings[0]["data"] if len(local_settings) == 1 else {}
         check(
-            len(local_settings) == 1 and str(local_settings[0]["data"].get("DEVELOPER_SETTINGS_ENABLED")) == "False",
-            f"{env}: developer settings stay off until prod runs the same release",
+            str(data.get("DEVELOPER_SETTINGS_ENABLED")) == "True"
+            and str(data.get("DEVELOPER_SETTINGS_STAFF_ONLY")) == "True",
+            f"{env}: developer settings are on for staff only",
         )
 
 

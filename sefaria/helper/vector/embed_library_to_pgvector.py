@@ -415,8 +415,7 @@ def _flush_chunk_and_vector_batch(
     wins; dropped duplicates are logged for follow-up, not silently discarded."""
     deduped: dict = {}
     for b in batch:
-        key = (b.chunk.ref, b.chunk.version_title, b.chunk.language, b.chunk.chunk_ordinal,
-               b.chunk.chunking_scheme_id)
+        key = (b.chunk.ref, b.chunk.version_title, b.chunk.language, b.chunk.chunk_ordinal, b.chunk.chunking_scheme_id)
         if key in deduped:
             logger.warning(f"Dropping duplicate chunk key within one flush batch: {key}")
         deduped[key] = b
