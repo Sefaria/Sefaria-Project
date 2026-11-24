@@ -268,7 +268,7 @@ spec:
       SERVER_EMAIL: "dev@sefaria.org"
       CRM_TYPE: "SALESFORCE"
       FAIL_GRACEFULLY: "True"
-      # The chart default is also "False". Pinned here on purpose: preprod shares prod's database, and
-      # the release preflight (preflight.sh, on branch tooling/api-keys-phase1-testing) requires this explicit "False"
-      # until prod runs the release.
-      DEVELOPER_SETTINGS_ENABLED: "False"
+      # Developer settings for staff (is_staff) only. Preprod shares prod's database, so this is on only now that prod
+      # runs the same release (promoted 2026-11-23).
+      DEVELOPER_SETTINGS_ENABLED: "True"
+      DEVELOPER_SETTINGS_STAFF_ONLY: "True"
