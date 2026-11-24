@@ -1,3 +1,4 @@
+import hmac
 import json
 import logging
 
@@ -197,6 +198,29 @@ def _load_json_body(request, empty_as_object=False):
     return body, None
 
 
+def _has_semantic_search_token(request):
+    """True when the request carries the internal Bearer token, SEMANTIC_SEARCH_API_TOKEN."""
+    auth = request.headers.get("Authorization", "")
+    expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
+    if not expected or not auth.startswith("Bearer "):
+        return False
+    return hmac.compare_digest(auth[len("Bearer ") :].encode(), expected.encode())
+
+
+def _auth_service_accepted_key(request):
+    """
+    True when the auth service accepted a valid sfr_ API key on this request.
+
+    The auth service (ext_authz) stamps x-sefaria-auth-result "ok" and the key's project only for an active key, in
+    enforce and observe mode alike; a request without a valid key gets another result. These headers are trusted only
+    when AUTH_SERVICE_HEADERS_TRUSTED is on, which the chart sets only where the gateway strips client-sent copies.
+    Without the strip (auth service off, local dev) a client could send them itself.
+    """
+    if not getattr(settings, "AUTH_SERVICE_HEADERS_TRUSTED", False):
+        return False
+    return request.headers.get("x-sefaria-auth-result") == "ok" and bool(request.headers.get("x-sefaria-project"))
+
+
 class KnnSearch(View):
     SEARCH_RESULT_FIELDS = (
         "ref",
@@ -393,12 +417,7 @@ class KnnSearch(View):
         ]
 
     def post(self, request):
-        auth = request.headers.get("Authorization", "")
-        if not auth.startswith("Bearer "):
-            return jsonResponse({"error": "Unauthorized"}, status=401)
-        token = auth[len("Bearer ") :]
-        expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
-        if not expected or token != expected:
+        if not (_has_semantic_search_token(request) or _auth_service_accepted_key(request)):
             return jsonResponse({"error": "Unauthorized"}, status=401)
 
         body, err = _load_json_body(request)

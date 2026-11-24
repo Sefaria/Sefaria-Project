@@ -226,6 +226,10 @@ DATABASE_ROUTERS = ["semantic_search.router.SemanticSearchRouter"]
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
 SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "new")
 
+# Trust the auth service's x-sefaria-* request headers (an accepted API key may then use /api/knn-search). Turn on only
+# where the gateway strips client-sent copies of those headers; the Helm chart sets it when the auth service is enabled.
+AUTH_SERVICE_HEADERS_TRUSTED = False
+
 # Deployed app version (semantic-release tag), set as a pod env var by the Helm chart.
 # Empty in local dev, where no deploy has happened.
 APP_VERSION = os.environ.get("APP_VERSION", "")
