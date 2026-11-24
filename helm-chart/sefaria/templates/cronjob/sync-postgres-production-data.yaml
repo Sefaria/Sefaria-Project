@@ -157,6 +157,24 @@ spec:
                     exit 1
                   fi
                   echo "Restored $IDX_COUNT indexes."
+{{- with .Values.authService.postgres.readerRole }}
+
+                  # The database was dropped and recreated and the restore skips privileges, so the auth service's
+                  # read-only role (a cluster-level role, which survives) has lost every grant: re-grant exactly the
+                  # columns its loader reads (auth-service/internal/registry/pgload.go; the same list as
+                  # auth-service/scripts/provision-cluster-registry.sh). Fails the job if the role does not exist.
+                  echo "Re-granting the auth service reader {{ . }} on $PGDATABASE..."
+                  psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" <<'SQL'
+                  BEGIN;
+                  GRANT CONNECT ON DATABASE "{{ $.Values.postgres.db }}" TO "{{ . }}";
+                  GRANT USAGE ON SCHEMA public TO "{{ . }}";
+                  GRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO "{{ . }}";
+                  GRANT SELECT (id, tier_id, deleted_at) ON api_project TO "{{ . }}";
+                  GRANT SELECT (id, per_minute_per_project) ON api_tier TO "{{ . }}";
+                  GRANT SELECT (tier_id, meter, monthly_per_project) ON api_tier_meter_limit TO "{{ . }}";
+                  COMMIT;
+                  SQL
+{{- end }}
 
                   echo "Production PostgreSQL data sync completed successfully"
               envFrom:
