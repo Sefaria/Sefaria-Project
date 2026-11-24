@@ -170,8 +170,16 @@ const parseProfile = (text) => {
   return blocks;
 };
 
+// The sign-in forms' error banner (auth/ErrorBanner), used the way the Developer tab shows a failed save.
+const ErrorMessage = ({ children }) => (
+  <div className="sefaria-auth-error laError" role="alert">
+    <img className="sefaria-auth-error-icon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" />
+    <div className="sefaria-auth-error-content">{children}</div>
+  </div>
+);
+
 const ProfileText = ({ text }) => (
-  <div className="laProfileText">
+  <div className="devE-note laProfileText">
     {text ? (
       parseProfile(text).map((block, i) =>
         block.type === 'h' ? (
@@ -185,7 +193,7 @@ const ProfileText = ({ text }) => (
         )
       )
     ) : (
-      <p className="laMuted">{STRINGS.profileEmpty}</p>
+      <p className="devE-hint laMuted">{STRINGS.profileEmpty}</p>
     )}
   </div>
 );
@@ -221,7 +229,7 @@ const OnOffGroup = ({ on, onSelect, disabled, labelledBy, optionAttrs }) => {
     select(next);
   };
   return (
-    <div className="toggleSet toggleSetToggleBox blueStyle doubleOption" role="radiogroup" aria-labelledby={labelledBy}>
+    <div className="devE-tabs laOnOff" role="radiogroup" aria-labelledby={labelledBy}>
       {values.map((value, i) => (
         <button
           key={String(value)}
@@ -230,7 +238,7 @@ const OnOffGroup = ({ on, onSelect, disabled, labelledBy, optionAttrs }) => {
           }}
           type="button"
           role="radio"
-          className={`toggleOption${on === value ? ' on' : ''}`}
+          className="laOnOffOption"
           aria-checked={on === value}
           aria-disabled={disabled ? 'true' : undefined}
           tabIndex={i === tabbable ? 0 : -1}
@@ -313,12 +321,12 @@ const AssistantSwitch = ({ initial }) => {
     if (request && request.fail) request.fail(() => fail(STRINGS.settingFailed));
   };
   return (
-    <section id="libraryAssistantSetting" className="section laCard">
-      <h2 id="laSettingTitle" className="laCardTitle">
+    <section id="libraryAssistantSetting" className="devPocCard laCard">
+      <h2 id="laSettingTitle" className="devE-title">
         {STRINGS.title}
       </h2>
-      <p className="laDescription">{STRINGS.settingDescription}</p>
-      <div className="laSwitchRow">
+      <p className="devE-lead">{STRINGS.settingDescription}</p>
+      <div className="devE-row">
         <OnOffGroup
           on={value}
           onSelect={setValue}
@@ -326,15 +334,11 @@ const AssistantSwitch = ({ initial }) => {
           labelledBy="laSettingTitle"
           optionAttrs={(v) => ({ 'data-la-value': String(v) })}
         />
-        <button type="button" className="button small blue" aria-disabled={saving ? 'true' : undefined} onClick={save}>
+        <button type="button" className="devE-pill" aria-disabled={saving ? 'true' : undefined} onClick={save}>
           {STRINGS.saveSetting}
         </button>
       </div>
-      {error && (
-        <p className="laMessage laError" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
     </section>
   );
 };
@@ -437,23 +441,16 @@ const Personalization = ({ base, token }) => {
     return (
       <>
         {error ? (
-          <div className="laCard">
-            <p className="laMessage laError" role="alert">
-              {error}
-            </p>
-            <div className="laActions">
-              <button
-                type="button"
-                className="button small"
-                disabled={busy}
-                onClick={() => setLoadAttempt((n) => n + 1)}
-              >
+          <div className="devPocCard laCard">
+            <ErrorMessage>{error}</ErrorMessage>
+            <div className="devE-row">
+              <button type="button" className="devE-pill" disabled={busy} onClick={() => setLoadAttempt((n) => n + 1)}>
                 {STRINGS.tryAgain}
               </button>
             </div>
           </div>
         ) : (
-          <p className="laMuted">{STRINGS.loading}</p>
+          <p className="devE-hint laMuted">{STRINGS.loading}</p>
         )}
       </>
     );
@@ -463,17 +460,13 @@ const Personalization = ({ base, token }) => {
   const overLimit = draft.length > MAX_TEXT;
   return (
     <>
-      {error && (
-        <p className="laMessage laError" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
 
-      <div className="laBlock laCard" id="profile">
-        <h3 id="laProfileTitle" className="laCardTitle">
+      <div className="devPocCard laCard" id="profile">
+        <h3 id="laProfileTitle" className="devE-title">
           {STRINGS.profile}
         </h3>
-        <p className="laDescription">{STRINGS.profileDescription}</p>
+        <p className="devE-lead">{STRINGS.profileDescription}</p>
         <ProfileText text={profile.text} />
         <OnOff
           on={profile.enabled}
@@ -482,22 +475,22 @@ const Personalization = ({ base, token }) => {
           disabled={busy}
           onChange={(enabled) => act('toggle', { target: 'profile', enabled })}
         />
-        <div className="laUpdated">{lastUpdated(profile.updatedAt, PROFILE_AUTHOR[profile.updatedBy])}</div>
+        <div className="devPocHelp laUpdated">{lastUpdated(profile.updatedAt, PROFILE_AUTHOR[profile.updatedBy])}</div>
         {confirmClear ? (
-          <div role="alertdialog" className="laConfirm">
+          <div role="alertdialog" className="devE-note laConfirm">
             <p>{STRINGS.clearConfirm}</p>
-            <div className="laActions">
-              <button type="button" className="button small blue" disabled={busy} onClick={clearProfile}>
+            <div className="devE-row">
+              <button type="button" className="devE-pill devE-pillDanger" disabled={busy} onClick={clearProfile}>
                 {STRINGS.clearYes}
               </button>
-              <button type="button" className="button small transparent" onClick={() => setConfirmClear(false)}>
+              <button type="button" className="devE-pill devE-pillSec" onClick={() => setConfirmClear(false)}>
                 {STRINGS.cancel}
               </button>
             </div>
           </div>
         ) : (
-          <div className="laActions">
-            <button type="button" className="button small transparent" onClick={() => setConfirmClear(true)}>
+          <div className="devE-row">
+            <button type="button" className="devE-pill devE-pillSec" onClick={() => setConfirmClear(true)}>
               {STRINGS.clear}
             </button>
           </div>
@@ -506,32 +499,32 @@ const Personalization = ({ base, token }) => {
           {STRINGS.editTitle}
         </h4>
         <textarea
-          className="sefaria-input-control laTextarea laEditRequest"
+          className="sefaria-input-control sefaria-input-control--multiline laEditRequest"
           aria-labelledby="laEditTitle"
           rows={2}
           maxLength={MAX_TEXT}
           value={editRequest}
           onChange={(e) => setEditRequest(e.target.value)}
         />
-        <div className="laActions">
-          <button type="button" className="button small blue" disabled={busy || !editRequest.trim()} onClick={sendEdit}>
+        <div className="devE-row">
+          <button type="button" className="devE-pill" disabled={busy || !editRequest.trim()} onClick={sendEdit}>
             {STRINGS.send}
           </button>
         </div>
         {editResult && (
-          <div className="laMessage laEditResult" role="status">
+          <div className="devE-note laEditResult" role="status">
             {editResult}
           </div>
         )}
       </div>
 
-      <div className="laBlock laCard" id="instructions">
-        <h3 id="laInstructionsTitle" className="laCardTitle">
+      <div className="devPocCard laCard" id="instructions">
+        <h3 id="laInstructionsTitle" className="devE-title">
           {STRINGS.instructions}
         </h3>
-        <p className="laDescription">{STRINGS.instructionsDescription}</p>
+        <p className="devE-lead">{STRINGS.instructionsDescription}</p>
         <textarea
-          className="sefaria-input-control laTextarea laInstructions"
+          className="sefaria-input-control sefaria-input-control--multiline laInstructions"
           aria-labelledby="laInstructionsTitle"
           rows={4}
           value={draft}
@@ -539,7 +532,7 @@ const Personalization = ({ base, token }) => {
           onChange={(e) => setDraft(e.target.value)}
         />
         <div
-          className={`laInstructionsCount${overLimit ? ' laError' : ''}`}
+          className={`devE-count laInstructionsCount${overLimit ? ' devE-errorText laError' : ''}`}
           aria-live="polite"
         >{`${draft.length} / ${MAX_TEXT}`}</div>
         <OnOff
@@ -549,22 +542,22 @@ const Personalization = ({ base, token }) => {
           disabled={busy}
           onChange={(enabled) => act('toggle', { target: 'instructions', enabled })}
         />
-        <div className="laActions">
-          <button type="button" className="button small blue" disabled={overLimit || busy} onClick={saveInstructions}>
+        <div className="devE-row">
+          <button type="button" className="devE-pill" disabled={overLimit || busy} onClick={saveInstructions}>
             {STRINGS.saveInstructions}
           </button>
         </div>
-        <div className="laUpdated">{lastUpdated(instructions.updatedAt, 'You')}</div>
+        <div className="devPocHelp laUpdated">{lastUpdated(instructions.updatedAt, 'You')}</div>
       </div>
 
       {data.labEnabled && (
-        <div className="laBlock laCard laCardTools" id="testing-tools">
-          <h3 className="laCardTitle">{STRINGS.testing}</h3>
-          <p className="laDescription">{STRINGS.testingNote}</p>
-          <div className="laActions">
+        <div className="devPocCard laCard" id="testing-tools">
+          <h3 className="devE-title">{STRINGS.testing}</h3>
+          <p className="devE-lead">{STRINGS.testingNote}</p>
+          <div className="devE-row">
             <button
               type="button"
-              className="button small"
+              className="devE-pill"
               disabled={busy}
               title={STRINGS.runNowHelp}
               onClick={() => runNow('session')}
@@ -573,7 +566,7 @@ const Personalization = ({ base, token }) => {
             </button>
             <button
               type="button"
-              className="button small"
+              className="devE-pill"
               disabled={busy}
               title={STRINGS.dreamNowHelp}
               onClick={() => runNow('dream')}
@@ -581,14 +574,14 @@ const Personalization = ({ base, token }) => {
               {STRINGS.dreamNow}
             </button>
           </div>
-          <p className="laDescription laHelper">{STRINGS.runNowHelp}</p>
-          <p className="laDescription laHelper">{STRINGS.dreamNowHelp}</p>
+          <p className="devE-hint laHelper">{STRINGS.runNowHelp}</p>
+          <p className="devE-hint laHelper">{STRINGS.dreamNowHelp}</p>
           {runResult && (
-            <div className="laMessage laRunResult" role="status">
+            <div className="devE-note laRunResult" role="status">
               {runResult}
             </div>
           )}
-          <div className="laTestRow">
+          <div className="devE-row laTestRow">
             <span className="laTestLabel" id="laUpdateEveryLabel">
               {STRINGS.updateEvery}
             </span>
@@ -601,8 +594,8 @@ const Personalization = ({ base, token }) => {
               onChange={(updateEveryMessage) => act('set_testing', { updateEveryMessage })}
             />
           </div>
-          <p className="laDescription laHelper">{STRINGS.updateEveryHelp}</p>
-          <div className="laTestRow">
+          <p className="devE-hint laHelper">{STRINGS.updateEveryHelp}</p>
+          <div className="devE-row laTestRow">
             <span className="laTestLabel" id="laPlainResponseLabel">
               {STRINGS.plainResponse}
             </span>
@@ -615,12 +608,12 @@ const Personalization = ({ base, token }) => {
               onChange={(showPlainResponse) => act('set_testing', { showPlainResponse })}
             />
           </div>
-          <p className="laDescription laHelper">{STRINGS.plainResponseHelp}</p>
-          <div className="laHealthRow">
+          <p className="devE-hint laHelper">{STRINGS.plainResponseHelp}</p>
+          <div className="devE-row laHealthRow">
             <strong>{STRINGS.health}</strong>
             <button
               type="button"
-              className="button small transparent"
+              className="devE-pill devE-pillSec"
               disabled={busy}
               title={STRINGS.checkHealthHelp}
               onClick={checkHealth}
@@ -628,11 +621,11 @@ const Personalization = ({ base, token }) => {
               {STRINGS.checkHealth}
             </button>
           </div>
-          <p className="laDescription laHelper">{STRINGS.checkHealthHelp}</p>
+          <p className="devE-hint laHelper">{STRINGS.checkHealthHelp}</p>
           {isPlainObject(testing.jobState) &&
             typeof testing.jobState.hourUsed === 'number' &&
             typeof testing.jobState.hourLimit === 'number' && (
-              <div className="laJobState">
+              <div className="devE-hint laJobState">
                 <div>{`${STRINGS.jobsHour}: ${testing.jobState.hourUsed} of ${testing.jobState.hourLimit}`}</div>
                 {typeof testing.jobState.lockHeld === 'boolean' && (
                   <div>{`${STRINGS.jobRunning}: ${testing.jobState.lockHeld ? 'yes' : 'no'}`}</div>
@@ -643,7 +636,7 @@ const Personalization = ({ base, token }) => {
               </div>
             )}
           {Array.isArray(testing.recentRuns) && testing.recentRuns.some(isPlainObject) && (
-            <div className="laRuns">
+            <div className="devE-hint laRuns">
               <strong>{STRINGS.recentRuns}</strong>
               {testing.recentRuns
                 .filter(isPlainObject)
@@ -658,7 +651,7 @@ const Personalization = ({ base, token }) => {
             </div>
           )}
           {health && (
-            <div className="laHealthResult">
+            <div className="devE-hint laHealthResult">
               {health.map((j) => (
                 <div key={j.name}>
                   {`${j.name}: last run ${j.lastRunAt || 'never'}, last write ${j.lastWriteAt || 'never'}${j.parked ? ' (parked)' : ''}`}
@@ -678,23 +671,26 @@ const LibraryAssistantSettings = (props) => {
   const hasAccess = !!(token && base);
   const from = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('from');
   return (
-    <div className="libraryAssistantSettings">
-      <a className="button small" href={safeReturnPath(from)}>
+    <div className="devPocPage libraryAssistantSettings">
+      <a className="devE-back" href={safeReturnPath(from)}>
+        <img src="/static/icons/arrow-left.svg" alt="" aria-hidden="true" />
         {STRINGS.backToLearning}
       </a>
       <AssistantSwitch initial={readInitialEnabled(props.libraryAssistantEnabled)} />
-      <section id="personalization" className="section laSection">
-        <div className="laCard laIntro">
-          <h2 className="laSectionTitle">{STRINGS.personalization}</h2>
-          <p id="about-personalization" className="laSectionAbout">
-            {STRINGS.about}
-          </p>
-        </div>
+      <section id="personalization" className="laSection">
+        <header className="devPocPageHeader laIntro">
+          <div>
+            <h2 className="laSectionTitle">{STRINGS.personalization}</h2>
+            <p id="about-personalization" className="laSectionAbout">
+              {STRINGS.about}
+            </p>
+          </div>
+        </header>
         {hasAccess ? (
           <Personalization base={base} token={token} />
         ) : (
-          <div className="laCard">
-            <p className="laMuted">{STRINGS.turnOn}</p>
+          <div className="devPocCard laCard">
+            <p className="devE-hint laMuted">{STRINGS.turnOn}</p>
           </div>
         )}
       </section>
