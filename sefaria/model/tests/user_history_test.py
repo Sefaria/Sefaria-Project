@@ -1,6 +1,7 @@
 import pymongo
 import pytest
 
+from sefaria.model.text import Ref
 from sefaria.model.user_profile import UserHistory, UserHistorySet, UserLastPlace, UserLastPlaceSet, UserProfile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
@@ -267,3 +268,25 @@ def test_backfill_keeps_newer_places(reader):
     assert last_place("Genesis").ref == "Genesis 1:3"
     assert last_place("Exodus").history_id == exodus._id
     assert [uh.ref for uh in profile().get_last_places()] == ["Genesis 1:3", "Exodus 2:1"]
+
+
+@pytest.mark.parametrize(
+    "tref, expected",
+    [
+        ("Genesis 1", "Genesis 1:1"),
+        ("Genesis 1-2", "Genesis 1:1"),
+        ("Berakhot 2a", "Berakhot 2a:1"),
+        ("Rashi on Genesis 1:1", "Rashi on Genesis 1:1:1"),
+        ("Genesis 1:3", "Genesis 1:3"),  # already a segment
+        ("Genesis", "Genesis"),  # a whole book isn't a section
+        ("Not a ref", "Not a ref"),
+    ],
+)
+def test_section_start(tref, expected):
+    assert UserHistory.section_start(tref) == expected
+
+
+def test_section_read_is_saved_at_its_first_segment(reader):
+    uh = read("Genesis 2", NOON)
+    assert (uh.ref, uh.he_ref) == ("Genesis 2:1", Ref("Genesis 2:1").he_normal())
+    assert last_place().ref == "Genesis 2:1"

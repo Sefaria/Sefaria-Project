@@ -267,6 +267,12 @@ class UserHistory(abst.AbstractMongoRecord):
         if time_stamp is None:
             time_stamp = epoch_time()
         hist["uid"] = uid
+        if action is None:
+            # A read of a whole section is a read of its start: history is kept per segment.
+            start = UserHistory.section_start(hist["ref"])
+            if start != hist["ref"]:
+                hist["ref"] = start
+                hist.pop("he_ref", None)  # recomputed below for the new ref
         if "he_ref" not in hist or "book" not in hist:
             oref = Ref(hist["ref"])
             hist["he_ref"] = oref.he_normal()
@@ -287,6 +293,22 @@ class UserHistory(abst.AbstractMongoRecord):
         )
         uh.save()
         return uh
+
+    @staticmethod
+    def section_start(tref):
+        """
+        The first segment of `tref` when `tref` is a whole section (or a range of sections), else `tref`.
+        The web reader saves a section only when nothing is highlighted, i.e. when the reader is at its top. The app
+        still saves a section wherever the reader is in it (until it saves segments too), and its start is where
+        continuing that section opens anyway.
+        """
+        try:
+            oref = Ref(tref)
+        except InputError:
+            return tref
+        if oref.is_sheet() or not oref.is_section_level():
+            return tref
+        return oref.first_segment_ref().normal()
 
     @staticmethod
     def remove_history_item(uid, hist):
