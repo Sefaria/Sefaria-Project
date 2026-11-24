@@ -405,7 +405,7 @@ def clean_profile(data):
         "notADeveloper": bool(data.get("notADeveloper")),
     }
     if not profile["termsAccepted"]:
-        raise InputError("Accept the API terms to continue.")
+        raise InputError("Accept the Terms of Use to continue.")
     if profile["additionalEmail"]:
         try:
             validate_email(profile["additionalEmail"])
