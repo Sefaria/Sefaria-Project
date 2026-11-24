@@ -319,8 +319,11 @@ Feature: Developer Settings
         Then the project shows "example.com" as a link that opens the site in a new tab
         Given a project with no website
         Then it shows "Add website" [developer.home.project_menu.add_website.button] instead
+        # Amended 2026-11-24 (sc-48553): "Add website" opens the Add your website window; the app is right, approved by Penina Levy
         When the developer clicks "Add website"
-        Then the project form opens with the website field focused
+        Then a window asks "Add your website" [developer.limit_key_dialog.add_website.header]
+        When the developer types "example.com" in "Your website" [developer.common.your_website.label] and clicks "Save website" [developer.limit_key_dialog.save_website.button]
+        Then the project shows "example.com" as a link that opens the site in a new tab
 
       Scenario Outline: DS-PROJ-6 Delete a project
         Given a project "Verse a Day" with <keys>
