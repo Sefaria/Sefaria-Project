@@ -1,0 +1,31 @@
+/* A text beside the social page (src/features/surfaces/SurfaceBeside.tsx, contract 1.1 openBeside). Desktop: the page is a column at
+   the inline start, the text fills the rest; the close control sits on the line between them. Phone: the text covers the page (the
+   column stays in the document, hidden, so the page keeps its state) and a "Feed" button floats at the bottom. */
+.pane {
+  position: relative; flex: 0 0 clamp(360px, 36%, 540px); min-width: 0; min-height: 0; height: 100%;
+  border-inline-end: 1px solid var(--sefaria-color-border, #ddd); background: var(--sefaria-color-surface, #fff);
+  view-transition-name: social-feed;
+}
+.close {
+  position: absolute; z-index: 60; inset-block-start: 14px; inset-inline-start: calc(clamp(360px, 36%, 540px) - 18px);
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 36px; block-size: 36px; padding: 0;
+  border: 1px solid var(--sefaria-color-border, #ddd); border-radius: 50%; background: var(--sefaria-color-surface, #fff);
+  color: var(--sefaria-color-text, #000); cursor: pointer; box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+  view-transition-name: social-beside-close;
+}
+.close:hover { background: var(--sefaria-color-surface-subtle, #f5f5f5); }
+.close:focus-visible { outline: 2px solid var(--sefaria-color-focus, #18345d); outline-offset: 2px; }
+.close svg { inline-size: 16px; block-size: 16px; }
+.closeLabel, .iconBack { display: none; }
+
+@media (max-width: 842px) {
+  .pane { display: none; }
+  .close {
+    position: fixed; inset-block-start: auto; inset-block-end: calc(16px + var(--bottom-bar-height, 0px)); inset-inline-start: 16px;
+    inline-size: auto; block-size: 44px; padding-inline: 16px 18px; gap: 8px; border-radius: 22px; z-index: 9001;
+    font: inherit; font-size: 16px; box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
+  }
+  .closeLabel, .iconBack { display: inline; }
+  .iconX { display: none; }
+  :global([dir="rtl"]) .iconBack { transform: scaleX(-1); }
+}

@@ -16,7 +16,7 @@
  * the entry module and reads its default export, which must be a {@link Surface}.
  */
 
-export const SURFACE_HOST_CONTRACT = { major: 1, minor: 0 } as const;
+export const SURFACE_HOST_CONTRACT = { major: 1, minor: 1 } as const;
 
 export type Unmount = () => void;
 export type Unsubscribe = () => void;
@@ -27,7 +27,11 @@ export interface Surface {
   id: "social";
   /** The SurfaceHost major version the surface was built for. */
   contract: 1;
-  /** The full-page view under /social/*. The element is empty and sized; the reader removes it after unmount. */
+  /**
+   * The full-page view under /social/*. The element is empty and sized; the reader removes it after unmount. Since 1.1 the reader may
+   * move the same element, still mounted, into a column beside a text (see {@link SurfaceHost.openBeside}): the element then changes
+   * size, so the surface lays out by its own width (container queries), not the window's.
+   */
   mountPage(el: HTMLElement, host: SurfaceHost): Unmount;
   /** Survives navigation (mini view, room link, follow bar). Rendered beside the reader's <main> on every page while the lab is on. */
   mountPersistent(el: HTMLElement, host: SurfaceHost): Unmount;
@@ -54,6 +58,15 @@ export interface SurfaceHost {
   navigate(to: string, opts?: { replace?: boolean; state?: unknown }): void;
   /** For <a href>: the address to write for a same-site path on this host (a Django page on the site's origin). "#" for a refused one. */
   href(to: string): string;
+  /**
+   * Since 1.1 (optional: an older reader lacks it, and the surface falls back to `navigate`). Opens a reader address ("/Genesis.1.3")
+   * beside the surface's page: the page moves, still mounted, into a column at the inline start and the text comes in beside it (on a
+   * phone the text covers the page). It is a history entry: Back, or the reader's close control, returns to the page as it was. While
+   * the text is open the page mount's `location` keeps reporting the surface page that opened it (the reader's address is the text's,
+   * with the reserved `ctx=social.beside`); the persistent mount's `location` is the reader's. Calling it again while a text is open
+   * swaps the text (a new entry). `to` is checked like `navigate`'s; anything that is not a reader address is refused and reported.
+   */
+  openBeside?(to: string): void;
   reader: {
     /** The reader state API (docs/READER_STATE_API.md); the same object as window.sefariaReaderState. */
     state: ReaderStateApi;

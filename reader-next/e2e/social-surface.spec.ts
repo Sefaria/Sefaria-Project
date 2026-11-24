@@ -172,6 +172,62 @@ test.describe("the social surface (lab on)", () => {
     expect(ctxOfPage(page)).toBe(CTX); // the address keeps it
   });
 
+  // @feature SHL-079
+  test("openBeside: the page narrows into a column, still mounted, and the text comes in beside it; the close control and Back return", async ({ page }) => {
+    await serveSurface(page);
+    await open(page, surfaceUrl("/social"));
+    await page.getByTestId("surface-kept").fill("kept while the text is open");
+    await page.getByTestId("surface-open-beside").click();
+    await expect(page).toHaveURL(/\/Genesis\.1\.3\?.*ctx=social\.beside/);
+    await expect(page.locator('[role="group"][data-ref="Genesis 1:3"]')).toBeVisible();
+    const pane = page.locator('[data-social-beside="pane"]');
+    await expect(pane).toBeVisible();
+    // the same element, moved: what was typed is still there, and the page still says it is at /social
+    await expect(pane.getByTestId("surface-kept")).toHaveValue("kept while the text is open");
+    await expect(pane.getByTestId("surface-where")).toHaveText("at /social");
+    // the column is at the inline start, the text beside it
+    const [p, m] = await Promise.all([pane.boundingBox(), page.locator("main").boundingBox()]);
+    expect(p!.x).toBeLessThan(m!.x);
+    expect(p!.width).toBeGreaterThanOrEqual(360);
+    // the persistent mount sees the reader's address (and the context)
+    await expect(page.getByTestId("surface-ctx")).toHaveText("in social.beside");
+    // close: back to the page's own entry
+    await page.getByRole("button", { name: "Close the text and go back to the feed" }).click();
+    await expect(page).toHaveURL(/\/social$/);
+    await expect(pane).toHaveCount(0);
+    await expect(page.getByTestId("surface-kept")).toHaveValue("kept while the text is open");
+    // Back from a text opened beside the page returns the same way; Forward opens it again
+    await page.getByTestId("surface-open-beside").click();
+    await expect(page).toHaveURL(/ctx=social\.beside/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/social$/);
+    await expect(page.getByTestId("surface-kept")).toHaveValue("kept while the text is open");
+    await page.goForward();
+    await expect(pane).toBeVisible();
+  });
+
+  // @feature SHL-079
+  test("openBeside: a refresh keeps the text beside the feed; Escape closes it to the feed", async ({ page }) => {
+    await serveSurface(page);
+    await open(page, surfaceUrl("/Genesis.1.3?lang=bi&ctx=social.beside"));
+    const pane = page.locator('[data-social-beside="pane"]');
+    await expect(pane.getByTestId("surface-where")).toHaveText("at /social");
+    await expect(page.locator('[role="group"][data-ref="Genesis 1:3"]')).toBeVisible();
+    await page.locator("main").click({ position: { x: 5, y: 5 } }).catch(() => undefined);
+    await page.keyboard.press("Escape");
+    await expect(page).toHaveURL(/\/social$/);
+    await expect(page.getByTestId("surface-where")).toHaveText("at /social");
+  });
+
+  // @feature SHL-079
+  test("openBeside refuses anything that is not a reader address", async ({ page }) => {
+    await serveSurface(page);
+    await open(page, surfaceUrl("/social"));
+    await page.evaluate(() => (window as unknown as { __socialHost: { openBeside: (to: string) => void } }).__socialHost.openBeside("/texts"));
+    await page.waitForTimeout(300);
+    await expect(page).toHaveURL(/\/social$/);
+  });
+
   for (const variant of ["manifest-404", "entry-throws", "bad-integrity", "bad-chunk-integrity", "wrong-contract"] as const) {
     // @feature SHL-077
     test(`the reader works when the surface fails (${variant})`, async ({ page }) => {
@@ -192,6 +248,27 @@ test.describe("the social surface (lab on)", () => {
       expect(errors.filter((e) => !/failed on purpose/.test(e))).toEqual([]);
     });
   }
+});
+
+// @feature SHL-079
+test.describe("a text beside the social page on a phone", () => {
+  test.beforeEach(({ browserName }, info) => {
+    test.skip(info.project.name !== "mobile" || browserName !== "chromium", "the phone layout");
+  });
+  test("the text covers the page and Back to feed returns to it @mobile", async ({ page }) => {
+    await serveSurface(page);
+    await open(page, surfaceUrl("/social"));
+    await page.getByTestId("surface-kept").fill("kept on a phone");
+    await page.getByTestId("surface-open-beside").click();
+    await expect(page.locator('[role="group"][data-ref="Genesis 1:3"]')).toBeVisible();
+    await expect(page.locator('[data-social-beside="pane"]')).toBeHidden();
+    const back = page.getByRole("button", { name: "Close the text and go back to the feed" });
+    await expect(back).toBeVisible();
+    await expect(back).toHaveText("Back to feed");
+    await back.click();
+    await expect(page).toHaveURL(/\/social$/);
+    await expect(page.getByTestId("surface-kept")).toHaveValue("kept on a phone");
+  });
 });
 
 // @feature SHL-076

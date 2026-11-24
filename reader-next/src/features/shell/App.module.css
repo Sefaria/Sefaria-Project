@@ -39,3 +39,26 @@
 @media (max-width: 842px) {
   .app { box-sizing: border-box; padding-bottom: var(--bottom-bar-height, 0); }
 }
+
+/* A text beside the social page (src/features/surfaces/SurfaceBeside.tsx): the page's column, then the text. The close control is
+   placed against this row. */
+.body[data-beside] { position: relative; }
+.body[data-beside] > .main { view-transition-name: social-reader; }
+
+/* Opening and closing it is a view transition (src/lib/surfaces/beside.ts withTransition; none for reduced motion): the social page
+   (social-feed) narrows into its column as the text (social-reader) slides in from the inline end, and the reverse on close. On a
+   phone the text slides over the page, which stays put underneath. */
+:global(html[data-beside-transition])::view-transition-group(*) { animation-duration: 340ms; animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1); }
+:global(html[data-beside-transition])::view-transition-group(social-feed) { overflow: hidden; }
+:global(html[data-beside-transition])::view-transition-old(social-feed),
+:global(html[data-beside-transition])::view-transition-new(social-feed) { inline-size: auto; block-size: auto; inset-inline-start: 0; }
+:global(html[data-beside-transition])::view-transition-old(social-feed):only-child,
+:global(html[data-beside-transition])::view-transition-new(social-feed):only-child { animation: none; }
+:global(html[data-beside-transition="open"])::view-transition-new(social-reader):only-child { animation: 340ms cubic-bezier(0.2, 0.7, 0.2, 1) both social-reader-in; }
+:global(html[data-beside-transition="close"])::view-transition-old(social-reader):only-child { animation: 300ms cubic-bezier(0.4, 0, 0.6, 1) both social-reader-out; }
+:global(html[data-beside-transition])::view-transition-old(social-beside-close):only-child { animation: 120ms ease-out both social-beside-fade; }
+:global(html[data-beside-transition])::view-transition-new(social-beside-close):only-child { animation: 200ms ease-in 220ms both social-beside-fade reverse; }
+@keyframes social-reader-in { from { transform: translateX(var(--social-slide-from, 100%)); } }
+@keyframes social-reader-out { to { transform: translateX(var(--social-slide-from, 100%)); } }
+@keyframes social-beside-fade { to { opacity: 0; } }
+:global(html[dir="rtl"]) { --social-slide-from: -100%; }
