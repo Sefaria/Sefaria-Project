@@ -226,9 +226,10 @@ DATABASE_ROUTERS = ["semantic_search.router.SemanticSearchRouter"]
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
 SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "new")
 
-# Trust the auth service's x-sefaria-* request headers (an accepted API key may then use /api/knn-search). Turn on only
-# where the gateway strips client-sent copies of those headers; the Helm chart sets it when the auth service is enabled.
-AUTH_SERVICE_HEADERS_TRUSTED = False
+# Shared with the auth service, which sends it as x-sefaria-auth-secret on requests it allowed with an active API key.
+# Django trusts the auth service's x-sefaria-* headers (an accepted key may then use /api/knn-search) only with it.
+# Empty: those headers are never trusted. The Helm chart provides it to the web pods when the auth service is enabled.
+AUTH_SERVICE_UPSTREAM_SECRET = os.environ.get("AUTH_SERVICE_UPSTREAM_SECRET", "")
 
 # Deployed app version (semantic-release tag), set as a pod env var by the Helm chart.
 # Empty in local dev, where no deploy has happened.

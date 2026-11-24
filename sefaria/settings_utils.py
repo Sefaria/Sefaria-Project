@@ -40,8 +40,11 @@ def scrub_api_keys(value):
 
 
 # Custom secret-bearing headers that send_default_pii=False does not strip: the Salesforce
-# webhook's shared secret and the Svix signature. Stored lowercase; compared against name.lower().
-WEBHOOK_SECRET_HEADER_NAMES = frozenset({"x-sefaria-webhook-secret", "svix-signature", "webhook-signature"})
+# webhook's shared secret, the Svix signature and the auth service's upstream secret. Stored lowercase; compared against
+# name.lower().
+WEBHOOK_SECRET_HEADER_NAMES = frozenset(
+    {"x-sefaria-webhook-secret", "svix-signature", "webhook-signature", "x-sefaria-auth-secret"}
+)
 WEBHOOK_URL_PATH_PREFIX = "/api/webhooks/"
 DONOR_TASK_NAME = "webhooks.process_event_indicating_person_is_donor"
 

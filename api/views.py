@@ -211,12 +211,13 @@ def _auth_service_accepted_key(request):
     """
     True when the auth service accepted a valid sfr_ API key on this request.
 
-    The auth service (ext_authz) stamps x-sefaria-auth-result "ok" and the key's project only for an active key, in
-    enforce and observe mode alike; a request without a valid key gets another result. These headers are trusted only
-    when AUTH_SERVICE_HEADERS_TRUSTED is on, which the chart sets only where the gateway strips client-sent copies.
-    Without the strip (auth service off, local dev) a client could send them itself.
+    The auth service (ext_authz) stamps x-sefaria-auth-result "ok", the key's project and x-sefaria-auth-secret only for
+    an active key, in enforce and observe mode alike. The secret is shared only between the auth service and these pods
+    and the gateway strips client-sent copies, so without it the other headers may have come from anyone.
     """
-    if not getattr(settings, "AUTH_SERVICE_HEADERS_TRUSTED", False):
+    expected = getattr(settings, "AUTH_SERVICE_UPSTREAM_SECRET", "")
+    secret = request.headers.get("x-sefaria-auth-secret", "")
+    if not expected or not hmac.compare_digest(secret.encode(), expected.encode()):
         return False
     return request.headers.get("x-sefaria-auth-result") == "ok" and bool(request.headers.get("x-sefaria-project"))
 
