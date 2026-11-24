@@ -3,6 +3,7 @@
 """
 abstract.py - abstract classes for Sefaria models
 """
+
 from cerberus import Validator
 import collections
 import structlog
@@ -10,7 +11,7 @@ import copy
 import bleach
 import re
 
-#Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
+# Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
 
 from bson.objectid import ObjectId
@@ -40,6 +41,7 @@ def show_unreleased_content():
     Set per environment in local settings, never per run.
     """
     from django.conf import settings
+
     return bool(getattr(settings, "SHOW_UNRELEASED_CONTENT", False))
 
 
@@ -58,18 +60,24 @@ class AbstractMongoRecord(object):
     AbstractMongoRecord - superclass of classes representing mongo records.
     "collection" attribute is set on subclass
     """
+
     collection = None  # name of MongoDB collection
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
     criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
-    attr_schemas = {}    # schemas to validate that an attribute is in the right format. Keys are attribute names, values are schemas in Cerberus format.
+    attr_schemas = {}  # schemas to validate that an attribute is in the right format. Keys are attribute names, values are schemas in Cerberus format.
     track_pkeys = False
-    pkeys = []   # list of fields that others may depend on
+    pkeys = []  # list of fields that others may depend on
     history_noun = None  # Label for history records
-    has_release_flag = False  # True for collections whose records may carry `unreleased` (unreleased) and are hidden by it
-    ALLOWED_TAGS = list(bleach.ALLOWED_TAGS) + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
+    has_release_flag = (
+        False  # True for collections whose records may carry `unreleased` (unreleased) and are hidden by it
+    )
+    ALLOWED_TAGS = list(bleach.ALLOWED_TAGS) + [
+        "p",
+        "br",
+    ]  # not sure why p/br isn't included. dont see any security risks
     ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
 
     def __init__(self, attrs=None):
@@ -78,7 +86,7 @@ class AbstractMongoRecord(object):
         self._init_defaults()
         self.pkeys_orig_values = {}
         self.load_from_dict(attrs, True)
-            
+
     @classmethod
     def visibility_filter(cls):
         """
@@ -128,11 +136,11 @@ class AbstractMongoRecord(object):
         query = merge_queries(query, self.visibility_filter())
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
-            assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
+            assert set(obj.keys()) <= set(self._saveable_attr_keys()), (
                 "{} record loaded with unhandled key(s): {}".format(
-                    type(self).__name__,
-                    set(obj.keys()) - set(self._saveable_attr_keys())
+                    type(self).__name__, set(obj.keys()) - set(self._saveable_attr_keys())
                 )
+            )
             self.load_from_dict(obj, True)
             return self
         return None  # used to check for existence of record.
@@ -196,7 +204,7 @@ class AbstractMongoRecord(object):
             result = getattr(db, self.collection).insert_one(props)
             self._id = result.inserted_id
         else:
-            result = getattr(db, self.collection).replace_one({"_id":self._id}, props, upsert=True)
+            result = getattr(db, self.collection).replace_one({"_id": self._id}, props, upsert=True)
             if not result.matched_count and result.upserted_id:
                 raise Exception("{} inserted when expecting an update.".format(type(self).__name__))
 
@@ -259,7 +267,7 @@ class AbstractMongoRecord(object):
         return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
 
     def contents(self, **kwargs):
-        """ Build a savable/portable dictionary from the object
+        """Build a savable/portable dictionary from the object
         Extended by subclasses with derived attributes passed along with portable object
         :return: dict
         """
@@ -278,7 +286,9 @@ class AbstractMongoRecord(object):
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
 
     def is_key_changed(self, key):
-        assert self.track_pkeys and key in self.pkeys, "Failed to track key {} in {}".format(key, self.__class__.__name__)
+        assert self.track_pkeys and key in self.pkeys, "Failed to track key {} in {}".format(
+            key, self.__class__.__name__
+        )
         if self.is_new():
             return bool(getattr(self, key, False))
         return self.pkeys_orig_values[key] != getattr(self, key, None)
@@ -288,23 +298,23 @@ class AbstractMongoRecord(object):
 
     def _set_derived_attributes(self):
         pass
-    
+
     def __set_allow_unknown_false(self, schema=None) -> None:
         """
         Recurse on the cerberus schema, setting every field that is type "dict" to not allow unknown fields
         This is to counter the fact that we do allow unknown fields in the root (since the cerberus schema doesn't need to include all root fields)
-        :param schema: 
-        :return: 
+        :param schema:
+        :return:
         """
         is_root = schema is None
         schema = schema or self.attr_schemas
-        if not is_root and schema.get('type') == 'dict':
-            schema['allow_unknown'] = schema.get('allow_unknown', False)
+        if not is_root and schema.get("type") == "dict":
+            schema["allow_unknown"] = schema.get("allow_unknown", False)
         for key in schema:
             if isinstance(schema[key], dict):
-                if 'schema' in schema[key]:
+                if "schema" in schema[key]:
                     self.__set_allow_unknown_false(schema[key])
- 
+
     def _validate(self):
         """
         Test self for validity
@@ -321,9 +331,11 @@ class AbstractMongoRecord(object):
         """
 
         for attr in self.required_attrs:
-            #properties. which are virtual instance members, do not get returned by vars()
+            # properties. which are virtual instance members, do not get returned by vars()
             if attr not in attrs and not getattr(self, attr, None):
-                raise InputError(type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ", ".join(attrs))
+                raise InputError(
+                    type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ", ".join(attrs)
+                )
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
         for attr in attrs:
@@ -360,9 +372,7 @@ class AbstractMongoRecord(object):
         return False
 
     def __eq__(self, other):
-        """
-
-        """
+        """ """
         if type(other) is type(self):
             return self._saveable_attrs() == other._saveable_attrs()
         return False
@@ -374,7 +384,9 @@ class AbstractMongoRecord(object):
     def all_subclasses(cls) -> set:
         # get all subclasses recursively
         # see https://stackoverflow.com/a/3862957/4246723
-        return set(cls.__subclasses__()).union([sub_sub_cls for sub_cls in cls.__subclasses__() for sub_sub_cls in sub_cls.all_subclasses()])
+        return set(cls.__subclasses__()).union(
+            [sub_sub_cls for sub_cls in cls.__subclasses__() for sub_sub_cls in sub_cls.all_subclasses()]
+        )
 
 
 # Fields tried, in order, to name a record in a skip log. Instantiation is what failed, so
@@ -401,9 +413,12 @@ class AbstractMongoSet(collections.abc.Iterable):
     """
     A set of mongo records from a single collection
     """
+
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query=None, page=0, limit=0, sort=None, proj=None, skip=None, hint=None, record_kwargs=None):   # default sort used to be =[("_id", 1)]
+    def __init__(
+        self, query=None, page=0, limit=0, sort=None, proj=None, skip=None, hint=None, record_kwargs=None
+    ):  # default sort used to be =[("_id", 1)]
         self.query = merge_queries(query, self.recordClass.visibility_filter())
         self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
         self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj)
@@ -415,7 +430,7 @@ class AbstractMongoSet(collections.abc.Iterable):
         self.limit = limit
         if hint:
             self.raw_records.hint(hint)
-        #self.has_more = limit != 0 and self.raw_records.count() == limit
+        # self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
         self.current = 0
         self.max = None
@@ -493,8 +508,7 @@ class AbstractMongoSet(collections.abc.Iterable):
             else:
                 guard, pathway, operation, level = self._skip_guard
                 record = _NOT_BUILT
-                with guard(pathway, operation,
-                           record=_raw_record_identifier(raw), level=level):
+                with guard(pathway, operation, record=_raw_record_identifier(raw), level=level):
                     record = instantiate(raw)
                 if record is not _NOT_BUILT:
                     self.records.append(record)
@@ -528,7 +542,7 @@ class AbstractMongoSet(collections.abc.Iterable):
             rec.load_from_dict(attrs).save()
 
     def delete(self, force=False, bulk_delete=False):
-        if bulk_delete: # Bulk deletion is more performant but will not trigger dependencies.
+        if bulk_delete:  # Bulk deletion is more performant but will not trigger dependencies.
             getattr(db, self.recordClass.collection).delete_many(self.query)
         else:
             for rec in self:
@@ -549,7 +563,6 @@ class AbstractMongoSet(collections.abc.Iterable):
 
 
 class SluggedAbstractMongoRecordMeta(type):
-
     def __init__(cls, name, parents, dct):
         super().__init__(name, parents, dct)
         cls._init_cache = {}  # cache for instances instantiated using cls.init()
@@ -564,7 +577,7 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
     cacheable = False
 
     @classmethod
-    def init(cls, slug: str, slug_field_idx: int = None) -> 'AbstractMongoRecord':
+    def init(cls, slug: str, slug_field_idx: int = None) -> "AbstractMongoRecord":
         """
         Convenience func to avoid using .load() when you're only passing a slug
         Applicable only if class defines `slug_fields`
@@ -573,8 +586,10 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
         @return: instance of `cls` with slug `slug`
         """
         if len(cls.slug_fields) != 1 and slug_field_idx is None:
-            raise Exception("Can only call init() if exactly one slug field is defined or `slug_field_idx` is passed as"
-                            " a parameter.")
+            raise Exception(
+                "Can only call init() if exactly one slug field is defined or `slug_field_idx` is passed as"
+                " a parameter."
+            )
         slug_field_idx = slug_field_idx or 0
         if not cls.cacheable or slug not in cls._init_cache:
             instance = cls().load({cls.slug_fields[slug_field_idx]: slug})
@@ -590,7 +605,7 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
         """
         slug = self.normalize_slug(getattr(self, slug_field))
         dupe_count = 0
-        _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
+        _id = getattr(self, "_id", None)  # _id is not necessarily set b/c record might not have been saved yet
         temp_slug = slug
         while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
             dupe_count += 1
@@ -628,8 +643,7 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
 
 
 class Cloneable:
-
-    def clone(self, **kwargs) -> 'Cloneable':
+    def clone(self, **kwargs) -> "Cloneable":
         """
         Return new object with all the same data except modifications specified in kwargs
         """
@@ -650,6 +664,7 @@ def get_record_classes(concrete=True, dynamic_classes=False):
         sc = [s for s in sc if s.collection is not None]
     if not dynamic_classes:
         from sefaria.model.lexicon import DictionaryEntry
+
         sc = [s for s in sc if not issubclass(s, DictionaryEntry)]
     return sc
 
@@ -667,7 +682,6 @@ def get_set_classes():
 
 
 class CachingType(type):
-
     def __init__(cls, name, parents, dct):
         super(CachingType, cls).__init__(name, parents, dct)
         cls.__cache = {}
@@ -687,21 +701,21 @@ def make_hashable(obj):
     Make a range of objects hashable.
     Accepts embedded dictionaries, lists or tuples (including namedtuples)"""
     if isinstance(obj, collections.abc.Hashable):
-        #Fine to be hashed without any changes
+        # Fine to be hashed without any changes
         return obj
     elif isinstance(obj, collections.abc.Mapping):
-        #Convert into a frozenset instead
+        # Convert into a frozenset instead
         items = list(obj.items())
         for i, item in enumerate(items):
             items[i] = make_hashable(item)
         return frozenset(items)
     elif isinstance(obj, collections.abc.Iterable):
-        #Convert into a tuple instead
-        ret=[type(obj)]
+        # Convert into a tuple instead
+        ret = [type(obj)]
         for i, item in enumerate(obj):
             ret.append(make_hashable(item))
         return tuple(ret)
-    #Use the id of the object
+    # Use the id of the object
     return id(obj)
 
 
@@ -735,12 +749,7 @@ def notify(inst, action, **kwargs):
     :param action: Currently used: "save", "attributeChange", "delete", "create", ... could also be "change"
     """
 
-    actions_reqs = {
-        "attributeChange": ["attr"],
-        "save": [],
-        "delete": [],
-        "create": []
-    }
+    actions_reqs = {"attributeChange": ["attr"], "save": [], "delete": [], "create": []}
     assert inst
     assert action in actions_reqs
 
@@ -750,7 +759,16 @@ def notify(inst, action, **kwargs):
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug("Notify: " + str(inst) + "." + str(kwargs["attr"]) + ": " + str(kwargs["old"]) + " is becoming " + str(kwargs["new"]))
+        logger.debug(
+            "Notify: "
+            + str(inst)
+            + "."
+            + str(kwargs["attr"])
+            + ": "
+            + str(kwargs["old"])
+            + " is becoming "
+            + str(kwargs["new"])
+        )
     else:
         logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
         callbacks = deps.get((type(inst), action, None), [])
@@ -784,12 +802,14 @@ def cascade(set_class, attr):
     if len(attrs) == 1:
         return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
     else:
+
         def foo(obj, **kwargs):
             for rec in set_class({attr: kwargs["old"]}):
                 dict_parent = reduce(lambda d, k: d[k], attrs[1:-1], getattr(rec, attrs[0]))
                 dict_parent[attrs[-1]] = kwargs["new"]
                 setattr(rec, attrs[0], getattr(rec, attrs[0]))
                 rec.save()
+
         return foo
 
 
@@ -801,6 +821,7 @@ def cascade_to_list(set_class, attr):
     :param attr: The name of the impacted class attribute (fk) that holds the list of references to the changed attribute (pk)
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
+
     def foo(obj, **kwargs):
         for rec in set_class({attr: kwargs["old"]}):
             setattr(rec, attr, [kwargs["new"] if e == kwargs["old"] else e for e in getattr(rec, attr)])
@@ -830,6 +851,7 @@ def cascade_delete_to_list(set_class, fk_attr, pk_attr):
     :param pk_attr:
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
+
     def foo(obj, **kwargs):
         for rec in set_class({fk_attr: getattr(obj, pk_attr)}):
             setattr(rec, fk_attr, [e for e in getattr(rec, fk_attr) if e != getattr(obj, pk_attr)])
