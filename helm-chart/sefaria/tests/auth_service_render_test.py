@@ -263,13 +263,12 @@ def check_release_rules(env, release, rendered_on):
             f"{env} on: a PodDisruptionBudget keeps one auth-service pod up",
         )
     if env == "preprod":
-        # preprod migrates prod's shared database. A developer project created there before prod runs this release
-        # cannot be deleted by prod's older code, so the flag stays off on preprod until prod runs the release. Turn it
-        # on (and relax this check) only then.
+        # preprod shares prod's database; prod runs the same release, so developer settings are on, for staff only.
         local_settings = find(rendered_on, "ConfigMap", r"^local-settings-preprod$")
+        data = local_settings[0]["data"] if len(local_settings) == 1 else {}
         check(
-            len(local_settings) == 1 and str(local_settings[0]["data"].get("DEVELOPER_SETTINGS_ENABLED")) == "False",
-            f"{env}: developer settings stay off until prod runs the same release",
+            str(data.get("DEVELOPER_SETTINGS_ENABLED")) == "True" and str(data.get("DEVELOPER_SETTINGS_STAFF_ONLY")) == "True",
+            f"{env}: developer settings are on for staff only",
         )
 
 
