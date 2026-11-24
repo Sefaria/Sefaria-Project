@@ -90,12 +90,16 @@ function useHostFactory(): HostFactory | null {
     if (had || !readerState) return had ?? null;
     const defaults = { current: urlDefaultsFor(settings) };
     const ui = store<UiState>({ interfaceLang, theme: themeOf() });
-    // SurfaceHost 1.2 ui.chrome: one measurement for both mounts (src/lib/surfaces/chrome.ts)
-    const chrome = createChromeInsets({
-      doc: document,
-      win: window,
-      dir: () => (getComputedStyle(document.documentElement).direction === "rtl" ? "rtl" : "ltr"),
-    });
+    // SurfaceHost 1.2 ui.chrome: one measurement for both mounts (src/lib/surfaces/chrome.ts). Browser only: this runs while the
+    // server renders too, where there is nothing to measure and the surface never mounts.
+    const chrome =
+      typeof document === "undefined"
+        ? undefined
+        : createChromeInsets({
+            doc: document,
+            win: window,
+            dir: () => (getComputedStyle(document.documentElement).direction === "rtl" ? "rtl" : "ltr"),
+          });
     const commands = createWorkspaceCommands(router as unknown as WorkspaceRouter, () => defaults.current);
     const identityToken = createIdentityTokenSource({ post: postJson, viewerId: () => viewerOf(qc)?.id ?? null });
     const viewer = {
