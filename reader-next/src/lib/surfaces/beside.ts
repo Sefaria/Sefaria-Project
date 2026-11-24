@@ -52,9 +52,9 @@ export const setBesideOrigin = (next: BesideOrigin | null) => {
 };
 
 /**
- * Whether the text beside the social page is collapsed to a rail at the inline end (the page takes the room; the text stays mounted,
- * so a followed shiur keeps moving underneath and comes back where the leader is). A per-tab view choice, not part of the address:
- * a new text opened beside the page comes in expanded, and closing the text forgets it.
+ * Whether the social page's column beside a text is collapsed to a rail at the inline start (the text takes the row; the page stays
+ * mounted, its state and place kept, and comes back as it was). A per-tab view choice, not part of the address: a text opened beside
+ * the page comes in with the column open, and closing the text forgets it. Desktop only: on a phone the text already covers the page.
  */
 let collapsed = false;
 const collapsedSubs = new Set<() => void>();

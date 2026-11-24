@@ -44,11 +44,6 @@
    placed against this row. */
 .body[data-beside] { position: relative; }
 .body[data-beside] > .main { view-transition-name: social-reader; }
-/* Collapsed to its rail (SurfaceBesideToggle): the text stays mounted, so a followed shiur keeps moving underneath, but takes no room
-   and is out of the accessibility tree and the tab order; the page's column takes the row.
-   It keeps its width (no reflow into a zero-width column, which on a phone, where the window scrolls, would be miles tall) and takes
-   no height. */
-.body[data-beside="collapsed"] > .main { position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 100%; block-size: 0; overflow: hidden; visibility: hidden; view-transition-name: none; }
 
 /* Opening and closing it is a view transition (src/lib/surfaces/beside.ts withTransition; none for reduced motion): the social page
    (social-feed) narrows into its column as the text (social-reader) slides in from the inline end, and the reverse on close. On a

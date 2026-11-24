@@ -17,16 +17,10 @@ function scrollerOf(root: HTMLElement): HTMLElement | Window {
   return o === "auto" || o === "scroll" ? el : window;
 }
 
-/** Is `root` hidden by its own or an ancestor's visibility or display? (Where checkVisibility is missing: never.) */
-const hidden = (root: HTMLElement) => typeof root.checkVisibility === "function" && !root.checkVisibility({ visibilityProperty: true });
-
 /** Scroll so the segment `ref` inside `root` sits `offset` px below the top of the scrolling area. False when it is not loaded. */
 export function placeSegment(root: HTMLElement, pos: { ref: string; offset: number }): boolean {
   const seg = root.querySelector(segmentSelector(pos.ref));
   if (!seg) return false;
-  // a reader kept mounted but hidden (collapsed beside a surface's page) has no place on screen: scrolling for it would move the
-  // window, which on a phone is the page the person is looking at
-  if (hidden(root)) return true;
   const s = scrollerOf(root);
   const top = s === window ? 0 : (s as HTMLElement).getBoundingClientRect().top;
   const delta = seg.getBoundingClientRect().top - top - pos.offset;
