@@ -185,8 +185,9 @@ spec:
       #  1. A release has run first: deploy-static.yaml writes authService.image.tag, and that tag must exist in the registry.
       #     Flipping enabled alone fails rendering (image.tag is empty and required).
       #  2. The Secret auth-service-registry (key AUTH_PG_DSN) exists in this environment's namespace (default), provisioned via the
-      #     infrastructure repo. It does not exist yet.
-      enabled: false
+      #     infrastructure repo. Provisioned 2026-11-23 (infrastructure #727).
+      # Set on master together with preprod; it takes effect only when the preprod -> prod promotion lands on prod.
+      enabled: true
       # observe: never denies; records what would be rejected in x-sefaria-auth-result. enforce only after the preprod pass.
       mode: observe
       # Two replicas so a drained or evicted pod never leaves /api/knn-search unprotected under enforce (the

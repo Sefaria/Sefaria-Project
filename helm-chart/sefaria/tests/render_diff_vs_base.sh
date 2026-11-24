@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Proves a chart change leaves what is already deployed alone: renders the chart at <base-ref> and at HEAD for each
-# environment with that environment's values (as shipped: staging on, preprod and prod off) and fails on any difference that is not in the
+# environment with that environment's values (as shipped: the auth service on in all three) and fails on any difference that is not in the
 # inline allow-list below. Prints every allowed difference it saw, so a reviewer reads them.
 #
 # Differences that arise on every render (the randAlphaNum redeploy string) are normalised first; the base is rendered
@@ -24,11 +24,17 @@ for env in staging preprod prod; do
   python3 - "$ROOT/envs/$env/helmrelease.yaml" "$TMP/$env.values.yaml" "$env" <<'PY'
 import sys, yaml
 release = next(d for d in yaml.safe_load_all(open(sys.argv[1])) if d and d.get("kind") == "HelmRelease")
-# Staging rehearses every prod step first, so it ships the auth service on before preprod and prod (Yotam, 2026-11-18);
-# keep in step with SHIPPED_ENABLED in auth_service_render_test.py.
-shipped = {"staging": True}.get(sys.argv[3], False)
+# Keep in step with SHIPPED_ENABLED in auth_service_render_test.py. Staging went first (Yotam, 2026-11-18); preprod and
+# prod are on in their env files from 2026-11-24, taking effect as each promotion reaches its branch.
+shipped = {"staging": True, "preprod": True, "prod": True}[sys.argv[3]]
 assert release["spec"]["values"]["authService"]["enabled"] is shipped, f"{sys.argv[3]} must ship authService.enabled {shipped}"
-yaml.safe_dump(release["spec"].get("values", {}), open(sys.argv[2], "w"))
+values = release["spec"].get("values", {})
+# On master the preprod and prod env files carry no auth image tag (a release writes it on that env's branch), and the
+# chart refuses to render the auth service on without one; use the same placeholder as auth_service_render_test.py.
+auth = values.get("authService") or {}
+if auth.get("enabled") and not (auth.get("image") or {}).get("tag"):
+    auth.setdefault("image", {})["tag"] = "render-test"
+yaml.safe_dump(values, open(sys.argv[2], "w"))
 PY
   helm template "$env" "$TMP/base/helm-chart/sefaria" -f "$TMP/$env.values.yaml" > "$TMP/$env.base.yaml"
   helm template "$env" "$TMP/base/helm-chart/sefaria" -f "$TMP/$env.values.yaml" > "$TMP/$env.base2.yaml"
