@@ -24,6 +24,7 @@ import {
   type,
   within,
 } from './developerSettingsTestUtils';
+import Sefaria from '../sefaria/sefaria';
 
 jest.mock('../sefaria/sefaria', () => require('./developerSettingsTestUtils').sefariaMock());
 jest.mock('../sefaria/sefariaJquery', () => require('./developerSettingsTestUtils').jqueryMock());
@@ -33,8 +34,6 @@ jest.mock('../ProfilePic', () => ({ ProfilePic: () => null }));
 
 const DAILY_LIMIT = "You've asked for 5 links today. Try again tomorrow, or contact hello@sefaria.org.";
 const ONE_A_MINUTE = 'Wait a minute before asking for another email.';
-const SHARED_HOST =
-  "Keys can't be limited to a shared hosting address like this one. Use your own domain, or leave the limit off.";
 const CONFIRM_TIP = 'Confirm your email in the banner above to create projects and keys.';
 const now = () => new Date().toISOString();
 
@@ -183,7 +182,9 @@ describe('refused saves', () => {
         'address, such as yourapp.sites.google.com, or leave the key unrestricted.'
     );
     await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
-    expect(screen.getByText(SHARED_HOST)).toBeTruthy();
+    // The copy lives in Weblate, so look it up by key rather than pinning its wording here.
+    expect(screen.getByText(Sefaria._keyedString('developer.errors.shared_host.error', 'en'))).toBeTruthy();
+    expect(screen.queryByText("Something went wrong and your change wasn't saved. Please try again.")).toBeNull();
     expect(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }).checked).toBe(false);
   });
 });

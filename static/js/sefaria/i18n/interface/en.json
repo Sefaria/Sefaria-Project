@@ -958,7 +958,6 @@
     "developer.errors.key_missing.error": "This key no longer exists. Refresh the page to see your keys.",
     "developer.errors.link_rate_limited.error": "Wait a minute before asking for another link.",
     "developer.errors.no_account_email.error": "Your account has no email address. Add one in Account Settings.",
-    "developer.errors.shared_host.error": "Keys can't be limited to a shared hosting address like this one. Use your own domain, or leave the limit off.",
     "developer.errors.key_create_failed.error": "We couldn't create your key. Please try again.",
     "developer.errors.save_failed.error": "Something went wrong and your change wasn't saved. Please try again.",
     "developer.errors.session_check_failed.error": "We couldn't check your session. Reload the page to see developer settings.",
