@@ -63,11 +63,13 @@ RULES = [
     # read by the web pods, and stripped from clients at the listener. Renders only where authService.enabled.
     ("auth service upstream secret", ENVS, "Secret", r"^auth-service-upstream-", r".*"),
     ("auth service UPSTREAM_SECRET env", ENVS, "Deployment", r"-auth-service$",
-     rf"({BLANK}|\s*- name: UPSTREAM_SECRET|\s*valueFrom:|\s*secretKeyRef:|\s*name: auth-service-upstream-\S+|\s*key: AUTH_SERVICE_UPSTREAM_SECRET)"),
+     rf"({BLANK}|\s*annotations:|\s*checksum/auth-service-upstream: \S+|\s*- name: UPSTREAM_SECRET|\s*valueFrom:|\s*secretKeyRef:|\s*name: auth-service-upstream-\S+|\s*key: AUTH_SERVICE_UPSTREAM_SECRET)"),
     ("web reads the upstream secret", ENVS, "Rollout", r"-web$",
-     rf"({BLANK}|\s*# AUTH_SERVICE_UPSTREAM_SECRET: .*|\s*- secretRef:|\s*name: auth-service-upstream-\S+|\s*optional: true)"),
+     rf"({BLANK}|\s*annotations:|\s*checksum/auth-service-upstream: \S+|\s*# AUTH_SERVICE_UPSTREAM_SECRET: .*|\s*- secretRef:|\s*name: auth-service-upstream-\S+|\s*optional: true)"),
     ("listener strips x-sefaria-auth-secret", ENVS, "ClientTrafficPolicy", r".*",
      r"\s*remove: \[x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result, x-sefaria-meter, x-sefaria-key-status(, x-sefaria-auth-secret)?\]"),
+    ("nginx never forwards the upstream secret to search or storage", ENVS, "ConfigMap", r"^nginx-conf-",
+     rf"({BLANK}|\s*# Never forward the auth service's upstream secret beyond the app\.|\s*proxy_set_header x-sefaria-auth-secret \"\";)"),
     # Not in the plan's list: one comment line in the ClientTrafficPolicy, a no-op for Kubernetes.
     ("ClientTrafficPolicy comment", ENVS, "ClientTrafficPolicy", r".*", rf"({BLANK}|\s*# Port 80 still serves the site here.*)"),
 ]

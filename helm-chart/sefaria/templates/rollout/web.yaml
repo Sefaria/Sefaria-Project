@@ -60,10 +60,15 @@ spec:
         tags.datadoghq.com/version: {{ .Values.web.containerImage.tag | quote }}
         admission.datadoghq.com/enabled: "true"
         {{- end }}
-      {{- if .Values.datadog.enabled }}
+      {{- if or .Values.datadog.enabled .Values.authService.enabled }}
       annotations:
+        {{- if .Values.datadog.enabled }}
         ad.datadoghq.com/web.logs_exclude: "true"
         admission.datadoghq.com/python-lib.version: "v4.7.1"
+        {{- end }}
+        {{- if .Values.authService.enabled }}
+        checksum/auth-service-upstream: {{ include "sefaria.authServiceUpstreamChecksum" . | quote }}
+        {{- end }}
       {{- end }}
     spec:
       affinity:

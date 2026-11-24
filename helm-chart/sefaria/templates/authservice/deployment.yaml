@@ -22,6 +22,8 @@ spec:
       {{- include "sefaria.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        checksum/auth-service-upstream: {{ include "sefaria.authServiceUpstreamChecksum" . | quote }}
       labels:
         app: auth-service-{{ .Values.deployEnv }}
         deployEnv: "{{ .Values.deployEnv }}"

@@ -220,6 +220,27 @@ authService:
     limits:
       cpu: "1"
       memory: 256Mi
+  # Limits who can reach the auth-service pods: gRPC (9090) only from the Envoy Gateway proxies, HTTP (8080: metrics,
+  # probes' endpoints, /internal/registry) only from Prometheus. Any pod that can call 9090 with a valid key reads the
+  # upstream secret from the Check response, so turn this on before enforce. Works only where the cluster enforces
+  # NetworkPolicy; kubelet probes come from the node and are not covered by these rules on GKE.
+  networkPolicy:
+    enabled: false
+    gateway:
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: envoy-gateway-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: envoy
+          app.kubernetes.io/component: proxy
+    prometheus:
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus
   extAuth:
     failOpen: true
     timeout: 200ms  # Envoy Gateway's default is 10s

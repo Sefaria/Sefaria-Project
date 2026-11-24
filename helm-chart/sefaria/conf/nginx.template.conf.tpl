@@ -251,6 +251,8 @@ http {
     location /api/search/ {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
+      # Never forward the auth service's upstream secret beyond the app.
+      proxy_set_header x-sefaria-auth-secret "";
       add_header 'Access-Control-Allow-Origin' '';
 {{ if and $.Values.authService.enabled $.Values.gateway.enabled }}      add_header x-sefaria-key-status $key_status always;
       add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
@@ -300,6 +302,8 @@ http {
 
     location /static/sitemaps/ {
       access_log off;
+      # Never forward the auth service's upstream secret beyond the app.
+      proxy_set_header x-sefaria-auth-secret "";
       proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
     }
 
@@ -343,6 +347,8 @@ http {
     location /api/search/ {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
+      # Never forward the auth service's upstream secret beyond the app.
+      proxy_set_header x-sefaria-auth-secret "";
       add_header 'Access-Control-Allow-Origin' '';
 {{ if and $.Values.authService.enabled $.Values.gateway.enabled }}      add_header x-sefaria-key-status $key_status always;
       add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
@@ -410,6 +416,8 @@ http {
 
     location /static/sitemaps/ {
       access_log off;
+      # Never forward the auth service's upstream secret beyond the app.
+      proxy_set_header x-sefaria-auth-secret "";
       proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
     }
   } # server
