@@ -195,7 +195,7 @@ func main() {
 		slog.Warn("reload skipped; keeping in-memory set", "err", err)
 	})
 
-	opts := authz.Options{Cfg: cfg}
+	opts := authz.Options{Cfg: cfg, UpstreamSecret: os.Getenv("UPSTREAM_SECRET")}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })

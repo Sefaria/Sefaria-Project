@@ -26,7 +26,13 @@ func (NopRecorder) Observe(string, bool, time.Duration) {}
 
 type Options struct {
 	Cfg Config
+	// UpstreamSecret, when set, is stamped as UpstreamSecretHeader on requests allowed with an active key, so the app can
+	// tell the auth service's x-sefaria-* headers from copies sent by anything that did not pass through it.
+	UpstreamSecret string
 }
+
+// UpstreamSecretHeader carries Options.UpstreamSecret to the app. The gateway strips client-sent copies at the listener.
+const UpstreamSecretHeader = "x-sefaria-auth-secret"
 
 type GRPCServer struct {
 	authv3.UnimplementedAuthorizationServer
@@ -131,6 +137,11 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 				},
 				QueryParametersToRemove: keyParams,
 			}},
+		}
+		if d.Keyed && s.o.UpstreamSecret != "" {
+			resp.GetOkResponse().Headers = append(resp.GetOkResponse().Headers, hdr(UpstreamSecretHeader, s.o.UpstreamSecret))
+		} else {
+			resp.GetOkResponse().HeadersToRemove = append(resp.GetOkResponse().HeadersToRemove, UpstreamSecretHeader)
 		}
 		if d.KeyNotAccepted {
 			resp.GetOkResponse().Headers = append(resp.GetOkResponse().Headers, hdr(KeyStatusHeader, KeyStatusNotAccepted))
