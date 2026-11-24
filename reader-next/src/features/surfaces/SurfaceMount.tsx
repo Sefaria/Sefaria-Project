@@ -4,7 +4,8 @@
  * ./SurfacePersistentSlot.tsx), both only while the `social` lab is on, so a reader without the lab downloads none of this. Each renders an empty
  * element of its own, loads the surface in the browser (src/lib/surfaces/load.ts, shared by both mounts) and hands it the element and
  * the SurfaceHost. Nothing the surface does can break the reader: a failed load, a mount that throws or a render error inside this
- * component is reported and leaves an empty element.
+ * component is reported. The persistent mount then stays empty; the page mount says Social could not load and offers to try again
+ * (or, for a pull request's preview, to go back to the current version: src/lib/surfaces/version.ts).
  *
  * @feature SHL-076 Social lab and /social routes
  * @feature SHL-077 Surface loader
@@ -24,8 +25,11 @@ import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { createWorkspaceCommands, urlDefaultsFor, type WorkspaceRouter } from "~/lib/workspace/commands";
 import type { UrlDefaults } from "~/lib/workspace/url";
 import type { Viewer } from "~/lib/auth/session";
-import { getSurface } from "~/lib/surfaces/load";
-import { socialEnvForPage } from "~/lib/surfaces/version";
+import { getSurface, resetSurfaceLoader } from "~/lib/surfaces/load";
+import { SOCIAL_VERSION_PARAM, socialEnvForPage, socialVersionCookie, socialVersionFromCookie } from "~/lib/surfaces/version";
+import { Button } from "~/ui/Button/Button";
+import { ErrorState } from "~/ui/Feedback/Feedback";
+import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { createIdentityTokenSource } from "~/lib/surfaces/identity";
 import { closeBeside, createSurfaceHost, type SurfaceRouter, type UiState } from "~/lib/surfaces/host";
 import { viewerQuery } from "~/features/auth/viewer";
@@ -247,11 +251,73 @@ function pageScroller(): HTMLElement | Window {
   return main && getComputedStyle(main).overflowY !== "visible" ? main : window;
 }
 
+/** Forget a failed page view so the next acquirePage loads the surface again (the loader too: it keeps a failure per page). */
+function forgetFailedPage() {
+  if (!kept.failed) return;
+  kept.unmount?.();
+  kept.el?.remove();
+  kept.el = null;
+  kept.unmount = null;
+  kept.failed = false;
+  resetSurfaceLoader();
+}
+
+/** The pull request preview this page asked for (`?social_version=`), when previews are on here; null for the configured deployment. */
+function previewVersion(): string | null {
+  const env = PUBLIC_CONFIG.social;
+  if (typeof document === "undefined" || !env?.previews || env.environment === "production") return null;
+  return socialVersionFromCookie(document.cookie);
+}
+
+/** Back to the configured deployment: forget the preview and reload this address without `?social_version=`. */
+function leavePreview() {
+  document.cookie = socialVersionCookie(null, window.location.protocol === "https:");
+  const url = new URL(window.location.href);
+  url.searchParams.delete(SOCIAL_VERSION_PARAM);
+  window.location.replace(url.href);
+}
+
+/** In place of the page view when the surface did not load: what happened and the way back (never a blank page). */
+function PageLoadFailed({ onRetry }: { onRetry: () => void }) {
+  const [preview] = useState(previewVersion);
+  return (
+    <div className={styles.failed} data-testid="surface-load-failed">
+      {preview ? (
+        <ErrorState
+          title={<InterfaceText en={`Couldn't load Social preview #${preview}`} he={`לא ניתן לטעון את גרסת התצוגה המקדימה #${preview} של Social`} />}
+          action={
+            <Button onClick={leavePreview} data-testid="surface-leave-preview">
+              <InterfaceText en="Use the current version" he="מעבר לגרסה הנוכחית" />
+            </Button>
+          }
+        >
+          <InterfaceText
+            en={`This page asked for pull request ${preview}'s preview, which may have been merged or closed.`}
+            he={`הדף ביקש את התצוגה המקדימה של בקשת המשיכה ${preview}, שייתכן שמוזגה או נסגרה.`}
+          />
+        </ErrorState>
+      ) : (
+        <ErrorState
+          title={<InterfaceText en="Couldn't load Sefaria Social" he="לא ניתן לטעון את Sefaria Social" />}
+          action={
+            <Button onClick={onRetry} data-testid="surface-retry">
+              <InterfaceText en="Try again" he="ניסיון נוסף" />
+            </Button>
+          }
+        >
+          <InterfaceText en="We couldn't reach Social. Check your connection and try again." he="לא הצלחנו להתחבר ל-Social. בדקו את החיבור ונסו שוב." />
+        </ErrorState>
+      )}
+    </div>
+  );
+}
+
 function PageSlot({ where }: { where: "route" | "beside" }) {
   const slot = useRef<HTMLDivElement>(null);
   const hostFor = useHostFactory();
   const router = useRouter();
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   useLayoutEffect(() => {
     if (!hostFor || !slot.current) return;
     const target = slot.current;
@@ -270,15 +336,24 @@ function PageSlot({ where }: { where: "route" | "beside" }) {
       kept.onState.delete(sync);
       releasePage(target);
     };
-  }, [hostFor, router]);
+  }, [hostFor, router, attempt]);
+  const retry = () => {
+    forgetFailedPage();
+    setFailed(false);
+    setAttempt((n) => n + 1);
+  };
   return (
-    <div
-      ref={slot}
-      className={where === "beside" ? styles.beside : styles.page}
-      data-surface-mount="page"
-      data-surface-slot={where}
-      data-surface-state={failed ? "failed" : undefined}
-    />
+    <>
+      {failed ? <PageLoadFailed onRetry={retry} /> : null}
+      <div
+        ref={slot}
+        className={where === "beside" ? styles.beside : styles.page}
+        data-surface-mount="page"
+        data-surface-slot={where}
+        data-surface-state={failed ? "failed" : undefined}
+        hidden={failed || undefined}
+      />
+    </>
   );
 }
 

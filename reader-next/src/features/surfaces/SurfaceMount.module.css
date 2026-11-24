@@ -12,3 +12,8 @@
 
 /* The column beside a text scrolls on its own (SurfaceBeside.module.css sizes the column around it). */
 .beside { display: block; box-sizing: border-box; width: 100%; height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+
+/* What the page area says when the surface did not load (SurfaceMount.tsx PageLoadFailed): in place of the page view, below the header. */
+.failed { box-sizing: border-box; width: 100%; min-height: calc(100dvh - 60px); padding-block: 48px; padding-inline: 16px; }
+/* While the failure message stands in for it, the empty mount takes no room (its display rules above would override `hidden`). */
+.page[hidden], .beside[hidden] { display: none; }
