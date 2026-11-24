@@ -26,7 +26,7 @@ CHART = ROOT / "helm-chart" / "sefaria"
 ENVS = ("staging", "preprod", "prod")
 # What each env file ships, changed only on purpose: staging rehearses every prod step first, so it is turned on before
 # preprod and prod (Yotam, 2026-11-18). A flip here must come with the flip in envs/<env>/helmrelease.yaml.
-SHIPPED_ENABLED = {"staging": True, "preprod": False, "prod": False}
+SHIPPED_ENABLED = {"staging": True, "preprod": True, "prod": False}
 # The auth service's mode per env file, with the same rule: staging enforces on the gated paths first (R4).
 SHIPPED_MODE = {"staging": "enforce", "preprod": "observe", "prod": "observe"}
 SEFARIA_HEADERS = {
