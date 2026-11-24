@@ -29,8 +29,9 @@ Cloudflare → nginx (www server block of each root domain)
                │  manifests, llms.txt, .well-known
                ├─ /assets/…                      → the reader, cookie or not           (its hashed bundles; Django has none)
                └─ everything else (pages): location /, legacy's
-                    no cookie (or kill switch)   → Varnish → Django, exactly as in legacy mode
-                    cookie reader_version=next   → `return 418` → error_page → @reader → the reader (reader-<env>:3000)
+                    none of the below (or kill switch) → Varnish → Django, exactly as in legacy mode
+                    cookie reader_version=next,  → `return 418` → error_page → @reader → the reader (reader-<env>:3000)
+                    or a follow link (follow=<43 base62>), or cookie reader_follow=1 (follow me, below)
                                                     ├─ reader / library page → rendered there; data read from Varnish
                                                     ├─ a page it does not render, a write, its 404 → passed to Varnish → Django
                                                     └─ nginx's own 502/504 (unreachable: 5 s connect timeout; timed out)
@@ -164,6 +165,17 @@ Restore: undo in reverse order (`reader.optin.enabled: true`; `kubectl … scale
 `feature.reader.next.disabled` back to `false`, then restart the web pods as in lever 1). Rehearse all three on a cauldron before the
 first opt-in anywhere shared.
 
+**Follow me reaches readers who never opted in.** A follow link can only be opened by the new reader, and the person opening it is often
+outside the opt-in (a student, a signed-in non-staff reader whose `reader_version` cookie `ReaderChoiceMiddleware` clears). So nginx
+also routes a page request to the reader when it carries `follow=<session id>` (exactly 43 base62 characters), or the cookie
+`reader_follow=1`, which the reader sets while the tab is in a follow session (`src/features/reader-state/follow/params.ts`: host-only,
+`Max-Age` 6 hours, cleared when the person leaves or the session ends or is lost) — the reader takes `follow` out of the address at
+once, so without it a guest's reload would land on legacy, out of the session. Without these routes such a guest landed on
+the legacy reader, which dropped the parameter without a word, and the host saw "0 following". Like the opt-in cookie this is routing,
+not access: anyone can add either to a request. The kill switch's client half clears `reader_follow` too and reloads without `follow`;
+lever 3 (`reader.optin.enabled: false`) removes the map, so neither routes anywhere. `build/ci/reader-nginx-routing.py` asserts these
+routes in every mode.
+
 ## Hosts and the cookie (Library hosts only)
 
 Read from the rendered chart (`helm template … -f build/ci/preprod-values.yaml --set nodejs.mode=optin`, and the default cauldron
@@ -190,7 +202,7 @@ the longest common suffix of the language's module hosts.
 - **Production's cookie reaches cauldrons.** `.sefaria.org` is also sent to `*.cauldron.sefaria.org`: a staff member opted in on
   production gets the new reader on any cauldron running `optin` (a cauldron's own cookie, `.<name>.cauldron.sefaria.org`, never reaches
   production). Harmless, but remember it when comparing readers on a cauldron.
-- **Shared static files stay out of the split.** The cookie is consulted only in the www block's `location /` (`$reader_page`, mapped from `$cookie_reader_version`).
+- **Shared static files stay out of the split.** The cookie is consulted only in the www block's `location /` (`$reader_page`, mapped from `$cookie_reader_version`, `$cookie_reader_follow` and `$arg_follow`).
   `/static/…` (nginx's files), `/static/sitemaps/` (GCS), `/robots.txt` (nginx's file), `/api/…` and `/api/search/…` have their own
   locations; `/favicon.ico`, `/site.webmanifest`, `/manifest.json`, `/llms.txt` and `/.well-known/…` go to Varnish whatever the cookie;
   `/assets/…` (the reader's bundles) to the reader whatever the cookie. `build/ci/reader-nginx-routing.py --table` asserts each of these

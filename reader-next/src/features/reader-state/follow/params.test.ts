@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { newSessionId } from "~/lib/session/ids";
 import {
+  FOLLOW_COOKIE_MAX_AGE_S,
   FOLLOW_STORAGE_KEY,
   clearStoredFollow,
+  hasFollowCookie,
   followParamOf,
   guestName,
   locationLabel,
@@ -77,6 +79,52 @@ describe("what sessionStorage keeps", () => {
     expect(readStoredFollow(throwing)).toBeNull();
     expect(() => writeStoredFollow(throwing, { sessionId: id, role: "guest", participantId: "p" })).not.toThrow();
     expect(() => clearStoredFollow(throwing)).not.toThrow();
+  });
+});
+
+// @feature reader-state Follow me
+describe("the routing cookie (nginx sends a reader who never opted in here while it is set)", () => {
+  const fakeDoc = (cookie: string, protocol = "https:") => {
+    const writes: string[] = [];
+    let jar = cookie;
+    const doc = {
+      location: { protocol },
+      get cookie() {
+        return jar;
+      },
+      set cookie(v: string) {
+        writes.push(v);
+        jar = v.startsWith("reader_follow=1") ? "reader_follow=1" : "";
+      },
+    } as unknown as Document;
+    return { doc, writes };
+  };
+
+  it("is set with the stored session and cleared with it", () => {
+    const { doc, writes } = fakeDoc("");
+    const storage = memoryStorage();
+    writeStoredFollow(storage, { sessionId: id, role: "guest", participantId: "p" }, doc);
+    expect(writes).toEqual([`reader_follow=1; max-age=${FOLLOW_COOKIE_MAX_AGE_S}; path=/; samesite=lax; secure`]);
+    expect(hasFollowCookie(doc.cookie)).toBe(true);
+    clearStoredFollow(storage, doc);
+    expect(writes.at(-1)).toBe("reader_follow=; max-age=0; path=/; samesite=lax; secure");
+    expect(readStoredFollow(storage)).toBeNull();
+  });
+
+  it("is not secure on plain http (local dev), and clearing writes nothing when it is not there", () => {
+    const { doc, writes } = fakeDoc("", "http:");
+    writeStoredFollow(memoryStorage(), { sessionId: id, role: "host", participantId: "p" }, doc);
+    expect(writes).toEqual([`reader_follow=1; max-age=${FOLLOW_COOKIE_MAX_AGE_S}; path=/; samesite=lax`]);
+    const other = fakeDoc("a=1");
+    clearStoredFollow(memoryStorage(), other.doc);
+    expect(other.writes).toEqual([]);
+  });
+
+  it("reads only reader_follow=1", () => {
+    expect(hasFollowCookie("a=1; reader_follow=1; b=2")).toBe(true);
+    expect(hasFollowCookie("reader_follow=0")).toBe(false);
+    expect(hasFollowCookie("xreader_follow=1")).toBe(false);
+    expect(hasFollowCookie("")).toBe(false);
   });
 });
 

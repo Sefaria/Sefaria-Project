@@ -27,10 +27,15 @@ const verse = (page: Page, ref: string) => page.locator(`[role="group"][data-ref
 
 async function device(browser: Browser, kind: "laptop" | "phone"): Promise<BrowserContext> {
   const ctx = await browser.newContext(kind === "phone" ? { ...devices["Pixel 7"], baseURL: BASE } : { viewport: { width: 1280, height: 900 }, baseURL: BASE });
-  // reader_version=next: on a cauldron in nodejs.mode optin, nginx sends page requests to the new reader only with this cookie
-  await ctx.addCookies(["cookiesNotificationAccepted=1", "reader_version=next"].map((c) => ({ name: c.split("=")[0]!, value: c.split("=")[1]!, url: BASE! })));
+  // reader_version=next: on a cauldron in nodejs.mode optin, nginx sends page requests to the new reader only with this cookie. Only
+  // the laptop (the leader) opted in; the phone is a guest who never did: the follow link and then the reader_follow cookie bring it
+  // to the new reader (helm-chart/sefaria/conf/nginx.template.conf.tpl, $reader_page)
+  const cookies = kind === "laptop" ? ["cookiesNotificationAccepted=1", "reader_version=next"] : ["cookiesNotificationAccepted=1"];
+  await ctx.addCookies(cookies.map((c) => ({ name: c.split("=")[0]!, value: c.split("=")[1]!, url: BASE! })));
   return ctx;
 }
+
+const followCookie = async (ctx: BrowserContext) => (await ctx.cookies(BASE)).find((c) => c.name === "reader_follow")?.value ?? null;
 
 async function load(page: Page, url: string) {
   await page.goto(url);
@@ -85,7 +90,7 @@ async function wheelDown(page: Page, until: (p: string) => boolean) {
 }
 
 // @feature reader-state Follow me
-test("a phone follows a laptop through the WebSocket room server, survives a dropped connection, and is told when sharing stops", async ({ browser }) => {
+test("a phone that never opted in follows a laptop through the WebSocket room server, survives a reload and a dropped connection, and is told when sharing stops", async ({ browser }) => {
   test.setTimeout(180_000);
   const laptopCtx = await device(browser, "laptop");
   const phoneCtx = await device(browser, "phone");
@@ -113,6 +118,13 @@ test("a phone follows a laptop through the WebSocket room server, survives a dro
   await expect.poll(() => phoneSockets.some((u) => u.endsWith(`/r/${sessionId}`)), { message: "the phone talks to the room server" }).toBe(true);
   await expect.poll(() => path(phone)).toBe(path(laptop));
   await expect(followMe.getByText("1 following")).toBeVisible();
+
+  // ── The phone reloads: the address no longer carries `follow`, so only the routing cookie keeps it on the new reader (on a
+  //    cauldron in optin; a phone that landed on the legacy reader would have no follow bar at all), and it re-joins ────────────
+  expect(await followCookie(phoneCtx), "the phone's routing cookie").toBe("1");
+  await load(phone, phone.url());
+  await expect(bar(phone)).toHaveAttribute("data-status", "live", { timeout: 15_000 });
+  await expect.poll(() => path(phone)).toBe(path(laptop));
 
   // ── The laptop goes to Exodus 2 and reads down: the phone follows the place and the verse ────────────────────────
   await goTo(laptop, "Exodus 2", /\/Exodus\.2\b/);
@@ -156,6 +168,7 @@ test("a phone follows a laptop through the WebSocket room server, survives a dro
   // ── Stop sharing: the phone is told ──────────────────────────────────────────────────────────────────────────────
   await bar(laptop).getByRole("button", { name: "Stop sharing" }).click();
   await expect(bar(phone)).toHaveAttribute("data-status", "ended", { timeout: 15_000 });
+  await expect.poll(() => followCookie(phoneCtx), { message: "the session ended: the routing cookie is gone" }).toBeNull();
 
   await laptopCtx.close();
   await phoneCtx.close();

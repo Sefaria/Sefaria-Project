@@ -5,13 +5,15 @@
  *
  *  - Back to the classic reader: POST READER_CHOICE_URL {reader: "legacy"} (Django stores the profile choice and clears the cookie;
  *    sefaria/helper/reader_choice.py), then clear the cookie here too and reload: the next request goes to the classic reader.
- *  - Kill switch: remote config `feature.reader.next.disabled` true clears the cookie and reloads into the classic reader, at most once
+ *  - Kill switch: remote config `feature.reader.next.disabled` true clears the cookie (and follow me's routing cookie, which brought a
+ *    guest who never opted in; follow/params.ts) and reloads into the classic reader, without a `follow` parameter, at most once
  *    every RELOAD_INTERVAL_MS per browser session (a deployment that still serves this client must not reload forever, and a switch
  *    flipped again later still takes effect). Django must not set the cookie again meanwhile (Django's ReaderChoiceMiddleware).
  *
  * @feature ACC-003 Account settings page (the reader choice)
  */
 import { postJson, type PostResult } from "~/lib/auth/http";
+import { clearFollowCookie, hasFollowCookie, withoutFollowParam } from "~/features/reader-state/follow/params";
 import { reportError } from "~/lib/monitoring/error-reporter";
 
 /** Django's reader-choice endpoint (one constant, so it changes in one place). */
@@ -72,7 +74,7 @@ export interface LeaveDeps {
  */
 export function applyKillSwitch(remote: Record<string, unknown> | undefined, deps: LeaveDeps = {}): boolean {
   const doc = deps.doc ?? document;
-  if (!killSwitchOn(remote) || !readerCookie(doc.cookie)) return false;
+  if (!killSwitchOn(remote) || !(readerCookie(doc.cookie) || hasFollowCookie(doc.cookie))) return false;
   const storage = deps.storage === undefined ? safeSession() : deps.storage;
   const now = (deps.now ?? Date.now)();
   try {
@@ -83,8 +85,16 @@ export function applyKillSwitch(remote: Record<string, unknown> | undefined, dep
     /* storage blocked: still leave once */
   }
   clearReaderCookie(doc, deps.hostname ?? location.hostname);
-  (deps.reload ?? (() => location.reload()))();
+  clearFollowCookie(doc);
+  (deps.reload ?? reloadWithoutFollow)();
   return true;
+}
+
+/** Reload; an address still carrying `follow` (which nginx routes to this client) is replaced by the same address without it. */
+function reloadWithoutFollow() {
+  const search = withoutFollowParam(location.search);
+  if (search === location.search) location.reload();
+  else location.replace(`${location.pathname}${search}${location.hash}`);
 }
 
 function safeSession(): Storage | null {

@@ -179,11 +179,13 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def fetch(path, host, cookie, method="GET", headers=None):
+    """`cookie`: False (none), True (reader_version=next), or the Cookie header itself."""
+    cookie_header = "reader_version=next" if cookie is True else cookie or None
     req = urllib.request.Request(
         f"http://127.0.0.1:{NGINX_PORT}{path}",
         method=method,
         data=b"x=1" if method == "POST" else None,
-        headers={"Host": host, **({"Cookie": "reader_version=next"} if cookie else {}), **(headers or {})},
+        headers={"Host": host, **({"Cookie": cookie_header} if cookie_header else {}), **(headers or {})},
     )
     try:
         with urllib.request.build_opener(NoRedirect).open(req, timeout=15) as r:
@@ -234,6 +236,43 @@ def main():
                             + ("" if ok else f" (expected {plain}, {opted})")
                         )
                 print(f"[{mode}] {len(cases)} paths checked")
+                # follow me: a follow link, or a browser in a follow session (reader_follow=1), reaches the new reader without the
+                # opt-in cookie in optin mode; never in legacy or with the kill switch; Django's paths and the Voices host are untouched
+                to_reader = mode in ("optin", "reader")
+                sid = "A" * 43
+                follow_cases = [
+                    (f"/Genesis.1?follow={sid}", LIBRARY, False, "reader" if to_reader else "varnish"),
+                    (
+                        f"/Genesis.1?lang=en&with=Share&follow={sid}",
+                        LIBRARY,
+                        False,
+                        "reader" if to_reader else "varnish",
+                    ),
+                    ("/Genesis.1", LIBRARY, "reader_follow=1", "reader" if to_reader else "varnish"),
+                    (
+                        "/Genesis.1",
+                        LIBRARY,
+                        "sessionid=x; reader_follow=1; csrftoken=y",
+                        "reader" if to_reader else "varnish",
+                    ),
+                    ("/Genesis.1?follow=short", LIBRARY, False, "reader" if mode == "reader" else "varnish"),
+                    (f"/Genesis.1?follow={sid}x", LIBRARY, False, "reader" if mode == "reader" else "varnish"),
+                    ("/Genesis.1", LIBRARY, "reader_follow=0", "reader" if mode == "reader" else "varnish"),
+                    ("/Genesis.1", LIBRARY, "reader_version=classic", "reader" if mode == "reader" else "varnish"),
+                    (f"/settings/account?follow={sid}", LIBRARY, "reader_follow=1", "varnish"),
+                    (f"/api/v3/texts/Genesis.1?follow={sid}", LIBRARY, "reader_follow=1", "varnish"),
+                    (f"/Genesis.1?follow={sid}", VOICES, "reader_follow=1", "varnish"),
+                ]
+                for path, host, cookie, want in follow_cases:
+                    got = ask(path, host, cookie)
+                    ok = got == want
+                    failures += not ok
+                    if table or not ok:
+                        print(
+                            f"  {'ok ' if ok else 'BAD'} follow {host:32} {path[:60]:60} cookie {cookie or '-'!s:40} → {got}"
+                            + ("" if ok else f" (expected {want})")
+                        )
+                print(f"[{mode}] {len(follow_cases)} follow-me routes checked")
                 if mode in ("optin", "reader"):
                     # nginx sets X-Forwarded-Host itself: a value the client sends never reaches the reader
                     seen = fetch("/Genesis.1", LIBRARY, True, headers={"X-Forwarded-Host": "evil.example"})[1]

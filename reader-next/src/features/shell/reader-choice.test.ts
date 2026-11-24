@@ -34,6 +34,14 @@ describe("kill switch (remote config feature.reader.next.disabled)", () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
+  it("on, for a follow-me guest who never opted in (only reader_follow): clears that cookie and reloads", () => {
+    const { doc, writes } = fakeDoc("a=1; reader_follow=1");
+    const reload = vi.fn();
+    expect(applyKillSwitch({ "feature.reader.next.disabled": true }, { doc, hostname: "www.sefaria.org", reload, storage: memory() })).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(writes).toContain("reader_follow=; max-age=0; path=/; samesite=lax");
+  });
+
   it("off, or no cookie: nothing happens", () => {
     const reload = vi.fn();
     expect(applyKillSwitch({ "feature.reader.next.disabled": false }, { ...fakeDoc("reader_version=next"), hostname: "x.org", reload, storage: memory() })).toBe(false);
