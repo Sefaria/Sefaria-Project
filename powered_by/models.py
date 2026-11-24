@@ -7,6 +7,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from .formstack_answers import gallery_category, gallery_reach
+
 
 class SubmissionSource(models.TextChoices):
     FORMSTACK = "formstack", "Formstack"
@@ -297,6 +299,9 @@ class Project(models.Model):
             return dt.isoformat() if dt else None
 
         contents = {field: getattr(self, field) for field in self.PUBLIC_FIELDS}
+        # Stored as ids since the new publish form; the external gallery site reads the labels.
+        contents["project_category"] = gallery_category(self.project_category)
+        contents["project_reach"] = gallery_reach(self.project_reach)
         for field in ("submission_date", "created_at", "updated_at", "last_checked"):
             contents[field] = iso(contents[field])
 

@@ -191,7 +191,9 @@ const HelpIcon = () => (
 
 /* icon: "info" (default) or "help". above: opens over the label instead of over the field.
    interactive: the tip holds a link, so it stays open while the pointer is on the icon or the tip (with a short
-   grace period to cross the gap), and the icon is a real button for keyboard users (Escape closes). */
+   grace period to cross the gap), and the icon is a real button for keyboard users.
+   Escape closes an open tip wherever focus is, including one opened by hovering (WCAG 1.4.13), and only the tip: focus
+   stays put and a dialog under it stays open. */
 const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = false, label, lead, children }) => {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef(null);
@@ -204,6 +206,21 @@ const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = fa
     closeTimer.current = setTimeout(() => setOpen(false), interactive ? 200 : 0);
   };
   useEffect(() => () => clearTimeout(closeTimer.current), []);
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        clearTimeout(closeTimer.current);
+        setOpen(false);
+      }
+    };
+    // Capture, so the tip closes before a dialog's own Escape handling sees the key.
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [open]);
   useEffect(() => {
     const field = document.getElementById(fieldId);
     if (!field) {
@@ -233,15 +250,6 @@ const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = fa
           ? (e) => {
               if (!e.currentTarget.contains(e.relatedTarget)) {
                 hideSoon();
-              }
-            }
-          : undefined
-      }
-      onKeyDown={
-        interactive
-          ? (e) => {
-              if (e.key === 'Escape') {
-                setOpen(false);
               }
             }
           : undefined
@@ -4605,7 +4613,9 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
 
   const save = () => {
     setSaveError('');
-    const transPref = translationLanguages.length ? translationLanguage : undefined;
+    // No language chosen is sent as null. A stored "null" string counts as no choice.
+    const chosenTransPref = translationLanguage && translationLanguage !== 'null' ? translationLanguage : null;
+    const transPref = translationLanguages.length ? chosenTransPref : undefined;
     const profile = {
       settings: {
         email_notifications: emailNotifications,
@@ -4624,7 +4634,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
       profile.settings.library_assistant = libraryAssistant === 'true';
     }
     // see trans pref in cookie in case user is logged out
-    if (profile.settings.translation_language_preference !== undefined) {
+    if (profile.settings.translation_language_preference) {
       $.cookie('translation_language_preference', profile.settings.translation_language_preference, { path: '/' });
     }
     $.cookie('translation_language_preference_suggested', JSON.stringify(1), { path: '/' });

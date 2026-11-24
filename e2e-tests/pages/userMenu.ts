@@ -34,7 +34,7 @@ export class UserMenu extends HelperBase{
             await this.page.getByRole('link', {name: 'הגדרות'}).click()
         }
         else{
-            await this.page.getByRole('link', {name: 'Account Settings'}).click()
+            await this.page.getByRole('link', {name: 'Settings', exact: true}).click()
         }
     }
 
