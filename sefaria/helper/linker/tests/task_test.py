@@ -139,12 +139,17 @@ def test_fire_and_forget_tasks_do_not_store_results():
     These tasks return None and nothing reads their result, so storing one only adds a Redis SET (and its
     later expiry DEL) per call to the AOF.
     """
-    from sefaria.helper.linker.tasks import process_ambiguous_resolution, process_non_segment_resolution
+    from sefaria.helper.linker.tasks import (
+        link_segment_with_worker_ignore_result,
+        process_ambiguous_resolution,
+        process_non_segment_resolution,
+    )
     from sefaria.helper.llm.tasks.sheet_scoring import save_sheet_scoring
 
     assert process_ambiguous_resolution.ignore_result is True
     assert process_non_segment_resolution.ignore_result is True
     assert save_sheet_scoring.ignore_result is True
+    assert link_segment_with_worker_ignore_result.ignore_result is True
 
 
 def test_tasks_whose_result_is_read_keep_storing_it():
@@ -160,3 +165,21 @@ def test_tasks_whose_result_is_read_keep_storing_it():
     assert not find_refs_api_task.ignore_result
     assert not parse_linker_citation_task.ignore_result
     assert not save_topic_prompts.ignore_result
+
+
+def test_enqueue_linking_chain_routes_by_store_result(monkeypatch):
+    from sefaria.helper.linker import tasks
+
+    names = []
+
+    class FakeSig:
+        def apply_async(self):
+            return "async_result"
+
+    monkeypatch.setattr(tasks, "signature", lambda name, **kw: names.append(name) or FakeSig())
+    args = tasks.LinkingArgs(ref="Genesis 1:1", text="t", lang="en", vtitle="v", user_id=None, kwargs={})
+
+    tasks.enqueue_linking_chain(args)
+    tasks.enqueue_linking_chain(args, store_result=False)
+
+    assert names == ["linker.link_segment_with_worker", "linker.link_segment_with_worker_ignore_result"]
