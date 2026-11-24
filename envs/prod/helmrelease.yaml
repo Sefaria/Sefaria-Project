@@ -189,8 +189,9 @@ spec:
       enabled: false
       # observe: never denies; records what would be rejected in x-sefaria-auth-result. enforce only after the preprod pass.
       mode: observe
-      # Two replicas so a drained or evicted pod never leaves /api/knn-search unprotected under enforce (the
-      # SecurityPolicy fails open); above one replica the chart also renders a PodDisruptionBudget (minAvailable 1).
+      # Two replicas so a drained or evicted pod does not lock API-key callers out of /api/knn-search: while the auth
+      # service is unreachable the SecurityPolicy fails open, no request carries the upstream secret, and Django accepts
+      # only the internal Bearer token there. Above one replica the chart also renders a PodDisruptionBudget (minAvailable 1).
       replicaCount: 2
       image:
         # Release image, built by scripts/release-prepare.sh; deploy-static.yaml writes the tag on each release.
