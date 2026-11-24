@@ -43,4 +43,4 @@ def test_powered_by_still_redirects_to_the_developer_portal(client):
     # Site behaviour in sites/sefaria/urls.py, unrelated to the removed form.
     response = client.get("/powered-by")
     assert response.status_code == 301
-    assert response["Location"] == "https://developers.sefaria.org/docs/powered-by-sefaria"
+    assert response["Location"] == "https://powered-by.sefaria.org"
