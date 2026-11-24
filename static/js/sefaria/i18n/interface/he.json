@@ -971,5 +971,5 @@
     "developer.common.developers_email.address": "developers@sefaria.org",
     "developer.publish_form.source_code.invalid.error": "קישור לא תקין",
     "developer.key_form.restrict.help": "{on} את ההגבלה אם המפתח ישולב בקוד של דף אינטרנט. השאירו אותה {off} אם המפתח ישמש בשרת או בכלי AI. אפשר לשנות את ההגדרה הזו בכל עת בהגדרות מפתחים.",
-    "developer.errors.<name>.error": "אי אפשר להגביל מפתחות לכתובת אירוח משותפת כמו זו. השתמשו בדומיין משלכם, או השאירו את ההגבלה כבויה."
+    "developer.errors.shared_host.error": "אי אפשר להגביל מפתחות לכתובת אירוח משותפת כמו זו. השתמשו בדומיין משלכם, או השאירו את ההגבלה כבויה."
 }
