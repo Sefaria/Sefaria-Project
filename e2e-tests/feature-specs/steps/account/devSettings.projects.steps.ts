@@ -183,11 +183,29 @@ Then(exact('it shows "Add website" [developer.home.project_menu.add_website.butt
   await expect(block.getByRole('link', { name: /new tab/ }).filter({ visible: true })).toHaveCount(0);
 });
 
-Then(exact('the project form opens with the website field focused'), async ({ visitor }) => {
+// "Add website" opens the "Add your website" window, not the project form (Penina, 2026-11-24).
+Then(exact('a window asks "Add your website" [developer.limit_key_dialog.add_website.header]'), async ({ visitor }) => {
   const { ds } = await proj(visitor);
-  await ds.expectStepTitle(await ds.str('developer.edit_project.intro', { project_name: current(visitor) }));
-  await expect(ds.siteField()).toBeFocused();
+  const title = await ds.str('developer.limit_key_dialog.add_website.header');
+  const win = ds.page.getByRole('dialog');
+  await expect(win).toBeVisible({ timeout: t(15000) });
+  await expect(win).toHaveAccessibleName(title);
 });
+
+When(
+  exact(
+    'the developer types "example.com" in "Your website" [developer.common.your_website.label] and clicks "Save website" [developer.limit_key_dialog.save_website.button]'
+  ),
+  async ({ visitor }) => {
+    const { ds } = await proj(visitor);
+    const win = ds.page.getByRole('dialog');
+    await win.getByLabel(await ds.str('developer.common.your_website.label'), { exact: true }).fill('example.com');
+    await win
+      .getByRole('button', { name: await ds.str('developer.limit_key_dialog.save_website.button'), exact: true })
+      .click();
+    await expect(win).toHaveCount(0, { timeout: t(15000) });
+  }
+);
 
 // --- DS-PROJ-6: delete a project -----------------------------------------------------------
 
