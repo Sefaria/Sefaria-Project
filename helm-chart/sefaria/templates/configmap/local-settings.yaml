@@ -33,6 +33,9 @@ data:
   FAIL_GRACEFULLY: "{{ .Values.localSettings.FAIL_GRACEFULLY }}"
   DEVELOPER_SETTINGS_ENABLED: "{{ .Values.localSettings.DEVELOPER_SETTINGS_ENABLED }}"
   DEVELOPER_SETTINGS_STAFF_ONLY: "{{ .Values.localSettings.DEVELOPER_SETTINGS_STAFF_ONLY }}"
+  # Django trusts the auth service's x-sefaria-* headers only where clients cannot send them: the gateway strips client
+  # copies when the auth service is on (clienttrafficpolicy.yaml), and no Ingress offers a path around the gateway.
+  AUTH_SERVICE_HEADERS_TRUSTED: "{{ if and .Values.authService.enabled .Values.gateway.enabled (not .Values.ingress.enabled) }}True{{ else }}False{{ end }}"
   SEARCH_HOST: {{ .Values.nginx.SEARCH_HOST | quote }}
   SEARCH_PORT: {{ .Values.nginx.SEARCH_PORT | quote }}
   SEARCH_PATH: {{ .Values.nginx.SEARCH_PATH | quote }}

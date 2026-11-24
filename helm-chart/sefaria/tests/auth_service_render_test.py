@@ -8,6 +8,8 @@ what the auth service work must and must not render:
   nginx logs the x-sefaria-* fields that ext_authz sets; ext_authz fails open with an explicit timeout.
 - Phase 1 policy, per environment file: mode observe, ext_authz fails open, no rate limiting; the flag-on render hands
   the auth service container the same mode. A self-test proves the policy check rejects a prod copy set to enforce.
+- Django trusts the auth service's x-sefaria-* headers (AUTH_SERVICE_HEADERS_TRUSTED, which lets an accepted API key
+  use /api/knn-search) exactly when the listener strips client-sent copies: on with the flag, off without it.
 - Both: the nginx access log records the scrubbed request URI and referer, never the raw ones, and no key header.
 
 Needs helm and PyYAML. Run from the repository root: python3 helm-chart/sefaria/tests/auth_service_render_test.py
@@ -119,6 +121,11 @@ def check_log_format_never_logs_a_key(where, log_format, allowed):
     check(not unexpected, f"{where}: nginx logs only reviewed variables (unexpected: {sorted(unexpected)})")
 
 
+def headers_trusted(objects):
+    (local_settings,) = find(objects, "ConfigMap", r"^local-settings-[^-]+$")
+    return local_settings["data"].get("AUTH_SERVICE_HEADERS_TRUSTED")
+
+
 def check_off(env, objects):
     where = f"{env} off"
     check(not find(objects, "Deployment", r"-auth-service$"), f"{where}: no auth-service Deployment")
@@ -129,6 +136,7 @@ def check_off(env, objects):
         all("headers" not in p["spec"] for p in find(objects, "ClientTrafficPolicy")),
         f"{where}: the ClientTrafficPolicy has no header rules",
     )
+    check(headers_trusted(objects) == "False", f"{where}: Django does not trust client-sendable x-sefaria-* headers")
     log_format = nginx_log_format(objects)
     check(not any(field in log_format for field in NGINX_LOG_FIELDS), f"{where}: no x-sefaria-* nginx log fields")
     check_log_format_never_logs_a_key(where, log_format, LOGGED_VARIABLES)
@@ -156,6 +164,7 @@ def check_on(env, objects):
     (policy,) = find(objects, "ClientTrafficPolicy")
     removed = set(policy["spec"].get("headers", {}).get("earlyRequestHeaders", {}).get("remove", []))
     check(removed >= SEFARIA_HEADERS, f"{where}: the listener strips client-sent {sorted(SEFARIA_HEADERS)}")
+    check(headers_trusted(objects) == "True", f"{where}: Django trusts the x-sefaria-* headers the listener strips")
     # The strip covers a listener only if the policy names it, and Envoy Gateway rejects a policy on the shared port-80
     # listeners or the whole Gateway. So it must name exactly the Gateway's HTTPS listeners, the site must be served on
     # those alone, and port 80 must serve nothing but the redirect to HTTPS.
