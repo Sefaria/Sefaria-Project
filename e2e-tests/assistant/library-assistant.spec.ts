@@ -1,7 +1,8 @@
-import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, goToPageWithUser } from '../utils';
+import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
+import { blockAssistantScript } from '../pages/libraryAssistantPage';
 import { MODULE_URLS } from '../constants';
 
 /**
@@ -87,12 +88,12 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-027: Input and send button are disabled while awaiting a response', { tag: '@sanity' }, async () => {
+  test('UX-027: Input is disabled and Send is replaced by Stop while awaiting a response', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Give me a short greeting');
     await pm.onLibraryAssistant().sendViaEnter();
-    await pm.onLibraryAssistant().expectInputDisabledDuringSend();
+    await pm.onLibraryAssistant().expectInputDisabledAndStopShownDuringSend();
     await pm.onLibraryAssistant().waitForResponse();
   });
 
@@ -124,11 +125,13 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().ensureOpen();
   });
 
-  test('UX-057: More-options menu opens with the five expected items', async () => {
+  test('UX-057: More-options menu opens with the expected items', async () => {
     // The QA LA user is marked staff in Django (so Braintree can filter
     // automation noise via its "is staff?" column). Staff users see an extra
     // "Settings" item inserted at the top of the menu (`isModerator` branch
-    // in LCChatbot.svelte).
+    // in LCChatbot.svelte). The menu's dock item names the opposite mode, so
+    // start floating to know which one it shows.
+    await pm.onLibraryAssistant().ensureFloating();
     await pm.onLibraryAssistant().openHeaderMenu();
     await pm.onLibraryAssistant().expectMenuVisible();
     await pm.onLibraryAssistant().expectMenuItemTexts(
@@ -172,27 +175,6 @@ test.describe('Library Assistant — header menu', () => {
 });
 
 /**
- * Responsive viewport — UX-085.
- * The Library Assistant must not render at mobile widths (375 px).
- * This test uses the LA user so we can confirm the suppression happens even
- * for a whitelisted user, not just for logged-out / non-whitelisted users.
- */
-test.describe('Library Assistant — responsive', () => {
-  test('UX-085: Library Assistant is hidden on a 375 px mobile viewport', async ({ context }) => {
-    // Navigate and wait for the component to mount at desktop size first
-    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
-    const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().waitForReady();
-
-    // Resize to a typical mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-
-    // The entire <lc-chatbot> host (and its trigger / panel) should be hidden
-    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
-  });
-});
-
-/**
  * Negative-coverage: the LA must NOT appear outside its intended surface.
  * These tests use separate entry helpers (voices URL, logged-out context) so
  * they don't share `beforeEach` with the main suite.
@@ -212,16 +194,146 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
-  test('LA-NEG-003: Does not appear for a logged-out user on the library home', async ({ context }) => {
+  test('LA-LOGGED-OUT-001: Appears for a logged-out user on the library home', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 
-  test('LA-NEG-004: Does not appear for a logged-out user on a reader page', async ({ context }) => {
+  test('LA-LOGGED-OUT-002: Appears for a logged-out user on a reader page', async ({ context }) => {
     const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+  });
+
+  // The whole chain for a logged-out visitor: Sefaria renders the widget without a
+  // user, the widget sends its anonymous ID, and the real chat server answers.
+  test('LA-LOGGED-OUT-003: A logged-out user can ask a question and get an answer', async ({ context }) => {
+    test.setTimeout(t(90000));
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    const prompt = '<AUTO TEST> Say hi in one short word';
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    await pm.onLibraryAssistant().typeMessage(prompt);
+    await pm.onLibraryAssistant().sendViaEnter();
+    await pm.onLibraryAssistant().expectUserMessageShown(prompt);
+    await pm.onLibraryAssistant().expectAnswerShown();
+  });
+
+  // Once the free answers are used up, the widget's login prompt shows Sefaria's sign-up
+  // options (Google, Apple, Email), which Sefaria puts in the widget's signup-options slot.
+  // Getting there for real takes real answers, so the widget's "used up" flag is seeded.
+  async function openWithFreeAnswersUsedUp(context: BrowserContext) {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().seedFreeAnswersUsedUp();
+    await page.reload();
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    return { page, pm };
+  }
+
+  test('LA-LOGGED-OUT-005: The sign-up options appear in the assistant once the free answers are used up', async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+    await pm.onLibraryAssistant().expectSignupOptionsHidden();
+
+    const usedUp = await openWithFreeAnswersUsedUp(context);
+
+    await usedUp.pm.onLibraryAssistant().expectSignupOptionsShown();
+  });
+
+  test('LA-LOGGED-OUT-006: Email opens the sign-up form in-page, reported as an email sign-up from the assistant', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    await pm.onLibraryAssistant().recordAnalyticsEvents();
+
+    await pm.onLibraryAssistant().signupOption('email').click();
+
+    await pm.onLoginPage().expectEmailSignupFormShown();
+    // The assistant isn't shown on the login and registration screens.
     await pm.onLibraryAssistant().expectNotPresent();
+    const events = await pm.onLibraryAssistant().analyticsEvents();
+    const auth = events.filter((e) => e.name.startsWith('auth_'));
+    expect(auth.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
+    expect(auth[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
+    expect(auth[1]).toMatchObject({ method: 'email' });
+    // The assistant reports the click too.
+    expect(events).toContainEqual(expect.objectContaining({ name: 'assistant_click', feature_name: 'rate_limit_login_button' }));
+  });
+
+  test('LA-LOGGED-OUT-007: Apple starts Apple sign-up, reported as a sign-up from the assistant', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    test.skip(!(await pm.onLibraryAssistant().configuredProviders()).includes('apple'),
+      'Apple sign-in is not configured on this sandbox');
+    await pm.onLibraryAssistant().stubAppleSignIn();
+    await pm.onLibraryAssistant().recordAnalyticsEvents();
+
+    await pm.onLibraryAssistant().signupOption('apple').click();
+
+    const events = await pm.onLibraryAssistant().analyticsEvents();
+    const auth = events.filter((e) => e.name.startsWith('auth_'));
+    expect(auth.map((e) => e.name)).toEqual(['auth_flow_started', 'auth_method_chosen', 'auth_process_started']);
+    expect(auth[0]).toMatchObject({ source: 'rate_limit_login_button', flow_intent: 'registration' });
+    expect(auth[1]).toMatchObject({ method: 'apple' });
+    // The assistant reports the click too.
+    expect(events).toContainEqual(expect.objectContaining({ name: 'assistant_click', feature_name: 'rate_limit_login_button' }));
+  });
+
+  // A click on Google's own button can't be automated; this checks it's in place.
+  test('LA-LOGGED-OUT-008: Google\'s own sign-in button covers the Google option', async ({ context }) => {
+    const { pm } = await openWithFreeAnswersUsedUp(context);
+    test.skip(!(await pm.onLibraryAssistant().configuredProviders()).includes('google'),
+      'Google sign-in is not configured on this sandbox');
+
+    await pm.onLibraryAssistant().expectGoogleButtonOverGoogleOption();
+  });
+
+  test('LA-LOGGED-OUT-009: A logged-in user\'s assistant has no sign-up options', async ({ context }) => {
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().waitForReady();
+
+    await pm.onLibraryAssistant().expectNoSignupOptions();
+  });
+
+  // Until the assistant's script defines <lc-chatbot>, its children are plain page content.
+  // If the script never loads (the chat server is down), the sign-up options Sefaria puts
+  // in it must not show up in the page and push the reader's layout around.
+  test('LA-LOGGED-OUT-010: If the assistant doesn\'t load, its sign-up options stay out of the page', async ({ context }) => {
+    await blockAssistantScript(context);
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+
+    await pm.onLibraryAssistant().expectSignupOptionsRenderedButNotShown();
+  });
+
+  // Logout (from any module) sets the lc_chatbot_clear cookie; the next Library page
+  // clears the assistant's saved chat so the next visitor on this browser doesn't see it.
+  // The logout itself isn't performed: it would destroy a shared auth session (rule §2.21).
+  test('LA-LOGGED-OUT-004: After a logout the next Library page clears the saved chat', async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await pm.onLibraryAssistant().seedSavedChat();
+    expect(await pm.onLibraryAssistant().savedChatKeys()).not.toEqual([]);
+    // Set the way logout sets it: on the shared cookie domain (www.x.org → .x.org) on a
+    // deployed sandbox, host-only on a local one (localhost / an IP has no shared domain).
+    const libraryHost = new URL(MODULE_URLS.EN.LIBRARY).hostname;
+    const isLocalHost = !libraryHost.includes('.') || /^\d+(\.\d+){3}$/.test(libraryHost);
+    const clearCookie = isLocalHost
+      ? { name: 'lc_chatbot_clear', value: '1', url: MODULE_URLS.EN.LIBRARY }
+      : { name: 'lc_chatbot_clear', value: '1', domain: '.' + libraryHost.split('.').slice(1).join('.'), path: '/' };
+    await context.addCookies([clearCookie]);
+
+    await page.reload();
+
+    expect(await pm.onLibraryAssistant().savedChatKeys()).toEqual([]);
+    const cookies = await context.cookies(MODULE_URLS.EN.LIBRARY);
+    expect(cookies.find((c) => c.name === 'lc_chatbot_clear')).toBeUndefined();
   });
 });
 

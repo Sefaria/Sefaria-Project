@@ -1,10 +1,10 @@
 from django.views import View
 
 from sefaria.client.util import jsonResponse
+from sefaria.helper import release, release_qa
 from sefaria.system.exceptions import InputError
-from sefaria.helper import release
-from sefaria.helper import release_qa
-from .views import _load_json_body, StaffRequiredMixin
+
+from .views import StaffRequiredMixin, _load_json_body
 
 
 class ReleaseAPIView(StaffRequiredMixin, View):
@@ -21,7 +21,6 @@ class ReleaseAPIView(StaffRequiredMixin, View):
 
 
 class ReleaseStatusView(StaffRequiredMixin, View):
-
     def get(self, request):
         title = request.GET.get("index")
         if not title:
@@ -33,44 +32,38 @@ class ReleaseStatusView(StaffRequiredMixin, View):
 
 
 class ReleaseCategoryView(ReleaseAPIView):
-
     def post(self, request):
         return self._handle(request, release.release_category)
 
 
 class ReleaseIndexView(ReleaseAPIView):
-
     def post(self, request):
         return self._handle(request, release.release_index)
 
 
 class ReleaseVersionView(ReleaseAPIView):
-
     def post(self, request):
         return self._handle(request, release.release_version)
 
 
 class ReleaseLinksView(ReleaseAPIView):
-
     def post(self, request):
         return self._handle(request, release.release_links)
 
 
 # TEMPORARY (PR #3838 QA): copy existing records as unreleased. Remove before merging, with sefaria/helper/release_qa.py.
 
-class ReleaseQACopyCategoryView(ReleaseAPIView):
 
+class ReleaseQACopyCategoryView(ReleaseAPIView):
     def post(self, request):
         return self._handle(request, release_qa.copy_category)
 
 
 class ReleaseQACopyIndexView(ReleaseAPIView):
-
     def post(self, request):
         return self._handle(request, release_qa.start_copy_index)
 
 
 class ReleaseQACopyVersionView(ReleaseAPIView):
-
     def post(self, request):
         return self._handle(request, release_qa.copy_version)

@@ -10,11 +10,11 @@ New here? Read the root [handbook](../README.md) first — it covers setup, the 
 
 ## What it covers
 
-| Spec file | Test IDs | Area |
-| --- | --- | --- |
-| [header.spec.ts](header.spec.ts) | `MOD-H003`, `MOD-H011`, `MOD-H014` | Voices module header: navigation and elements, search dropdown sections/icons (Topics / Authors / Users), and the **Create New Sheet** button when logged in. |
-| [sidebar.spec.ts](sidebar.spec.ts) | `MOD-S013` – `MOD-S016` | Voices sidebar modules and buttons, the **Create** button's logged-out vs logged-in behavior, **Learn More** → sheet navigation, and **Subscribe** → newsletter. |
-| [sheet-lifecycle.spec.ts](sheet-lifecycle.spec.ts) | `SHT-001` – `SHT-010` | Full sheet lifecycle (**serial, shared state**): create → title → add source/image/YouTube/Library-reader source → publish → unpublish → add to collection → delete. **All `@sanity`** (release-gate). |
+| Spec file                                          | Test IDs                           | Area                                                                                                                                                                                                   |
+| -------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [header.spec.ts](header.spec.ts)                   | `MOD-H003`, `MOD-H011`, `MOD-H014` | Voices module header: navigation and elements, search dropdown sections/icons (Topics / Authors / Users), and the **Create New Sheet** button when logged in.                                          |
+| [sidebar.spec.ts](sidebar.spec.ts)                 | `MOD-S013` – `MOD-S016`            | Voices sidebar modules and buttons, the **Create** button's logged-out vs logged-in behavior, **Learn More** → sheet navigation, and **Subscribe** → newsletter.                                       |
+| [sheet-lifecycle.spec.ts](sheet-lifecycle.spec.ts) | `SHT-001` – `SHT-010`              | Full sheet lifecycle (**serial, shared state**): create → title → add source/image/YouTube/Library-reader source → publish → unpublish → add to collection → delete. **All `@sanity`** (release-gate). |
 
 The Voices header/sidebar differ from the Library ones (different links, the sheet-creation entry point), which is why these live in their own module folder and project with the `voices.*` baseURL.
 

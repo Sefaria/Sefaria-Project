@@ -11,7 +11,7 @@ describe('title URL encoding', () => {
 
   test('known title parsing round-trips encoded slash and backslash', () => {
     const title = 'Book/Part\\Object';
-    Sefaria.booksDict = {[title]: 1};
+    Sefaria.booksDict = { [title]: 1 };
     Sefaria.virtualBooks = [];
     const urlTitle = Sefaria.util.encodeTitleForUrl(title);
 
@@ -22,8 +22,7 @@ describe('title URL encoding', () => {
   test('normRef fallback encodes separators in titles not parsed by the client', () => {
     Sefaria.booksDict = {};
     Sefaria.virtualBooks = [];
-    expect(Sefaria.normRef('Unlisted/Book\\Part?Edition'))
-      .toBe('Unlisted%2FBook%5CPart%3FEdition');
+    expect(Sefaria.normRef('Unlisted/Book\\Part?Edition')).toBe('Unlisted%2FBook%5CPart%3FEdition');
   });
 
   test('version URL params survive query delimiters and stay readable', () => {

@@ -1,3 +1,4 @@
+/* global require */
 import VersionPreferences from './VersionPreferences';
 
 var extend = require('extend'),
@@ -338,9 +339,6 @@ Sefaria = extend(Sefaria, {
   splitRangingRef: function (ref) {
     // Returns an array of segment level refs which correspond to the ranging `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
-    if (!ref || typeof ref === 'object' || typeof ref === 'undefined') {
-      debugger;
-    }
 
     if (ref.indexOf('-') == -1) {
       return [ref];
@@ -631,7 +629,7 @@ Sefaria = extend(Sefaria, {
 
     let paramStr = '';
     for (let [paramKey, paramVal] of Object.entries({ asSizedString, minChar, maxChar, transLangPref })) {
-      paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
+      paramStr = paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
     paramStr = paramStr.replace(/&/, '?');
     paramStr = encodeURI(paramStr);
@@ -949,9 +947,6 @@ Sefaria = extend(Sefaria, {
   },
   text: function (ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
-    if (!ref || typeof ref === 'object' || typeof ref === 'undefined') {
-      debugger;
-    }
     settings = this._complete_text_settings(settings);
     const key = this._textKey(ref, settings);
     if (!cb) {
@@ -1261,7 +1256,7 @@ Sefaria = extend(Sefaria, {
     for (let v of versions) {
       Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
         en: v.versionTitle,
-        he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
+        he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
       };
     }
     this._versions[ref] = this._sortVersionsIntoBuckets(versions);
@@ -1276,7 +1271,7 @@ Sefaria = extend(Sefaria, {
       const lang = matches ? matches[1] : v.language;
       v.actualLanguage = lang; //add actual language onto the object. Hopefully its then available always.
       //Sort each language into its own bucket
-      versionStore[lang] = !!versionStore[lang] ? versionStore[lang].concat(v) : [v];
+      versionStore[lang] = versionStore[lang] ? versionStore[lang].concat(v) : [v];
     }
     return versionStore;
   },
@@ -1362,9 +1357,6 @@ Sefaria = extend(Sefaria, {
   },
   _textKey: function (ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
-    if (!ref) {
-      debugger;
-    }
     var key = ref.toLowerCase();
     if (settings) {
       if (settings.enVersion) {
@@ -1385,9 +1377,6 @@ Sefaria = extend(Sefaria, {
   },
   _refKey: function (ref, settings) {
     // Returns the key for this ref without any version/language elements
-    if (!ref) {
-      debugger;
-    }
     var key = ref.toLowerCase();
     if (settings) {
       key = settings.context ? key + '|CONTEXT' : key;
@@ -1672,6 +1661,24 @@ Sefaria = extend(Sefaria, {
       store: this._indexDetails,
     });
   },
+  getRawIndex: async function (title) {
+    // Returns the Index record exactly as stored, bypassing all client-side caches, or null
+    // if it can't be loaded. Use this (not getIndexDetails) when the record will be posted
+    // back to /api/v2/raw/index. index_api is wrapped by catch_error_as_json, so a server-side
+    // failure comes back as HTTP 200 with an {error: ...} body.
+    const response = await fetch(
+      `${Sefaria.apiHost}/api/v2/raw/index/${encodeURIComponent(title.replace(/ /g, '_'))}`,
+      {
+        credentials: 'same-origin',
+        cache: 'no-store',
+      }
+    );
+    if (!response.ok) {
+      return null;
+    }
+    const data = await response.json();
+    return data && !data.error ? data : null;
+  },
   titleIsTorah: function (title) {
     let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
     return torah_re.test(title);
@@ -1896,7 +1903,7 @@ Sefaria = extend(Sefaria, {
       }
     }
     for (var ref in splitItems) {
-      if (splitItems.hasOwnProperty(ref)) {
+      if (Object.prototype.hasOwnProperty.call(splitItems, ref)) {
         if (!(ref in store) || store[ref].length <= splitItems[ref].length) {
           // Don't overwrite the cache if it already contains more items than the new list.
           // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yeild
@@ -2063,8 +2070,8 @@ Sefaria = extend(Sefaria, {
 
     const oref = typeof ref == 'string' ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
     const categoryOverridesForRef =
-      oref && oref.hasOwnProperty('primary_category')
-        ? categoryOrderOverrides.hasOwnProperty(oref.primary_category)
+      oref && Object.prototype.hasOwnProperty.call(oref, 'primary_category')
+        ? Object.prototype.hasOwnProperty.call(categoryOrderOverrides, oref.primary_category)
           ? categoryOrderOverrides[oref.primary_category]
           : null
         : null;
@@ -2645,7 +2652,7 @@ Sefaria = extend(Sefaria, {
       // Build split related data from individual split data arrays
       ['links', 'notes', 'sheets', 'media', 'guides'].forEach((obj_type) => {
         for (var ref in split_data[obj_type]) {
-          if (split_data[obj_type].hasOwnProperty(ref)) {
+          if (Object.prototype.hasOwnProperty.call(split_data[obj_type], ref)) {
             if (!(ref in this._related)) {
               this._related[ref] = {
                 links: [],
@@ -2710,7 +2717,7 @@ Sefaria = extend(Sefaria, {
           // Build split related data from individual split data arrays
           ['notes', 'sheets'].forEach(function (obj_type) {
             for (var ref in split_data[obj_type]) {
-              if (split_data[obj_type].hasOwnProperty(ref)) {
+              if (Object.prototype.hasOwnProperty.call(split_data[obj_type], ref)) {
                 if (!(ref in this._relatedPrivate)) {
                   this._relatedPrivate[ref] = { notes: [], sheets: [] };
                 }
@@ -3115,7 +3122,7 @@ Sefaria = extend(Sefaria, {
   },
   toggleSavedItem: ({ ref, versions, sheet_owner, sheet_title }) => {
     return new Promise((resolve, reject) => {
-      const action = !!Sefaria.getSavedItem({ ref, versions }) ? 'delete_saved' : 'add_saved';
+      const action = Sefaria.getSavedItem({ ref, versions }) ? 'delete_saved' : 'add_saved';
       const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action, sheet_owner, sheet_title };
       if (Sefaria._uid) {
         $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`, {
@@ -3123,7 +3130,7 @@ Sefaria = extend(Sefaria, {
           client: 'web',
         })
           .done((response) => {
-            if (!!response['error']) {
+            if (response['error']) {
               reject(response['error']);
             } else {
               if (action === 'add_saved' && !!response.created && response.created.length > 0) {
@@ -3260,7 +3267,7 @@ Sefaria = extend(Sefaria, {
       ).then((new_hist_array) => {
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
         const user_history_cookie = cookie('user_history');
-        const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
+        const user_history = user_history_cookie ? JSON.parse(user_history_cookie) : [];
         const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
         cookie('user_history', JSON.stringify(trimmed), { path: '/' });
         Sefaria.userHistory.items = trimmed;
@@ -3325,6 +3332,17 @@ Sefaria = extend(Sefaria, {
   lastPlaceForText: function (title) {
     // Return the most recently visited item for text `title` or undefined if `title` is not present in last_place.
     return Sefaria.last_place.find((x) => x.book === title);
+  },
+  _lastPlaceLoaded: {},
+  loadLastPlaceForText: async function (title) {
+    // Loads the user's last place in text `title` into last_place. Resolves when it is available to lastPlaceForText.
+    if (!Sefaria._uid || Sefaria._lastPlaceLoaded[title]) {
+      return;
+    }
+    const params = { book: title, last_place: 1, secondary: 0, limit: 1 };
+    const items = await Sefaria.apiRequestWithBody('/api/profile/user_history', params, null, 'GET');
+    Sefaria._lastPlaceLoaded[title] = true;
+    Sefaria.last_place = Sefaria.last_place.concat(items);
   },
   _topicList: null,
   topicList: function (callback) {
@@ -4418,6 +4436,7 @@ Sefaria.unpackBaseProps = function (props) {
     'unreleased_qa_tools',
     'is_editor',
     'is_sustainer',
+    'donor_status',
     'experiments',
     'full_name',
     'profile_pic_url',
@@ -4429,7 +4448,6 @@ Sefaria.unpackBaseProps = function (props) {
     'notifications',
     'saved',
     'userHistory',
-    'last_place',
     'interfaceLang',
     'countryCode',
     'multiPanel',
@@ -4522,6 +4540,7 @@ Sefaria.resetCache = function () {
 
   // Caches that are user-level or can grow unbounded
   this.last_place = []; // Code smell: user state stored in library
+  this._lastPlaceLoaded = {};
   this._parseRef = {};
   this._texts = {};
   this._textsStore = {};

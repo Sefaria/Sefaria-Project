@@ -4,37 +4,40 @@ export.py - functions for exporting texts to various text formats.
 Exports to the directory specified in SEFARIA_EXPORT_PATH.
 """
 
-import sys
-import os
 import io
-import unicodecsv as csv
-import re
 import json
-from shutil import rmtree
-from random import random
-from pprint import pprint
-from datetime import datetime
+import os
+import re
+import sys
 from collections import Counter
 from copy import deepcopy
+from datetime import datetime
+from pprint import pprint
+from random import random
+from shutil import rmtree
+
 import django
+import unicodecsv as csv
 
 django.setup()
+from collections import defaultdict
+
 from sefaria.model import *
-from sefaria.model.text import AbstractIndex
 from sefaria.model.abstract import public_query
+from sefaria.model.text import AbstractIndex
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+from sefaria.tracker import modify_bulk_text
 from sefaria.utils.talmud import section_to_daf
 from sefaria.utils.util import flatten_jagged_array
-from sefaria.system.exceptions import InputError
+
 from .settings import SEFARIA_EXPORT_PATH
-from sefaria.system.database import db
-from sefaria.tracker import modify_bulk_text
-from collections import defaultdict
 
 lang_codes = {"he": "Hebrew", "en": "English"}
 
 
 def log_error(msg):
-    msg = "{}\n".format(msg)
+    msg = f"{msg}\n"
     log_error.all_errors.append(msg)
     sys.stderr.write(msg)
 
@@ -46,7 +49,7 @@ def print_errors():
     if len(log_error.all_errors):
         sys.stderr.write("\n___ERRORS___\n")
     for i, error in enumerate(log_error.all_errors):
-        sys.stderr.write("{}. {}".format(i, error))
+        sys.stderr.write(f"{i}. {error}")
 
 
 def make_path(doc, format, extension=None):
@@ -68,7 +71,7 @@ def make_path(doc, format, extension=None):
 
 
 def remove_illegal_file_chars(filename_str):
-    p = re.compile('[/:()<>"|?*\r\n\t]|(\\\)')
+    p = re.compile('[/:()<>"|?*\r\n\t]|(\\\\)')
     new_filename = p.sub("", filename_str)
     return new_filename
 
@@ -114,8 +117,7 @@ def make_text(doc, strip_html=False):
                 cnode = version.remove_html_and_make_presentable(cnode)
             content += flatten(cnode, node.sectionNames, node.addressTypes)
             return content
-        else:
-            return "\n\n%s" % node.primary_title(doc["language"])
+        return "\n\n%s" % node.primary_title(doc["language"])
 
     def flatten(text, sectionNames, addressTypes):
         text = text or ""
@@ -151,7 +153,7 @@ def make_cltk_full(doc):
 
     def traverse_to_cltk(old_js, **kwargs):
         new_js = {}
-        if not "nodes" in old_js:
+        if "nodes" not in old_js:
             content_list = []
             if "content" in old_js:
                 # Beginning of jagged array
@@ -208,8 +210,8 @@ def make_cltk_flat(doc):
 
     def traverse_to_cltk(old_js, title="", section_names=None, **kwargs):
         new_js = {}
-        title_begin = title if title == "" else "{}, ".format(title)
-        if not "nodes" in old_js:
+        title_begin = title if title == "" else f"{title}, "
+        if "nodes" not in old_js:
             content_list = []
             if "content" in old_js:
                 # Beginning of jagged array
@@ -225,8 +227,8 @@ def make_cltk_flat(doc):
                 section_names = section_names[1:]
 
             for i, content in enumerate(content_list):
-                curr_section = "" if len(section_names) == 0 else "_{}".format(section_names[0])
-                temp_title = "{}{}{}".format(title_begin, str(i), curr_section)
+                curr_section = "" if len(section_names) == 0 else f"_{section_names[0]}"
+                temp_title = f"{title_begin}{str(i)}{curr_section}"
                 if type(content) == list:
                     new_js.update(traverse_to_cltk(content, temp_title, section_names, **kwargs))
                 elif content != "":
@@ -298,8 +300,8 @@ def write_text_doc_to_disk(doc=None):
         try:
             with open(path, "w") as f:
                 f.write(out)
-        except IOError as e:
-            log_error("failed to write to disk: {}".format(str(e)))
+        except OSError as e:
+            log_error(f"failed to write to disk: {str(e)}")
 
 
 def prepare_text_for_export(text):
@@ -309,17 +311,17 @@ def prepare_text_for_export(text):
     """
     try:
         print(text["title"])
-    except KeyError as e:
-        log_error('text does\'t contain "title": {}'.format(str(text)))
-        return
+    except KeyError:
+        log_error(f'text does\'t contain "title": {str(text)}')
+        return None
 
     try:
         index = library.get_index(text["title"])
     except Exception as e:
         print("Skipping %s - %s" % (text["title"], str(e)))
-        return
-    if any([n.is_virtual for n in index.nodes.get_leaf_nodes()]):  # skip virtual nodes
-        return
+        return None
+    if any(n.is_virtual for n in index.nodes.get_leaf_nodes()):  # skip virtual nodes
+        return None
 
     text["heTitle"] = index.nodes.primary_title("he")
     text["categories"] = index.categories
@@ -407,8 +409,8 @@ def prepare_merged_text_for_export(title, lang=None):
     print("%d versions in %s" % (len(text_docs), lang))
 
     if len(text_docs) == 0:
-        return
-    elif len(text_docs) == 1:
+        return None
+    if len(text_docs) == 1:
         text_doc = text_docs[0]
         doc["text"] = text_doc["chapter"]  # TODO: sort complex according to Index
         doc["versions"] = [(text_doc["versionTitle"], text_doc["versionSource"])]
@@ -480,7 +482,7 @@ def export_schemas():
                 with open(SEFARIA_EXPORT_PATH + "/errors.log", "a") as error_log:
                     error_log.write("%s - InputError: %s\n" % (datetime.now(), e))
             except Exception as e:
-                log_error("schemas error on {}: {}".format(title, str(e)))
+                log_error(f"schemas error on {title}: {str(e)}")
 
 
 def export_toc():
@@ -510,7 +512,7 @@ def export_links():
     new_links_file_size = 300000
     for i, link in enumerate(links):
         if i % new_links_file_size == 0:
-            filename = "{}links{}.csv".format(path, link_file_number)
+            filename = f"{path}links{link_file_number}.csv"
             try:
                 csvfile.close()
             except:
@@ -730,7 +732,7 @@ def export_merged_csv(index, lang=None):
 def import_versions_from_stream(csv_stream, columns, user_id, skip_toc_refresh=False):
     csv.field_size_limit(sys.maxsize)
     reader = csv.reader(csv_stream)
-    rows = [row for row in reader]
+    rows = list(reader)
     return _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=skip_toc_refresh)
 
 
@@ -745,7 +747,7 @@ def import_versions_from_file(csv_filename, columns, user_id):
     csv.field_size_limit(sys.maxsize)
     with open(csv_filename, "rb") as csvfile:
         reader = csv.reader(csvfile)
-        rows = [row for row in reader]
+        rows = list(reader)
     return _import_versions_from_csv(rows, columns, user_id)
 
 

@@ -1,20 +1,18 @@
-# -*- coding: utf-8 -*-
-
 """
 abstract.py - abstract classes for Sefaria models
 """
 
-from cerberus import Validator
 import collections
-import structlog
 import copy
-import bleach
 import re
+
+import bleach
+import structlog
 
 # Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
-
 from bson.objectid import ObjectId
+from cerberus import Validator
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError, SluggedMongoRecordMissingError
@@ -37,7 +35,7 @@ def merge_queries(query, extra):
 
 def show_unreleased_content():
     """
-    True in processes that see unreleased (`unreleased`) records: the staff site (preprod) only.
+    True in processes that see unreleased records: the staff site (preprod) only.
     Set per environment in local settings, never per run.
     """
     from django.conf import settings
@@ -55,7 +53,7 @@ def public_query(query=None):
     return merge_queries(query, unreleased_filter())
 
 
-class AbstractMongoRecord(object):
+class AbstractMongoRecord:
     """
     AbstractMongoRecord - superclass of classes representing mongo records.
     "collection" attribute is set on subclass
@@ -71,9 +69,7 @@ class AbstractMongoRecord(object):
     track_pkeys = False
     pkeys = []  # list of fields that others may depend on
     history_noun = None  # Label for history records
-    has_release_flag = (
-        False  # True for collections whose records may carry `unreleased` (unreleased) and are hidden by it
-    )
+    has_release_flag = False  # True for collections whose records may carry `unreleased` and are hidden by it
     ALLOWED_TAGS = list(bleach.ALLOWED_TAGS) + [
         "p",
         "br",
@@ -102,7 +98,7 @@ class AbstractMongoRecord(object):
         If a record this one depends on is unreleased, return a short description of it; otherwise None.
         A record under an unreleased parent must itself be unreleased. Subclasses override.
         """
-        return None
+        return
 
     def _apply_release_rules(self, is_new_obj):
         """
@@ -116,10 +112,10 @@ class AbstractMongoRecord(object):
             if not is_new_obj:
                 stored = getattr(db, self.collection).find_one({"_id": self._id}, {"unreleased": 1})
                 if stored is not None and not stored.get("unreleased"):
-                    raise InputError("{} is public and can not be made unreleased.".format(self))
+                    raise InputError(f"{self} is public and can not be made unreleased.")
         else:
             if parent:
-                raise InputError("{} must be unreleased because {} is unreleased.".format(self, parent))
+                raise InputError(f"{self} must be unreleased because {parent} is unreleased.")
             if hasattr(self, "unreleased"):
                 delattr(self, "unreleased")  # only True is ever stored
 
@@ -137,9 +133,7 @@ class AbstractMongoRecord(object):
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
             assert set(obj.keys()) <= set(self._saveable_attr_keys()), (
-                "{} record loaded with unhandled key(s): {}".format(
-                    type(self).__name__, set(obj.keys()) - set(self._saveable_attr_keys())
-                )
+                f"{type(self).__name__} record loaded with unhandled key(s): {set(obj.keys()) - set(self._saveable_attr_keys())}"
             )
             self.load_from_dict(obj, True)
             return self
@@ -174,7 +168,7 @@ class AbstractMongoRecord(object):
         :return: the object
         """
         if not self.load(query):
-            raise InputError("No existing {} record found to update for {}".format(type(self).__name__, str(query)))
+            raise InputError(f"No existing {type(self).__name__} record found to update for {str(query)}")
         self.load_from_dict(attrs)
         return self.save()
 
@@ -198,7 +192,7 @@ class AbstractMongoRecord(object):
 
         if self.track_pkeys and not is_new_obj:
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
-                raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
+                raise Exception(f"Aborted unsafe {type(self).__name__} save. {self.pkeys} not fully tracked.")
 
         if is_new_obj:
             result = getattr(db, self.collection).insert_one(props)
@@ -206,7 +200,7 @@ class AbstractMongoRecord(object):
         else:
             result = getattr(db, self.collection).replace_one({"_id": self._id}, props, upsert=True)
             if not result.matched_count and result.upserted_id:
-                raise Exception("{} inserted when expecting an update.".format(type(self).__name__))
+                raise Exception(f"{type(self).__name__} inserted when expecting an update.")
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
             for key, old_value in list(self.pkeys_orig_values.items()):
@@ -240,13 +234,13 @@ class AbstractMongoRecord(object):
         """
         if not self.can_delete():
             if force:
-                logger.warning("Forcing delete of {}.".format(str(self)))
+                logger.warning(f"Forcing delete of {str(self)}.")
             else:
-                logger.warning("Failed to delete {}.".format(str(self)))
+                logger.warning(f"Failed to delete {str(self)}.")
                 return
 
         if self.is_new():
-            raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
+            raise InputError(f"Can not delete {type(self).__name__} that doesn't exist in database.")
 
         if not override_dependencies:
             notify(self, "delete")
@@ -286,9 +280,7 @@ class AbstractMongoRecord(object):
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
 
     def is_key_changed(self, key):
-        assert self.track_pkeys and key in self.pkeys, "Failed to track key {} in {}".format(
-            key, self.__class__.__name__
-        )
+        assert self.track_pkeys and key in self.pkeys, f"Failed to track key {key} in {self.__class__.__name__}"
         if self.is_new():
             return bool(getattr(self, key, False))
         return self.pkeys_orig_values[key] != getattr(self, key, None)
@@ -405,7 +397,7 @@ def _raw_record_identifier(raw):
     for field in _RAW_IDENTIFIER_FIELDS:
         value = raw.get(field)
         if value is not None:
-            return "{}={!r}".format(field, value) if field == "_id" else value
+            return f"{field}={value!r}" if field == "_id" else value
     return "<unidentifiable>"
 
 
@@ -533,9 +525,8 @@ class AbstractMongoSet(collections.abc.Iterable):
     def count(self):
         if self.max:
             return self.max
-        else:
-            kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
-            return int(getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs))
+        kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
+        return int(getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs))
 
     def update(self, attrs):
         for rec in self:
@@ -609,7 +600,7 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
         temp_slug = slug
         while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
             dupe_count += 1
-            temp_slug = "{}{}".format(slug, dupe_count)
+            temp_slug = f"{slug}{dupe_count}"
         return temp_slug
 
     @staticmethod
@@ -683,17 +674,16 @@ def get_set_classes():
 
 class CachingType(type):
     def __init__(cls, name, parents, dct):
-        super(CachingType, cls).__init__(name, parents, dct)
+        super().__init__(name, parents, dct)
         cls.__cache = {}
 
     def __call__(cls, *args, **kwargs):
         key = make_hashable(args), make_hashable(kwargs)
         if key in cls.__cache:
             return cls.__cache[key]
-        else:
-            obj = super(CachingType, cls).__call__(*args)
-            cls.__cache[key] = obj
-            return obj
+        obj = super().__call__(*args)
+        cls.__cache[key] = obj
+        return obj
 
 
 def make_hashable(obj):
@@ -703,13 +693,13 @@ def make_hashable(obj):
     if isinstance(obj, collections.abc.Hashable):
         # Fine to be hashed without any changes
         return obj
-    elif isinstance(obj, collections.abc.Mapping):
+    if isinstance(obj, collections.abc.Mapping):
         # Convert into a frozenset instead
         items = list(obj.items())
         for i, item in enumerate(items):
             items[i] = make_hashable(item)
         return frozenset(items)
-    elif isinstance(obj, collections.abc.Iterable):
+    if isinstance(obj, collections.abc.Iterable):
         # Convert into a tuple instead
         ret = [type(obj)]
         for i, item in enumerate(obj):
@@ -754,11 +744,11 @@ def notify(inst, action, **kwargs):
     assert action in actions_reqs
 
     for arg in actions_reqs[action]:
-        if not kwargs.get(arg, None):
-            raise Exception("Missing required argument {} in notify {}, {}".format(arg, inst, action))
+        if not kwargs.get(arg):
+            raise Exception(f"Missing required argument {arg} in notify {inst}, {action}")
 
     if action == "attributeChange":
-        callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
+        callbacks = deps.get((type(inst), action, kwargs["attr"]))
         logger.debug(
             "Notify: "
             + str(inst)
@@ -782,7 +772,7 @@ def notify(inst, action, **kwargs):
 
 
 def subscribe(callback, klass, action, attr=None):
-    if not deps.get((klass, action, attr), None):
+    if not deps.get((klass, action, attr)):
         deps[(klass, action, attr)] = []
     deps[(klass, action, attr)].append(callback)
 
@@ -801,16 +791,15 @@ def cascade(set_class, attr):
     attrs = attr.split(".")
     if len(attrs) == 1:
         return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
-    else:
 
-        def foo(obj, **kwargs):
-            for rec in set_class({attr: kwargs["old"]}):
-                dict_parent = reduce(lambda d, k: d[k], attrs[1:-1], getattr(rec, attrs[0]))
-                dict_parent[attrs[-1]] = kwargs["new"]
-                setattr(rec, attrs[0], getattr(rec, attrs[0]))
-                rec.save()
+    def foo(obj, **kwargs):
+        for rec in set_class({attr: kwargs["old"]}):
+            dict_parent = reduce(lambda d, k: d[k], attrs[1:-1], getattr(rec, attrs[0]))
+            dict_parent[attrs[-1]] = kwargs["new"]
+            setattr(rec, attrs[0], getattr(rec, attrs[0]))
+            rec.save()
 
-        return foo
+    return foo
 
 
 def cascade_to_list(set_class, attr):

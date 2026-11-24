@@ -3,14 +3,13 @@ import unicodedata
 from django.views import View
 
 from sefaria.client.util import jsonResponse
-from sefaria.model import log_update, diff_strings
-from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon, DictionaryEntry
-from sefaria.model.text import Ref
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
+from sefaria.model import diff_strings, log_update
+from sefaria.model.lexicon import DictionaryEntry, Lexicon, LexiconEntry, LexiconEntrySet
+from sefaria.model.text import Ref
 from sefaria.system.exceptions import InputError
-from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.settings import MULTISERVER_ENABLED
-from .views import _load_json_body, StaffRequiredMixin
+
+from .views import StaffRequiredMixin, _load_json_body
 
 
 class AmbiguousLexiconEntry(Exception):
@@ -21,10 +20,11 @@ def _load_lexicon_entry(lexicon, headword):
     """Returns the entry, or None if not found. Raises AmbiguousLexiconEntry if more than
     one document matches -- a cheap, capped query (not a full scan), catching this for
     both reads and writes rather than the silent first-match a plain .load() would give."""
-    matches = list(LexiconEntrySet(
-        {'parent_lexicon': lexicon, 'headword': unicodedata.normalize('NFC', headword)}, limit=2))
+    matches = list(
+        LexiconEntrySet({"parent_lexicon": lexicon, "headword": unicodedata.normalize("NFC", headword)}, limit=2)
+    )
     if len(matches) > 1:
-        raise AmbiguousLexiconEntry()
+        raise AmbiguousLexiconEntry
     return matches[0] if matches else None
 
 
@@ -45,9 +45,17 @@ def _load_entry_ref(lexicon, headword):
 
 def _log_entry_change(user_id, lex, tref, old_dict, new_dict, old_text, new_text):
     diff_html, revert_patch = diff_strings(old_text, new_text)
-    log_update(user_id, LexiconEntry, old_dict, new_dict, ref=tref,
-               diff_html=diff_html, revert_patch=revert_patch,
-               version=getattr(lex, "version_title", None), language=getattr(lex, "version_lang", None))
+    log_update(
+        user_id,
+        LexiconEntry,
+        old_dict,
+        new_dict,
+        ref=tref,
+        diff_html=diff_html,
+        revert_patch=revert_patch,
+        version=getattr(lex, "version_title", None),
+        language=getattr(lex, "version_lang", None),
+    )
 
 
 def _not_found():
@@ -93,14 +101,11 @@ class LexiconEntryView(View):
         lex, tref = _load_entry_ref(lexicon, entry.headword)
         _log_entry_change(request.user.id, lex, tref, old_dict, entry.contents(), old_body, new_body)
         # DictionaryEntryNode embeds the loaded entry inside itself, so a cached Ref for it
-        # would otherwise keep serving pre-edit content until the process restarts. This
-        # process's own cache is cleared directly; other pods behind the same deployment
-        # each carry their own copy of the same cache and only hear about the edit via
-        # the multiserver event.
+        # would otherwise keep serving pre-edit content until the process restarts.
+        # TODO: this clears only this process's Ref cache; other pods keep serving the stale
+        # entry until restart now that the multiserver event is gone (needs a GenCache key).
         if tref:
             Ref.remove_ref_from_cache(lex.index_title, tref)
-            if MULTISERVER_ENABLED:
-                server_coordinator.publish_event("Ref", "remove_ref_from_cache", [lex.index_title, tref])
         return jsonResponse({"status": "ok", "entry": entry.contents()})
 
 
@@ -120,7 +125,7 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
         # "missing" (None). Emptiness is get_available_lexicon_headword's own concern.
         if not isinstance(new_headword, str):
             return jsonResponse({"error": "'new_headword' is required and must be a string."}, status=400)
-        if unicodedata.normalize('NFC', new_headword.strip()) == entry.headword:
+        if unicodedata.normalize("NFC", new_headword.strip()) == entry.headword:
             # Client asked for the headword it already has -- possibly byte-identical,
             # possibly just a different (but NFC-equivalent) combining-mark encoding of the
             # same word -- either way a legitimate no-op, not a rename.
@@ -132,8 +137,13 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
         if resolved == entry.headword:
             # A real request that disambiguation collapsed back to the current value --
             # don't silently 200 as if nothing was asked for.
-            return jsonResponse({"error": f"'{new_headword}' collides with this entry's own "
-                                           f"current headword after disambiguation; no change made."}, status=409)
+            return jsonResponse(
+                {
+                    "error": f"'{new_headword}' collides with this entry's own "
+                    f"current headword after disambiguation; no change made."
+                },
+                status=409,
+            )
         old_dict = entry.contents()
         old_headword = entry.headword
         try:
@@ -146,8 +156,10 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
             # renamed (pre-existing bad data, unrelated to this request, not fixed by
             # retrying). Distinguish by re-checking whether resolved is actually taken, so
             # the message matches what's actually true instead of always claiming a race.
-            if LexiconEntry().load({'parent_lexicon': lexicon, 'headword': resolved}):
-                return jsonResponse({"error": f"'{resolved}' was just claimed by another change; please retry."}, status=409)
+            if LexiconEntry().load({"parent_lexicon": lexicon, "headword": resolved}):
+                return jsonResponse(
+                    {"error": f"'{resolved}' was just claimed by another change; please retry."}, status=409
+                )
             return jsonResponse({"error": str(e)}, status=500)
         except InputError as e:
             # entry.save() inside change_lexicon_headword runs _validate(), which can reject
@@ -159,6 +171,13 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
         # change_lexicon_headword only ever touches this entry's headword field, so patching
         # that one field onto old_dict avoids a second DB read just to log history.
         lex, tref = _load_entry_ref(lexicon, actual_headword)
-        _log_entry_change(request.user.id, lex, tref, old_dict, {**old_dict, "headword": actual_headword},
-                          old_headword, actual_headword)
+        _log_entry_change(
+            request.user.id,
+            lex,
+            tref,
+            old_dict,
+            {**old_dict, "headword": actual_headword},
+            old_headword,
+            actual_headword,
+        )
         return jsonResponse({"status": "ok", "headword": actual_headword})

@@ -2,46 +2,47 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import (
-    abstract,
-    link,
-    note,
-    history,
-    schema,
-    text,
-    layer,
-    version_state,
-    timeperiod,
-    garden,
-    notification,
-    collection,
-    library,
-    category,
-    ref_data,
-    user_profile,
-    manuscript,
-    topic,
-    place,
-    marked_up_text_chunk,
-)
+import structlog
 
-from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
+import sefaria.system.cache as scache
 
 # ES cascade handlers that keep the search indices in sync with model changes.
 # sefaria.helper.search deliberately avoids importing sefaria.model at module level,
 # so importing it here (while sefaria.model's __init__ is still running) is safe.
 from sefaria.helper.search import (
-    process_index_title_change_in_search,
-    process_index_title_change_in_book_search,
-    process_index_save_in_book_search,
-    process_index_delete_in_book_search,
-    process_topic_save_in_topic_search,
-    process_topic_delete_in_topic_search,
-    process_category_path_change_in_book_search,
     process_category_change_in_category_search,
+    process_category_path_change_in_book_search,
+    process_index_delete_in_book_search,
+    process_index_save_in_book_search,
+    process_index_title_change_in_book_search,
+    process_index_title_change_in_search,
+    process_topic_delete_in_topic_search,
+    process_topic_save_in_topic_search,
 )
-import sefaria.system.cache as scache
-import structlog
+
+from . import (
+    abstract,
+    category,
+    collection,
+    garden,
+    history,
+    layer,
+    library,
+    link,
+    manuscript,
+    marked_up_text_chunk,
+    note,
+    notification,
+    place,
+    ref_data,
+    schema,
+    text,
+    timeperiod,
+    topic,
+    user_profile,
+    version_state,
+)
+from .abstract import cascade, cascade_delete, cascade_delete_to_list, cascade_to_list, subscribe
 
 logger = structlog.get_logger(__name__)
 
@@ -102,7 +103,7 @@ def process_version_title_change_in_search(ver, **kwargs):
         text_index = library.get_index(ver.title)
         if text_index.is_unreleased() or ver.is_unreleased():  # unreleased texts must never reach shared search
             return
-        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
+        from sefaria.search import TextIndexer, delete_version, get_new_and_current_index_names
 
         search_index_name = get_new_and_current_index_names("text")["current"]
         # no reason to deal with merged index since versions don't exist. still leaving this here in case it is necessary
@@ -252,6 +253,6 @@ subscribe(text.reset_simple_term_mapping,                                   cate
 subscribe(text.reset_simple_term_mapping,                                   category.Category, "save")
 """
 
-# todo: notes? reviews?
-# todo: Scheme name change in Index
-# todo: term change in nodes
+# TODO: notes? reviews?
+# TODO: Scheme name change in Index
+# TODO: term change in nodes

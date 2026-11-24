@@ -5,9 +5,11 @@
 This guide is written for a person, step by step. An agent driving your logged-in browser can follow it too.
 
 ## What's being tested
+
 Sefaria wants to upload books to the production database before releasing them. "Unreleased" (`unreleased`) records are visible on the **staff site** and invisible on the **public site**, even though both read the same database. Staff later **release** them.
 
 The flag lives on four kinds of records: **categories, books (indexes), versions and links**. A child of an unreleased record becomes unreleased automatically:
+
 - a book in an unreleased category
 - a commentary on an unreleased book
 - a version of an unreleased book
@@ -15,14 +17,15 @@ The flag lives on four kinds of records: **categories, books (indexes), versions
 
 Releasing only goes one way, from unreleased to public.
 
-| | URL | Plays | Shows unreleased records? |
-|---|---|---|---|
-| **Staff cauldron** | https://www.staff-only-staff.cauldron.sefaria.org | the staff site | **yes**, marked with a red **UNRELEASED** badge |
-| **Public cauldron** | https://www.staff-only-public.cauldron.sefaria.org | sefaria.org | **no** |
+|                     | URL                                                | Plays          | Shows unreleased records?                       |
+| ------------------- | -------------------------------------------------- | -------------- | ----------------------------------------------- |
+| **Staff cauldron**  | https://www.staff-only-staff.cauldron.sefaria.org  | the staff site | **yes**, marked with a red **UNRELEASED** badge |
+| **Public cauldron** | https://www.staff-only-public.cauldron.sefaria.org | sefaria.org    | **no**                                          |
 
 Both cauldrons read **the same database**. Anything created on one exists on the other; only what's shown differs.
 
 ## Before you start
+
 - **Logging in:** log in on **both** cauldrons with your usual dev / cauldron staff account. The buttons and badges only show for staff users. If you aren't staff there, ask Yonadav.
 - **Sleeping cauldrons:** cauldrons sleep when idle. The first page load can show "Environment is starting up" or a 503 for a few minutes. Wait for the page to load.
 - **Naming:** start every name with `Zzz QA <your first name>`, for example `Zzz QA Dana Ruth`.
@@ -30,27 +33,31 @@ Both cauldrons read **the same database**. Anything created on one exists on the
 - **Leave the example alone:** don't rename, delete or release the shared example set (`Zzz Staff Only Test ...`). Other testers use it.
 
 **The admin menu:** to open it on a category or book page, hover over the page title (for example "Tanakh", or "Ruth" on Ruth's book page). A small menu of buttons appears next to it for a few seconds. This guide uses three new entries:
+
 - **QA: copy as unreleased** (temporary, for this test)
 - **Release (make public)**, which appears only on unreleased records
 
 ## Part 1: look at the example set
+
 It's already uploaded, all unreleased:
+
 - **Category** `Tanakh / Zzz Staff Only Test`
 - **Book** `Zzz Staff Only Test Book`, with an English and a Hebrew version
 - **Two links:** `Zzz Staff Only Test Book 1:1` to Genesis 1:1, and `Zzz Staff Only Test Book 1:2` to Exodus 1:1
 - **An unreleased translation of a public book:** `Zzz Staff Only Translation` of Genesis 1
 
-| Check | Staff cauldron | Public cauldron |
-|---|---|---|
-| `/texts/Tanakh`: is "Zzz Staff Only Test" listed? | yes | **no** |
-| `/texts/Tanakh/Zzz_Staff_Only_Test`: the category page | loads, with an UNRELEASED badge | **not found** |
-| `/Zzz_Staff_Only_Test_Book` (book page) and `/Zzz_Staff_Only_Test_Book.1` (text) | load, with an UNRELEASED badge on the book page | **not found** |
-| `/Genesis.1.1`, then click verse 1: is "Zzz Staff Only Test Book" among its connections? | yes | **no** |
-| `/Genesis`, the versions list: is "Zzz Staff Only Translation" there? | yes, with an UNRELEASED badge | **no** |
-| Search bar: type `Zzz Staff`. Is the book suggested? | yes | **no** |
-| `/activity`: are there edits to these records? | yes | **no** |
+| Check                                                                                    | Staff cauldron                                  | Public cauldron |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------- | --------------- |
+| `/texts/Tanakh`: is "Zzz Staff Only Test" listed?                                        | yes                                             | **no**          |
+| `/texts/Tanakh/Zzz_Staff_Only_Test`: the category page                                   | loads, with an UNRELEASED badge                 | **not found**   |
+| `/Zzz_Staff_Only_Test_Book` (book page) and `/Zzz_Staff_Only_Test_Book.1` (text)         | load, with an UNRELEASED badge on the book page | **not found**   |
+| `/Genesis.1.1`, then click verse 1: is "Zzz Staff Only Test Book" among its connections? | yes                                             | **no**          |
+| `/Genesis`, the versions list: is "Zzz Staff Only Translation" there?                    | yes, with an UNRELEASED badge                   | **no**          |
+| Search bar: type `Zzz Staff`. Is the book suggested?                                     | yes                                             | **no**          |
+| `/activity`: are there edits to these records?                                           | yes                                             | **no**          |
 
 ## Part 2: make your own unreleased copies, on the staff cauldron
+
 These buttons copy real content as unreleased.
 
 **A. A category.** Open a category page, for example `/texts/Tanakh/Writings`. Hover over its title and choose **QA: copy as unreleased**. Enter an English name such as `Zzz QA Dana Category` and a Hebrew name.
@@ -58,11 +65,13 @@ These buttons copy real content as unreleased.
 You get an **empty** unreleased category next to the original, for example `/texts/Tanakh/Zzz_QA_Dana_Category`. Open it: it shows the UNRELEASED badge.
 
 **B. A book.** Open a book page, for example `/Ruth`. Pick something more complex if you like:
+
 - with several parts: `/Pesach_Haggadah`
 - a commentary: `/Rashi_on_Ruth`
 - Talmud: `/Berakhot`
 
 Hover over the book title and choose **QA: copy as unreleased**. Enter:
+
 1. the copy's English title, for example `Zzz QA Dana Ruth`
 2. its Hebrew title
 3. its category. Either keep the original category, which tests an unreleased book in a public category, or type your category from A, for example `Tanakh/Zzz QA Dana Category`.
@@ -74,6 +83,7 @@ The copy gets the book's structure, **all** its versions, and up to 100 of its l
 You get an unreleased copy of that version on the same public book. It shows the UNRELEASED badge in the versions list.
 
 **Expected on the staff cauldron:** each copy is there, with UNRELEASED badges:
+
 - the category page
 - the book page
 - the copied book's versions
@@ -82,7 +92,9 @@ You get an unreleased copy of that version on the same public book. It shows the
 The copied book's links appear on the books it links to. For example, a copy of Ruth appears among the connections of the commentaries on Ruth.
 
 ## Part 3: check the public cauldron
+
 Open the same addresses on the public cauldron. **None of your copies should appear anywhere:**
+
 - not in category lists
 - not by URL (book, category, text)
 - not in the connections of other books
@@ -93,7 +105,9 @@ Open the same addresses on the public cauldron. **None of your copies should app
 Note anything that leaks, with its URL.
 
 ## Part 4: release, refresh, check again
+
 On the **staff** cauldron:
+
 1. **Your category first**, if your book is in it: hover its title and choose **Release (make public)**. Releasing a book while its category is still unreleased is refused. Try it first if you like: you should get a clear error.
 2. **Your book:** hover its title and choose **Release (make public)**. This also releases its versions and its links. Links whose other book is still unreleased are skipped and reported.
 3. **Your version copy:** open its pencil form and click **Release (make public)**.
@@ -101,11 +115,13 @@ On the **staff** cauldron:
 After each release, the confirmation lists **refresh links**. The public site keeps the library in memory, so open those links on the **public** cauldron while logged in there as staff, in the order given. They look like `/admin/reset/toc` and `/admin/reset/<Title>`; put them after the public cauldron's address. Also open `/admin/reset/ac`, which refreshes the search-bar suggestions.
 
 **Expected afterwards:**
+
 - On the staff cauldron, the UNRELEASED badges are gone from what you released.
 - On the public cauldron, everything you released appears: category, book, versions, links and search suggestions.
 - `/activity` on the public cauldron shows the release, but **not** the edits made while the records were hidden. That's intended.
 
 ## Part 5: report
+
 Send Yonadav:
 
 ```
@@ -118,6 +134,7 @@ Anything else odd (URL, expected, seen, screenshot):
 ```
 
 ## Known and accepted
+
 - **Category names in the term list:** an unreleased category's name is stored as a "term". Terms aren't hidden, so the name can show up in places that list terms. Accepted.
 - **Cached pages:** pages cached before you released, such as a Genesis page viewed earlier, may take a while to show new links, or need a hard reload.
 - **Search:** results aren't part of this test.
@@ -125,10 +142,15 @@ Anything else odd (URL, expected, seen, screenshot):
 - **Cleanup:** leave your records. Yonadav cleans the cauldrons up afterwards.
 
 ## Appendix: testing through the API
+
 [`staff-only-books-qa-helper.js`](staff-only-books-qa-helper.js) does the same things through the site's APIs from the browser console. It's useful for agents or for repeating a test exactly. Load it on the staff cauldron:
 
 ```js
-await fetch("https://raw.githubusercontent.com/Sefaria/Sefaria-Project/feature/sc-47550/staff-only-flag-on-records/docs/qa/staff-only-books/staff-only-books-qa-helper.js").then(r => r.text()).then(eval);
+await fetch(
+  'https://raw.githubusercontent.com/Sefaria/Sefaria-Project/feature/sc-47550/staff-only-flag-on-records/docs/qa/staff-only-books/staff-only-books-qa-helper.js'
+)
+  .then((r) => r.text())
+  .then(eval);
 ```
 
 Then use `qa.status(title)`, `qa.createCategory`, `qa.createBook`, `qa.addVersion`, `qa.addLink`, `qa.copyBook`, `qa.releaseCategory`, `qa.releaseBook`, `qa.releaseVersion` and `qa.refreshUrls`. Each one is documented in the file.

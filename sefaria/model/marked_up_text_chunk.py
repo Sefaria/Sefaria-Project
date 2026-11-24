@@ -1,15 +1,17 @@
-from typing import Iterable
-from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
-from sefaria.model.text import Ref
-from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.system.database import db
-from html import escape
-from enum import Enum
 from abc import ABC, abstractmethod
 from bisect import bisect_right
+from collections.abc import Iterable
+from enum import Enum
+from html import escape
+
 import structlog
-from sefaria.system.progress_context import report_progress
+
 from sefaria.constants.model import get_direction_from_legacy_lang
+from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
+from sefaria.model.text import Ref
+from sefaria.system.database import db
+from sefaria.system.exceptions import DuplicateRecordError, InputError
+from sefaria.system.progress_context import report_progress
 
 logger = structlog.get_logger(__name__)
 
@@ -119,7 +121,7 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         pass
 
     def __str__(self):
-        return "TextSpan: {}".format(self.ref)
+        return f"TextSpan: {self.ref}"
 
     def get_span_objects(self, reverse=False) -> Iterable["MUTCSpan"]:
         """
@@ -155,9 +157,12 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
             # Only possible overlaps are with A[idx-1] and A[idx] (since A is disjoint and sorted)
             o = False
-            if idx - 1 >= 0 and overlaps(self_spans[idx - 1], b):
-                o = True
-            elif idx < len(self_spans) and overlaps(self_spans[idx], b):
+            if (
+                idx - 1 >= 0
+                and overlaps(self_spans[idx - 1], b)
+                or idx < len(self_spans)
+                and overlaps(self_spans[idx], b)
+            ):
                 o = True
 
             if not o:

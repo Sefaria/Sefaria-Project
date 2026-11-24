@@ -11,16 +11,28 @@ class DedicationAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
-        (None, {
-            "fields": ("slug",),
-        }),
-        ("English", {
-            "fields": ("en_title", "en_content"),
-        }),
-        ("Hebrew", {
-            "fields": ("he_title", "he_content"),
-        }),
-        ("Metadata", {
-            "fields": (("created_at", "updated_at"),),
-        }),
+        (
+            None,
+            {
+                "fields": ("slug",),
+            },
+        ),
+        (
+            "English",
+            {
+                "fields": ("en_title", "en_content"),
+            },
+        ),
+        (
+            "Hebrew",
+            {
+                "fields": ("he_title", "he_content"),
+            },
+        ),
+        (
+            "Metadata",
+            {
+                "fields": (("created_at", "updated_at"),),
+            },
+        ),
     )

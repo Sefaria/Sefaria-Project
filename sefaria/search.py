@@ -1,47 +1,55 @@
-# -*- coding: utf-8 -*-
 """
 search.py - full-text search for Sefaria using ElasticSearch
 
 Writes to MongoDB Collection: index_queue
 """
 
-from datetime import datetime, timedelta
 import logging
 import os
 import re
 import sys
 import threading
+import time as pytime
+from collections import defaultdict
+from datetime import datetime, timedelta
+
 import bleach
 import pymongo
 from bson import ObjectId
-
-from collections import defaultdict
-import time as pytime
-
-from elastic_transport import ConnectionError as ESConnectionError, ConnectionTimeout
+from elastic_transport import ConnectionError as ESConnectionError
+from elastic_transport import ConnectionTimeout
 from elasticsearch.client import IndicesClient
+from elasticsearch.exceptions import ApiError, NotFoundError
 from elasticsearch.helpers import bulk
-from elasticsearch.exceptions import NotFoundError, ApiError
-from django_topics.models import Topic as DjangoTopic, PoolType
-from sefaria.model import *
-from sefaria.model.text import AbstractIndex, AbstractTextRecord
-from sefaria.model.abstract import public_query
-from sefaria.model.user_profile import user_link, public_user_data
-from sefaria.model.collection import CollectionSet
-from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
-from sefaria.utils.util import strip_tags, strip_markdown
+
+import sefaria.model.queue as qu
+from django_topics.models import PoolType
+from django_topics.models import Topic as DjangoTopic
 from sefaria.constants.model import get_direction_from_legacy_lang
-from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
-from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY
+from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
+from sefaria.model import *
 
 # Aliased on import: this module already defines an unrelated `get_search_categories(oref,
 # categories)` (the text index's category-path helper, below), which would shadow it.
+from sefaria.model.abstract import public_query
 from sefaria.model.autospell import get_search_categories as get_searchable_toc_categories
-from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
+from sefaria.model.collection import CollectionSet
+from sefaria.model.text import AbstractIndex, AbstractTextRecord
+from sefaria.model.user_profile import public_user_data, user_link
 from sefaria.site.site_settings import SITE_SETTINGS
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import strip_cantillation
-import sefaria.model.queue as qu
+from sefaria.utils.util import strip_markdown, strip_tags
+
+from .search_index_shards import primary_shard_count
+from .settings import (
+    SEARCH_INDEX_NAME_BOOK,
+    SEARCH_INDEX_NAME_CATEGORY,
+    SEARCH_INDEX_NAME_SHEET,
+    SEARCH_INDEX_NAME_TEXT,
+    SEARCH_INDEX_NAME_TOPIC,
+)
 
 
 def setup_logging(debug=False):
@@ -363,6 +371,8 @@ def create_index(index_name, type, force=False):
     :param force: If False (default), will not recreate an index with documents (safety check)
     """
     logger.debug(f"Creating new Elasticsearch index - index_name: {index_name}, type: {type}, force: {force}")
+    # Validate config before anything is deleted: a bad value must not leave the cluster without this index.
+    number_of_shards = primary_shard_count(type, os.environ)
 
     # Check if index already exists and has documents
     exists_before = index_client.exists(index=index_name)
@@ -391,6 +401,7 @@ def create_index(index_name, type, force=False):
 
     settings = {
         "index": {
+            "number_of_shards": number_of_shards,
             "blocks": {"read_only_allow_delete": False},
             "analysis": {
                 "analyzer": {
@@ -815,7 +826,7 @@ def get_search_categories(oref, categories):
     return indexed_categories
 
 
-class TextIndexer(object):
+class TextIndexer:
     # Class-level failure tracking
     _failed_versions = None
     _skipped_versions = None
@@ -1004,9 +1015,8 @@ class TextIndexer(object):
                     logger.warning(f"MongoDB AutoReconnect, retrying - ref: {oref.normal()}, attempt: {tries}")
                 pytime.sleep(RETRY_SLEEP_SECONDS)
                 return TextIndexer.get_ref_version_list(oref, tries + 1)
-            else:
-                logger.error(f"get_ref_version_list failed after max retries - ref: {oref.normal()}, attempts: {tries}")
-                raise e
+            logger.error(f"get_ref_version_list failed after max retries - ref: {oref.normal()}, attempts: {tries}")
+            raise e
 
     @classmethod
     def get_all_versions(cls, tries=0, versions=None, page=0, query=None):
@@ -1037,11 +1047,10 @@ class TextIndexer(object):
                 # query must be threaded through the retry, or a mid-fetch AutoReconnect
                 # would silently drop back to loading the entire corpus.
                 return cls.get_all_versions(tries + 1, versions, page, query)
-            else:
-                logger.error(
-                    f"get_all_versions failed after max retries - attempts: {tries}, versions_retrieved: {len(versions)}"
-                )
-                raise e
+            logger.error(
+                f"get_all_versions failed after max retries - attempts: {tries}, versions_retrieved: {len(versions)}"
+            )
+            raise e
 
     @staticmethod
     def excluded_from_search(version):
@@ -1157,8 +1166,11 @@ class TextIndexer(object):
         if not size_map:
             logger.warning("No size map provided - falling back to uniform weights, shard memory may be unbalanced")
         size_map = size_map or {}
+
         # no versions_by_index here to fall back on for weight, so use a constant
-        weight_fn = lambda key: size_map.get(key[0], 1)
+        def weight_fn(key):
+            return size_map.get(key[0], 1)
+
         return cls._snake_assign(keys, shard_index, shard_count, weight_fn)
 
     @classmethod
@@ -1168,7 +1180,10 @@ class TextIndexer(object):
         if not size_map:
             logger.warning("No size map provided - falling back to uniform weights, shard memory may be unbalanced")
         size_map = size_map or {}
-        weight_fn = lambda key: size_map.get(key[0], len(versions_by_index[key]))
+
+        def weight_fn(key):
+            return size_map.get(key[0], len(versions_by_index[key]))
+
         selected_keys = cls._snake_assign(versions_by_index.keys(), shard_index, shard_count, weight_fn)
         return {key: versions_by_index[key] for key in versions_by_index if key in selected_keys}
 
@@ -1204,7 +1219,7 @@ class TextIndexer(object):
                         if (v.get("title"), v.get("versionTitle"), v.get("language")) in cls.version_priority_map:
                             keys.add((v.get("title"), v.get("language")))
                     break
-                except pymongo.errors.AutoReconnect as e:
+                except pymongo.errors.AutoReconnect:
                     keys.clear()
                     if attempt >= MAX_RETRY_ATTEMPTS:
                         raise
@@ -1423,7 +1438,7 @@ class TextIndexer(object):
         except StopIteration:
             # Dictionary node not found - will be caught and tracked as failed
             raise
-        except Exception as e:
+        except Exception:
             # Unexpected error - will be caught and tracked as failed
             raise
 
@@ -1502,7 +1517,7 @@ class TextIndexer(object):
                 is_primary,
             )
             # print doc
-        except Exception as e:
+        except Exception:
             # Error making document - skip silently, will be tracked as failed
             return
 
@@ -1511,7 +1526,7 @@ class TextIndexer(object):
                 cls._bulk_actions += [
                     {"_index": cls.index_name, "_id": make_text_doc_id(tref, vtitle, vlang), "_source": doc}
                 ]
-            except Exception as e:
+            except Exception:
                 # Error indexing - skip silently, will be tracked as failed
                 pass
 
@@ -1520,14 +1535,13 @@ class TextIndexer(object):
         ftnotes = AbstractTextRecord.find_all_footnotes(content)
         if len(ftnotes) == 0:
             return content
-        else:
-            for raw_footnote in ftnotes:
-                sup_text = re.search(r'<sup[^>]*class="footnote-marker">(.*?)</sup>', raw_footnote).group(1)
-                # should be greedy since we already pulled out precise i-tag
-                itag_text = re.search(r'<i[^>]*class="footnote"[^>]*>(.*)</i>', raw_footnote).group(1)
-                content += f" {sup_text} {itag_text}"
-            content = AbstractTextRecord.strip_itags(content)
-            return content
+        for raw_footnote in ftnotes:
+            sup_text = re.search(r'<sup[^>]*class="footnote-marker">(.*?)</sup>', raw_footnote).group(1)
+            # should be greedy since we already pulled out precise i-tag
+            itag_text = re.search(r'<i[^>]*class="footnote"[^>]*>(.*)</i>', raw_footnote).group(1)
+            content += f" {sup_text} {itag_text}"
+        content = AbstractTextRecord.strip_itags(content)
+        return content
 
     @classmethod
     def modify_text_in_doc(cls, content):
@@ -1683,7 +1697,6 @@ def index_public_notes():
 
     TODO
     """
-    pass
 
 
 # --------------------------------------------------------------------------- #

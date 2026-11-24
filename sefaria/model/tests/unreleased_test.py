@@ -1,9 +1,9 @@
-# coding=utf-8
 """
 Tests for unreleased (`unreleased`) records: Categories, Indexes, Versions, Links and their History
 are invisible unless SHOW_UNRELEASED_CONTENT is True.
 Fixture records are inserted straight into Mongo so that no save hooks (search, TOC, cache) fire.
 """
+
 import pytest
 from django.conf import settings
 
@@ -54,23 +54,45 @@ def hidden_book():
         "categories": ["Tanakh"],
         "unreleased": True,
         "schema": {
-            "nodeType": "JaggedArrayNode", "key": HIDDEN, "depth": 2, "addressTypes": ["Integer", "Integer"],
+            "nodeType": "JaggedArrayNode",
+            "key": HIDDEN,
+            "depth": 2,
+            "addressTypes": ["Integer", "Integer"],
             "sectionNames": ["Chapter", "Verse"],
-            "titles": [{"lang": "en", "text": HIDDEN, "primary": True}, {"lang": "en", "text": HIDDEN_ALT},
-                       {"lang": "he", "text": "ספר נסתר", "primary": True}],
+            "titles": [
+                {"lang": "en", "text": HIDDEN, "primary": True},
+                {"lang": "en", "text": HIDDEN_ALT},
+                {"lang": "he", "text": "ספר נסתר", "primary": True},
+            ],
         },
     }
     ids = {
         "index": db.index.insert_one(index).inserted_id,
-        "text": db.texts.insert_one({"title": HIDDEN, "versionTitle": "Zzz Version", "language": "en", "unreleased": True,
-                                     "actualLanguage": "en", "chapter": [["hidden text"]]}).inserted_id,
+        "text": db.texts.insert_one(
+            {
+                "title": HIDDEN,
+                "versionTitle": "Zzz Version",
+                "language": "en",
+                "unreleased": True,
+                "actualLanguage": "en",
+                "chapter": [["hidden text"]],
+            }
+        ).inserted_id,
         "vstate": db.vstate.insert_one({"title": HIDDEN, "content": {}}).inserted_id,
-        "link": db.links.insert_one({"refs": [HIDDEN + " 1:1", "Genesis 1:1"], "type": "quotation", "unreleased": True,
-                                     "generated_by": "zzz_test"}).inserted_id,
-        "category": db.category.insert_one({"path": HIDDEN_CATEGORY, "lastPath": HIDDEN_CATEGORY[-1], "depth": 2,
-                                            "unreleased": True}).inserted_id,
-        "history": db.history.insert_one({"rev_type": "add text", "user": 0, "ref": HIDDEN + " 1:1",
-                                          "unreleased": True, "method": "zzz_test"}).inserted_id,
+        "link": db.links.insert_one(
+            {
+                "refs": [HIDDEN + " 1:1", "Genesis 1:1"],
+                "type": "quotation",
+                "unreleased": True,
+                "generated_by": "zzz_test",
+            }
+        ).inserted_id,
+        "category": db.category.insert_one(
+            {"path": HIDDEN_CATEGORY, "lastPath": HIDDEN_CATEGORY[-1], "depth": 2, "unreleased": True}
+        ).inserted_id,
+        "history": db.history.insert_one(
+            {"rev_type": "add text", "user": 0, "ref": HIDDEN + " 1:1", "unreleased": True, "method": "zzz_test"}
+        ).inserted_id,
     }
     yield ids
     _delete_fixture_records()
@@ -79,15 +101,24 @@ def hidden_book():
 @pytest.fixture
 def hidden_genesis_version():
     """An unreleased version of a public book."""
-    _id = db.texts.insert_one({"title": "Genesis", "versionTitle": "Zzz Hidden Genesis", "language": "en", "unreleased": True,
-                               "actualLanguage": "en", "chapter": [["hidden translation"]]}).inserted_id
+    _id = db.texts.insert_one(
+        {
+            "title": "Genesis",
+            "versionTitle": "Zzz Hidden Genesis",
+            "language": "en",
+            "unreleased": True,
+            "actualLanguage": "en",
+            "chapter": [["hidden translation"]],
+        }
+    ).inserted_id
     yield _id
     db.texts.delete_one({"_id": _id})
 
 
 def test_merge_queries_does_not_overwrite_keys():
-    assert merge_queries({"title": "Genesis"}, {"title": {"$nin": ["X"]}}) == \
-        {"$and": [{"title": "Genesis"}, {"title": {"$nin": ["X"]}}]}
+    assert merge_queries({"title": "Genesis"}, {"title": {"$nin": ["X"]}}) == {
+        "$and": [{"title": "Genesis"}, {"title": {"$nin": ["X"]}}]
+    }
     assert merge_queries({"a": 1}, None) == {"a": 1}
     assert merge_queries(None, {"b": 2}) == {"b": 2}
 
@@ -139,6 +170,7 @@ def test_raw_lookups_work_in_public_mode(hidden_book, public_mode):
 
 # ---- dependency rule: a child of an unreleased parent must be unreleased ---- #
 
+
 def test_new_version_of_hidden_book_is_stamped(hidden_book, staff_mode):
     v = Version({"title": HIDDEN, "versionTitle": "New", "language": "en"})
     v._apply_release_rules(is_new_obj=True)
@@ -165,8 +197,15 @@ def test_public_record_can_not_become_unreleased(staff_mode):
 
 
 def test_unreleased_record_can_be_released(hidden_genesis_version, staff_mode):
-    v = Version({"_id": hidden_genesis_version, "title": "Genesis", "versionTitle": "Zzz Hidden Genesis",
-                 "language": "en", "unreleased": False})
+    v = Version(
+        {
+            "_id": hidden_genesis_version,
+            "title": "Genesis",
+            "versionTitle": "Zzz Hidden Genesis",
+            "language": "en",
+            "unreleased": False,
+        }
+    )
     v._apply_release_rules(is_new_obj=False)
     assert not hasattr(v, "unreleased")  # only True is ever stored
 
@@ -203,6 +242,7 @@ def test_link_touching_hidden_book_is_stamped(monkeypatch, staff_mode):
 
 # ---- history ---- #
 
+
 def test_history_stamp_follows_state_after_change():
     assert _is_unreleased_change(None, {"unreleased": True})
     assert not _is_unreleased_change({"unreleased": True}, {"title": "released"})  # a release is public
@@ -220,8 +260,10 @@ def test_text_edit_history_is_stamped(hidden_genesis_version, staff_mode):
 
 # ---- guards ---- #
 
+
 def test_public_cleanup_does_not_delete_hidden_state(hidden_book, public_mode):
     from sefaria.clean import remove_old_counts
+
     remove_old_counts()
     assert db.vstate.count_documents({"_id": hidden_book["vstate"]}) == 1
     assert db.links.count_documents({"_id": hidden_book["link"]}) == 1
@@ -235,6 +277,7 @@ def test_unresolvable_citation_renders_as_text():
 
 def test_status_reports_unreleased_records(hidden_genesis_version, staff_mode):
     from sefaria.helper import release
+
     status = release.status("Genesis")
     assert status["index"] == {"title": "Genesis", "unreleased": False}
     assert {"versionTitle": "Zzz Hidden Genesis", "language": "en", "unreleased": True} in status["versions"]
@@ -243,6 +286,7 @@ def test_status_reports_unreleased_records(hidden_genesis_version, staff_mode):
 
 def test_queueing_for_search_tolerates_already_queued_segments(monkeypatch):
     from sefaria.helper import release
+
     monkeypatch.setattr(release, "SEARCH_INDEX_ON_SAVE", True)
     version = Version().load({"title": "Ruth", "language": "en"})
     query = {"version": version.versionTitle, "lang": version.language, "ref": {"$regex": "^Ruth "}}
@@ -259,11 +303,20 @@ def test_queueing_for_search_tolerates_already_queued_segments(monkeypatch):
 def test_release_links_does_not_revalidate_unrelated_fields(hidden_book, monkeypatch, staff_mode):
     # An existing link that fails an unrelated validation must not abort a release halfway.
     from sefaria.helper import release
+
     monkeypatch.setattr(Index, "is_unreleased", lambda self: False)
-    stale = db.links.insert_one({"refs": ["Genesis 1:3", "Leviticus 1:3"], "type": "quotation", "unreleased": True,
-                                 "generated_by": "zzz_publish",
-                                 "charLevelData": [{"startChar": 0, "endChar": 1, "versionTitle": "No Such Version", "language": "en"},
-                                                   {"startChar": 0, "endChar": 1, "versionTitle": "No Such Version", "language": "en"}]}).inserted_id
+    stale = db.links.insert_one(
+        {
+            "refs": ["Genesis 1:3", "Leviticus 1:3"],
+            "type": "quotation",
+            "unreleased": True,
+            "generated_by": "zzz_publish",
+            "charLevelData": [
+                {"startChar": 0, "endChar": 1, "versionTitle": "No Such Version", "language": "en"},
+                {"startChar": 0, "endChar": 1, "versionTitle": "No Such Version", "language": "en"},
+            ],
+        }
+    ).inserted_id
     try:
         result = release.release_links(0, {"ids": [str(stale)]})
         assert result["released"] == 1
@@ -274,17 +327,26 @@ def test_release_links_does_not_revalidate_unrelated_fields(hidden_book, monkeyp
 
 def test_release_requires_staff_site(public_mode):
     from sefaria.helper import release
+
     with pytest.raises(InputError):
         release.release_links(0, {"index": "Genesis"})
 
 
 def test_release_links_skips_links_to_hidden_books(hidden_book, monkeypatch, staff_mode):
     from sefaria.helper import release
+
     monkeypatch.setattr(Index, "is_unreleased", lambda self: self.title == "Exodus")
-    ready = db.links.insert_one({"refs": ["Genesis 1:1", "Leviticus 1:1"], "type": "quotation", "unreleased": True,
-                                 "generated_by": "zzz_publish"}).inserted_id
-    blocked = db.links.insert_one({"refs": ["Exodus 1:1", "Genesis 1:1"], "type": "quotation", "unreleased": True,
-                                   "generated_by": "zzz_publish"}).inserted_id
+    ready = db.links.insert_one(
+        {
+            "refs": ["Genesis 1:1", "Leviticus 1:1"],
+            "type": "quotation",
+            "unreleased": True,
+            "generated_by": "zzz_publish",
+        }
+    ).inserted_id
+    blocked = db.links.insert_one(
+        {"refs": ["Exodus 1:1", "Genesis 1:1"], "type": "quotation", "unreleased": True, "generated_by": "zzz_publish"}
+    ).inserted_id
     try:
         result = release.release_links(0, {"ids": [str(ready), str(blocked)]})
         assert result["released"] == 1
@@ -297,6 +359,7 @@ def test_release_links_skips_links_to_hidden_books(hidden_book, monkeypatch, sta
 
 # ---- TEMPORARY (PR #3838 QA): copy tools. Remove with sefaria/helper/release_qa.py before merging. ---- #
 
+
 @pytest.fixture
 def qa_tools(monkeypatch):
     monkeypatch.setattr(settings, "SHOW_UNRELEASED_CONTENT", True, raising=False)
@@ -305,6 +368,7 @@ def qa_tools(monkeypatch):
 
 def test_qa_tools_are_off_by_default(staff_mode, monkeypatch):
     from sefaria.helper import release_qa
+
     monkeypatch.setattr(settings, "UNRELEASED_QA_TOOLS", False, raising=False)
     with pytest.raises(InputError):
         release_qa.copy_version(0, {"title": "Ruth", "versionTitle": "x", "language": "en", "newVersionTitle": "y"})
@@ -312,11 +376,13 @@ def test_qa_tools_are_off_by_default(staff_mode, monkeypatch):
 
 def test_qa_copy_version_is_unreleased(qa_tools):
     from sefaria.helper import release_qa
+
     source = Version().load({"title": "Ruth", "language": "en"})
     new_title = "Zzz QA Copy Of " + source.versionTitle
     try:
-        release_qa.copy_version(0, {"title": "Ruth", "versionTitle": source.versionTitle, "language": "en",
-                                       "newVersionTitle": new_title})
+        release_qa.copy_version(
+            0, {"title": "Ruth", "versionTitle": source.versionTitle, "language": "en", "newVersionTitle": new_title}
+        )
         copy = db.texts.find_one({"title": "Ruth", "versionTitle": new_title})
         assert copy["unreleased"] is True and copy["isPrimary"] is False and copy["chapter"] == source.chapter
     finally:
@@ -327,16 +393,29 @@ def test_qa_copy_version_is_unreleased(qa_tools):
 
 def test_qa_copy_book_and_category(qa_tools):
     from sefaria.helper import release_qa
+
     category_path = ["Tanakh", "Zzz QA Copy Category"]
     new_title = "Zzz QA Copy Of Ruth"
     try:
         release_qa.copy_category(0, {"path": ["Tanakh", "Torah"], "name": category_path[-1], "heName": "העתקה"})
         assert db.category.find_one({"path": category_path})["unreleased"] is True
 
-        result = release_qa.copy_index(0, {"title": "Ruth", "newTitle": new_title, "heTitle": "העתק רות",
-                                              "categories": category_path, "maxLinks": 20})
+        result = release_qa.copy_index(
+            0,
+            {
+                "title": "Ruth",
+                "newTitle": new_title,
+                "heTitle": "העתק רות",
+                "categories": category_path,
+                "maxLinks": 20,
+            },
+        )
         assert db.index.find_one({"title": new_title})["unreleased"] is True
-        assert db.texts.count_documents({"title": new_title}) == db.texts.count_documents({"title": "Ruth"}) == len(result["versions"])
+        assert (
+            db.texts.count_documents({"title": new_title})
+            == db.texts.count_documents({"title": "Ruth"})
+            == len(result["versions"])
+        )
         assert db.texts.count_documents({"title": new_title, "unreleased": {"$ne": True}}) == 0
         links = list(db.links.find({"refs": {"$regex": "^" + new_title}}))
         assert links and result["links"] == len(links) and all(l.get("unreleased") for l in links)

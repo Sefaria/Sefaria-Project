@@ -22,13 +22,13 @@ Key facts that shape how we test it:
 
 There are **two** whitelisted LA accounts — one per interface language — because a logged-in user is routed to the domain of their account's Site-Language (full explanation in §12):
 
-| | English | Hebrew |
-| --- | --- | --- |
-| `.env` creds | `PLAYWRIGHT_LA_USER_*` | `PLAYWRIGHT_LA_USER_HE_*` |
-| globals | `testLAUser` → `BROWSER_SETTINGS.enLAUser` | `testHeLAUser` → `BROWSER_SETTINGS.heLAUser` |
-| Site Language | English | **Hebrew** |
-| Logs in on | `www.sefaria.org` | `www.sefaria.org.il` (`site: 'IL'`) |
-| Auth file | `auth_english_la_user.json` | `auth_hebrew_la_user.json` |
+|               | English                                    | Hebrew                                       |
+| ------------- | ------------------------------------------ | -------------------------------------------- |
+| `.env` creds  | `PLAYWRIGHT_LA_USER_*`                     | `PLAYWRIGHT_LA_USER_HE_*`                    |
+| globals       | `testLAUser` → `BROWSER_SETTINGS.enLAUser` | `testHeLAUser` → `BROWSER_SETTINGS.heLAUser` |
+| Site Language | English                                    | **Hebrew**                                   |
+| Logs in on    | `www.sefaria.org`                          | `www.sefaria.org.il` (`site: 'IL'`)          |
+| Auth file     | `auth_english_la_user.json`                | `auth_hebrew_la_user.json`                   |
 
 Always enter through `goToPageWithUser`:
 
@@ -39,7 +39,7 @@ page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.
 page = await goToPageWithUser(context, MODULE_URLS.HE.LIBRARY, BROWSER_SETTINGS.heLAUser);
 ```
 
-**Do not reuse `BROWSER_SETTINGS.enUser` / `.heUser` / `.enAdmin`.** Those accounts are *not* whitelisted for the LA; the `<lc-chatbot>` element simply won't be in the DOM and tests will fail at `waitForReady()`. Likewise, don't try to drive the Hebrew LA with the English account — see §12 for why that can't work.
+**Do not reuse `BROWSER_SETTINGS.enUser` / `.heUser` / `.enAdmin`.** Those accounts are _not_ whitelisted for the LA; the `<lc-chatbot>` element simply won't be in the DOM and tests will fail at `waitForReady()`. Likewise, don't try to drive the Hebrew LA with the English account — see §12 for why that can't work.
 
 ---
 
@@ -61,7 +61,7 @@ test.beforeEach(async ({ context }) => {
   page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
   pm = new PageManager(page, LANGUAGES.EN);
   await hideAllModalsAndPopups(page);
-  await pm.onLibraryAssistant().waitForReady();   // asserts `<lc-chatbot>` is mounted
+  await pm.onLibraryAssistant().waitForReady(); // asserts `<lc-chatbot>` is mounted
 });
 ```
 
@@ -73,23 +73,23 @@ After `waitForReady()` you are free to interact through the page object.
 
 All locators pierce the open shadow root. Use role/label over CSS when possible.
 
-> **Labels are language-specific** (the deployed component is i18n'd). Don't hardcode label strings in tests — go through the page object, which resolves them from `LA_LABELS[this.language]`. The authoritative, **live-verified** English/Hebrew strings are in §11. The table below lists the *structural* locators (role/CSS) that don't change between languages; the accessible **name** for the role-based ones comes from §11.
+> **Labels are language-specific** (the deployed component is i18n'd). Don't hardcode label strings in tests — go through the page object, which looks them up by translation key (§11). The authoritative, **live-verified** English/Hebrew strings are in §11. The table below lists the _structural_ locators (role/CSS) that don't change between languages; the accessible **name** for the role-based ones comes from §11.
 
-| Element | Locator shape | Notes |
-| --- | --- | --- |
-| Host custom element | `page.locator('lc-chatbot')` | count is 1 when user is whitelisted; `interface-lang` attr is `en` / `he` |
-| Panel (dialog) | `getByRole('dialog', { name: <chatWindow> })` | visible when container has `is-open` |
-| Floating trigger pill | `getByRole('button', { name: <openAssistant> })` | visible only when panel is closed |
-| Close button (X) | `getByRole('button', { name: <close> })` | header |
-| Dock / Undock | `getByRole('button', { name: <dock> / <undock> })` | dock visible floating, undock visible docked |
-| More options (ellipsis) | `getByRole('button', { name: <moreOptions> })` | opens `role="menu"` dropdown |
-| Menu items | `getByRole('menuitem')` | 4 base items, +`Settings` first for staff (see §11) |
-| Prompt textarea | `getByLabel(<promptInput>)` | `maxlength="10000"` (the UX-021 test-plan figure of "500 chars" is wrong — the DOM is authoritative) |
-| Send button | `getByRole('button', { name: <send> })` | disabled when textarea is empty |
-| User message bubble | `page.locator('.message.user')` | use `.last()` for the most recent |
-| Assistant message bubble | `page.locator('.message.assistant')` | use `.last()` for the most recent |
-| Thinking indicator | `page.locator('.thinking-content')` | visible while request is in-flight; text is `Thinking` in both languages |
-| Container (mode class) | `page.locator('lc-chatbot .lc-chatbot-container')` | `mode-floating`/`mode-docked` + `is-open`; `interface-hebrew` class in HE |
+| Element                  | Locator shape                                      | Notes                                                                                                |
+| ------------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Host custom element      | `page.locator('lc-chatbot')`                       | count is 1 when user is whitelisted; `interface-lang` attr is `en` / `he`                            |
+| Panel (dialog)           | `getByRole('dialog', { name: <chatWindow> })`      | visible when container has `is-open`                                                                 |
+| Floating trigger pill    | `getByRole('button', { name: <openAssistant> })`   | visible only when panel is closed                                                                    |
+| Close button (X)         | `getByRole('button', { name: <close> })`           | header                                                                                               |
+| Dock / Undock            | `getByRole('button', { name: <dock> / <undock> })` | dock visible floating, undock visible docked                                                         |
+| More options (ellipsis)  | `getByRole('button', { name: <moreOptions> })`     | opens `role="menu"` dropdown                                                                         |
+| Menu items               | `getByRole('menuitem')`                            | 5 base items, +`Settings` first for staff (see §11)                                                  |
+| Prompt textarea          | `getByLabel(<promptInput>)`                        | `maxlength="10000"` (the UX-021 test-plan figure of "500 chars" is wrong — the DOM is authoritative) |
+| Send button              | `getByRole('button', { name: <send> })`            | disabled when textarea is empty                                                                      |
+| User message bubble      | `page.locator('.message.user')`                    | use `.last()` for the most recent                                                                    |
+| Assistant message bubble | `page.locator('.message.assistant')`               | use `.last()` for the most recent                                                                    |
+| Thinking indicator       | `page.locator('.lc-thinking-block')`               | visible while request is in-flight; its text rotates through several messages (see §11)              |
+| Container (mode class)   | `page.locator('lc-chatbot .lc-chatbot-container')` | `mode-floating`/`mode-docked` + `is-open`; `interface-hebrew` class in HE                            |
 
 `<name>` placeholders above are the per-language strings from §11. If you ever need something the role/label approach can't reach, fall back to `page.evaluate(() => document.querySelector('lc-chatbot').shadowRoot.querySelector(...))`. Don't add brittle CSS to the page object for it.
 
@@ -101,25 +101,33 @@ File: [pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts). Registe
 
 Method map by UX ID:
 
-| UX test | Method(s) |
-| --- | --- |
-| UX-001 (trigger visible when closed) | `ensureClosed()`, `expectTriggerVisible()` |
-| UX-003 (trigger opens panel, focuses input) | `ensureClosed()`, `clickTriggerAndExpectOpen()` |
-| UX-004 (close button closes panel) | `ensureOpen()`, `clickCloseAndExpectClosed()` |
-| UX-013 (toggle to docked) | `ensureFloating()`, `toggleToDocked()` |
-| UX-014 (toggle back to floating) | `ensureFloating()`, `toggleToDocked()`, `toggleToFloating()` |
-| UX-022 (send disabled when empty) | `ensureOpen()`, `clearInput()`, `expectSendDisabled()` |
-| UX-023 (send enabled when has text) | `ensureOpen()`, `typeMessage()`, `expectSendEnabled()` |
-| UX-024 (Enter sends) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()` |
-| UX-026 (send button sends) | `ensureOpen()`, `typeMessage()`, `sendViaButton()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()` |
-| UX-027 (input disabled during send) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectInputDisabledDuringSend()`, `waitForResponse()` |
-| UX-036 (thinking indicator appears then clears) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectThinkingVisible()`, `waitForResponse()`, `expectThinkingGone()` |
-| UX-057 (header menu opens with expected items) | `openHeaderMenu()`, `expectMenuVisible()`, `expectMenuItemTexts([...])` |
-| UX-058 (outside click closes menu) | `openHeaderMenu()`, `clickOutsideMenu()`, `expectMenuHidden()` |
-| UX-059 (Escape closes menu) — **`test.fixme`**: component does not yet handle Escape | `openHeaderMenu()`, `closeMenuWithEscape()`, `expectMenuHidden()` |
-| UX-060 (Restart conversation clears messages) | `typeMessage()`, `sendViaEnter()`, `waitForResponse()`, `openHeaderMenu()`, `clickRestartConversation()`, `expectEmptyState()`, `expectNoUserMessages()` |
-| UX-085 (LA hidden at 375px mobile viewport) | `waitForReady()`, then `page.setViewportSize({ width: 375, height: 667 })` + assert `lc-chatbot` hidden |
-| LA-NEG-001 → 004 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home, a voices sheet, and logged-out Library/reader pages |
+| UX test                                                                                | Method(s)                                                                                                                                                                                                                                                                                                                                        |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| UX-001 (trigger visible when closed)                                                   | `ensureClosed()`, `expectTriggerVisible()`                                                                                                                                                                                                                                                                                                       |
+| UX-003 (trigger opens panel, focuses input)                                            | `ensureClosed()`, `clickTriggerAndExpectOpen()`                                                                                                                                                                                                                                                                                                  |
+| UX-004 (close button closes panel)                                                     | `ensureOpen()`, `clickCloseAndExpectClosed()`                                                                                                                                                                                                                                                                                                    |
+| UX-013 (toggle to docked)                                                              | `ensureFloating()`, `toggleToDocked()`                                                                                                                                                                                                                                                                                                           |
+| UX-014 (toggle back to floating)                                                       | `ensureFloating()`, `toggleToDocked()`, `toggleToFloating()`                                                                                                                                                                                                                                                                                     |
+| UX-022 (send disabled when empty)                                                      | `ensureOpen()`, `clearInput()`, `expectSendDisabled()`                                                                                                                                                                                                                                                                                           |
+| UX-023 (send enabled when has text)                                                    | `ensureOpen()`, `typeMessage()`, `expectSendEnabled()`                                                                                                                                                                                                                                                                                           |
+| UX-024 (Enter sends)                                                                   | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()`                                                                                                                                                                                                                       |
+| UX-026 (send button sends)                                                             | `ensureOpen()`, `typeMessage()`, `sendViaButton()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()`                                                                                                                                                                                                                      |
+| UX-027 (input disabled, Send replaced by Stop during send)                             | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectInputDisabledAndStopShownDuringSend()`, `waitForResponse()`                                                                                                                                                                                                                            |
+| UX-036 (thinking indicator appears then clears)                                        | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectThinkingVisible()`, `waitForResponse()`, `expectThinkingGone()`                                                                                                                                                                                                                        |
+| UX-057 (header menu opens with expected items)                                         | `openHeaderMenu()`, `expectMenuVisible()`, `expectMenuItemTexts([...])`                                                                                                                                                                                                                                                                          |
+| UX-058 (outside click closes menu)                                                     | `openHeaderMenu()`, `clickOutsideMenu()`, `expectMenuHidden()`                                                                                                                                                                                                                                                                                   |
+| UX-059 (Escape closes menu) — **`test.fixme`**: component does not yet handle Escape   | `openHeaderMenu()`, `closeMenuWithEscape()`, `expectMenuHidden()`                                                                                                                                                                                                                                                                                |
+| UX-060 (Restart conversation clears messages)                                          | `typeMessage()`, `sendViaEnter()`, `waitForResponse()`, `openHeaderMenu()`, `clickRestartConversation()`, `expectEmptyState()`, `expectNoUserMessages()`                                                                                                                                                                                         |
+| LA-NEG-001 → 002 (LA absent off its intended surface)                                  | `expectNotPresent()` — on `voices.*` home and a voices sheet                                                                                                                                                                                                                                                                                     |
+| LA-LOGGED-OUT-001 → 002 (LA present for logged-out visitors)                           | `waitForReady()` — on logged-out Library home and reader pages (remote config `feature.chatbot.anonymous_enabled`, on by default)                                                                                                                                                                                                                |
+| LA-LOGGED-OUT-003 (logged-out visitor gets an answer)                                  | `expectAnswerShown()` — real round trip to the chat server with no user                                                                                                                                                                                                                                                                          |
+| LA-LOGGED-OUT-005 (sign-up options appear once the free answers are used up)           | `expectSignupOptionsHidden()` → `seedFreeAnswersUsedUp()` + reload → `expectSignupOptionsShown()`. The options are Sefaria's `SignupOptions` in the widget's `signup-options` slot (light DOM: `lc-chatbot > [slot="signup-options"]`)                                                                                                           |
+| LA-LOGGED-OUT-006 (Email opens the sign-up form)                                       | `signupOption('email')` → `onLoginPage().expectEmailSignupFormShown()`, `expectNotPresent()`; `recordAnalyticsEvents()` (a stubbed `window.gtag`) saw `auth_flow_started` (`rate_limit_login_button`, `registration`), `auth_method_chosen` (`email`), `auth_process_started`, and the assistant's `assistant_click` (`rate_limit_login_button`) |
+| LA-LOGGED-OUT-007 (Apple starts sign-up)                                               | `stubAppleSignIn()` → `signupOption('apple')` → the same three events, method `apple`, and `assistant_click`. Skipped when the sandbox has no Apple client ID                                                                                                                                                                                    |
+| LA-LOGGED-OUT-008 (Google's button is in place)                                        | `expectGoogleButtonOverGoogleOption()`: Google's iframe sits inside the Google circle. Its click can't be automated, so a real Google sign-up is checked by hand. Skipped when the sandbox has no Google client ID                                                                                                                               |
+| LA-LOGGED-OUT-009 (no sign-up options when logged in)                                  | `enLAUser` → `expectNoSignupOptions()`                                                                                                                                                                                                                                                                                                           |
+| LA-LOGGED-OUT-010 (sign-up options stay out of the page if the assistant doesn't load) | `blockAssistantScript(context)` before navigating (aborts `lc-chatbot.umd.cjs` / the local `src/main.js`) → `expectSignupOptionsRenderedButNotShown()`. Guards against the slot content showing in `#main` while `<lc-chatbot>` is undefined (the `lc-chatbot:not(:defined) > [slot]` rule in `s2.css`)                                          |
+| LA-LOGGED-OUT-004 (logout clears the saved chat)                                       | `seedSavedChat()` + the `lc_chatbot_clear` cookie a logout sets → reload → `savedChatKeys()` empty and cookie gone                                                                                                                                                                                                                               |
 
 State helpers (use these liberally at the top of a test to reach a known state):
 
@@ -153,7 +161,7 @@ async expectTextareaContains(substr: string): Promise<void> {
 ```ts
 test('UX-025: Shift+Enter inserts a newline and does not send', async () => {
   await pm.onLibraryAssistant().ensureOpen();
-  const before = await pm.onLibraryAssistant().userMessageCount?.() ?? 0;
+  const before = (await pm.onLibraryAssistant().userMessageCount?.()) ?? 0;
   await pm.onLibraryAssistant().typeMessage('line1');
   await pm.onLibraryAssistant().pressShiftEnter();
   await pm.onLibraryAssistant().expectTextareaContains('line1\n');
@@ -176,7 +184,7 @@ npx playwright test --project=chrome-assistant -g 'UX-025'
 
 1. **`default-open="true"` means "closed" is not the default.** Tests that need a closed panel (UX-001, UX-003) must call `ensureClosed()` first. Don't assume a fresh context starts with the panel closed.
 2. **Shadow DOM piercing is free** with Playwright's native locators. Do not reach for `page.evaluate(...)` unless role/label/CSS can't get there.
-3. **Svelte input binding requires real input events.** `page.fill()` and `page.type()` work. Setting `textarea.value` via `page.evaluate(...)` does *not* flip the send button to enabled.
+3. **Svelte input binding requires real input events.** `page.fill()` and `page.type()` work. Setting `textarea.value` via `page.evaluate(...)` does _not_ flip the send button to enabled.
 4. **Send round-trip is long.** Global test timeout is `t(50000)` — any test that actually sends must bump with `test.setTimeout(t(90000))`. The `waitForResponse()` helper expects the textarea to re-enable within that window.
 5. **Use `.last()` on message selectors.** `BROWSER_SETTINGS.enLAUser` persists storage state (including any chat localStorage written at login), so historical messages may be present. Latest-match assertions are robust to that.
 6. **The written test plan can be wrong — trust the DOM.** UX-021 claims a 500-char limit; the actual `maxlength` on the textarea is 10000. When the plan contradicts the observed DOM, trust the DOM and note it in a comment.
@@ -221,8 +229,9 @@ const info = await page.evaluate(() => {
     hasShadowRoot: !!host?.shadowRoot,
     containerClass: host?.shadowRoot?.querySelector('.lc-chatbot-container')?.className,
     // listing visible buttons in the shadow root
-    buttons: Array.from(host?.shadowRoot?.querySelectorAll('button[aria-label]') || [])
-      .map(b => b.getAttribute('aria-label')),
+    buttons: Array.from(host?.shadowRoot?.querySelectorAll('button[aria-label]') || []).map((b) =>
+      b.getAttribute('aria-label')
+    ),
   };
 });
 console.log(info);
@@ -234,77 +243,74 @@ If the host is missing entirely: the user isn't whitelisted for LA, or storage s
 
 ## 9. File map
 
-| File | Purpose |
-| --- | --- |
-| [library-assistant.spec.ts](library-assistant.spec.ts) | **English** spec: 16 behavioral tests (UX-001, 003, 004, 013, 014, 022, 023, 024, 026, 027, 036, 057, 058, 059 *(fixme)*, 060, 085) + 4 visibility-boundary tests (LA-NEG-001 → 004) |
-| [library-assistant-hebrew.spec.ts](library-assistant-hebrew.spec.ts) | **Hebrew** spec mirroring the English one (UX-… `(HE)` + LA-NEG-HE-001/003/004). Runs in parallel; see §12 |
-| [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) | Page object — all LA interactions; language-parameterized via `LA_LABELS[this.language]` (§11) |
-| [../pages/pageManager.ts](../pages/pageManager.ts) | Registers `pm.onLibraryAssistant()` |
-| [../globals.ts](../globals.ts) | `testLAUser` / `testHeLAUser`, `AUTH_PATHS.enLAUserFile` / `heLAUserFile`, `BROWSER_SETTINGS.enLAUser` / `heLAUser` |
-| [../.env](../.env) | `PLAYWRIGHT_LA_USER_*` (English) and `PLAYWRIGHT_LA_USER_HE_*` (Hebrew) credentials |
-| [../../playwright.config.ts](../../playwright.config.ts) | `chrome-assistant` project definition (runs both specs) |
+| File                                                                 | Purpose                                                                                                                                                                         |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [library-assistant.spec.ts](library-assistant.spec.ts)               | **English** spec: 15 behavioral tests (UX-001, 003, 004, 013, 014, 022, 023, 024, 026, 027, 036, 057, 058, 059 _(fixme)_, 060) + 4 visibility-boundary tests (LA-NEG-001 → 004) |
+| [library-assistant-hebrew.spec.ts](library-assistant-hebrew.spec.ts) | **Hebrew** spec mirroring the English one (UX-… `(HE)` + LA-NEG-HE-001/003/004). Runs in parallel; see §12                                                                      |
+| [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) | Page object — all LA interactions; labels looked up by translation key (§11)                                                                                                    |
+| [../pages/pageManager.ts](../pages/pageManager.ts)                   | Registers `pm.onLibraryAssistant()`                                                                                                                                             |
+| [../globals.ts](../globals.ts)                                       | `testLAUser` / `testHeLAUser`, `AUTH_PATHS.enLAUserFile` / `heLAUserFile`, `BROWSER_SETTINGS.enLAUser` / `heLAUser`                                                             |
+| [../.env](../.env)                                                   | `PLAYWRIGHT_LA_USER_*` (English) and `PLAYWRIGHT_LA_USER_HE_*` (Hebrew) credentials                                                                                             |
+| [../../playwright.config.ts](../../playwright.config.ts)             | `chrome-assistant` project definition (runs both specs)                                                                                                                         |
 
 ---
 
 ## 10. What's still TODO
 
-These UX IDs are planned but *not* yet implemented (the ranges below exclude everything already covered in §5 / §9). Add them following the recipe in §6:
+These UX IDs are planned but _not_ yet implemented (the ranges below exclude everything already covered in §5 / §9). Add them following the recipe in §6:
 
 - Panel layout / resize: UX-005 — UX-012
 - Empty state, placeholder, draft persistence, char limit: UX-017 — UX-021
 - Message rendering (markdown, links, citations, sanitization): UX-028 — UX-035
-- Thinking / tool progress states: UX-037 — UX-039 *(UX-036 done)*
+- Thinking / tool progress states: UX-037 — UX-039 _(UX-036 done)_
 - Error + retry: UX-040, UX-041
 - Conversation history / scroll: UX-042 — UX-045
 - Feedback (inline + modal): UX-046 — UX-056
-- Header menu deep dives: UX-061 — UX-064 *(UX-057 → UX-060 done; UX-059 is implemented but `test.fixme` pending a component Escape-to-close fix)*
-- Moderator settings panel: UX-065 — UX-070. The QA user *is* staff/moderator and already sees the `Settings` menu entry (covered by UX-057), so the deeper settings-panel flows are reachable and just need writing.
-- Accessibility, theming, session, embedding, responsive: UX-071 — UX-084 *(UX-085 done)*
+- Header menu deep dives: UX-061 — UX-064 _(UX-057 → UX-060 done; UX-059 is implemented but `test.fixme` pending a component Escape-to-close fix)_
+- Moderator settings panel: UX-065 — UX-070. The QA user _is_ staff/moderator and already sees the `Settings` menu entry (covered by UX-057), so the deeper settings-panel flows are reachable and just need writing.
+- Accessibility, theming, session, embedding, responsive: UX-071 — UX-084 _(UX-085, "LA hidden at 375px", was removed when the LA gained mobile support — phone coverage now lives in the LA-_ Q4 stories, see §13)*
 
 When tackling any of these, first check whether the page object already covers the interaction. If so, just write the spec. If not, add a small, named method — don't inline raw locators in the spec file (per [../CLAUDE.md](../CLAUDE.md) §2).
 
 ---
 
-## 11. Bilingual label reference (verified against the LIVE component)
+## 11. Bilingual label reference (looked up by translation key)
 
-The deployed component runs a `svelte-i18n` build (`interface-lang="en"` / `"he"`) and renders every label from a catalog. The strings below were captured from the **live deployed shadow DOM** in each language (not read from source — the source `he.json` differs from prod in several places, e.g. source `שלח`/`סגור` vs deployed `שליחה`/`סגירה`). They live in `LA_LABELS` in [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts); the POM picks the set from `this.language`, so specs never hardcode a label.
+The component runs a `svelte-i18n` build (`interface-lang="en"` / `"he"`) and renders every label from a catalog. The page object does **not** type the words out: `labelsFor()` in [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) reads each label by key from ai-chatbot's `src/i18n/locales/{en,he}.json` through [../support/assistantStrings.ts](../support/assistantStrings.ts). So a Weblate copy edit doesn't break the suite, and the suite needs `AI_CHATBOT_REPO_PATH` (default `../ai-chatbot`) checked out at the ai-chatbot version the site under test runs. The lookup happens on first use, so specs that never touch the LA don't need the checkout.
 
-| Element | English (live) | Hebrew (live) |
-| --- | --- | --- |
-| Trigger button (`aria-label`) | `Open Library Assistant` | `פתיחת עוזר הספרייה` |
-| Trigger pill text | `LIBRARY ASSISTANT` | `עוזר הספרייה` |
-| Dialog (`aria-label`) | `Chat window` | `חלון שיחה` |
-| Close (`title`/`aria`) | `Close` | `סגירה` |
-| Dock (floating→docked) | `Dock Assistant` | `הצמדת עוזר הספרייה` |
-| Undock (docked→floating) | `Undock Assistant` | `חזרה למצב צף` |
-| More options | `More options` | `אפשרויות נוספות` |
-| Prompt input (`aria`) | `Prompt input` | `שדה טקסט` |
-| Input placeholder | `What are you learning today?` | `מה נלמד היום?` |
-| Send (`aria`) | `Send` | `שליחה` |
-| Menu items (in order) | `Restart chat` / `Give feedback` / `Help` / `Opt out in Settings` | `התחלת שיחה מחדש` / `שליחת משוב` / `עזרה` / `כיבוי בהגדרת` |
-| Settings menu item (moderator-only) | `Settings` | `הגדרות` |
-| Restart menu item (`aria`) | `Restart convo` | `התחלת שיחה מחדש` |
-| Thinking indicator text | `Thinking` | `Thinking` *(English in both — the Hebrew string is not yet wired in prod; `expectThinkingVisible()` is intentionally language-invariant)* |
+| Element                                                       | Key                                                                                                                                      | English today                                                                                                                                       |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trigger button (`aria-label`)                                 | `assistant.header.openAssistant`                                                                                                         | `Open Library Assistant`                                                                                                                            |
+| Dialog (`aria-label`)                                         | `assistant.header.chatWindow`                                                                                                            | `Chat window`                                                                                                                                       |
+| Close (`title`/`aria`)                                        | `assistant.header.close.tooltip`                                                                                                         | `Close`                                                                                                                                             |
+| Dock header button (floating→docked)                          | `assistant.header.dock.tooltip`                                                                                                          | `Maximize & move to sidebar`                                                                                                                        |
+| Undock header button (docked→floating)                        | `assistant.header.undock.tooltip`                                                                                                        | `Minimize & detach from sidebar`                                                                                                                    |
+| More options                                                  | `assistant.header.moreOptions`                                                                                                           | `More options`                                                                                                                                      |
+| Prompt input (`aria`)                                         | `assistant.input.aria`                                                                                                                   | `Prompt input`                                                                                                                                      |
+| Send (`aria`)                                                 | `assistant.input.send.tooltip`                                                                                                           | `Send`                                                                                                                                              |
+| Stop (`aria`), replaces Send while an answer is being written | `assistant.stop.aria`                                                                                                                    | `Stop`                                                                                                                                              |
+| Menu items, panel floating (in order)                         | `assistant.history.header.new.tooltip`, `assistant.menu.dock`, `assistant.menu.feedback`, `assistant.menu.help`, `assistant.menu.optout` | `New chat` / `Maximize & move to sidebar` / `Give feedback` / `Help` / `Disable in settings`                                                        |
+| Settings menu item (moderator-only)                           | `assistant.menu.settings`                                                                                                                | `Settings`                                                                                                                                          |
+| Restart menu item (`aria`)                                    | `assistant.menu.restart.aria`                                                                                                            | `Restart convo`                                                                                                                                     |
+| Thinking indicator text (`.lc-thinking-block`)                | `assistant.loading.initial`, then `assistant.thinking.array.NN` in turn, then `assistant.thinking.final`                                 | `Thinking`, then `Interpreting your question`, `Searching the library`, … `Synthesizing response` _(`expectThinkingVisible()` accepts any of them)_ |
 
-> ⚠️ The pre-i18n English labels (`Close assistant`, `Send message`, `Dock assistant to side`, `Restart conversation`, `Opt-out in Settings`) are **gone** from prod. If you see them anywhere, they're stale — use the table above.
-
-**Menu & moderator status.** The `Settings` item renders only for Django-**staff** accounts (the chatbot's `is-moderator` branch) — so the menu is **4 items** for a normal account, **5** (Settings first) for staff. `expectedMenuTexts(isModerator)` builds the right list; pass `BROWSER_SETTINGS.<profile>.isModerator`. `enLAUser` is staff (`true`); `heLAUser` tracks the real `qa+automationLAHebrew` account — flip its `isModerator` flag in [../globals.ts](../globals.ts) if that account's staff status changes.
+**Menu & moderator status.** The `Settings` item renders only for Django-**staff** accounts (the chatbot's `is-moderator` branch) — so the menu is **5 items** for a normal account, **6** (Settings first) for staff. The dock item names the _other_ mode (`assistant.menu.dock` while floating, `assistant.menu.undock` while docked), so call `ensureFloating()` before checking the list. `expectedMenuTexts(isModerator)` builds the floating-mode list; pass `BROWSER_SETTINGS.<profile>.isModerator`. `enLAUser` is staff (`true`); `heLAUser` tracks the real `qa+automationLAHebrew` account — flip its `isModerator` flag in [../globals.ts](../globals.ts) if that account's staff status changes.
 
 ---
 
 ## 12. Testing the Hebrew LA — why it uses a dedicated account
 
-Sefaria's MDL prod is **cross-TLD**: English = `www.sefaria.org`, Hebrew = `www.sefaria.org.il` (a *different registrable domain*). The single fact that determines the setup:
+Sefaria's MDL prod is **cross-TLD**: English = `www.sefaria.org`, Hebrew = `www.sefaria.org.il` (a _different registrable domain_). The single fact that determines the setup:
 
-> **A logged-in user is routed server-side (HTTP 302) to the domain matching their *account's* Site-Language preference.** It is **not** overridable by the `interfaceLang` cookie or `?lang=he` — the redirect fires before any page JS.
+> **A logged-in user is routed server-side (HTTP 302) to the domain matching their _account's_ Site-Language preference.** It is **not** overridable by the `interfaceLang` cookie or `?lang=he` — the redirect fires before any page JS.
 
 Consequences (all verified live):
 
 - An **English-preference** account is always bounced to `.org`/English when logged in — even on a direct `.il` navigation, and regardless of how its session was obtained. So it can never render the Hebrew LA.
-- Logged **out**, `.il` stays Hebrew — which is why the older `heUser`/`heAdmin` tests "work": they run *anonymously* on `.il` (the `.org` session cookie isn't sent cross-TLD, so they were never logged in there).
+- Logged **out**, `.il` stays Hebrew — which is why the older `heUser`/`heAdmin` tests "work": they run _anonymously_ on `.il` (the `.org` session cookie isn't sent cross-TLD, so they were never logged in there).
 - Therefore a logged-in **Hebrew** LA session requires an account whose Site-Language is **Hebrew**. One account has a single language preference, so this is necessarily a **separate** account from the English `enLAUser` — not a cookie/flip trick on the shared one.
 
-> Note: Sefaria does **not** invalidate concurrent sessions for the same user (verified — a second login does not kill the first), so multiple accounts/logins coexist freely. The dedicated Hebrew account is needed purely because of the *language-routing* redirect above, not for any session reason.
+> Note: Sefaria does **not** invalidate concurrent sessions for the same user (verified — a second login does not kill the first), so multiple accounts/logins coexist freely. The dedicated Hebrew account is needed purely because of the _language-routing_ redirect above, not for any session reason.
 
 **How it's wired (standard, fully parallel):**
 
@@ -321,3 +327,67 @@ Consequences (all verified live):
 If those creds are missing, `global-setup` skips the account with a warning and the Hebrew tests fail with a clear "auth file missing" error.
 
 See also [../CLAUDE.md](../CLAUDE.md) and the memory note "Hebrew logged-in needs a HE-preference account".
+
+---
+
+## 13. Q4 package stories (LA-BTN / LA-ENTRY / LA-PHONE / LA-COOKIE / LA-NOTE / LA-RTL)
+
+Written **test-first** from the "Library Assistant behavior stories for automated tests" doc, so they fail until the features land.
+
+| File                                                                                             | What                                                                                                           |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| [library-assistant-q4-desktop.spec.ts](library-assistant-q4-desktop.spec.ts)                     | `@desktop` stories + LA-BTN-8, LA-ENTRY-2 (desktop config, `chrome-assistant`)                                 |
+| [../mobile web/library-assistant-phone.spec.ts](../mobile%20web/library-assistant-phone.spec.ts) | `@phone` stories + LA-PHONE-1, LA-PHONE-11 (mobile config)                                                     |
+| [../pages/libraryAssistantQ4Page.ts](../pages/libraryAssistantQ4Page.ts)                         | Page object, `pm.onLibraryAssistantQ4()`                                                                       |
+| [../support/chatServerMock.ts](../support/chatServerMock.ts)                                     | Fake chat server (`page.route`) — choose an answer's text and when it arrives                                  |
+| [../support/assistantStrings.ts](../support/assistantStrings.ts)                                 | Copy by translation key; reads ai-chatbot's locale files from `AI_CHATBOT_REPO_PATH` (default `../ai-chatbot`) |
+| [../support/motionAnalysis.ts](../support/motionAnalysis.ts)                                     | Turns per-frame position samples into bounce / slide facts                                                     |
+
+- **Copy by key, never by words.** The stories require it, so a Weblate edit can't break a test.
+- **The chat server is faked**, so these tests don't need the AI backend and run in seconds.
+- **Touch drags need Chromium.** Drags and swipes go through the Chromium DevTools protocol, so those tests (or steps) are skipped on WebKit.
+- **LA-NOTE-4 is not written.** The stories don't say when the button reads "Search with Library Assistant".
+
+```bash
+npx playwright test --project=chrome-assistant library-assistant-q4-desktop
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-phone
+```
+
+### Search with no results (LA-NULL-*)
+
+Also test-first, same helpers as above.
+
+| File                                                                                                                     | What                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| [library-assistant-null-search-desktop.spec.ts](library-assistant-null-search-desktop.spec.ts)                           | Every LA-NULL story on desktop (`chrome-assistant`)                                  |
+| [../mobile web/library-assistant-null-search-phone.spec.ts](../mobile%20web/library-assistant-null-search-phone.spec.ts) | The `@phone` ones: LA-NULL-1, LA-NULL-5, LA-NULL-16 and LA-NULL-19 (mobile config)   |
+| [../support/nullStateRecorder.ts](../support/nullStateRecorder.ts)                                                       | Records every version of the "no results" box from before the page loads (LA-NULL-3) |
+
+- **"Assistant on"** is `enLAUser` / `heLAUser`; **"assistant off"** is `enUser`, which never gets the assistant.
+- **The question the button sends** is read from Sefaria's `search.no_results.library_assistant_question` key.
+- **"Library Assistant" in the text is a link** (LA-NULL-16 → 18) that sends the same question as the button; the two share one "already asked". It's part of the sentence, not a button, so LA-NULL-1's "no button on the page" check leaves it out. LA-NULL-18 also needs the widget change from Sefaria/ai-chatbot#242 (commit 0efd3cf).
+- **Logged-out stories run as a visitor nobody logged in as** (`goToPageWithLang`): the logged-out rows of LA-NULL-1 and LA-NULL-16, and LA-NULL-8 → 12, each of which runs once by the button and once by the link (LA-NULL-17, logged out). The fake chat server gives them a few free answers and counts them the way ai-chatbot's server does.
+
+```bash
+npx playwright test --project=chrome-assistant library-assistant-null-search-desktop
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-null-search-phone
+```
+
+### QA changes (LA-QA-*)
+
+Stories added after QA on phones and the header pill. Every test is tagged `@qa`, so they can run apart from the original-spec stories. There is no LA-QA-1 (that change was dropped).
+
+| File                                                                                                   | What                                                                                 |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| [library-assistant-qa-desktop.spec.ts](library-assistant-qa-desktop.spec.ts)                           | LA-QA-4 (header pill shortens or hides), and the desktop half of LA-QA-6 and LA-QA-7 |
+| [../mobile web/library-assistant-qa-phone.spec.ts](../mobile%20web/library-assistant-qa-phone.spec.ts) | LA-QA-3, 5, 8, and the phone half of LA-QA-6 and LA-QA-7 (mobile config)             |
+| [../support/longConversation.ts](../support/longConversation.ts)                                       | Builds a chat long enough to scroll, for the "where is the chat scrolled" stories    |
+
+- **The keyboard stories are left to manual QA on a real phone**: a browser emulating a phone has no on-screen keyboard. That's LA-QA-2, and LA-QA-3's rows where the keyboard opens or closes; they have no tests here. LA-QA-3's "text box grows to a second line" row and LA-QA-5 (Stop glides to its notice) don't need the keyboard and run; LA-QA-5 checks "the keyboard stays closed" as "the text box isn't focused". LA-QA-8 runs, but its "while the keyboard closes" step is skipped (noted in the report).
+- **LA-QA-4's logged-out rows run as a visitor nobody logged in as**, next to the signed-in row.
+- **Changed with these:** LA-ENTRY-2 now checks 1000px instead of 900px (at 900px the pill reads "✦ Ask"), LA-NOTE-3 checks the assistant opens on the start of the late answer, and LA-NULL-9's placeholder steps allow "where the visitor left it".
+
+```bash
+npx playwright test --project=chrome-assistant library-assistant-qa-desktop
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library library-assistant-qa-phone
+```

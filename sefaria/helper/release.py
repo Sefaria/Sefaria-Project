@@ -6,16 +6,17 @@ records are visible. Releasing writes the shared database; the public servers ke
 memory and learn of the change through the existing refresh URLs, which staff call on the public site
 afterwards (each response lists them under `refresh`).
 """
+
 from bson.objectid import ObjectId
 from pymongo import UpdateOne
 
-from sefaria.model import Category, Index, Version, VersionSet, LinkSet, Ref, library, log_update
+from sefaria import tracker
+from sefaria.model import Category, Index, LinkSet, Ref, Version, VersionSet, library, log_update
 from sefaria.model.abstract import show_unreleased_content
 from sefaria.model.text import unreleased_category_path, unreleased_index_titles
 from sefaria.settings import SEARCH_INDEX_ON_SAVE
 from sefaria.system.database import db
-from sefaria.system.exceptions import InputError, BookNameError
-from sefaria import tracker
+from sefaria.system.exceptions import BookNameError, InputError
 
 
 def _require_staff_site():
@@ -33,7 +34,7 @@ def _load_index(title):
     try:
         return library.get_index(title)
     except BookNameError:
-        raise InputError("No book called {}.".format(title))
+        raise InputError(f"No book called {title}.")
 
 
 def _release_record(user, record):
@@ -50,11 +51,17 @@ def _queue_version_for_search(version):
         return
     index = version.get_index()
     # Upsert: a segment may already be queued, and the queue is unique on (lang, version, ref).
-    db.index_queue.bulk_write([
-        UpdateOne({"ref": oref.normal(), "lang": version.language, "version": version.versionTitle},
-                  {"$setOnInsert": {"type": "ref"}}, upsert=True)
-        for oref in index.all_segment_refs()
-    ], ordered=False)
+    db.index_queue.bulk_write(
+        [
+            UpdateOne(
+                {"ref": oref.normal(), "lang": version.language, "version": version.versionTitle},
+                {"$setOnInsert": {"type": "ref"}},
+                upsert=True,
+            )
+            for oref in index.all_segment_refs()
+        ],
+        ordered=False,
+    )
 
 
 def _refresh_urls(*paths):
@@ -110,28 +117,37 @@ def release_category(user, body):
         raise InputError("Category {} is already public.".format("/".join(category.path)))
     parent = category._unreleased_parent()
     if parent:
-        raise InputError("Can not release {} while {} is unreleased.".format(category, parent))
+        raise InputError(f"Can not release {category} while {parent} is unreleased.")
     if not body.get("dry_run"):
         _release_record(user, category)
-    return {"released": "/".join(category.path), "dry_run": bool(body.get("dry_run")), "refresh": _refresh_urls("/admin/reset/toc")}
+    return {
+        "released": "/".join(category.path),
+        "dry_run": bool(body.get("dry_run")),
+        "refresh": _refresh_urls("/admin/reset/toc"),
+    }
 
 
 def release_version(user, body):
     _require_staff_site()
     _required(body, "title", "versionTitle", "language")
-    version = Version().load({"title": body["title"], "versionTitle": body["versionTitle"], "language": body["language"]})
+    version = Version().load(
+        {"title": body["title"], "versionTitle": body["versionTitle"], "language": body["language"]}
+    )
     if not version:
         raise InputError("No version {} / {} / {}.".format(body["title"], body["versionTitle"], body["language"]))
     if not version.is_unreleased():
-        raise InputError("Version {} is already public.".format(version.versionTitle))
+        raise InputError(f"Version {version.versionTitle} is already public.")
     parent = version._unreleased_parent()
     if parent:
-        raise InputError("Can not release {} while {} is unreleased.".format(version, parent))
+        raise InputError(f"Can not release {version} while {parent} is unreleased.")
     if not body.get("dry_run"):
         tracker.update_version_metadata(user, version, {"unreleased": None})
         _queue_version_for_search(version)
-    return {"released": version.versionTitle, "dry_run": bool(body.get("dry_run")),
-            "refresh": _refresh_urls("/admin/reset/{}".format(version.title))}
+    return {
+        "released": version.versionTitle,
+        "dry_run": bool(body.get("dry_run")),
+        "refresh": _refresh_urls(f"/admin/reset/{version.title}"),
+    }
 
 
 def release_links(user, body):
@@ -150,7 +166,7 @@ def release_links(user, body):
     for link in LinkSet(_links_query(index_title=body.get("index"), ids=body.get("ids"))):
         parent = link._unreleased_parent()
         if parent:
-            skipped.append({"id": str(link._id), "refs": link.refs, "reason": "{} is unreleased".format(parent)})
+            skipped.append({"id": str(link._id), "refs": link.refs, "reason": f"{parent} is unreleased"})
         else:
             releasable.append(link._id)
     if releasable and not dry_run:
@@ -165,10 +181,10 @@ def release_index(user, body):
     dry_run = bool(body.get("dry_run"))
     index = _load_index(body["title"])
     if not index.is_unreleased():
-        raise InputError("{} is already public.".format(index.title))
+        raise InputError(f"{index.title} is already public.")
     parent = index._unreleased_parent()
     if parent:
-        raise InputError("Can not release {} while {} is unreleased.".format(index.title, parent))
+        raise InputError(f"Can not release {index.title} while {parent} is unreleased.")
     result = {"released": index.title, "dry_run": dry_run, "versions": [], "links": None}
     if not dry_run:
         _release_record(user, index)
@@ -181,5 +197,5 @@ def release_index(user, body):
     if body.get("include_links"):
         # In a dry run the book is still unreleased, so every one of its links would report as blocked by it.
         result["links"] = None if dry_run else release_links(user, {"index": index.title})
-    result["refresh"] = _refresh_urls("/admin/reset/{}".format(index.title), "/admin/reset/ac", "/admin/reset/linker-resolvers")
+    result["refresh"] = _refresh_urls(f"/admin/reset/{index.title}", "/admin/reset/ac", "/admin/reset/linker-resolvers")
     return result

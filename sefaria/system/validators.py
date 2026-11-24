@@ -5,10 +5,17 @@ Useful for validating model schemas when overriding AbstractMongoRecord._validat
 
 import urllib.parse
 from urllib.parse import urlparse
-from django.core.validators import URLValidator
+
 from django.core.exceptions import ValidationError
-from sefaria.system.exceptions import SchemaValidationException, SchemaInvalidKeyException, SchemaRequiredFieldException\
-    , InvalidHTTPMethodException, InvalidURLException
+from django.core.validators import URLValidator
+
+from sefaria.system.exceptions import (
+    InvalidHTTPMethodException,
+    InvalidURLException,
+    SchemaInvalidKeyException,
+    SchemaRequiredFieldException,
+    SchemaValidationException,
+)
 
 
 def validate_url(url):
@@ -41,5 +48,4 @@ def validate_http_method(method):
     # Convert the method to uppercase and check if it's in the list of valid methods
     if method.upper() in valid_methods:
         return True
-    else:
-        raise InvalidHTTPMethodException(method)
+    raise InvalidHTTPMethodException(method)

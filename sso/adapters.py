@@ -15,6 +15,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from google.cloud.exceptions import GoogleCloudError
 from PIL import Image
 
+from api.tasks import dispatch_copy_learning_level_from_ac
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.file import get_resized_file
@@ -74,6 +75,17 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
         # emailusernames requires username == email
         user.username = user.email
 
+    def confirm_email(self, request, email_address):
+        # allauth's own confirm page (/accounts/confirm-email/<key>/) and headless verify endpoint accept the key of an
+        # emailed developer-settings link, because it is an allauth confirmation key. They would confirm it without the
+        # account's row lock and the checks of powered_by.developer.confirm_email. allauth sends no confirmation mail of
+        # its own here (ACCOUNT_EMAIL_VERIFICATION is "none"), so refusing every other confirmation loses nothing.
+        from powered_by.developer import EMAIL_CONFIRMATION_FLAG
+
+        if not getattr(request, EMAIL_CONFIRMATION_FLAG, False):
+            return False
+        return super().confirm_email(request, email_address)
+
     def is_safe_url(self, url):
         # DefaultAccountAdapter.is_safe_url falls back to settings.ALLOWED_HOSTS, which
         # we run as ["*"] in production for multi-domain routing (see DOMAIN_MODULES).
@@ -109,7 +121,6 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
 
 
 class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
-
     def pre_social_login(self, request, sociallogin):
         """
         Called after sociallogin.lookup() has run (so is_existing already
@@ -156,7 +167,9 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         After the base implementation creates the Django User and SocialAccount
         row, we:
-        1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic)
+        1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic),
+           then start copying their newsletter learning level from ActiveCampaign
+           in the background
         2. Register the user in Salesforce CRM — wrapped in its own try/except
            so a CRM outage doesn't affect the user or profile already created above
 
@@ -179,6 +192,8 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         import_gravatar(p)
         p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
+        # After the last save: the copy runs in the background and only fills in an empty learning level
+        dispatch_copy_learning_level_from_ac(p)
 
         try:
             CrmMediator().create_crm_user(

@@ -19,15 +19,17 @@ Writes to MongoDB Collection: history
 
 """
 
-import regex as re
 from datetime import datetime
+
+import regex as re
 from diff_match_patch import diff_match_patch
 
 dmp = diff_match_patch()
 
-from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.system.progress_context import report_progress
+
+from . import abstract as abst
 
 
 def diff_strings(old_string, new_string):
@@ -85,7 +87,7 @@ def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
         "date": datetime.now(),
         # "revision": next_revision_num(),
         "message": kwargs.get("message", ""),  # is this used?
-        "rev_type": "{} text".format(action),
+        "rev_type": f"{action} text",
         "method": kwargs.get("method", "Site"),
     }
     if kwargs.get("_unreleased"):
@@ -96,19 +98,19 @@ def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
 
 def log_update(user, klass, old_dict, new_dict, **kwargs):
     kind = klass.history_noun
-    rev_type = "edit {}".format(kind)
+    rev_type = f"edit {kind}"
     return _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs)
 
 
 def log_delete(user, klass, old_dict, **kwargs):
     kind = klass.history_noun
-    rev_type = "delete {}".format(kind)
+    rev_type = f"delete {kind}"
     return _log_general(user, kind, old_dict, None, rev_type, **kwargs)
 
 
 def log_add(user, klass, new_dict, **kwargs):
     kind = klass.history_noun
-    rev_type = "add {}".format(kind)
+    rev_type = f"add {kind}"
     return _log_general(user, kind, None, new_dict, rev_type, **kwargs)
 
 
@@ -156,7 +158,7 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
     if kind == "note":
         # Don't log any changes to private notes, even notes that had been previously private - since the old version will be shown in history
         if (new_dict and not new_dict.get("public")) or (old_dict and not old_dict.get("public")):
-            return
+            return None
 
     # TODO: added just for link, but should check if this can be added for any object
     # Appears to be conflict with text.method

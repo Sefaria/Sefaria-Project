@@ -2,14 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Util from '../sefaria/util';
 
-
-
 /**
  *
  * Button component - keep this clean and minimal.
  * Stick to the defined variants where possible and avoid adding new ones.
  * Use className only for edge cases requiring specific styling (e.g. A button implementation with a color not according to the theme) - prefer existing variants.
- * 
+ *
  * @param variant can be empty or "secondary" or "icon-only"
  * @param size can be empty or "large", "small" or "fullwidth"
  * @param icon only the name of the icon without the extension
@@ -28,7 +26,7 @@ import Util from '../sefaria/util';
 const Button = ({
   variant = 'sefaria-common-button',
   size = '',
-  icon=null,
+  icon = null,
   children,
   onClick,
   disabled = false,
@@ -40,7 +38,7 @@ const Button = ({
   ariaLabel,
 }) => {
   const buttonClasses = `${variant} ${size} ${className}`;
-  const rel = target === "_blank" ? "noopener noreferrer" : null;
+  const rel = target === '_blank' ? 'noopener noreferrer' : null;
 
   // We want to use the correct <a> tag for links. This keeps things semantically correct for accessibility. It also keeps the right click menue suitable.
   // For accessibility we can't have nested buttons (current pattern is <Button><a>content<a><Button>).
@@ -53,13 +51,13 @@ const Button = ({
         onKeyDown={disabled ? null : (e) => Util.handleLinkSpaceKey(e, onClick)}
         tabIndex={0}
         role="button"
-        {...(!!target ? { target } : {})}
-        {...(!!rel ? { rel } : {})}
+        {...(target ? { target } : {})}
+        {...(rel ? { rel } : {})}
         {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
-        {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
-        {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
+        {...(targetModule ? { 'data-target-module': targetModule } : {})}
+        {...(activeModule ? { 'data-active-module': activeModule } : {})}
       >
-        {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt="" aria-hidden="true" />)}
+        {icon && <img src={`/static/icons/${icon}.svg`} className="button-icon" alt="" aria-hidden="true" />}
         {children}
       </a>
     );
@@ -68,12 +66,12 @@ const Button = ({
   return (
     <button
       disabled={disabled}
-      {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
+      {...(activeModule ? { 'data-active-module': activeModule } : {})}
       className={buttonClasses}
       onClick={onClick}
       {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
     >
-      {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt="" aria-hidden="true" />)}
+      {icon && <img src={`/static/icons/${icon}.svg`} className="button-icon" alt="" aria-hidden="true" />}
       {children}
     </button>
   );
@@ -83,14 +81,14 @@ const Button = ({
 // Making sure that ariaLabel is provided for icon-only buttons (icon without children) for accessibility
 const ariaLabelValidator = (props, propName, componentName) => {
   const ariaLabel = props[propName];
-  const {icon,  children} = props;
+  const { icon, children } = props;
 
   // Require ariaLabel only for icon-only buttons (icon present but no children)
   if (icon && !children && !ariaLabel) {
     return new Error(
       `Invalid prop \`${propName}\` supplied to \`${componentName}\`. ` +
-      `\`${propName}\` is required for icon-only buttons (buttons with icon but no children) for accessibility. ` +
-      `Please provide descriptive ariaLabel text for the button.`
+        `\`${propName}\` is required for icon-only buttons (buttons with icon but no children) for accessibility. ` +
+        `Please provide descriptive ariaLabel text for the button.`
     );
   }
 

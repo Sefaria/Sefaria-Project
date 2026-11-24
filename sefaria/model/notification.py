@@ -1,26 +1,24 @@
-# -*- coding: utf-8 -*-
-
 """
 notifications.py - handle user event notifications
 
 Writes to MongoDB Collection: notifications
 """
 
+import json
 import re
 from datetime import datetime
-import json
 
+import structlog
 from django.template.loader import render_to_string
+
+from sefaria.constants.model import VOICES_MODULE
+from sefaria.model.collection import Collection
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+from sefaria.utils.util import strip_tags
 
 from . import abstract as abst
 from . import user_profile
-from sefaria.model.collection import Collection
-from sefaria.utils.util import strip_tags
-from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
-from sefaria.constants.model import VOICES_MODULE
-
-import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -64,14 +62,14 @@ class GlobalNotification(abst.AbstractMongoRecord):
             self.content["index"] = i.title
 
     def _validate(self):
-        from sefaria.model.text import library, Version
+        from sefaria.model.text import Version, library
 
         if self.type == "index":
             assert self.content.get("index")
             index = library.get_index(self.content.get("index"))
             assert index
             if index.is_unreleased():
-                raise InputError("Can not notify about unreleased book {}.".format(index.title))
+                raise InputError(f"Can not notify about unreleased book {index.title}.")
         elif self.type == "version":
             i = self.content.get("index")
             v = self.content.get("version")
@@ -86,14 +84,14 @@ class GlobalNotification(abst.AbstractMongoRecord):
                     "language": l,
                 }
             )
-            assert version, "No Version Found: {}/{}/{}".format(i, v, l)
+            assert version, f"No Version Found: {i}/{v}/{l}"
             if version.is_unreleased() or library.get_index(i).is_unreleased():
-                raise InputError("Can not notify about unreleased version {}/{}.".format(i, v))
+                raise InputError(f"Can not notify about unreleased version {i}/{v}.")
         elif self.type == "general":
             assert self.content.get("en"), "Please provide an English message."
             assert self.content.get("he"), "Please provide a Hebrew message."
         else:
-            raise InputError("Unknown type for GlobalNotification: {}".format(self.type))
+            raise InputError(f"Unknown type for GlobalNotification: {self.type}")
 
     def _init_defaults(self):
         self.content = {}
@@ -132,14 +130,14 @@ class GlobalNotification(abst.AbstractMongoRecord):
         return self
 
     def contents(self):
-        d = super(GlobalNotification, self).contents()
+        d = super().contents()
         d["_id"] = self.id
         d["date"] = d["date"].isoformat()
 
         return d
 
     def client_contents(self):
-        n = super(GlobalNotification, self).contents(with_string_id=True)
+        n = super().contents(with_string_id=True)
         n["date"] = n["date"].timestamp()
         return n
 
@@ -151,8 +149,8 @@ class GlobalNotification(abst.AbstractMongoRecord):
 class GlobalNotificationSet(abst.AbstractMongoSet):
     recordClass = GlobalNotification
 
-    def __init__(self, query=None, page=0, limit=0, sort=[["_id", -1]]):
-        super(GlobalNotificationSet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+    def __init__(self, query=None, page=0, limit=0, sort=(("_id", -1),)):
+        super().__init__(query=query, page=page, limit=limit, sort=sort)
 
     def register_for_user(self, uid):
         for global_note in self:
@@ -195,7 +193,7 @@ class Notification(abst.AbstractMongoRecord):
 
         gnote = GlobalNotification().load({"_id": self.global_id})
         if gnote is None:
-            logger.error("Tried to load non-existent global notification: {}".format(self.global_id))
+            logger.error(f"Tried to load non-existent global notification: {self.global_id}")
         else:
             self.content = gnote.content
             self.type = gnote.type
@@ -272,10 +270,10 @@ class Notification(abst.AbstractMongoRecord):
         Returns contents of notification in format usable by client, including needed merged
         data from profiles, sheets, etc
         """
-        from sefaria.sheets import get_sheet_metadata
         from sefaria.model.following import FollowRelationship
+        from sefaria.sheets import get_sheet_metadata
 
-        n = super(Notification, self).contents(with_string_id=True)
+        n = super().contents(with_string_id=True)
         n["date"] = n["date"].timestamp()
         if "global_id" in n:
             n["global_id"] = str(n["global_id"])
@@ -338,8 +336,8 @@ class Notification(abst.AbstractMongoRecord):
 class NotificationSet(abst.AbstractMongoSet):
     recordClass = Notification
 
-    def __init__(self, query=None, page=0, limit=0, sort=[["date", -1]]):
-        super(NotificationSet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+    def __init__(self, query=None, page=0, limit=0, sort=(("date", -1),)):
+        super().__init__(query=query, page=page, limit=limit, sort=sort)
 
     def _add_global_messages(self, uid):
         """
@@ -406,7 +404,7 @@ class NotificationSet(abst.AbstractMongoSet):
 
     def actors_list(self):
         """Returns a unique list of user ids who acted in this notification set excluding likes"""
-        return list(set([n.actor_id for n in self if not n.type == "sheet like"]))
+        return list({n.actor_id for n in self if n.type != "sheet like"})
 
     def actors_string(self):
         """

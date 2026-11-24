@@ -6,22 +6,25 @@ Writes to MongoDB collection: history
 
 from datetime import datetime
 from urllib.parse import quote
-from diff_match_patch import diff_match_patch
-from bson.code import Code
 
+from bson.code import Code
+from diff_match_patch import diff_match_patch
+
+from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.model import *
 from sefaria.model.abstract import public_query
 from sefaria.system.database import db
-from sefaria.constants.model import get_direction_from_legacy_lang
 
 dmp = diff_match_patch()
 
 
-def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip=0):
+def get_activity(query=None, page_size=100, page=1, filter_type=None, initial_skip=0):
     """
     Returns a list of activity items matching query,
     joins with user info on each item and sets urls.
     """
+    if query is None:
+        query = {}
     query.update(filter_type_to_query(filter_type))
     skip = initial_skip + (page - 1) * page_size
     projection = {"revert_patch": 0}
@@ -155,7 +158,7 @@ def collapse_activity(activity):
     return collapsed
 
 
-def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=None):
+def get_maximal_collapsed_activity(query=None, page_size=100, page=1, filter_type=None):
     """
     Returns (activity, page) where
     activity is the collasped set of activity items, counting multiple consecutive actions as one
@@ -289,7 +292,7 @@ def top_contributors(days=None):
     return [{"user": l["_id"], "count": l["count"]} for l in leaders]
 
 
-def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=None, actions=[], api=False):
+def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=None, actions=(), api=False):
 
     condition = {}
 

@@ -11,14 +11,14 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 import sefaria.model as model
+from sefaria.constants.model import get_legacy_lang_from_direction
+from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
+from sefaria.settings import CELERY_ENABLED, USE_VARNISH
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
-from sefaria.constants.model import get_legacy_lang_from_direction
-from sefaria.settings import USE_VARNISH, CELERY_ENABLED
 
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
+    from sefaria.system.varnish.wrapper import invalidate_linked, invalidate_ref
 
 
 def modify_text(user, oref, vtitle, lang, text, vsource=None, direction=None, **kwargs):
@@ -43,7 +43,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, direction=None, **
     old_text = chunk.text
     chunk.text = text
     if vsource:
-        chunk.versionSource = vsource  # todo: log this change
+        chunk.versionSource = vsource  # TODO: log this change
     if chunk.save():
         skip_links = kwargs.pop("skip_links", False) or chunk.has_manually_wrapped_refs()
         count_after = kwargs.pop("count_after", 1)
@@ -80,7 +80,7 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
     def populate_change_map(old_text, en_tref, he_tref, _):
         nonlocal change_map, existing_tref_set
         existing_tref_set.add(en_tref)
-        new_text = text_map.get(en_tref, None)
+        new_text = text_map.get(en_tref)
         if new_text is None or new_text == old_text:
             return
         change_map[en_tref] = (old_text, new_text, model.Ref(en_tref))
@@ -97,7 +97,7 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
         change_map[new_tref] = ("", text_map[new_tref], model.Ref(new_tref))
 
     if vsource:
-        version.versionSource = vsource  # todo: log this change
+        version.versionSource = vsource  # TODO: log this change
 
     # modify version in place
     error_map = {}
@@ -168,8 +168,7 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
         for key, value in version_dict.items():
             if key == "chapter":
                 continue
-            else:
-                setattr(version, key, value)
+            setattr(version, key, value)
     else:
         is_version_new = True
         version = model.Version(version_dict)
@@ -316,15 +315,9 @@ def count_and_index(oref, lang, vtitle, to_count=1):
 
 
 def count_segments(index, skip_toc_refresh=False):
-    from sefaria.settings import MULTISERVER_ENABLED
-    from sefaria.system.multiserver.coordinator import server_coordinator
-
+    # When deferring, the caller is responsible for one global `library.rebuild_toc()`
+    # at the end of the batch.
     model.library.recount_index_in_toc(index, skip_toc_refresh=skip_toc_refresh)
-    if MULTISERVER_ENABLED and not skip_toc_refresh:
-        # When deferring, the caller is responsible for triggering one global
-        # `library.rebuild_toc` at the end of the batch (which itself publishes a
-        # multiserver event), so we skip the per-index publish here.
-        server_coordinator.publish_event("library", "recount_index_in_toc", [index.title])
 
 
 def add(user, klass, attrs, **kwargs):
@@ -381,7 +374,7 @@ def delete(user, klass, _id, **kwargs):
     """
     obj = klass().load_by_id(_id)
     if obj is None:
-        return {"error": "item with id: {} not found".format(_id)}
+        return {"error": f"item with id: {_id} not found"}
     if kwargs.get("callback"):
         kwargs.get("callback")(obj)
         del kwargs["callback"]

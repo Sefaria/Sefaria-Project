@@ -6,16 +6,17 @@ Enabled only where UNRELEASED_QA_TOOLS is on (the QA cauldron), and only on a st
 Remove before merging, together with the QA views and routes in api/release_views.py / urls_shared.py
 and the "QA: copy" buttons in static/js/ReleaseTools.jsx.
 """
+
 import copy
 import threading
 
 import structlog
 from django.conf import settings
 
+from sefaria import tracker
 from sefaria.model import Category, Index, Link, LinkSet, Ref, Version, VersionSet, library, log_add
 from sefaria.model.abstract import show_unreleased_content
 from sefaria.system.exceptions import BookNameError, DuplicateRecordError, InputError
-from sefaria import tracker
 
 logger = structlog.get_logger(__name__)
 
@@ -41,14 +42,14 @@ def _required(body, *keys):
 
 def _check_title(title):
     if "-" in title:
-        raise InputError("Titles may not contain hyphens: {}".format(title))
+        raise InputError(f"Titles may not contain hyphens: {title}")
 
 
 def _load_index(title):
     try:
         return library.get_index(title)
     except BookNameError:
-        raise InputError("No book called {}.".format(title))
+        raise InputError(f"No book called {title}.")
 
 
 def copy_category(user, body):
@@ -76,7 +77,7 @@ def _copy_ref(tref, source_title, new_title):
     """`tref` moved into the copy if it belongs to the source book ("Ruth 1:1" does, "Ruth Rabbah 1:1" doesn't)."""
     try:
         if Ref(tref).index.title == source_title:
-            return new_title + tref[len(source_title):]
+            return new_title + tref[len(source_title) :]
     except InputError:
         pass
     return tref
@@ -124,8 +125,15 @@ def copy_index(user, body):
     raw["title"] = new_title
     raw["categories"] = body.get("categories") or source.categories
     raw["unreleased"] = True
-    raw["schema"].update({"key": new_title, "titles": [{"lang": "en", "text": new_title, "primary": True},
-                                                       {"lang": "he", "text": he_title, "primary": True}]})
+    raw["schema"].update(
+        {
+            "key": new_title,
+            "titles": [
+                {"lang": "en", "text": new_title, "primary": True},
+                {"lang": "he", "text": he_title, "primary": True},
+            ],
+        }
+    )
     raw["schema"].pop("sharedTitle", None)
     raw["schema"].pop("match_templates", None)
     index = tracker.add(user, Index, raw, method=QA_METHOD)
@@ -141,8 +149,11 @@ def copy_index(user, body):
 
     copied_links, skipped_links = 0, 0
     for link in LinkSet(Ref(source.title), limit=max_links):
-        attrs = {k: v for k, v in link.contents().items()
-                 if k not in ("_id", "expandedRefs0", "expandedRefs1", "availableLangs", "source_text_oid")}
+        attrs = {
+            k: v
+            for k, v in link.contents().items()
+            if k not in ("_id", "expandedRefs0", "expandedRefs1", "availableLangs", "source_text_oid")
+        }
         attrs["refs"] = [_copy_ref(r, source.title, new_title) for r in link.refs]
         attrs["generated_by"] = QA_GENERATED_BY
         try:
@@ -151,15 +162,23 @@ def copy_index(user, body):
         except (DuplicateRecordError, InputError, AssertionError):
             skipped_links += 1
 
-    return {"copied": new_title, "unreleased": index.is_unreleased(), "versions": versions,
-            "links": copied_links, "skippedLinks": skipped_links, "url": "/" + new_title.replace(" ", "_")}
+    return {
+        "copied": new_title,
+        "unreleased": index.is_unreleased(),
+        "versions": versions,
+        "links": copied_links,
+        "skippedLinks": skipped_links,
+        "url": "/" + new_title.replace(" ", "_"),
+    }
 
 
 def copy_version(user, body):
     """An unreleased copy of a version on the same book, under a new version title."""
     _require_enabled()
     _required(body, "title", "versionTitle", "language", "newVersionTitle")
-    source = Version().load({"title": body["title"], "versionTitle": body["versionTitle"], "language": body["language"]})
+    source = Version().load(
+        {"title": body["title"], "versionTitle": body["versionTitle"], "language": body["language"]}
+    )
     if not source:
         raise InputError("No version {} / {} / {}.".format(body["title"], body["versionTitle"], body["language"]))
     if Version().load({"title": body["title"], "versionTitle": body["newVersionTitle"], "language": body["language"]}):

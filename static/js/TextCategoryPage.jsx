@@ -14,7 +14,7 @@ import {
   CategoryHeader,
 } from './Misc';
 import { ContentText } from './ContentText';
-import { UnreleasedBadge, useCategoryAdminOnly, releaseCategoryButtons } from './ReleaseTools';
+import { UnreleasedBadge, useCategoryUnreleased, releaseCategoryButtons } from './ReleaseTools';
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({
@@ -56,7 +56,7 @@ const TextCategoryPage = ({
     }
   }
 
-  const catAdminOnly = useCategoryAdminOnly(cats);
+  const catUnreleased = useCategoryUnreleased(cats);
   const tocObject = Sefaria.tocObjectByCategories(cats);
   const catContents = Sefaria.tocItemsByCategories(cats);
   const nestLevel = category === 'Commentary' ? 1 : 0;
@@ -68,10 +68,10 @@ const TextCategoryPage = ({
     categoryToggle
   ) : (
     <div className="navTitle">
-      <CategoryHeader data={cats} type="cats" actionButtons={releaseCategoryButtons(cats, catAdminOnly, heCatTitle)}>
+      <CategoryHeader data={cats} type="cats" actionButtons={releaseCategoryButtons(cats, catUnreleased, heCatTitle)}>
         <h1>
           <ContentText text={{ en: catTitle, he: heCatTitle }} defaultToInterfaceOnBilingual={true} />
-          <UnreleasedBadge adminOnly={catAdminOnly} />
+          <UnreleasedBadge unreleased={catUnreleased} />
         </h1>
       </CategoryHeader>
       {categoryToggle}
@@ -292,7 +292,7 @@ TextCategoryContents.defaultProps = {
 };
 
 const MenuItem = ({ href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc, module }) => {
-  const keytype = !!cats ? 'cat' : 'text';
+  const keytype = cats ? 'cat' : 'text';
   const classes = classNames({ navBlockTitle: 1 });
   return (
     <div className="navBlock">
@@ -360,7 +360,7 @@ const SubCategoryToggle = ({ categories, setCategories }) => {
     let oClasses = classNames({ navToggle: 1, active: categories[1] === element });
     let toggleFunc = () => setCategories([categories[0], element]); //this may need some adjustment if there ever was another toggle not at dpeth 2
     return (
-      <span className={oClasses} onClick={toggleFunc}>
+      <span key={index} className={oClasses} onClick={toggleFunc}>
         <ContentText text={toggleEnableMap[categories[0]]['subCategoriesDisplay'][index]} />
       </span>
     );

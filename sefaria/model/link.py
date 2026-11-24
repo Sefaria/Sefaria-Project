@@ -4,15 +4,16 @@ Writes to MongoDB Collection: links
 """
 
 import regex as re
+import structlog
 from bson.objectid import ObjectId
+
 from sefaria.model.text import AbstractTextRecord, VersionSet
-from sefaria.system.exceptions import DuplicateRecordError, InputError, BookNameError
 from sefaria.system.database import db
+from sefaria.system.exceptions import BookNameError, DuplicateRecordError, InputError
+from sefaria.system.progress_context import report_progress
+
 from . import abstract as abst
 from . import text
-
-import structlog
-from sefaria.system.progress_context import report_progress
 
 logger = structlog.get_logger(__name__)
 
@@ -70,11 +71,11 @@ class Link(abst.AbstractMongoRecord):
             except InputError:
                 continue  # an unresolvable ref fails validation on its own
             if index.is_unreleased():
-                return "its book {}".format(index.title)
+                return f"its book {index.title}"
         return None
 
     def _validate(self):
-        assert super(Link, self)._validate()
+        assert super()._validate()
 
         if (
             self.type == "essay"
@@ -167,12 +168,12 @@ class Link(abst.AbstractMongoRecord):
                     samelink.save()
                     raise DuplicateRecordError("Updated existing link with the new score and charLevelData data")
 
-                elif not self.auto and self.type and not samelink.type:
+                if not self.auto and self.type and not samelink.type:
                     samelink.type = self.type
                     samelink.save()
-                    raise DuplicateRecordError("Updated existing link with new type: {}".format(self.type))
+                    raise DuplicateRecordError(f"Updated existing link with new type: {self.type}")
 
-                elif self.auto and not samelink.auto:
+                if self.auto and not samelink.auto:
                     samelink.auto = self.auto
                     samelink.generated_by = self.generated_by
                     samelink.source_text_oid = self.source_text_oid
@@ -180,31 +181,25 @@ class Link(abst.AbstractMongoRecord):
                     samelink.refs = self.refs  # in case the refs are reversed. switch them around
                     samelink.save()
                     raise DuplicateRecordError(
-                        "Updated existing link with auto generation data {} - {}".format(self.refs[0], self.refs[1])
+                        f"Updated existing link with auto generation data {self.refs[0]} - {self.refs[1]}"
                     )
+                raise DuplicateRecordError(f"Link already exists {self.refs[0]} - {self.refs[1]}. Try editing instead.")
+
+            # find a potential link that already has a more precise ref of either of this link's refs.
+            preciselink = Link().load(
+                {"$and": [text.Ref(self.refs[0]).ref_regex_query(), text.Ref(self.refs[1]).ref_regex_query()]}
+            )
+
+            if preciselink:
+                # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
+                if getattr(self, "_override_preciselink", False):
+                    preciselink.delete()
+                    self.generated_by = self.generated_by + "_preciselink_override"
+                    # and the new link will be posted (supposedly)
                 else:
                     raise DuplicateRecordError(
-                        "Link already exists {} - {}. Try editing instead.".format(self.refs[0], self.refs[1])
+                        f"A more precise link already exists: {preciselink.refs[0]} - {preciselink.refs[1]}"
                     )
-
-            else:
-                # find a potential link that already has a more precise ref of either of this link's refs.
-                preciselink = Link().load(
-                    {"$and": [text.Ref(self.refs[0]).ref_regex_query(), text.Ref(self.refs[1]).ref_regex_query()]}
-                )
-
-                if preciselink:
-                    # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-                    if getattr(self, "_override_preciselink", False):
-                        preciselink.delete()
-                        self.generated_by = self.generated_by + "_preciselink_override"
-                        # and the new link will be posted (supposedly)
-                    else:
-                        raise DuplicateRecordError(
-                            "A more precise link already exists: {} - {}".format(
-                                preciselink.refs[0], preciselink.refs[1]
-                            )
-                        )
                 # else: # this is a good new link
 
         if not getattr(self, "_skip_lang_check", False):
@@ -267,7 +262,7 @@ class Link(abst.AbstractMongoRecord):
 class LinkSet(abst.AbstractMongoSet):
     recordClass = Link
 
-    def __init__(self, query_or_ref={}, page=0, limit=0):
+    def __init__(self, query_or_ref=None, page=0, limit=0):
         """
         LinkSet can be initialized with a query dictionary, as any other MongoSet.
         It can also be initialized with a :py:class: `sefaria.text.Ref` object,
@@ -278,9 +273,9 @@ class LinkSet(abst.AbstractMongoSet):
             regex_list = query_or_ref.regex(as_list=True)
             ref_clauses = [{"expandedRefs0": {"$regex": r}} for r in regex_list]
             ref_clauses += [{"expandedRefs1": {"$regex": r}} for r in regex_list]
-            super(LinkSet, self).__init__({"$or": ref_clauses}, page, limit)
+            super().__init__({"$or": ref_clauses}, page, limit)
         except AttributeError:
-            super(LinkSet, self).__init__(query_or_ref, page, limit)
+            super().__init__(query_or_ref if query_or_ref is not None else {}, page, limit)
 
     def filter(self, sources):
         """
@@ -421,8 +416,8 @@ def process_index_title_change_in_links(indx, **kwargs):
             l._skip_lang_check = True
             l._skip_expanded_refs_set = True
             l.save()
-        except InputError:  # todo: this belongs in a better place - perhaps in abstract
-            logger.warning("Deleting link that failed to save: {} - {}".format(l.refs[0], l.refs[1]))
+        except InputError:  # TODO: this belongs in a better place - perhaps in abstract
+            logger.warning(f"Deleting link that failed to save: {l.refs[0]} - {l.refs[1]}")
             l.delete()
 
 
@@ -474,14 +469,14 @@ def get_link_counts(cat1, cat2):
                 text.library.get_index(c)
                 ts.append(c)
             except BookNameError:
-                return {"error": "No results for {}".format(c)}
+                return {"error": f"No results for {c}"}
         titles.append(ts)
 
     result = []
     for title1 in titles[0]:
         for title2 in titles[1]:
-            re1 = r"^{} \d".format(title1)
-            re2 = r"^{} \d".format(title2)
+            re1 = rf"^{title1} \d"
+            re2 = rf"^{title2} \d"
             links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
             count = links.count()
             if count:
@@ -490,17 +485,12 @@ def get_link_counts(cat1, cat2):
     return result
 
 
-# todo: check vis-a-vis commentary refactor
+# TODO: check vis-a-vis commentary refactor
 def get_category_commentator_linkset(cat, commentator):
     return LinkSet(
         {
             "$or": [
-                {
-                    "$and": [
-                        {"refs": {"$regex": r"{} \d".format(t)}},
-                        {"refs": {"$regex": "^{} on {}".format(commentator, t)}},
-                    ]
-                }
+                {"$and": [{"refs": {"$regex": rf"{t} \d"}}, {"refs": {"$regex": f"^{commentator} on {t}"}}]}
                 for t in text.library.get_indexes_in_category(cat)
             ]
         }
@@ -523,7 +513,7 @@ def get_category_category_linkset(cat1, cat2):
         queries += [{"$and": [{"categories": cat}, {"dependence": {"$in": [False, None]}}]}]
         titles += [text.library.get_indexes_in_corpus(cat) or text.library.get_indexes_in_category(cat)]
         if len(titles[i]) == 0:
-            raise IndexError("No results for {}".format(queries[i]))
+            raise IndexError(f"No results for {queries[i]}")
 
         regexes += [[]]
         for t in titles[i]:
@@ -532,7 +522,7 @@ def get_category_category_linkset(cat1, cat2):
         clauses += [[]]
         for rgx in regexes[i]:
             if cat1 == cat2:
-                clauses[i] += [{"refs.{}".format(i): {"$regex": rgx}}]
+                clauses[i] += [{f"refs.{i}": {"$regex": rgx}}]
             else:
                 clauses[i] += [{"refs": {"$regex": rgx}}]
 
@@ -552,10 +542,10 @@ def get_book_category_linkset(book, cat):
             text.library.get_index(cat)
             titles = [cat]
         except BookNameError:
-            return {"error": "No results for {}".format(cat)}
+            return {"error": f"No results for {cat}"}
 
     book_re = text.Ref(book).regex()
-    cat_re = r"^({}) \d".format("|".join(titles))  # todo: generalize this regex
+    cat_re = r"^({}) \d".format("|".join(titles))  # TODO: generalize this regex
 
     cat_re = r"^({})".format("|".join([text.Ref(title).regex() for title in titles]))
 

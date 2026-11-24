@@ -1,11 +1,13 @@
 """
 Tests of texts.py (and things recently factored out. :)
 """
+
 import pytest
 from helper.text import rename_category
 
 import sefaria.model.text as tm
 from sefaria.model.link import get_book_link_collection
+
 
 @pytest.mark.deep
 def test_rename_category():
@@ -27,14 +29,14 @@ def test_rename_category():
 def test_get_commentary_texts_list():
     l = tm.library.get_dependant_indices()
     assert "Ba'al HaTurim on Genesis" in l
-    assert 'Bartenura on Mishnah Eduyot' in l
-    assert 'Tosafot on Pesachim' in l
+    assert "Bartenura on Mishnah Eduyot" in l
+    assert "Tosafot on Pesachim" in l
 
 
 def test_get_text_categories():
     l = tm.library.get_text_categories()
-    assert 'Torah' in l
-    assert 'Talmud' in l
+    assert "Torah" in l
+    assert "Talmud" in l
 
 
 def test_get_book_link_collection():

@@ -284,7 +284,7 @@ class VersionBlock extends Component {
 
       let licenses = [...Object.keys(Sefaria.getLicenseMap()), ''];
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
-      if (!!this.state.error) {
+      if (this.state.error) {
         alert(this.state.error);
       }
 
@@ -514,7 +514,7 @@ class VersionBlock extends Component {
                 )}
               />
             </div>
-            <UnreleasedBadge adminOnly={v.unreleased} />
+            <UnreleasedBadge unreleased={v.unreleased} />
             <i
               className={`fa fa-pencil versionEditIcon ${Sefaria.is_moderator && this.props.rendermode == 'book-page' ? 'enabled' : ''}`}
               aria-hidden="true"
@@ -637,7 +637,7 @@ class VersionsBlocksList extends Component {
   }
   getCurrentVersionsKeys(currentVersions) {
     //make an array of strings that are keys of the current versions
-    return Object.values(currentVersions).map((v) => (!!v ? `${v.actualLanguage}|${v.versionTitle}` : ''));
+    return Object.values(currentVersions).map((v) => (v ? `${v.actualLanguage}|${v.versionTitle}` : ''));
   }
   render() {
     const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);
@@ -661,6 +661,7 @@ class VersionsBlocksList extends Component {
             {this.props.versionsByLanguages[lang].map((v) =>
               this.props.inTranslationBox ? (
                 <VersionBlockWithPreview
+                  key={`${this.isVersionCurrent(v) ? 'current' : ''}|${v.versionTitle}|${v.actualLanguage}`}
                   currentRef={this.props.currentRef}
                   version={v}
                   currObjectVersions={this.props.currObjectVersions}

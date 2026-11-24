@@ -1,39 +1,42 @@
-from django.urls import path, include
-from django.urls import re_path
 from django.contrib import admin
-from sefaria.settings import ADMIN_PATH
-import reader.views as reader_views
-import sourcesheets.views as sheets_views
-import remote_config.views as remote_config_views
-import api.views as api_views
-import api.linker_admin_views as linker_api_views
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.urls import include, path, re_path
+from rest_framework_simplejwt.views import TokenRefreshView
+
+import api.admin_mcp_views as admin_mcp_views
 import api.lexicon_admin_views as lexicon_api_views
+import api.linker_admin_views as linker_api_views
+import api.mcp_auth_views as mcp_auth_views
+import api.newsletter_views as newsletter_views
 import api.release_views as release_views
-import sefaria.views as sefaria_views
-import sefaria.gauth.views as gauth_views
+import api.views as api_views
 import guides.views as guides_views
 import powered_by.views as powered_by_views
+import reader.views as reader_views
+import remote_config.views as remote_config_views
+import sefaria.gauth.views as gauth_views
+import sefaria.views as sefaria_views
+import sourcesheets.views as sheets_views
 from sefaria.heapdump import heapdump_view
+from sefaria.settings import ADMIN_PATH
 from sefaria.site.urls import site_urlpatterns
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from rest_framework_simplejwt.views import TokenRefreshView
 from sso.views import MobileTokenObtainPairView
 
 shared_patterns = [
     path("_allauth/", include("allauth.headless.urls")),
     path("accounts/", include("allauth.urls")),
     path("", include("sso.urls")),
-    re_path(rf"^login/?$", sefaria_views.CustomLoginView.as_view(), name="login"),
-    re_path(rf"^register/?$", sefaria_views.register, name="register"),
-    re_path(rf"^enable-library-assistant/?$", reader_views.enable_library_assistant, name="enable_library_assistant"),
-    re_path(rf"logout/?$", sefaria_views.CustomLogoutView.as_view(), name="logout"),
+    re_path(r"^login/?$", sefaria_views.CustomLoginView.as_view(), name="login"),
+    re_path(r"^register/?$", sefaria_views.register, name="register"),
+    re_path(r"^enable-library-assistant/?$", reader_views.enable_library_assistant, name="enable_library_assistant"),
+    re_path(r"logout/?$", sefaria_views.CustomLogoutView.as_view(), name="logout"),
     path(
         "password/reset/confirm/<uidb64>/<token>/",
         sefaria_views.CustomPasswordResetConfirmView.as_view(),
         name="password_reset_confirm",
     ),
-    re_path(rf"api/login/$", MobileTokenObtainPairView.as_view(), name="token_obtain_pair"),
-    re_path(rf"api/login/refresh/$", TokenRefreshView.as_view(), name="token_refresh"),
+    re_path(r"api/login/$", MobileTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    re_path(r"api/login/refresh/$", TokenRefreshView.as_view(), name="token_refresh"),
     re_path(r"^saved/?$", reader_views.saved_content),
     re_path(r"^history/?$", reader_views.user_history_content),
     re_path(r"^search/?$", reader_views.search),
@@ -107,7 +110,8 @@ shared_patterns = [
     re_path(r"^api/calendars/topics/parasha/?$", reader_views.parasha_data_api),
     re_path(r"^api/calendars/topics/holiday/?$", reader_views.seasonal_topic_api),
     path("api/name/<path:name>", reader_views.name_api),
-    # Linker editor (unreleased): edit index linker metadata (match templates, address types,
+    re_path(r"^api/search-autocorrect/?$", reader_views.search_autocorrect_api),
+    # Linker editor (staff-only): edit index linker metadata (match templates, address types,
     # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
     path("api/linker/non-unique-terms", linker_api_views.LinkerEditorNonUniqueTermSearchView.as_view()),
     path("_api/linker-editor/address-types", linker_api_views.LinkerEditorAddressTypesListView.as_view()),
@@ -134,7 +138,7 @@ shared_patterns = [
         "_api/linker-editor/index/<str:title>/rebuild-dibur-hamatchils",
         linker_api_views.LinkerEditorRebuildDiburHamatchilView.as_view(),
     ),
-    # Linker admin (unreleased): debug/delete/recreate individual linker-generated citations,
+    # Linker admin (staff-only): debug/delete/recreate individual linker-generated citations,
     # rerun the linker on a segment, and capture NER/ref-part training examples.
     path("_api/linker-admin/citation/delete", linker_api_views.LinkerAdminDeleteCitationView.as_view()),
     path("_api/linker-admin/citation/recreate", linker_api_views.LinkerAdminRecreateCitationView.as_view()),
@@ -237,6 +241,10 @@ shared_patterns = [
     path("api/topics/pools/<path:pool_name>", reader_views.topic_pool_api),
     re_path(r"^_api/topics/featured-topic/?$", reader_views.featured_topic_api),
     re_path(r"^api/topics/trending/?$", reader_views.trending_topics_api),
+    path("api/admin/topic-prompts", admin_mcp_views.TopicPromptsView.as_view()),
+    path("api/admin/topic-prompts/<str:link_id>", admin_mcp_views.TopicPromptView.as_view()),
+    # Sign-in handoff for the AI chatbot's MCP server (chat.sefaria.org/mcp/user and /mcp/admin).
+    path("api/mcp/authorize", mcp_auth_views.mcp_authorize),
     path("api/ref-topic-links/bulk", reader_views.topic_ref_bulk_api),
     path("api/ref-topic-links/<path:tref>", reader_views.topic_ref_api),
     path("api/v2/topics/<path:topic>", reader_views.topics_api, {"v2": True}),
@@ -263,13 +271,19 @@ shared_patterns = [
     path("api/subscribe/<path:org>/<path:email>", sefaria_views.generic_subscribe_to_newsletter_api),
     path("api/subscribe/<path:email>", sefaria_views.subscribe_sefaria_newsletter_view),
     re_path(r"^api/newsletter_mailing_lists/?$", sefaria_views.get_available_newsletter_mailing_lists),
+    re_path(r"^api/newsletter/lists/?$", newsletter_views.get_newsletter_lists),
+    re_path(r"^api/newsletter/subscribe/?$", newsletter_views.subscribe_newsletter),
+    re_path(r"^api/newsletter/subscriptions/?$", newsletter_views.get_user_subscriptions),
+    re_path(r"^api/newsletter/preferences/?$", newsletter_views.update_user_preferences),
+    re_path(r"^api/newsletter/learning-level/?$", newsletter_views.update_learning_level),
     path("api/strapi/graphql-cache", sefaria_views.strapi_graphql_cache),
     path("api/strapi/cache-invalidate", sefaria_views.strapi_cache_invalidate),
+    path("api/webhooks/", include("webhooks.urls")),
     re_path(r"^api/stats/library-stats", sefaria_views.library_stats),
     re_path(r"^api/stats/core-link-stats", sefaria_views.core_link_stats),
-    re_path(rf"api/register/$", sefaria_views.register_api),
-    re_path(rf"api/account/delete$", reader_views.delete_user_account_api),
-    re_path(rf"interface/(?P<language>english|hebrew)$", reader_views.interface_language_redirect),
+    re_path(r"api/register/$", sefaria_views.register_api),
+    re_path(r"api/account/delete$", reader_views.delete_user_account_api),
+    re_path(r"interface/(?P<language>english|hebrew)$", reader_views.interface_language_redirect),
     path("gauth", gauth_views.index, name="gauth_index"),
     path("gauth/callback", gauth_views.auth_return, name="gauth_callback"),
     path("unlink-gauth", sefaria_views.unlink_gauth),
