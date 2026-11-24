@@ -191,7 +191,9 @@ const HelpIcon = () => (
 
 /* icon: "info" (default) or "help". above: opens over the label instead of over the field.
    interactive: the tip holds a link, so it stays open while the pointer is on the icon or the tip (with a short
-   grace period to cross the gap), and the icon is a real button for keyboard users (Escape closes). */
+   grace period to cross the gap), and the icon is a real button for keyboard users.
+   Escape closes an open tip wherever focus is, including one opened by hovering (WCAG 1.4.13), and only the tip: focus
+   stays put and a dialog under it stays open. */
 const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = false, label, lead, children }) => {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef(null);
@@ -204,6 +206,21 @@ const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = fa
     closeTimer.current = setTimeout(() => setOpen(false), interactive ? 200 : 0);
   };
   useEffect(() => () => clearTimeout(closeTimer.current), []);
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        clearTimeout(closeTimer.current);
+        setOpen(false);
+      }
+    };
+    // Capture, so the tip closes before a dialog's own Escape handling sees the key.
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [open]);
   useEffect(() => {
     const field = document.getElementById(fieldId);
     if (!field) {
@@ -233,15 +250,6 @@ const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = fa
           ? (e) => {
               if (!e.currentTarget.contains(e.relatedTarget)) {
                 hideSoon();
-              }
-            }
-          : undefined
-      }
-      onKeyDown={
-        interactive
-          ? (e) => {
-              if (e.key === 'Escape') {
-                setOpen(false);
               }
             }
           : undefined
