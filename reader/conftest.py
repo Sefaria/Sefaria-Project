@@ -1,11 +1,14 @@
+import json
+import re
 import secrets
 import uuid
+from unittest.mock import MagicMock, patch
 
 import pytest
-from unittest.mock import patch, MagicMock
-
 from django.contrib.auth.models import User
 
+from sefaria.helper.library_assistant import SETTING_KEY
+from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
 
 # These tests assert on and delete Mongo `profiles` documents keyed by the Django
@@ -31,12 +34,30 @@ def create_test_user(prefix, superuser=False):
     )
 
 
+def page_props(html):
+    """The ReaderApp props a rendered page carries, as base.html writes them out."""
+    match = re.search(r"props:\s*(\{.*\}),\n", html)
+    assert match, "props JSON not found in the rendered page"
+    return json.loads(match.group(1))
+
+
 def purge_test_profiles(*users):
     """Delete the Mongo profile docs of synthetic users — and refuse anything else."""
     ids = [getattr(u, "id", u) for u in users]
     real = [i for i in ids if i < SYNTHETIC_USER_ID_FLOOR]
     assert not real, f"refusing to delete profile docs for non-synthetic user ids {real}"
     db.profiles.delete_many({"id": {"$in": ids}})
+    db.developer_confirmation_throttle.delete_many({"uid": {"$in": ids}})
+
+
+def make_profile_missing_la_setting(user):
+    """
+    Give `user` a pre-migration-shaped profile: the doc exists but carries no
+    Library Assistant key. Profile creation writes the key on every path, so the
+    only way to model these legacy users is to create the doc and then unset it.
+    """
+    UserProfile(id=user.id)
+    db.profiles.update_one({"id": user.id}, {"$unset": {f"settings.{SETTING_KEY}": ""}})
 
 
 @pytest.fixture(autouse=True)

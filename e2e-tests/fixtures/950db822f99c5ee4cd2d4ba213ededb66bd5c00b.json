@@ -1,0 +1,6 @@
+{
+  "success": true,
+  "message": "Successfully subscribed to newsletters",
+  "email": "john@example.com",
+  "subscribedNewsletters": ["sefaria-news-resources-english"]
+}

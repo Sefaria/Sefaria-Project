@@ -62,7 +62,7 @@ spec:
         {{- end }}
       {{- if .Values.datadog.enabled }}
       annotations:
-        ad.datadoghq.com/web.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-web"}]'
+        ad.datadoghq.com/web.logs_exclude: "true"
         admission.datadoghq.com/python-lib.version: "v4.7.1"
       {{- end }}
     spec:
@@ -94,6 +94,22 @@ spec:
           # WEB_CONCURRENCY is used for determining the number of server workers
           - name: WEB_CONCURRENCY
             value: "{{ .Values.web.resources.web.gunicornWorkerCount }}"
+          {{- with .Values.web.resources.web }}
+          {{- if .maxRequests }}
+          - name: MAX_REQUESTS
+            value: "{{ .maxRequests | int }}"
+          - name: MAX_REQUESTS_JITTER
+            value: "{{ .maxRequestsJitter | int }}"
+          {{- end }}
+          {{- if .gcFreeze }}
+          - name: GUNICORN_GC_FREEZE
+            value: "true"
+          {{- end }}
+          {{- if .mallocArenaMax }}
+          - name: MALLOC_ARENA_MAX
+            value: "{{ .mallocArenaMax | int }}"
+          {{- end }}
+          {{- end }}
           - name: randomstringtoforceredeployments
             value: {{ randAlphaNum 8 }}
           - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -124,8 +140,6 @@ spec:
               fieldRef:
                 fieldPath: metadata.uid
           {{- end }}
-          - name: REDIS_HOST
-            value: "redis-{{ .Values.deployEnv }}"
           - name: NODEJS_HOST
             value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: VARNISH_HOST
@@ -157,12 +171,7 @@ spec:
             value: {{ .Values.deployEnv }}-mongo
           {{- end }}
         envFrom:
-          {{- if .Values.tasks.enabled }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.redisPassword.ref }}
-          {{- end }}
+          {{- include "sefaria.secrets.redisSentinel" . | nindent 10 }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
           - secretRef:

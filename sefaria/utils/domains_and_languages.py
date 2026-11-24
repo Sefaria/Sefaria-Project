@@ -1,12 +1,15 @@
 import re
+from functools import lru_cache
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.dispatch import receiver
+from django.test.signals import setting_changed
 
 from sefaria.constants.model import LIBRARY_MODULE
-from sefaria.utils.util import short_to_long_lang_code, get_short_lang
+from sefaria.utils.util import get_short_lang, short_to_long_lang_code
 
-IPV4_ADDRESS_PATTERN = r'^\d+\.\d+\.\d+\.\d+$'
+IPV4_ADDRESS_PATTERN = r"^\d+\.\d+\.\d+\.\d+$"
 
 
 def get_hostname_without_port(request):
@@ -20,12 +23,11 @@ def get_hostname_without_port(request):
     host = request.get_host()
     # For IPv6, the format is [host]:port
     # For IPv4, it's host:port
-    if host.startswith('['):
+    if host.startswith("["):
         # IPv6 with port: [2001:db8::1]:8000 -> [2001:db8::1]
-        return host.split(']')[0] + ']'
-    else:
-        # IPv4: example.com:8000 -> example.com
-        return host.split(':')[0]
+        return host.split("]")[0] + "]"
+    # IPv4: example.com:8000 -> example.com
+    return host.split(":")[0]
 
 
 def current_domain_lang(request):
@@ -39,7 +41,7 @@ def current_domain_lang(request):
     :param request: Django request object
     :return: 'english', 'hebrew', or None
     """
-    if not getattr(settings, 'DOMAIN_MODULES', None):
+    if not getattr(settings, "DOMAIN_MODULES", None):
         return None
 
     current_hostname = get_hostname_without_port(request)
@@ -59,6 +61,46 @@ def current_domain_lang(request):
     return short_to_long_lang_code(matched_langs[0])
 
 
+@lru_cache(maxsize=1)
+def _known_domain_hostnames():
+    # DOMAIN_MODULES is set once at startup and never changes at runtime in production, so
+    # this is computed once and reused for the life of the process. The only thing that
+    # changes it at all is override_settings in tests, which is why the cache is cleared
+    # below on setting_changed rather than just computed once forever.
+    domain_modules = getattr(settings, "DOMAIN_MODULES", None) or {}
+    return frozenset(urlparse(url).hostname for modules in domain_modules.values() for url in modules.values())
+
+
+@receiver(setting_changed)
+def _clear_known_domain_hostnames_cache(sender, setting, **kwargs):
+    if setting == "DOMAIN_MODULES":
+        _known_domain_hostnames.cache_clear()
+
+
+def referer_is_sefaria_domain(request):
+    """
+    True if the request's Referer is one of this site's own domains (settings.DOMAIN_MODULES).
+    Distinguishes a redirect continuing an in-progress web session from a fresh external
+    entry (email link, another site, a bookmark). Fails open (returns False) if Referer is
+    absent -- stripped by an ad blocker, or genuinely a fresh visit either way.
+    """
+    referer = request.META.get("HTTP_REFERER")
+    if not referer:
+        return False
+    return urlparse(referer).hostname in _known_domain_hostnames()
+
+
+def redirect_target_is_sefaria_domain(location):
+    """
+    True if a redirect Location is relative (same site) or an absolute URL pointing at a
+    known sefaria domain. False for anything else (e.g. /wiki -> developers.sefaria.org),
+    so no_applink never gets attached to a redirect that has nothing to do with Universal
+    Links in the first place.
+    """
+    hostname = urlparse(location).hostname
+    return hostname is None or hostname in _known_domain_hostnames()
+
+
 def get_redirect_domain_for_language(request, target_lang):
     """
     Get the redirect domain URL for a given interface language while preserving the current module.
@@ -67,7 +109,7 @@ def get_redirect_domain_for_language(request, target_lang):
     :param target_lang: 'english' or 'hebrew'
     :return: Full domain URL (e.g., 'https://www.sefaria.org') or None
     """
-    current_module = getattr(request, 'active_module', LIBRARY_MODULE)
+    current_module = getattr(request, "active_module", LIBRARY_MODULE)
     lang_code = get_short_lang(target_lang)
     return settings.DOMAIN_MODULES.get(lang_code, {}).get(current_module)
 
@@ -87,6 +129,7 @@ def needs_domain_switch(request, target_domain):
     target_hostname = urlparse(target_domain).hostname if target_domain else None
     return target_hostname is not None and current_hostname != target_hostname
 
+
 def get_cookie_domain(language):
     """
     Get the appropriate cookie domain for a given language.
@@ -101,7 +144,7 @@ def get_cookie_domain(language):
     :param language: 'english', 'hebrew' (long form), or None for cross-language domains
     :return: Cookie domain string (e.g., '.sefaria.org') or None if no domain should be set
     """
-    if not getattr(settings, 'DOMAIN_MODULES', None):
+    if not getattr(settings, "DOMAIN_MODULES", None):
         return None
 
     # Collect all relevant module URLs
@@ -116,7 +159,7 @@ def get_cookie_domain(language):
         hostname
         for url in module_urls
         if (hostname := urlparse(url).hostname)
-        and 'localhost' not in hostname
+        and "localhost" not in hostname
         and not re.match(IPV4_ADDRESS_PATTERN, hostname)
     ]
 
@@ -126,7 +169,7 @@ def get_cookie_domain(language):
 
     # Find common suffix and validate it's not too broad (e.g., ".sefaria.org" not ".org")
     common_suffix = _find_longest_common_domain_suffix(hostnames)
-    return common_suffix if common_suffix and common_suffix.count('.') >= 2 else None
+    return common_suffix if common_suffix and common_suffix.count(".") >= 2 else None
 
 
 def _find_longest_common_domain_suffix(hostnames):
@@ -145,10 +188,10 @@ def _find_longest_common_domain_suffix(hostnames):
     for hostname in hostnames[1:]:
         # Find longest common suffix by progressively removing left parts
         # Check if hostname ends with .{common} (common as a subdomain suffix)
-        while common_suffix and hostname != common_suffix and not hostname.endswith(f'.{common_suffix}'):
-            common_suffix = common_suffix.split('.', 1)[1] if '.' in common_suffix else ''
+        while common_suffix and hostname != common_suffix and not hostname.endswith(f".{common_suffix}"):
+            common_suffix = common_suffix.split(".", 1)[1] if "." in common_suffix else ""
 
         if not common_suffix:
             return None
 
-    return f'.{common_suffix}' if common_suffix else None
+    return f".{common_suffix}" if common_suffix else None

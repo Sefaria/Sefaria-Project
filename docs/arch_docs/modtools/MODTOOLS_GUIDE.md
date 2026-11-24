@@ -18,14 +18,14 @@ ModTools is an internal admin interface at `/modtools` for Sefaria staff. Access
 
 ### Key Files
 
-| File | Purpose | When to Modify |
-|------|---------|----------------|
-| `static/js/ModeratorToolsPanel.jsx` | Main panel, imports tools | Adding new tools |
-| `static/js/modtools/components/*.jsx` | Individual tools | Editing tool behavior |
-| `static/js/modtools/components/shared/*.jsx` | Shared components | Editing shared UI |
-| `static/js/modtools/constants/fieldMetadata.js` | Field definitions | Adding/editing fields |
-| `static/css/modtools.css` | All styles | UI changes |
-| `sefaria/views.py` | Backend APIs | API changes |
+| File                                            | Purpose                   | When to Modify        |
+| ----------------------------------------------- | ------------------------- | --------------------- |
+| `static/js/ModeratorToolsPanel.jsx`             | Main panel, imports tools | Adding new tools      |
+| `static/js/modtools/components/*.jsx`           | Individual tools          | Editing tool behavior |
+| `static/js/modtools/components/shared/*.jsx`    | Shared components         | Editing shared UI     |
+| `static/js/modtools/constants/fieldMetadata.js` | Field definitions         | Adding/editing fields |
+| `static/css/modtools.css`                       | All styles                | UI changes            |
+| `sefaria/views.py`                              | Backend APIs              | API changes           |
 
 ---
 
@@ -41,7 +41,7 @@ static/js/
     │   └── fieldMetadata.js   # VERSION_FIELD_METADATA, INDEX_FIELD_METADATA
     └── components/
         ├── BulkVersionEditor.jsx      # Version metadata bulk editor
-        ├── BulkIndexEditor.jsx        # Index metadata (disabled)
+        ├── BulkIndexEditor.jsx        # Index metadata bulk editor
         ├── AutoLinkCommentaryTool.jsx # Commentary linker (disabled)
         ├── NodeTitleEditor.jsx        # Node title editor (disabled)
         └── shared/
@@ -68,37 +68,50 @@ sefaria/
 
 **1. Bulk Download Text**
 Downloads versions matching title/version patterns.
+
 - Endpoint: `GET /download/bulk/versions/`
 
 **2. Bulk Upload CSV**
 Uploads text content from CSV files.
+
 - Endpoint: `POST /api/text-upload`
 - Multi-book CSVs (those whose first row begins with `Version Title` instead of `Index Title`) are split per book in the browser via `Sefaria.parseRef` and uploaded one book at a time, so each request is bounded to a single index.
 - Each per-book upload is sent with `defer_toc_refresh=1`, which threads `skip_toc_refresh=True` down to `library.recount_index_in_toc` so it still refreshes the per-index `VersionState` and in-memory ToC node but skips the inner `library.rebuild_toc` (which re-serializes the full ToC and rebuilds the topic ToC from MongoDB). Once all books are uploaded the client fires a single `GET /admin/reset/toc` to do the full ToC and topic ToC rebuild once for the whole batch.
 
 **3. Workflowy Outline Upload**
 Imports text structure from OPML files.
+
 - Endpoint: `POST /modtools/upload_text`
 
 **4. Upload Links (from CSV)**
 Creates link records from CSV.
+
 - Endpoint: `POST /modtools/links`
 
 **5. Download Links**
 Exports links between refs to CSV.
+
 - Endpoint: `GET /modtools/links/{ref1}/{ref2}`
 
 **6. Remove Links (from CSV)**
 Deletes links from CSV.
+
 - Endpoint: `POST /modtools/links` with `action: "DELETE"`
 
 **7. Bulk Edit Version Metadata**
 Edit metadata across multiple Version records, or permanently delete selected versions.
+
 - Endpoints: `GET /api/version-indices`, `POST /api/version-bulk-edit`, `POST /api/version-rename`, `POST /api/version-bulk-delete`
+
+**8. Bulk Edit Index Metadata**
+Edit Index (text catalog) metadata across multiple texts, with auto-detection for commentary
+fields on "X on Y" titles. Saves run one index at a time, with a progress bar.
+
+- Endpoints: `POST /api/v2/raw/index/{title}?update=1` (form-encoded `json` body) per index,
+  then `GET /admin/reset/{title}` to clear caches
 
 ### Disabled Tools (Backend APIs Remain Functional)
 
-- **BulkIndexEditor**: Bulk edit index metadata
 - **AutoLinkCommentaryTool**: Auto-link commentaries
 - **NodeTitleEditor**: Edit schema node titles
 
@@ -108,17 +121,18 @@ Edit metadata across multiple Version records, or permanently delete selected ve
 
 ### ModTools-Specific APIs
 
-| Endpoint | Method | Purpose | Auth |
-|----------|--------|---------|------|
-| `/api/version-indices` | GET | Find indices with matching version | Staff |
-| `/api/version-bulk-edit` | POST | Bulk update version metadata | Staff |
-| `/api/version-rename` | POST | Rename `versionTitle` for a single index (called per-index by the client to rename across many indices) | Staff |
-| `/api/version-bulk-delete` | POST | Bulk hard-delete versions | Staff |
-| `/api/check-index-dependencies/{title}` | GET | Check index dependencies | Staff |
+| Endpoint                                | Method | Purpose                                                                                                 | Auth  |
+| --------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------- | ----- |
+| `/api/version-indices`                  | GET    | Find indices with matching version                                                                      | Staff |
+| `/api/version-bulk-edit`                | POST   | Bulk update version metadata                                                                            | Staff |
+| `/api/version-rename`                   | POST   | Rename `versionTitle` for a single index (called per-index by the client to rename across many indices) | Staff |
+| `/api/version-bulk-delete`              | POST   | Bulk hard-delete versions                                                                               | Staff |
+| `/api/check-index-dependencies/{title}` | GET    | Check index dependencies                                                                                | Staff |
 
 ### Version Bulk Edit
 
 **Request**:
+
 ```json
 {
   "versionTitle": "Kehati",
@@ -129,6 +143,7 @@ Edit metadata across multiple Version records, or permanently delete selected ve
 ```
 
 **Response**:
+
 ```json
 {
   "status": "ok" | "partial" | "error",
@@ -142,6 +157,7 @@ Edit metadata across multiple Version records, or permanently delete selected ve
 ### Version Bulk Delete
 
 **Request**:
+
 ```json
 {
   "versionTitle": "Kehati",
@@ -169,33 +185,35 @@ the delete button activates.
 **Collection**: `texts`
 
 **Editable Fields** (via bulk edit):
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | string | "locked" = non-staff can't edit |
-| `priority` | float | Display ordering |
-| `license` | string | e.g., "CC-BY", "Public Domain" |
-| `versionNotes` | string | English notes |
-| `versionNotesInHebrew` | string | Hebrew notes |
-| `versionTitleInHebrew` | string | Hebrew version title |
-| `digitizedBySefaria` | boolean | Sefaria digitized flag |
-| `isPrimary` | boolean | Primary version flag |
-| `isSource` | boolean | Source (not translation) flag |
-| `purchaseInformationURL` | string | Purchase link |
-| `purchaseInformationImage` | string | Purchase image |
-| `direction` | string | "rtl" or "ltr" |
+
+| Field                      | Type    | Description                     |
+| -------------------------- | ------- | ------------------------------- |
+| `status`                   | string  | "locked" = non-staff can't edit |
+| `priority`                 | float   | Display ordering                |
+| `license`                  | string  | e.g., "CC-BY", "Public Domain"  |
+| `versionNotes`             | string  | English notes                   |
+| `versionNotesInHebrew`     | string  | Hebrew notes                    |
+| `versionTitleInHebrew`     | string  | Hebrew version title            |
+| `digitizedBySefaria`       | boolean | Sefaria digitized flag          |
+| `isPrimary`                | boolean | Primary version flag            |
+| `isSource`                 | boolean | Source (not translation) flag   |
+| `purchaseInformationURL`   | string  | Purchase link                   |
+| `purchaseInformationImage` | string  | Purchase image                  |
+| `direction`                | string  | "rtl" or "ltr"                  |
 
 ### Index Model (`sefaria/model/text.py`)
 
 **Collection**: `index`
 
 **Key Fields for Commentaries**:
-| Field | Type | Description |
-|-------|------|-------------|
-| `dependence` | string | "Commentary" or "Targum" |
-| `base_text_titles` | list | What it comments on |
-| `base_text_mapping` | string | AutoLinker mapping type |
-| `collective_title` | string | Requires matching Term |
-| `authors` | list | Slugs from AuthorTopic |
+
+| Field               | Type   | Description              |
+| ------------------- | ------ | ------------------------ |
+| `dependence`        | string | "Commentary" or "Targum" |
+| `base_text_titles`  | list   | What it comments on      |
+| `base_text_mapping` | string | AutoLinker mapping type  |
+| `collective_title`  | string | Requires matching Term   |
+| `authors`           | list   | Slugs from AuthorTopic   |
 
 ---
 
@@ -209,7 +227,12 @@ Collapsible wrapper with help button.
 <ModToolsSection
   title="My Tool"
   titleHe="כלי שלי"
-  helpContent={<><h3>Help</h3><p>...</p></>}
+  helpContent={
+    <>
+      <h3>Help</h3>
+      <p>...</p>
+    </>
+  }
 >
   {/* Tool content */}
 </ModToolsSection>
@@ -224,6 +247,7 @@ Card-based grid for selecting indices.
 **Props**: `indices`, `selectedIndices`, `onSelectionChange`, `label`, `indexMetadata`, `maxHeight`
 
 **Key Behavior**:
+
 - Search filters by title AND category
 - Select All operates on FILTERED items only
 
@@ -244,6 +268,7 @@ Modal with documentation. ESC key closes, body scroll locked when open.
 ### Adding a New Field to BulkVersionEditor
 
 1. **Add to fieldMetadata.js**:
+
 ```javascript
 "newField": {
   label: "New Field",
@@ -255,6 +280,7 @@ Modal with documentation. ESC key closes, body scroll locked when open.
 ```
 
 2. **Add to FIELD_GROUPS** (BulkVersionEditor.jsx):
+
 ```javascript
 const FIELD_GROUPS = [
   { id: 'metadata', fields: [..., 'newField'] }
@@ -269,13 +295,14 @@ const FIELD_GROUPS = [
 4. Add CSS if needed: `modtools.css`
 
 **Template**:
+
 ```jsx
 import React, { useState } from 'react';
 import ModToolsSection from './shared/ModToolsSection';
 import StatusMessage from './shared/StatusMessage';
 
 const NewTool = () => {
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState('');
   return (
     <ModToolsSection title="New Tool" titleHe="כלי חדש">
       {/* Tool content */}
@@ -294,7 +321,7 @@ export default NewTool;
 
 ```javascript
 // Search state
-const [vtitle, setVtitle] = useState("");
+const [vtitle, setVtitle] = useState('');
 const [searched, setSearched] = useState(false);
 
 // Results state
@@ -306,7 +333,7 @@ const [updates, setUpdates] = useState({});
 const [validationErrors, setValidationErrors] = useState({});
 
 // UI state
-const [msg, setMsg] = useState("");
+const [msg, setMsg] = useState('');
 const [loading, setLoading] = useState(false);
 ```
 
@@ -326,6 +353,7 @@ const toggleOne = (idx, checked) => {
 ### Boolean Field Handling
 
 HTML `<select>` returns strings. Convert before API call:
+
 ```javascript
 if (value === 'true') value = true;
 if (value === 'false') value = false;
@@ -335,12 +363,12 @@ if (value === 'false') value = false;
 
 ## Troubleshooting
 
-| Issue | Cause | Fix |
-|-------|-------|-----|
-| "Version not found" | Case-sensitive matching | Use exact capitalization |
-| "Author not found" | Author must exist in AuthorTopic | Check `/api/name/{name}` |
-| Timeout on large operations | 50+ versions may timeout | Process in smaller batches |
-| Changes not appearing | Cache not cleared | Call `/admin/reset/{title}` |
+| Issue                       | Cause                            | Fix                         |
+| --------------------------- | -------------------------------- | --------------------------- |
+| "Version not found"         | Case-sensitive matching          | Use exact capitalization    |
+| "Author not found"          | Author must exist in AuthorTopic | Check `/api/name/{name}`    |
+| Timeout on large operations | 50+ versions may timeout         | Process in smaller batches  |
+| Changes not appearing       | Cache not cleared                | Call `/admin/reset/{title}` |
 
 ---
 
@@ -348,10 +376,10 @@ if (value === 'false') value = false;
 
 Key classes in `modtools.css`:
 
-| Class | Purpose |
-|-------|---------|
-| `.modToolsSection` | Collapsible section wrapper |
-| `.modtoolsButton` | Action buttons (`.secondary`, `.danger`, `.small`) |
-| `.indexCard` | Selection card (`.selected` = blue border) |
-| `.message` | Status messages (`.success`, `.error`, `.warning`, `.info`) |
-| `.fieldGroupGrid` | 2-column field layout |
+| Class              | Purpose                                                     |
+| ------------------ | ----------------------------------------------------------- |
+| `.modToolsSection` | Collapsible section wrapper                                 |
+| `.modtoolsButton`  | Action buttons (`.secondary`, `.danger`, `.small`)          |
+| `.indexCard`       | Selection card (`.selected` = blue border)                  |
+| `.message`         | Status messages (`.success`, `.error`, `.warning`, `.info`) |
+| `.fieldGroupGrid`  | 2-column field layout                                       |

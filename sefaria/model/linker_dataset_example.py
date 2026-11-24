@@ -17,6 +17,7 @@ class LinkerDatasetExample(AbstractMongoRecord):
     where offsets index into `text` and `label` is the raw language-specific model label
     (see ne_span.LABEL_TO_NAMED_ENTITY_TYPE_ATTR / LABEL_TO_REF_PART_TYPE_ATTR).
     """
+
     collection = "linker_dataset_examples"
 
     required_attrs = [
@@ -71,7 +72,7 @@ class LinkerDatasetExample(AbstractMongoRecord):
         pass
 
     def __str__(self):
-        return "LinkerDatasetExample ({}): {}".format(self.type, self.ref)
+        return f"LinkerDatasetExample ({self.type}): {self.ref}"
 
 
 class LinkerDatasetExampleSet(AbstractMongoSet):

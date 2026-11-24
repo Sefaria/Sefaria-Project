@@ -55,7 +55,7 @@ const QUERY_APIS = ['sources', 'books', 'authors', 'topics'];
  * always spell the tab the same way. The single source of truth for both --
  * SearchPage reports tab clicks through tabLabel() too.
  */
-const TAB_LABELS = {sources: 'Sources', books: 'Books', authors: 'Authors', topics: 'Topics'};
+const TAB_LABELS = { sources: 'Sources', books: 'Books', authors: 'Authors', topics: 'Topics' };
 
 export const tabLabel = (tab) => TAB_LABELS[tab] || tab;
 
@@ -83,11 +83,13 @@ export const tabLabel = (tab) => TAB_LABELS[tab] || tab;
  * setNextFlowSource) or they report 'unknown'.
  */
 export const initialFlowSource = () => {
-    // `performance` is absent in the Node server bundle (USE_NODE), and
-    // getEntriesByType is missing on some older browsers.
-    if (typeof performance === 'undefined' || !performance.getEntriesByType) { return 'deep_link'; }
-    const nav = performance.getEntriesByType('navigation')[0];
-    return nav && nav.type === 'back_forward' ? 'back_click' : 'deep_link';
+  // `performance` is absent in the Node server bundle (USE_NODE), and
+  // getEntriesByType is missing on some older browsers.
+  if (typeof performance === 'undefined' || !performance.getEntriesByType) {
+    return 'deep_link';
+  }
+  const nav = performance.getEntriesByType('navigation')[0];
+  return nav && nav.type === 'back_forward' ? 'back_click' : 'deep_link';
 };
 
 // Attributes a search result card stamps onto every link inside it, naming the
@@ -101,239 +103,258 @@ const RESULT_POSITION_ATTR = 'data-search-result-position';
  * empty object when the card is not opted into analytics (no position), so the
  * attributes never appear on compare-panel or sidebar-search cards.
  */
-export const resultLinkAnalyticsAttrs = (elementValue, resultPosition) => (
-    resultPosition
-        ? {[RESULT_VALUE_ATTR]: elementValue, [RESULT_POSITION_ATTR]: resultPosition}
-        : {}
-);
+export const resultLinkAnalyticsAttrs = (elementValue, resultPosition) =>
+  resultPosition ? { [RESULT_VALUE_ATTR]: elementValue, [RESULT_POSITION_ATTR]: resultPosition } : {};
 
 const SearchAnalytics = {
-    _flow: null,   // {flowId} -- set while the user is on the search page
-    _query: null,  // {searchId, searchText, tab, pending, counts, error, fired}
+  _flow: null, // {flowId} -- set while the user is on the search page
+  _query: null, // {searchId, searchText, tab, pending, counts, error, fired}
 
-    // The tab the user is looking at right now, as a label ('Sources'/'Books'/
-    // ...). SearchPage keeps this in sync on mount and on every update, so it
-    // tracks tab clicks, deep links (?tab=books), and back/forward alike.
-    //
-    // Deliberately NOT cleared by endFlow(): a back-forward cache restore
-    // resurrects the frozen document and starts a new flow without remounting
-    // SearchPage, so nothing would set it again -- and the tab on screen is
-    // still the one that was frozen.
-    _currentTab: null,
+  // The tab the user is looking at right now, as a label ('Sources'/'Books'/
+  // ...). SearchPage keeps this in sync on mount and on every update, so it
+  // tracks tab clicks, deep links (?tab=books), and back/forward alike.
+  //
+  // Deliberately NOT cleared by endFlow(): a back-forward cache restore
+  // resurrects the frozen document and starts a new flow without remounting
+  // SearchPage, so nothing would set it again -- and the tab on screen is
+  // still the one that was frozen.
+  _currentTab: null,
 
-    // One-shot hint for the `source` field of the next search_flow_started.
-    // Seeded from the browser's navigation type (see initialFlowSource): if the
-    // first flow starts with no one having set a hint, the user either landed on
-    // the search page directly ('deep_link') or got here with the back button
-    // ('back_click'). ReaderApp sets 'nav_bar' (header search) or 'back_click'
-    // (in-app back into search) just before the search page mounts.
-    _nextFlowSource: initialFlowSource(),
+  // One-shot hint for the `source` field of the next search_flow_started.
+  // Seeded from the browser's navigation type (see initialFlowSource): if the
+  // first flow starts with no one having set a hint, the user either landed on
+  // the search page directly ('deep_link') or got here with the back button
+  // ('back_click'). ReaderApp sets 'nav_bar' (header search) or 'back_click'
+  // (in-app back into search) just before the search page mounts.
+  _nextFlowSource: initialFlowSource(),
 
-    /**
-     * `tab` is a tab id ('sources' | 'books' | 'authors' | 'topics'); it is
-     * stored as the visible label. Not flow-guarded, because SearchPage mounts
-     * (and reports its starting tab) before ElasticSearchQuerier starts the
-     * flow -- a child's componentDidMount runs before its parent's.
-     */
-    setCurrentTab: function(tab) {
-        this._currentTab = tabLabel(tab);
-    },
+  /**
+   * `tab` is a tab id ('sources' | 'books' | 'authors' | 'topics'); it is
+   * stored as the visible label. Not flow-guarded, because SearchPage mounts
+   * (and reports its starting tab) before ElasticSearchQuerier starts the
+   * flow -- a child's componentDidMount runs before its parent's.
+   */
+  setCurrentTab: function (tab) {
+    this._currentTab = tabLabel(tab);
+  },
 
-    setNextFlowSource: function(source) {
-        this._nextFlowSource = source;
-    },
+  setNextFlowSource: function (source) {
+    this._nextFlowSource = source;
+  },
 
-    isFlowActive: function() {
-        return !!this._flow;
-    },
+  isFlowActive: function () {
+    return !!this._flow;
+  },
 
-    startFlow: function() {
-        // A remount without an explicit endFlow (shouldn't happen, but be safe)
-        // just starts fresh; the old flow simply has no search_flow_ended.
-        const source = this._nextFlowSource || 'unknown';
-        this._nextFlowSource = null;  // one-shot: later flows need a new hint
-        this._flow = { flowId: makeUuid() };
-        this._query = null;
-        this._fireEvent('search_flow_started', {
-            flow_id: this._flow.flowId,
-            source: source,
-        });
-    },
+  startFlow: function () {
+    // A remount without an explicit endFlow (shouldn't happen, but be safe)
+    // just starts fresh; the old flow simply has no search_flow_ended.
+    const source = this._nextFlowSource || 'unknown';
+    this._nextFlowSource = null; // one-shot: later flows need a new hint
+    this._flow = { flowId: makeUuid() };
+    this._query = null;
+    this._fireEvent('search_flow_started', {
+      flow_id: this._flow.flowId,
+      source: source,
+    });
+  },
 
-    /**
-     * Called when a query with new text is kicked off. Resets the "which APIs
-     * have we heard back from" bookkeeping. search_query_executed fires only
-     * once all four APIs report in via recordApiResult; if the user refines
-     * the query before that happens, the superseded query's event simply never
-     * fires (per spec).
-     *
-     * `tabOverride` (a tab id) names the tab this query's results will be shown
-     * in, for the one case where _currentTab is not yet it: the browser restoring
-     * a history entry whose query AND tab both differ from what is on screen.
-     * That arrives as a single React update, and the caller
-     * (ElasticSearchQuerier.componentWillReceiveProps) runs in the render phase,
-     * before SearchPage.componentDidUpdate has had a chance to setCurrentTab.
-     *
-     * It deliberately does NOT write _currentTab. elementClicked reads that live
-     * and, for a tab move, must still see the tab being LEFT -- SearchPage reports
-     * the move before updating it. Overriding only this snapshot keeps both correct.
-     */
-    startQuery: function(searchText, tabOverride) {
-        if (!this._flow) { return; }
-        this._query = {
-            searchId: makeUuid(),
-            searchText: searchText,
-            // Snapshotted here rather than read when the event fires: `tab` on
-            // search_query_executed is the tab the results are shown in, i.e.
-            // the one displayed when the query ran. The event only fires once
-            // all four APIs return, and the user can switch tabs while waiting;
-            // that switch is a search_element_clicked, and must not retroactively
-            // relabel which tab this query was run from.
-            tab: tabOverride === undefined ? this._currentTab : tabLabel(tabOverride),
-            pending: new Set(QUERY_APIS),
-            counts: {},
-            error: null,
-            fired: false,
-        };
-    },
+  /**
+   * Called when a query with new text is kicked off. Resets the "which APIs
+   * have we heard back from" bookkeeping. search_query_executed fires only
+   * once all four APIs report in via recordApiResult; if the user refines
+   * the query before that happens, the superseded query's event simply never
+   * fires (per spec).
+   *
+   * `tabOverride` (a tab id) names the tab this query's results will be shown
+   * in, for the one case where _currentTab is not yet it: the browser restoring
+   * a history entry whose query AND tab both differ from what is on screen.
+   * That arrives as a single React update, and the caller
+   * (ElasticSearchQuerier.componentWillReceiveProps) runs in the render phase,
+   * before SearchPage.componentDidUpdate has had a chance to setCurrentTab.
+   *
+   * It deliberately does NOT write _currentTab. elementClicked reads that live
+   * and, for a tab move, must still see the tab being LEFT -- SearchPage reports
+   * the move before updating it. Overriding only this snapshot keeps both correct.
+   */
+  startQuery: function (searchText, tabOverride) {
+    if (!this._flow) {
+      return;
+    }
+    this._query = {
+      searchId: makeUuid(),
+      searchText: searchText,
+      // Snapshotted here rather than read when the event fires: `tab` on
+      // search_query_executed is the tab the results are shown in, i.e.
+      // the one displayed when the query ran. The event only fires once
+      // all four APIs return, and the user can switch tabs while waiting;
+      // that switch is a search_element_clicked, and must not retroactively
+      // relabel which tab this query was run from.
+      tab: tabOverride === undefined ? this._currentTab : tabLabel(tabOverride),
+      pending: new Set(QUERY_APIS),
+      counts: {},
+      error: null,
+      fired: false,
+    };
+  },
 
-    /**
-     * One search API returned. `api` is one of QUERY_APIS. Pass `count` on
-     * success, or `errorMessage` on failure (count is recorded as null).
-     * Duplicate reports for the same API (e.g. the sources API re-runs when a
-     * filter is applied) are ignored -- only the first response per query
-     * counts toward completion.
-     */
-    recordApiResult: function(api, count, errorMessage) {
-        const q = this._query;
-        if (!this._flow || !q || q.fired || !q.pending.has(api)) { return; }
-        q.pending.delete(api);
-        if (errorMessage) {
-            q.counts[api] = null;
-            // Keep the first error; prefix with which API failed.
-            if (!q.error) { q.error = `${api}: ${errorMessage}`; }
-        } else {
-            q.counts[api] = count;
-        }
-        if (q.pending.size === 0) {
-            q.fired = true;
-            this._fireEvent('search_query_executed', {
-                flow_id: this._flow.flowId,
-                search_id: q.searchId,
-                search_text: q.searchText,
-                status: q.error ? 'failure' : 'success',
-                result_counts: JSON.stringify(q.counts),
-                error: q.error || undefined,
-                tab: q.tab || undefined,
-            });
-        }
-    },
+  /**
+   * One search API returned. `api` is one of QUERY_APIS. Pass `count` on
+   * success, or `errorMessage` on failure (count is recorded as null).
+   * Duplicate reports for the same API (e.g. the sources API re-runs when a
+   * filter is applied) are ignored -- only the first response per query
+   * counts toward completion.
+   */
+  recordApiResult: function (api, count, errorMessage) {
+    const q = this._query;
+    if (!this._flow || !q || q.fired || !q.pending.has(api)) {
+      return;
+    }
+    q.pending.delete(api);
+    if (errorMessage) {
+      q.counts[api] = null;
+      // Keep the first error; prefix with which API failed.
+      if (!q.error) {
+        q.error = `${api}: ${errorMessage}`;
+      }
+    } else {
+      q.counts[api] = count;
+    }
+    if (q.pending.size === 0) {
+      q.fired = true;
+      this._fireEvent('search_query_executed', {
+        flow_id: this._flow.flowId,
+        search_id: q.searchId,
+        search_text: q.searchText,
+        status: q.error ? 'failure' : 'success',
+        result_counts: JSON.stringify(q.counts),
+        error: q.error || undefined,
+        tab: q.tab || undefined,
+      });
+    }
+  },
 
-    /**
-     * A tab, filter, or result was clicked.
-     *
-     * `tab` is read live, so it is the tab the user is on AT THE MOMENT OF THE
-     * CLICK. For a tab click that is the tab they are leaving, not the one they
-     * picked -- element_value already names the destination, so the pair reads
-     * as "went from `tab` to `element_value`".
-     *
-     * elementType: 'tab' | 'filter' | 'sort' | 'toggle' | 'result'
-     * elementValue: tab/filter name, or the result's reference/title
-     * count: result count shown on the tab/filter (omit for results)
-     * resultPosition: 1-based rank of a clicked result (omit for tabs/filters)
-     */
-    elementClicked: function({elementType, elementValue, count, resultPosition}) {
-        if (!this._flow) { return; }
-        this._fireEvent('search_element_clicked', {
-            flow_id: this._flow.flowId,
-            search_id: this._query ? this._query.searchId : undefined,
-            element_type: elementType,
-            element_value: elementValue,
-            tab: this._currentTab || undefined,
-            count: (count === null || count === undefined) ? undefined : count,
-            result_position: resultPosition || undefined,
-        });
-    },
+  /**
+   * A tab, filter, or result was clicked.
+   *
+   * `tab` is read live, so it is the tab the user is on AT THE MOMENT OF THE
+   * CLICK. For a tab click that is the tab they are leaving, not the one they
+   * picked -- element_value already names the destination, so the pair reads
+   * as "went from `tab` to `element_value`".
+   *
+   * elementType: 'tab' | 'filter' | 'sort' | 'toggle' | 'result'
+   * elementValue: tab/filter name, or the result's reference/title
+   * count: result count shown on the tab/filter (omit for results)
+   * resultPosition: 1-based rank of a clicked result (omit for tabs/filters)
+   */
+  elementClicked: function ({ elementType, elementValue, count, resultPosition }) {
+    if (!this._flow) {
+      return;
+    }
+    this._fireEvent('search_element_clicked', {
+      flow_id: this._flow.flowId,
+      search_id: this._query ? this._query.searchId : undefined,
+      element_type: elementType,
+      element_value: elementValue,
+      tab: this._currentTab || undefined,
+      count: count === null || count === undefined ? undefined : count,
+      result_position: resultPosition || undefined,
+    });
+  },
 
-    /**
-     * A result was clicked -- either the card itself or any link inside it:
-     * the title, a version row, a breadcrumb category, or the author name.
-     * They all report as element_type 'result'.
-     *
-     * `endsFlow` is true for a click that navigates the current window, which
-     * is a "true exit" from search. Pass false when the click opens a new tab
-     * or window: the user is still sitting on the search page, so the flow has
-     * not ended and their later clicks must keep reporting.
-     *
-     * Called by SearchResultCard, which navigates in ways that bypass
-     * ReaderApp's link handling (onResultClick / window.location.href, and
-     * crumbs that stop propagation).
-     */
-    resultClicked: function(elementValue, resultPosition, endsFlow = true) {
-        if (!this._flow) { return; }
-        this.elementClicked({elementType: 'result', elementValue, resultPosition});
-        if (endsFlow) { this.endFlow('clicked_result'); }
-    },
+  /**
+   * A result was clicked -- either the card itself or any link inside it:
+   * the title, a version row, a breadcrumb category, or the author name.
+   * They all report as element_type 'result'.
+   *
+   * `endsFlow` is true for a click that navigates the current window, which
+   * is a "true exit" from search. Pass false when the click opens a new tab
+   * or window: the user is still sitting on the search page, so the flow has
+   * not ended and their later clicks must keep reporting.
+   *
+   * Called by SearchResultCard, which navigates in ways that bypass
+   * ReaderApp's link handling (onResultClick / window.location.href, and
+   * crumbs that stop propagation).
+   */
+  resultClicked: function (elementValue, resultPosition, endsFlow = true) {
+    if (!this._flow) {
+      return;
+    }
+    this.elementClicked({ elementType: 'result', elementValue, resultPosition });
+    if (endsFlow) {
+      this.endFlow('clicked_result');
+    }
+  },
 
-    /**
-     * A modified click (Cmd/Ctrl/Shift/Alt) on a link inside a result card,
-     * reported from ReaderApp rather than from the card itself.
-     *
-     * It has to come from there: ReaderApp listens for clicks on `document` in
-     * the CAPTURE phase and calls stopImmediatePropagation() on any modified
-     * click (handleInAppClickWithModifiers). That stops the event before it
-     * reaches the link, and before React 16's delegated bubble-phase listener
-     * on `document` -- which is where every onClick in the app actually runs.
-     * So no React handler in the card ever sees these clicks; the card instead
-     * publishes what it would have reported as data-search-result-* attributes,
-     * and this reads them back off the clicked link.
-     *
-     * The flow is deliberately not ended: the result opens in a new tab and the
-     * user stays on the search page.
-     */
-    reportModifiedResultLinkClick: function(linkEl) {
-        if (!this._flow || !linkEl?.closest) { return; }
-        const el = linkEl.closest(`[${RESULT_VALUE_ATTR}]`);
-        if (!el) { return; }
-        this.resultClicked(
-            el.getAttribute(RESULT_VALUE_ATTR),
-            Number(el.getAttribute(RESULT_POSITION_ATTR)) || undefined,
-            false,  // new tab -- the visit to the search page is still going
-        );
-    },
+  /**
+   * A modified click (Cmd/Ctrl/Shift/Alt) on a link inside a result card,
+   * reported from ReaderApp rather than from the card itself.
+   *
+   * It has to come from there: ReaderApp listens for clicks on `document` in
+   * the CAPTURE phase and calls stopImmediatePropagation() on any modified
+   * click (handleInAppClickWithModifiers). That stops the event before it
+   * reaches the link, and before React 16's delegated bubble-phase listener
+   * on `document` -- which is where every onClick in the app actually runs.
+   * So no React handler in the card ever sees these clicks; the card instead
+   * publishes what it would have reported as data-search-result-* attributes,
+   * and this reads them back off the clicked link.
+   *
+   * The flow is deliberately not ended: the result opens in a new tab and the
+   * user stays on the search page.
+   */
+  reportModifiedResultLinkClick: function (linkEl) {
+    if (!this._flow || !linkEl?.closest) {
+      return;
+    }
+    const el = linkEl.closest(`[${RESULT_VALUE_ATTR}]`);
+    if (!el) {
+      return;
+    }
+    this.resultClicked(
+      el.getAttribute(RESULT_VALUE_ATTR),
+      Number(el.getAttribute(RESULT_POSITION_ATTR)) || undefined,
+      false // new tab -- the visit to the search page is still going
+    );
+  },
 
-    /**
-     * The user left the search page. reason: 'clicked_result' | 'abandoned'.
-     * Safe to call from generic navigation code -- no-ops unless a flow is
-     * active, and a flow can only end once.
-     */
-    endFlow: function(reason) {
-        if (!this._flow) { return; }
-        this._fireEvent('search_flow_ended', {
-            flow_id: this._flow.flowId,
-            search_id: this._query ? this._query.searchId : undefined,
-            reason: reason,
-        });
-        this._flow = null;
-        this._query = null;
-    },
+  /**
+   * The user left the search page. reason: 'clicked_result' | 'abandoned'.
+   * Safe to call from generic navigation code -- no-ops unless a flow is
+   * active, and a flow can only end once.
+   */
+  endFlow: function (reason) {
+    if (!this._flow) {
+      return;
+    }
+    this._fireEvent('search_flow_ended', {
+      flow_id: this._flow.flowId,
+      search_id: this._query ? this._query.searchId : undefined,
+      reason: reason,
+    });
+    this._flow = null;
+    this._query = null;
+  },
 
-    /**
-     * Send one event to GA4. `transport_type: 'beacon'` forces immediate
-     * per-event dispatch: search_flow_ended and result clicks fire right
-     * before navigation, and GA's default XHR transport would drop them.
-     * gtag can be undefined (ad blockers, local dev without GOOGLE_GTAG) --
-     * events are silently skipped. Fields with undefined values are omitted
-     * so GA4/BigQuery only sees params that actually have a value.
-     */
-    _fireEvent: function(name, fields) {
-        if (typeof gtag !== 'function') { return; }
-        const params = { transport_type: 'beacon' };
-        for (const [key, value] of Object.entries(fields)) {
-            if (value !== undefined) { params[key] = value; }
-        }
-        gtag('event', name, params);
-    },
+  /**
+   * Send one event to GA4. `transport_type: 'beacon'` forces immediate
+   * per-event dispatch: search_flow_ended and result clicks fire right
+   * before navigation, and GA's default XHR transport would drop them.
+   * gtag can be undefined (ad blockers, local dev without GOOGLE_GTAG) --
+   * events are silently skipped. Fields with undefined values are omitted
+   * so GA4/BigQuery only sees params that actually have a value.
+   */
+  _fireEvent: function (name, fields) {
+    if (typeof gtag !== 'function') {
+      return;
+    }
+    const params = { transport_type: 'beacon' };
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) {
+        params[key] = value;
+      }
+    }
+    gtag('event', name, params);
+  },
 };
 
 export default SearchAnalytics;

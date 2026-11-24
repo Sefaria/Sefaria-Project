@@ -1,5 +1,29 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import Sefaria from '../sefaria/sefaria';
+import { InterfaceText } from '../Misc.jsx';
+
+// Set by AuthPage when the visitor came from developer settings or the Powered by form ('developer').
+export const AuthNoticeContext = React.createContext(null);
+
+const AUTH_NOTICES = {
+  developer: {
+    title: 'developer.signin_notice.header',
+    body: 'developer.signin_notice.body',
+  },
+};
+
+const AuthNotice = ({ kind }) => (
+  <p className="sefaria-auth-notice">
+    {/* No icon (Penina, 2026-11-08). */}
+    <span>
+      <strong>
+        <InterfaceText text={Sefaria._bilingual(AUTH_NOTICES[kind].title)} />
+      </strong>{' '}
+      <InterfaceText text={Sefaria._bilingual(AUTH_NOTICES[kind].body)} />
+    </span>
+  </p>
+);
 
 /**
  * AuthCard — the white auth panel (Figma `Form Card`) that floats on the navy
@@ -24,6 +48,7 @@ import PropTypes from 'prop-types';
  */
 const AuthCard = ({ heading, sub, onBack, backLabel = 'auth.back', className = '', children }) => {
   const headingRef = useRef(null);
+  const notice = useContext(AuthNoticeContext);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -38,10 +63,15 @@ const AuthCard = ({ heading, sub, onBack, backLabel = 'auth.back', className = '
       )}
       {(heading || sub) && (
         <div className="sefaria-auth-card-header">
-          {heading && <h1 ref={headingRef} tabIndex={-1} className="sefaria-auth-card-heading">{heading}</h1>}
+          {heading && (
+            <h1 ref={headingRef} tabIndex={-1} className="sefaria-auth-card-heading">
+              {heading}
+            </h1>
+          )}
           {sub && <div className="sefaria-auth-card-sub">{sub}</div>}
         </div>
       )}
+      {notice && AUTH_NOTICES[notice] && <AuthNotice kind={notice} />}
       {children}
     </div>
   );

@@ -20,7 +20,7 @@ TAG="v${VERSION}"
 
 echo "Building images with tag ${TAG}"
 
-# Build web and node in parallel
+# Build web, node and auth-service in parallel
 pids=()
 
 docker buildx build --push \
@@ -38,6 +38,15 @@ docker buildx build --push \
   --cache-to "type=registry,ref=${IMAGE_REGISTRY}/${IMAGE_NAME}-node:cache,mode=max" \
   -t "${IMAGE_REGISTRY}/${IMAGE_NAME}-node:${TAG}" \
   -f build/node/Dockerfile \
+  . &
+pids+=($!)
+
+docker buildx build --push \
+  --build-arg TYPE=build-prod \
+  --cache-from "type=registry,ref=${IMAGE_REGISTRY}/${IMAGE_NAME}-auth-service:cache" \
+  --cache-to "type=registry,ref=${IMAGE_REGISTRY}/${IMAGE_NAME}-auth-service:cache,mode=max" \
+  -t "${IMAGE_REGISTRY}/${IMAGE_NAME}-auth-service:${TAG}" \
+  -f build/auth-service/Dockerfile \
   . &
 pids+=($!)
 

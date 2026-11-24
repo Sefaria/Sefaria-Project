@@ -20,8 +20,131 @@ http {
   opentracing_load_tracer /usr/local/lib/libjaegertracing_plugin.so /etc/nginx/opentracing.json;
   {{- end }}
 
+  # Caller-classification fields for the access log. Each map outputs a short
+  # constant or a Sec-Fetch/Origin value, never a credential. No Helm template braces in
+  # these maps: this file goes through Helm tpl.
+  # secFetch: Sec-Fetch-Site/Mode/Dest as "site/mode/dest"; empty when the caller sends none.
+  map "$http_sec_fetch_site/$http_sec_fetch_mode/$http_sec_fetch_dest" $sec_fetch {
+    "//"    "";
+    default "$http_sec_fetch_site/$http_sec_fetch_mode/$http_sec_fetch_dest";
+  }
+
+  # credentialTransport: which header or query parameter carried a credential (presence only).
+  # Precedence when several are present: x-api-key, authorization, x-sefaria-api-key, query.
+  map $arg_api_key$arg_apikey $credential_transport_query {
+    ""      none;
+    default query;
+  }
+  map $http_x_sefaria_api_key $credential_transport_sefaria {
+    ""      $credential_transport_query;
+    default x-sefaria-api-key;
+  }
+  map $http_authorization $credential_transport_authorization {
+    ""      $credential_transport_sefaria;
+    default authorization;
+  }
+  map $http_x_api_key $credential_transport {
+    ""      $credential_transport_authorization;
+    default x-api-key;
+  }
+
+  # varnishCache: Varnish sets X-Varnish to two ids on a cache hit and one id otherwise
+  # (miss or pass). Empty means the response did not come through Varnish (search, static).
+  map $upstream_http_x_varnish $varnish_cache {
+    ""                 bypass;
+    "~^[0-9]+ [0-9]+$" hit;
+    default            miss;
+  }
+
+  # sessionCookie: presence of the Django session cookie. Logged unquoted as a JSON boolean.
+  map $cookie_sessionid $session_cookie {
+    ""      false;
+    default true;
+  }
+
+  # apiKeyScrub: the access log never records a key from a query string. Each pass replaces the value of one
+  # api_key or apikey parameter in the query part only (after the first question mark) with [REDACTED], through the next ampersand or the end (a raw hash included). A name counts only at
+  # the start of the query or right after an ampersand, never after a later question mark. Every letter
+  # and the underscore of the name may be literal (any case) or percent-encoded (any hex case); the key name and every
+  # other parameter stay. The lookahead skips a value a previous pass already redacted, so three passes cover three occurrences.
+  # The last parameter map fails closed: if a raw value is still present it logs [REDACTED-URI] (or [REDACTED-REFERER]).
+  # keyTokenScrub: after the parameter passes, a second chain redacts a whole API key token anywhere in the string
+  # (path, any parameter, after a hash), for example a key pasted into an admin search box (?q=sfr_...). A token is
+  # sfr_ (each character literal in any case, percent-encoded, or double-encoded as in sfr%255F; the token must not continue a longer name, so it follows the start of the string or a character that is not a letter, digit or underscore, or an encoded byte) followed by 7 or more body units, a unit being one letter or digit or one
+  # percent-encoded byte (a percent sign and two hex digits, any case), so ?q=sfr_%41 plus 31 letters is caught; a
+  # shorter body is the non-secret display prefix and stays. Each pass replaces the first token with [REDACTED-KEY],
+  # three passes cover three tokens, and a final map fails closed: a token still present logs [REDACTED-URI] or
+  # [REDACTED-REFERER]. The pattern is anchored, with one lazy dot-star and no nested quantifiers (the two alternatives of a body unit start with different characters, so a unit has one way to match), so cost is linear
+  # in the length of the string. requestUrl and referer use the final maps' output. In a replacement a capture
+  # must be followed by a character that cannot be part of a name, hence the bracket. No Helm braces and no
+  # dollar-brace names here: this file goes through Helm tpl and envsubst.
+  map $request_uri $uri_scrub_1 {
+    "~*^(?<pre>[^?]*\?(?:[^&]*&)*?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
+    default $request_uri;
+  }
+  map $uri_scrub_1 $uri_scrub_2 {
+    "~*^(?<pre>[^?]*\?(?:[^&]*&)*?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
+    default $uri_scrub_1;
+  }
+  map $uri_scrub_2 $uri_scrub_3 {
+    "~*^(?<pre>[^?]*\?(?:[^&]*&)*?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
+    default $uri_scrub_2;
+  }
+  map $uri_scrub_3 $uri_scrub_4 {
+    "~*^[^?]*\?(?:[^&]*&)*?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=(?!\[REDACTED\](?:&|$))" "[REDACTED-URI]";
+    default $uri_scrub_3;
+  }
+  map $uri_scrub_4 $uri_key_1 {
+    "~*^(?<pre>.*?)(?:(?<![a-z0-9_])|(?<=%[0-9a-f]{2}))(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    default $uri_scrub_4;
+  }
+  map $uri_key_1 $uri_key_2 {
+    "~*^(?<pre>.*?)(?:(?<![a-z0-9_])|(?<=%[0-9a-f]{2}))(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    default $uri_key_1;
+  }
+  map $uri_key_2 $uri_key_3 {
+    "~*^(?<pre>.*?)(?:(?<![a-z0-9_])|(?<=%[0-9a-f]{2}))(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    default $uri_key_2;
+  }
+  map $uri_key_3 $request_uri_scrubbed {
+    "~*(?:(?<![a-z0-9_])|(?<=%[0-9a-f]{2}))(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}" "[REDACTED-URI]";
+    default $uri_key_3;
+  }
+  map $http_referer $referer_scrub_1 {
+    "~*^(?<pre>[^?]*\?(?:[^&]*&)*?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
+    default $http_referer;
+  }
+  map $referer_scrub_1 $referer_scrub_2 {
+    "~*^(?<pre>[^?]*\?(?:[^&]*&)*?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
+    default $referer_scrub_1;
+  }
+  map $referer_scrub_2 $referer_scrub_3 {
+    "~*^(?<pre>[^?]*\?(?:[^&]*&)*?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=)(?!\[REDACTED\](?:&|$))[^&]*(?<post>.*)$" "$pre[REDACTED]$post";
+    default $referer_scrub_2;
+  }
+  map $referer_scrub_3 $referer_scrub_4 {
+    "~*^[^?]*\?(?:[^&]*&)*?(?:a|%61|%41)(?:p|%70|%50)(?:i|%69|%49)(?:_|%5f)?(?:k|%6b|%4b)(?:e|%65|%45)(?:y|%79|%59)=(?!\[REDACTED\](?:&|$))" "[REDACTED-REFERER]";
+    default $referer_scrub_3;
+  }
+  map $referer_scrub_4 $referer_key_1 {
+    "~*^(?<pre>.*?)(?:(?<![a-z0-9_])|(?<=%[0-9a-f]{2}))(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    default $referer_scrub_4;
+  }
+  map $referer_key_1 $referer_key_2 {
+    "~*^(?<pre>.*?)(?:(?<![a-z0-9_])|(?<=%[0-9a-f]{2}))(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    default $referer_key_1;
+  }
+  map $referer_key_2 $referer_key_3 {
+    "~*^(?<pre>.*?)(?:(?<![a-z0-9_])|(?<=%[0-9a-f]{2}))(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}(?<post>.*)$" "$pre[REDACTED-KEY]$post";
+    default $referer_key_2;
+  }
+  map $referer_key_3 $referer_scrubbed {
+    "~*(?:(?<![a-z0-9_])|(?<=%[0-9a-f]{2}))(?:s|%73|%2573)(?:f|%66|%2566)(?:r|%72|%2572)(?:_|%5f|%255f)(?:[a-z0-9]|%[0-9a-f]{2}){7,}" "[REDACTED-REFERER]";
+    default $referer_key_3;
+  }
+
   # https://nginx.org/en/docs/varindex.html
-  log_format structured escape=json '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$http_referer", "latency": ${request_time}, "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "remoteUser": "$remote_user", "timeLocal": "$time_local" }';
+  log_format structured escape=json '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri_scrubbed", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$referer_scrubbed", "latency": ${request_time}, "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "remoteUser": "$remote_user", {{ if and .Values.authService.enabled .Values.authService.nginxLogFields }}"sefariaProject": "$http_x_sefaria_project", "sefariaTier": "$http_x_sefaria_tier", "sefariaAuthResult": "$http_x_sefaria_auth_result", {{ end }}"apiClassification": { "secFetch": "$sec_fetch", "origin": "$http_origin", "credentialTransport": "$credential_transport", "varnishCache": "$varnish_cache", "sessionCookie": $session_cookie }, "timeLocal": "$time_local" }';
   access_log /dev/stdout structured;
   client_max_body_size 32M;
 
@@ -34,6 +157,16 @@ http {
   }
   add_header 'Access-Control-Allow-Origin' $cors_header always;
 
+{{ if and .Values.authService.enabled .Values.gateway.enabled }}  # keyStatus: ext_authz sends x-sefaria-key-status: not_accepted when a bad key was answered as anonymous
+  # (ungated, or observe mode). Echo it to the caller; Access-Control-Expose-Headers lets browsers read it cross-origin.
+  # Rendered only when authService and the gateway are enabled: only then does the listener strip client copies (clienttrafficpolicy).
+  map $http_x_sefaria_key_status $key_status {
+    not_accepted  not_accepted;
+    default       "";
+  }
+  add_header x-sefaria-key-status $key_status always;
+  add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
+{{ end }}
   upstream varnishupstream {
     server ${VARNISH_HOST}:8040;
     keepalive 32;
@@ -70,7 +203,30 @@ http {
     listen 80;
     listen [::]:80;
     server_name {{ $rootDomain }};
-    return 301 https://{{ $wwwDomain }}$request_uri;
+
+    location /apple-app-site-association {
+      proxy_set_header Host {{ $wwwDomain }};
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
+
+    location /.well-known/apple-app-site-association {
+      proxy_set_header Host {{ $wwwDomain }};
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
+
+    location / {
+      return 301 https://{{ $wwwDomain }}$request_uri;
+    }
   }
 
   server {
@@ -82,12 +238,12 @@ http {
     resolver 8.8.8.8 8.8.4.4;
 
     # Return error on forbidden methods
-    if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
+    if ( $request_method !~ ^(GET|POST|HEAD|PUT|PATCH|DELETE|OPTIONS)$ ) {
       return 405;
     }
 
     # protect all non-allowed elasticsearch paths
-    location ~ ^/api/search/(?!(text|sheet|merged|merged-c)(/_search|/_analyze)/?) {
+    location ~ ^/api/search/(?!(text|sheet|merged|merged-c|topic|book|category)(/_search|/_analyze)/?) {
       return 403;
     }
 
@@ -96,7 +252,9 @@ http {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
       add_header 'Access-Control-Allow-Origin' '';
-      proxy_pass http://elasticsearch_upstream/;
+{{ if and $.Values.authService.enabled $.Values.gateway.enabled }}      add_header x-sefaria-key-status $key_status always;
+      add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
+{{ end }}      proxy_pass http://elasticsearch_upstream/;
     }
 
     location /nginx-health {
@@ -108,20 +266,6 @@ http {
       access_log off;
       autoindex on;
       alias /app/robots.txt;
-    }
-
-    location /apple-app-site-association {
-      access_log off;
-      autoindex on;
-      default_type application/json;
-      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
-    }
-
-    location /.well-known/apple-app-site-association {
-      access_log off;
-      autoindex on;
-      default_type application/json;
-      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
     }
 
     location / {
@@ -186,12 +330,12 @@ http {
     resolver 8.8.8.8 8.8.4.4;
 
     # Return error on forbidden methods
-    if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
+    if ( $request_method !~ ^(GET|POST|HEAD|PUT|PATCH|DELETE|OPTIONS)$ ) {
       return 405;
     }
 
     # protect all non-allowed elasticsearch paths
-    location ~ ^/api/search/(?!(text|sheet|merged|merged-c)(/_search|/_analyze)/?) {
+    location ~ ^/api/search/(?!(text|sheet|merged|merged-c|topic|book|category)(/_search|/_analyze)/?) {
       return 403;
     }
 
@@ -200,7 +344,9 @@ http {
       rewrite ^/(?:api/search)/(.*)$ /$1 break;
       proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
       add_header 'Access-Control-Allow-Origin' '';
-      proxy_pass http://elasticsearch_upstream/;
+{{ if and $.Values.authService.enabled $.Values.gateway.enabled }}      add_header x-sefaria-key-status $key_status always;
+      add_header Access-Control-Expose-Headers 'x-sefaria-key-status' always;
+{{ end }}      proxy_pass http://elasticsearch_upstream/;
     }
 
     location /nginx-health {
@@ -212,20 +358,6 @@ http {
       access_log off;
       autoindex on;
       alias /app/robots.txt;
-    }
-
-    location /apple-app-site-association {
-      access_log off;
-      autoindex on;
-      default_type application/json;
-      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
-    }
-
-    location /.well-known/apple-app-site-association {
-      access_log off;
-      autoindex on;
-      default_type application/json;
-      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
     }
 
     location ~ ^/data\.\d+\.js$ {

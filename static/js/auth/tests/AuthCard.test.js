@@ -6,23 +6,32 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import AuthCard from '../AuthCard.jsx';
 
+// AuthCard.jsx imports the Sefaria singleton; mock the module rather than
+// setting a `global.Sefaria`, which the import would ignore.
+// AuthCard's notice uses InterfaceText from Misc, which pulls in CSS Jest can't load.
+jest.mock('../../Misc.jsx', () => ({ InterfaceText: ({ text }) => text.en }));
+jest.mock('../../sefaria/sefaria', () => ({
+  __esModule: true,
+  default: { _: (key) => key },
+}));
+
 let container = null;
 
 function mount(props) {
   container = document.createElement('div');
   document.body.appendChild(container);
-  act(() => { ReactDOM.render(React.createElement(AuthCard, props), container); });
+  act(() => {
+    ReactDOM.render(React.createElement(AuthCard, props), container);
+  });
 }
 
 function unmount() {
-  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  act(() => {
+    ReactDOM.unmountComponentAtNode(container);
+  });
   document.body.removeChild(container);
   container = null;
 }
-
-const realSefaria = global.Sefaria;
-beforeAll(() => { global.Sefaria = { _: (key) => key }; });
-afterAll(() => { global.Sefaria = realSefaria; });
 
 afterEach(() => {
   if (container) unmount();

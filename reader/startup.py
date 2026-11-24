@@ -1,15 +1,19 @@
 from django_topics.models import Topic as DjangoTopic
 
+
 def init_sentry_from_settings():
     import structlog
+
     logger = structlog.get_logger(__name__)
 
     from django.conf import settings
+
     sentry_dsn = getattr(settings, "SENTRY_DSN", None)
     if not sentry_dsn:
         return
 
     from sefaria.settings_utils import init_sentry
+
     logger.info("Initializing Sentry")
     init_sentry(
         sentry_dsn,
@@ -20,44 +24,49 @@ def init_sentry_from_settings():
 
 def init_library_cache():
     import django
+
     django.setup()
     import structlog
+
     logger = structlog.get_logger(__name__)
 
-    from sefaria.model.text import library
-    from sefaria.system.multiserver.coordinator import server_coordinator
     from django.conf import settings
 
-    logger.info("Initializing topic pools cache")
-    DjangoTopic.objects.build_slug_to_pools_cache()
+    # The individual builders below wrap themselves; this outer block groups them, so a boot
+    # that skipped records reports them once, as "startup", rather than once per builder. It
+    # also guarantees the summary posts if the build aborts partway.
+    from sefaria.helper.skip_tracking import build_pathway
+    from sefaria.model.text import library
+    from sefaria.system.cache import gen_cache
 
-    logger.info("Initializing library objects.")
-    logger.info("Initializing TOC Tree")
-    library.get_toc_tree()
+    with build_pathway("startup"):
+        logger.info("Initializing topic pools cache")
+        DjangoTopic.objects.build_slug_to_pools_cache()
 
-    logger.info("Initializing Shared Cache")
-    library.init_shared_cache()
+        logger.info("Initializing library objects.")
+        logger.info("Initializing TOC Tree")
+        library.get_toc_tree()
 
-    if not settings.DISABLE_AUTOCOMPLETER:
-        logger.info("Initializing Full Auto Completer")
-        library.build_full_auto_completer()
+        logger.info("Initializing Shared Cache")
+        library.init_shared_cache()
 
+        # Built through gen_cache, so the first request doesn't count as a cold start and rebuild them.
+        if not settings.DISABLE_AUTOCOMPLETER:
+            logger.info("Building Search Autocorrect Tables")
+            library.build_search_autocorrect_tables()
 
-        logger.info("Initializing Lexicon Auto Completers")
-        library.build_lexicon_auto_completers()
+            logger.info("Initializing Full Auto Completer")
+            gen_cache.get("full_auto_completer")
 
-        logger.info("Initializing Cross Lexicon Auto Completer")
-        library.build_cross_lexicon_auto_completer()
+            logger.info("Initializing Lexicon Auto Completers")
+            gen_cache.get("lexicon_auto_completer")
 
+            logger.info("Initializing Cross Lexicon Auto Completer")
+            gen_cache.get("cross_lexicon_auto_completer")
 
-    if settings.ENABLE_LINKER:
-        logger.info("Initializing Linker")
-        library.build_linker('he')
-        library.build_linker('en')
+        if settings.ENABLE_LINKER:
+            logger.info("Initializing Linker")
+            gen_cache.get("linker_resolver:he")
+            gen_cache.get("linker_resolver:en")
 
-    from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
-    signal_and_reset_skip_counts("startup")
-
-    if server_coordinator:
-        server_coordinator.connect()
     logger.info("Initialization Complete")
