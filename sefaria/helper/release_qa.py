@@ -1,10 +1,10 @@
 """
-TEMPORARY QA tooling for staff-only books (PR #3838): copy an existing category, book or version as a
-staff-only record, so testers can try the feature on real content from the site's admin menus.
+TEMPORARY QA tooling for unreleased books (PR #3838): copy an existing category, book or version as a
+unreleased record, so testers can try the feature on real content from the site's admin menus.
 
-Enabled only where STAFF_ONLY_QA_TOOLS is on (the QA cauldron), and only on a staff site.
-Remove before merging, together with the QA views and routes in api/staff_only_views.py / urls_shared.py
-and the "QA: copy" buttons in static/js/StaffOnlyTools.jsx.
+Enabled only where UNRELEASED_QA_TOOLS is on (the QA cauldron), and only on a staff site.
+Remove before merging, together with the QA views and routes in api/release_views.py / urls_shared.py
+and the "QA: copy" buttons in static/js/ReleaseTools.jsx.
 """
 import copy
 import threading
@@ -13,24 +13,24 @@ import structlog
 from django.conf import settings
 
 from sefaria.model import Category, Index, Link, LinkSet, Ref, Version, VersionSet, library, log_add
-from sefaria.model.abstract import show_admin_only_records
+from sefaria.model.abstract import show_unreleased_content
 from sefaria.system.exceptions import BookNameError, DuplicateRecordError, InputError
 from sefaria import tracker
 
 logger = structlog.get_logger(__name__)
 
 QA_METHOD = "Staff-only QA copy"
-QA_GENERATED_BY = "staff_only_qa_copy"
+QA_GENERATED_BY = "release_qa_copy"
 DEFAULT_MAX_LINKS = 100
 
 
 def qa_tools_enabled():
-    return show_admin_only_records() and bool(getattr(settings, "STAFF_ONLY_QA_TOOLS", False))
+    return show_unreleased_content() and bool(getattr(settings, "UNRELEASED_QA_TOOLS", False))
 
 
 def _require_enabled():
     if not qa_tools_enabled():
-        raise InputError("Staff-only QA tools are not enabled on this site.")
+        raise InputError("Unreleased QA tools are not enabled on this site.")
 
 
 def _required(body, *keys):
@@ -52,7 +52,7 @@ def _load_index(title):
 
 
 def copy_category(user, body):
-    """A staff-only sibling of an existing category, with new names. Its books are not copied."""
+    """An unreleased sibling of an existing category, with new names. Its books are not copied."""
     _require_enabled()
     _required(body, "path", "name", "heName")
     source = Category().load({"path": body["path"]})
@@ -62,14 +62,14 @@ def copy_category(user, body):
     path = list(body["path"][:-1]) + [body["name"]]
     if Category().load({"path": path}):
         raise InputError("Category {} already exists.".format("/".join(path)))
-    category = Category({"path": path, "lastPath": body["name"], "admin_only": True})
+    category = Category({"path": path, "lastPath": body["name"], "unreleased": True})
     category.add_primary_titles(body["name"], body["heName"])
     for key in ("enDesc", "heDesc", "enShortDesc", "heShortDesc"):
         if getattr(source, key, None):
             setattr(category, key, getattr(source, key))
     category.save()
     log_add(user, Category, category.contents(), method=QA_METHOD)
-    return {"copied": "/".join(path), "admin_only": category.is_admin_only(), "url": "/texts/" + "/".join(path)}
+    return {"copied": "/".join(path), "unreleased": category.is_unreleased(), "url": "/texts/" + "/".join(path)}
 
 
 def _copy_ref(tref, source_title, new_title):
@@ -103,7 +103,7 @@ def start_copy_index(user, body):
         try:
             copy_index(user, body)
         except Exception:
-            logger.exception("staff-only QA copy failed", source=body.get("title"), copy=body.get("newTitle"))
+            logger.exception("unreleased QA copy failed", source=body.get("title"), copy=body.get("newTitle"))
 
     threading.Thread(target=work, daemon=True).start()
     return {"copying": body["newTitle"], "url": "/" + body["newTitle"].replace(" ", "_")}
@@ -111,7 +111,7 @@ def start_copy_index(user, body):
 
 def copy_index(user, body):
     """
-    A staff-only copy of a book under a new title: its structure, all its versions and up to `max_links` of its
+    An unreleased copy of a book under a new title: its structure, all its versions and up to `max_links` of its
     links (rewritten to point at the copy). Placed in `categories` (default: the source's own categories).
     """
     source = _check_copy_index(body)
@@ -123,7 +123,7 @@ def copy_index(user, body):
         raw.pop(key, None)
     raw["title"] = new_title
     raw["categories"] = body.get("categories") or source.categories
-    raw["admin_only"] = True
+    raw["unreleased"] = True
     raw["schema"].update({"key": new_title, "titles": [{"lang": "en", "text": new_title, "primary": True},
                                                        {"lang": "he", "text": he_title, "primary": True}]})
     raw["schema"].pop("sharedTitle", None)
@@ -134,7 +134,7 @@ def copy_index(user, body):
     # Primary versions first: a book must always have at least one primary version.
     for version in sorted(VersionSet({"title": source.title}), key=lambda v: not getattr(v, "isPrimary", False)):
         attrs = {k: v for k, v in version.contents().items() if k != "_id"}
-        attrs.update({"title": new_title, "admin_only": True})
+        attrs.update({"title": new_title, "unreleased": True})
         Version(attrs).save()
         versions.append(version.versionTitle)
     tracker.count_segments(index)
@@ -151,12 +151,12 @@ def copy_index(user, body):
         except (DuplicateRecordError, InputError, AssertionError):
             skipped_links += 1
 
-    return {"copied": new_title, "admin_only": index.is_admin_only(), "versions": versions,
+    return {"copied": new_title, "unreleased": index.is_unreleased(), "versions": versions,
             "links": copied_links, "skippedLinks": skipped_links, "url": "/" + new_title.replace(" ", "_")}
 
 
 def copy_version(user, body):
-    """A staff-only copy of a version on the same book, under a new version title."""
+    """An unreleased copy of a version on the same book, under a new version title."""
     _require_enabled()
     _required(body, "title", "versionTitle", "language", "newVersionTitle")
     source = Version().load({"title": body["title"], "versionTitle": body["versionTitle"], "language": body["language"]})
@@ -165,7 +165,7 @@ def copy_version(user, body):
     if Version().load({"title": body["title"], "versionTitle": body["newVersionTitle"], "language": body["language"]}):
         raise InputError("Version {} already exists.".format(body["newVersionTitle"]))
     attrs = {k: v for k, v in source.contents().items() if k != "_id"}
-    attrs.update({"versionTitle": body["newVersionTitle"], "admin_only": True, "isPrimary": False})
+    attrs.update({"versionTitle": body["newVersionTitle"], "unreleased": True, "isPrimary": False})
     version = Version(attrs).save()
     tracker.count_segments(source.get_index())
-    return {"copied": version.versionTitle, "admin_only": version.is_admin_only()}
+    return {"copied": version.versionTitle, "unreleased": version.is_unreleased()}

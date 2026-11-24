@@ -3687,8 +3687,8 @@ details .open-details::before {
 }
 .versionBlock .versionTitle a{
 }
-/* staff-only (admin_only) records, shown to moderators on the staff site: see StaffOnlyTools.jsx */
-.staffOnlyBadge {
+/* unreleased (unreleased) records, shown to moderators on the staff site: see ReleaseTools.jsx */
+.unreleasedBadge {
   display: inline-block;
   margin-inline-start: 8px;
   padding: 1px 6px;
@@ -3701,7 +3701,7 @@ details .open-details::before {
   letter-spacing: 0.5px;
   vertical-align: middle;
 }
-.staffOnlyVersionControls {
+.releaseVersionControls {
   display: flex;
   gap: 8px;
   margin-top: 12px;

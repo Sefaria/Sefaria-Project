@@ -14,7 +14,7 @@ import {
   CategoryHeader
 } from './Misc';
 import {ContentText} from "./ContentText";
-import { StaffOnlyBadge, useCategoryAdminOnly, staffOnlyCategoryButtons } from "./StaffOnlyTools";
+import { UnreleasedBadge, useCategoryAdminOnly, releaseCategoryButtons } from "./ReleaseTools";
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
@@ -59,10 +59,10 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   const title = compare ? categoryToggle :
     <div className="navTitle">
-        <CategoryHeader data={cats} type="cats" actionButtons={staffOnlyCategoryButtons(cats, catAdminOnly, heCatTitle)}>
+        <CategoryHeader data={cats} type="cats" actionButtons={releaseCategoryButtons(cats, catAdminOnly, heCatTitle)}>
             <h1>
             <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
-            <StaffOnlyBadge adminOnly={catAdminOnly}/>
+            <UnreleasedBadge adminOnly={catAdminOnly}/>
             </h1>
         </CategoryHeader>
       {categoryToggle}

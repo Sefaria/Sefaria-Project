@@ -34,23 +34,23 @@ def merge_queries(query, extra):
     return {"$and": [query, extra]}
 
 
-def show_admin_only_records():
+def show_unreleased_content():
     """
-    True in processes that see staff-only (`admin_only`) records: the staff site (preprod) only.
+    True in processes that see unreleased (`unreleased`) records: the staff site (preprod) only.
     Set per environment in local settings, never per run.
     """
     from django.conf import settings
-    return bool(getattr(settings, "SHOW_ADMIN_ONLY_BOOKS", False))
+    return bool(getattr(settings, "SHOW_UNRELEASED_CONTENT", False))
 
 
-def admin_only_filter():
-    """Query fragment hiding staff-only records, or None where they are shown."""
-    return None if show_admin_only_records() else {"admin_only": {"$ne": True}}
+def unreleased_filter():
+    """Query fragment hiding unreleased records, or None where they are shown."""
+    return None if show_unreleased_content() else {"unreleased": {"$ne": True}}
 
 
 def public_query(query=None):
-    """`query` with staff-only records excluded, for direct db.* reads of a collection that carries `admin_only`."""
-    return merge_queries(query, admin_only_filter())
+    """`query` with unreleased records excluded, for direct db.* reads of a collection that carries `unreleased`."""
+    return merge_queries(query, unreleased_filter())
 
 
 class AbstractMongoRecord(object):
@@ -68,7 +68,7 @@ class AbstractMongoRecord(object):
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
     history_noun = None  # Label for history records
-    has_admin_only_flag = False  # True for collections whose records may carry `admin_only` (staff-only) and are hidden by it
+    has_release_flag = False  # True for collections whose records may carry `unreleased` (unreleased) and are hidden by it
     ALLOWED_TAGS = list(bleach.ALLOWED_TAGS) + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
     ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
 
@@ -84,36 +84,36 @@ class AbstractMongoRecord(object):
         """
         Extra query merged into every read of this collection. None means no filter.
         """
-        return admin_only_filter() if cls.has_admin_only_flag else None
+        return unreleased_filter() if cls.has_release_flag else None
 
-    def is_admin_only(self):
-        return bool(getattr(self, "admin_only", False))
+    def is_unreleased(self):
+        return bool(getattr(self, "unreleased", False))
 
-    def _admin_only_parent(self):
+    def _unreleased_parent(self):
         """
-        If a record this one depends on is staff-only, return a short description of it; otherwise None.
-        A record under a staff-only parent must itself be staff-only. Subclasses override.
+        If a record this one depends on is unreleased, return a short description of it; otherwise None.
+        A record under an unreleased parent must itself be unreleased. Subclasses override.
         """
         return None
 
-    def _apply_admin_only_rules(self, is_new_obj):
+    def _apply_release_rules(self, is_new_obj):
         """
-        A new record under a staff-only parent is stamped staff-only, unless it explicitly says otherwise.
-        A record may go from staff-only to public, never back.
+        A new record under an unreleased parent is stamped unreleased, unless it explicitly says otherwise.
+        A record may go from unreleased to public, never back.
         """
-        parent = self._admin_only_parent()
-        if parent and is_new_obj and getattr(self, "admin_only", None) is None:
-            self.admin_only = True
-        if self.is_admin_only():
+        parent = self._unreleased_parent()
+        if parent and is_new_obj and getattr(self, "unreleased", None) is None:
+            self.unreleased = True
+        if self.is_unreleased():
             if not is_new_obj:
-                stored = getattr(db, self.collection).find_one({"_id": self._id}, {"admin_only": 1})
-                if stored is not None and not stored.get("admin_only"):
-                    raise InputError("{} is public and can not be made staff-only.".format(self))
+                stored = getattr(db, self.collection).find_one({"_id": self._id}, {"unreleased": 1})
+                if stored is not None and not stored.get("unreleased"):
+                    raise InputError("{} is public and can not be made unreleased.".format(self))
         else:
             if parent:
-                raise InputError("{} must be staff-only because {} is staff-only.".format(self, parent))
-            if hasattr(self, "admin_only"):
-                delattr(self, "admin_only")  # only True is ever stored
+                raise InputError("{} must be unreleased because {} is unreleased.".format(self, parent))
+            if hasattr(self, "unreleased"):
+                delattr(self, "unreleased")  # only True is ever stored
 
     def load_by_id(self, _id=None):
         if _id is None:
@@ -180,8 +180,8 @@ class AbstractMongoRecord(object):
         is_new_obj = self.is_new()
 
         self._normalize()
-        if self.has_admin_only_flag:
-            self._apply_admin_only_rules(is_new_obj)
+        if self.has_release_flag:
+            self._apply_release_rules(is_new_obj)
         self._validate()
         self._sanitize()
         self._pre_save()

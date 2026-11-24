@@ -197,9 +197,9 @@ def next_revision_num():
     return revision
 '''
 
-def record_index_deletion(title, uid, admin_only=False):
+def record_index_deletion(title, uid, unreleased=False):
     """
-    Records the deletion of an index record. `admin_only`: the deleted index was staff-only.
+    Records the deletion of an index record. `unreleased`: the deleted index was unreleased.
     """
     log = {
         "user": uid,
@@ -207,14 +207,14 @@ def record_index_deletion(title, uid, admin_only=False):
         "date": datetime.now(),
         "rev_type": "delete index",
     }
-    if admin_only:
-        log["admin_only"] = True
+    if unreleased:
+        log["unreleased"] = True
     db.history.insert_one(log)
 
 
-def record_version_deletion(title, version, lang, uid, admin_only=False):
+def record_version_deletion(title, version, lang, uid, unreleased=False):
     """
-    Records the deletion of a text version. `admin_only`: the deleted version was staff-only.
+    Records the deletion of a text version. `unreleased`: the deleted version was unreleased.
     """
     log = {
         "user": uid,
@@ -224,8 +224,8 @@ def record_version_deletion(title, version, lang, uid, admin_only=False):
         "date": datetime.now(),
         "rev_type": "delete text",
     }
-    if admin_only:
-        log["admin_only"] = True
+    if unreleased:
+        log["unreleased"] = True
     db.history.insert_one(log)
 
 

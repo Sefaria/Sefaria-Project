@@ -335,7 +335,7 @@ class CitationMUTCSpan(MUTCSpan):
 
     @staticmethod
     def _resolve(tref):
-        # A stored ref can stop resolving: its book was renamed, or is staff-only and invisible here.
+        # A stored ref can stop resolving: its book was renamed, or is unreleased and invisible here.
         if not tref:
             return None
         try:

@@ -304,11 +304,11 @@ def base_props(request):
             "_email": request.user.email,
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
-            # staff site (SHOW_ADMIN_ONLY_BOOKS): moderators see staff-only badges and Publish buttons
-            "staff_only_mode": request.user.is_staff and bool(getattr(settings, "SHOW_ADMIN_ONLY_BOOKS", False)),
-            # TEMPORARY (PR #3838 QA): "QA: copy as staff-only" buttons. Remove before merging.
-            "staff_only_qa_tools": request.user.is_staff and bool(getattr(settings, "SHOW_ADMIN_ONLY_BOOKS", False))
-                                   and bool(getattr(settings, "STAFF_ONLY_QA_TOOLS", False)),
+            # staff site (SHOW_UNRELEASED_CONTENT): moderators see unreleased badges and Release buttons
+            "show_unreleased": request.user.is_staff and bool(getattr(settings, "SHOW_UNRELEASED_CONTENT", False)),
+            # TEMPORARY (PR #3838 QA): "QA: copy as unreleased" buttons. Remove before merging.
+            "unreleased_qa_tools": request.user.is_staff and bool(getattr(settings, "SHOW_UNRELEASED_CONTENT", False))
+                                   and bool(getattr(settings, "UNRELEASED_QA_TOOLS", False)),
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
             "experiments": profile.experiments,
@@ -331,8 +331,8 @@ def base_props(request):
             "_email": "",
             "slug": "",
             "is_moderator": False,
-            "staff_only_mode": False,
-            "staff_only_qa_tools": False,
+            "show_unreleased": False,
+            "unreleased_qa_tools": False,
             "is_editor": False,
             "is_sustainer": False,
             "experiments": False,
@@ -1933,7 +1933,7 @@ def texts_api(request, tref):
                 return jsonResponse({"error": "Text version not found."})
 
             v.delete()
-            record_version_deletion(tref, versionEn, "en", request.user.id, admin_only=v.is_admin_only())
+            record_version_deletion(tref, versionEn, "en", request.user.id, unreleased=v.is_unreleased())
 
             if USE_VARNISH:
                 invalidate_linked(oref)
@@ -1946,7 +1946,7 @@ def texts_api(request, tref):
                 return jsonResponse({"error": "Text version not found."})
 
             v.delete()
-            record_version_deletion(tref, versionHe, "he", request.user.id, admin_only=v.is_admin_only())
+            record_version_deletion(tref, versionHe, "he", request.user.id, unreleased=v.is_unreleased())
 
             if USE_VARNISH:
                 invalidate_linked(oref)
@@ -2196,7 +2196,7 @@ def index_api(request, title, raw=False):
         title = title.replace("_", " ")
         index = library.get_index(title)
         index.delete()
-        record_index_deletion(title, request.user.id, admin_only=index.is_admin_only())
+        record_index_deletion(title, request.user.id, unreleased=index.is_unreleased())
 
         return jsonResponse({"status": "ok"})
 

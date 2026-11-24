@@ -1,8 +1,8 @@
 """
-Publishing staff-only (`admin_only`) records: Categories, Indexes, Versions and Links.
+Releasing unreleased records (`unreleased`): Categories, Indexes, Versions and Links.
 
-Publishing only goes one way, from staff-only to public, and only from the staff site, where staff-only
-records are visible. Publishing writes the shared database; the public servers keep the library in
+Releasing only goes one way, from unreleased to public, and only from the staff site, where unreleased
+records are visible. Releasing writes the shared database; the public servers keep the library in
 memory and learn of the change through the existing refresh URLs, which staff call on the public site
 afterwards (each response lists them under `refresh`).
 """
@@ -10,8 +10,8 @@ from bson.objectid import ObjectId
 from pymongo import UpdateOne
 
 from sefaria.model import Category, Index, Version, VersionSet, LinkSet, Ref, library, log_update
-from sefaria.model.abstract import show_admin_only_records
-from sefaria.model.text import admin_only_category_path, admin_only_index_titles
+from sefaria.model.abstract import show_unreleased_content
+from sefaria.model.text import unreleased_category_path, unreleased_index_titles
 from sefaria.settings import SEARCH_INDEX_ON_SAVE
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError, BookNameError
@@ -19,8 +19,8 @@ from sefaria import tracker
 
 
 def _require_staff_site():
-    if not show_admin_only_records():
-        raise InputError("Staff-only records can only be published from the staff site.")
+    if not show_unreleased_content():
+        raise InputError("Unreleased records can only be released from the staff site.")
 
 
 def _required(body, *keys):
@@ -36,11 +36,11 @@ def _load_index(title):
         raise InputError("No book called {}.".format(title))
 
 
-def _publish_record(user, record):
+def _release_record(user, record):
     """Clear the flag on a Category or Index, save it through the normal save path, and log the change."""
     old_dict = record.contents()
-    record.admin_only = False
-    record.save()  # rejects publishing while a parent is still staff-only
+    record.unreleased = False
+    record.save()  # rejects releasing while a parent is still unreleased
     log_update(user, type(record), old_dict, record.contents())
 
 
@@ -62,7 +62,7 @@ def _refresh_urls(*paths):
 
 
 def _links_query(index_title=None, ids=None):
-    query = {"admin_only": True}
+    query = {"unreleased": True}
     if ids:
         try:
             query["_id"] = {"$in": [ObjectId(i) for i in ids]}
@@ -76,110 +76,110 @@ def _links_query(index_title=None, ids=None):
 
 
 def status(index_title):
-    """The staff-only state of a book and everything it depends on or that depends on it."""
+    """The unreleased state of a book and everything it depends on or that depends on it."""
     _require_staff_site()
     index = _load_index(index_title)
     categories = index.categories
-    hidden_path = admin_only_category_path(categories)
+    hidden_path = unreleased_category_path(categories)
     base_titles = getattr(index, "base_text_titles", None) or []
-    hidden_bases = admin_only_index_titles(base_titles)
+    hidden_bases = unreleased_index_titles(base_titles)
     links = list(LinkSet(_links_query(index_title=index.title)))
-    blocked = sum(1 for link in links if link._admin_only_parent())
+    blocked = sum(1 for link in links if link._unreleased_parent())
     return {
-        "index": {"title": index.title, "admin_only": index.is_admin_only()},
+        "index": {"title": index.title, "unreleased": index.is_unreleased()},
         "categories": [
-            {"path": categories[:i], "admin_only": bool(hidden_path) and len(categories[:i]) >= len(hidden_path)}
+            {"path": categories[:i], "unreleased": bool(hidden_path) and len(categories[:i]) >= len(hidden_path)}
             for i in range(1, len(categories) + 1)
         ],
-        "base_texts": [{"title": t, "admin_only": t in hidden_bases} for t in base_titles],
+        "base_texts": [{"title": t, "unreleased": t in hidden_bases} for t in base_titles],
         "versions": [
-            {"versionTitle": v.versionTitle, "language": v.language, "admin_only": v.is_admin_only()}
-            for v in VersionSet({"title": index.title}, proj={"versionTitle": 1, "language": 1, "admin_only": 1})
+            {"versionTitle": v.versionTitle, "language": v.language, "unreleased": v.is_unreleased()}
+            for v in VersionSet({"title": index.title}, proj={"versionTitle": 1, "language": 1, "unreleased": 1})
         ],
-        "links": {"admin_only": len(links), "publishable": len(links) - blocked, "blocked": blocked},
+        "links": {"unreleased": len(links), "releasable": len(links) - blocked, "blocked": blocked},
     }
 
 
-def publish_category(user, body):
+def release_category(user, body):
     _require_staff_site()
     _required(body, "path")
     category = Category().load({"path": body["path"]})
     if not category:
         raise InputError("No category {}.".format("/".join(body["path"])))
-    if not category.is_admin_only():
+    if not category.is_unreleased():
         raise InputError("Category {} is already public.".format("/".join(category.path)))
-    parent = category._admin_only_parent()
+    parent = category._unreleased_parent()
     if parent:
-        raise InputError("Can not publish {} while {} is staff-only.".format(category, parent))
+        raise InputError("Can not release {} while {} is unreleased.".format(category, parent))
     if not body.get("dry_run"):
-        _publish_record(user, category)
-    return {"published": "/".join(category.path), "dry_run": bool(body.get("dry_run")), "refresh": _refresh_urls("/admin/reset/toc")}
+        _release_record(user, category)
+    return {"released": "/".join(category.path), "dry_run": bool(body.get("dry_run")), "refresh": _refresh_urls("/admin/reset/toc")}
 
 
-def publish_version(user, body):
+def release_version(user, body):
     _require_staff_site()
     _required(body, "title", "versionTitle", "language")
     version = Version().load({"title": body["title"], "versionTitle": body["versionTitle"], "language": body["language"]})
     if not version:
         raise InputError("No version {} / {} / {}.".format(body["title"], body["versionTitle"], body["language"]))
-    if not version.is_admin_only():
+    if not version.is_unreleased():
         raise InputError("Version {} is already public.".format(version.versionTitle))
-    parent = version._admin_only_parent()
+    parent = version._unreleased_parent()
     if parent:
-        raise InputError("Can not publish {} while {} is staff-only.".format(version, parent))
+        raise InputError("Can not release {} while {} is unreleased.".format(version, parent))
     if not body.get("dry_run"):
-        tracker.update_version_metadata(user, version, {"admin_only": None})
+        tracker.update_version_metadata(user, version, {"unreleased": None})
         _queue_version_for_search(version)
-    return {"published": version.versionTitle, "dry_run": bool(body.get("dry_run")),
+    return {"released": version.versionTitle, "dry_run": bool(body.get("dry_run")),
             "refresh": _refresh_urls("/admin/reset/{}".format(version.title))}
 
 
-def publish_links(user, body):
+def release_links(user, body):
     """
-    Publish staff-only links that touch a book (`index`) or are listed by id (`ids`).
-    Links whose other book is still staff-only are skipped and reported. Not logged to history
+    Release unreleased links that touch a book (`index`) or are listed by id (`ids`).
+    Links whose other book is still unreleased are skipped and reported. Not logged to history
     one by one: a book can have thousands of links.
 
     Only the flag changes, so it is cleared directly rather than by re-saving each link: a re-save re-runs
     every link validation, and existing links that fail an unrelated check (e.g. stale `charLevelData`)
-    would abort the publish halfway. Nothing subscribes to link saves.
+    would abort the release halfway. Nothing subscribes to link saves.
     """
     _require_staff_site()
     dry_run = bool(body.get("dry_run"))
-    publishable, skipped = [], []
+    releasable, skipped = [], []
     for link in LinkSet(_links_query(index_title=body.get("index"), ids=body.get("ids"))):
-        parent = link._admin_only_parent()
+        parent = link._unreleased_parent()
         if parent:
-            skipped.append({"id": str(link._id), "refs": link.refs, "reason": "{} is staff-only".format(parent)})
+            skipped.append({"id": str(link._id), "refs": link.refs, "reason": "{} is unreleased".format(parent)})
         else:
-            publishable.append(link._id)
-    if publishable and not dry_run:
-        db.links.update_many({"_id": {"$in": publishable}}, {"$unset": {"admin_only": ""}})
-    return {"published": len(publishable), "skipped": skipped, "dry_run": dry_run}
+            releasable.append(link._id)
+    if releasable and not dry_run:
+        db.links.update_many({"_id": {"$in": releasable}}, {"$unset": {"unreleased": ""}})
+    return {"released": len(releasable), "skipped": skipped, "dry_run": dry_run}
 
 
-def publish_index(user, body):
-    """Publish a book, and optionally its staff-only versions and links, in dependency order."""
+def release_index(user, body):
+    """Release a book, and optionally its unreleased versions and links, in dependency order."""
     _require_staff_site()
     _required(body, "title")
     dry_run = bool(body.get("dry_run"))
     index = _load_index(body["title"])
-    if not index.is_admin_only():
+    if not index.is_unreleased():
         raise InputError("{} is already public.".format(index.title))
-    parent = index._admin_only_parent()
+    parent = index._unreleased_parent()
     if parent:
-        raise InputError("Can not publish {} while {} is staff-only.".format(index.title, parent))
-    result = {"published": index.title, "dry_run": dry_run, "versions": [], "links": None}
+        raise InputError("Can not release {} while {} is unreleased.".format(index.title, parent))
+    result = {"released": index.title, "dry_run": dry_run, "versions": [], "links": None}
     if not dry_run:
-        _publish_record(user, index)
+        _release_record(user, index)
     if body.get("include_versions"):
-        for version in VersionSet({"title": index.title, "admin_only": True}):
+        for version in VersionSet({"title": index.title, "unreleased": True}):
             if not dry_run:
-                tracker.update_version_metadata(user, version, {"admin_only": None})
+                tracker.update_version_metadata(user, version, {"unreleased": None})
                 _queue_version_for_search(version)
             result["versions"].append(version.versionTitle)
     if body.get("include_links"):
-        # In a dry run the book is still staff-only, so every one of its links would report as blocked by it.
-        result["links"] = None if dry_run else publish_links(user, {"index": index.title})
+        # In a dry run the book is still unreleased, so every one of its links would report as blocked by it.
+        result["links"] = None if dry_run else release_links(user, {"index": index.title})
     result["refresh"] = _refresh_urls("/admin/reset/{}".format(index.title), "/admin/reset/ac", "/admin/reset/linker-resolvers")
     return result

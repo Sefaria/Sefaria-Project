@@ -229,11 +229,11 @@ def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, ne
             post_modify_text(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=skip_links, count_after=False, **kwargs)
 
 
-def _is_admin_only_version(index, vtitle):
-    if index.is_admin_only():
+def _is_unreleased_version(index, vtitle):
+    if index.is_unreleased():
         return True
     # direct read: the model filter would hide the record in public mode
-    return db.texts.find_one({"title": index.title, "versionTitle": vtitle, "admin_only": True}, {"_id": 1}) is not None
+    return db.texts.find_one({"title": index.title, "versionTitle": vtitle, "unreleased": True}, {"_id": 1}) is not None
 
 
 def count_and_index(oref, lang, vtitle, to_count=1):
@@ -243,7 +243,7 @@ def count_and_index(oref, lang, vtitle, to_count=1):
     if to_count:
         count_segments(oref.index)
     
-    if SEARCH_INDEX_ON_SAVE and not _is_admin_only_version(oref.index, vtitle):  # staff-only texts must never reach shared search
+    if SEARCH_INDEX_ON_SAVE and not _is_unreleased_version(oref.index, vtitle):  # unreleased texts must never reach shared search
         model.IndexQueue({
             "ref": oref.normal(),
             "lang": lang,

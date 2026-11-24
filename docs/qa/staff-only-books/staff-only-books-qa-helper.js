@@ -1,5 +1,5 @@
 /*
- * Staff-only books QA helper, used by STAFF_ONLY_BOOKS_QA_GUIDE.md (PR #3838).
+ * Unreleased books QA helper, used by STAFF_ONLY_BOOKS_QA_GUIDE.md (PR #3838).
  * Lives on the PR branch only for this round of testing: remove docs/qa/staff-only-books/ before merging.
  *
  * Run it in the browser console (or your agent's "run JavaScript in the page" tool) on the STAFF cauldron,
@@ -44,15 +44,15 @@
 
     // ---- create (on the staff cauldron) ----
 
-    /** A category. Staff-only unless {staffOnly: false}. Parent defaults to Tanakh. */
+    /** A category. Unreleased unless {staffOnly: false}. Parent defaults to Tanakh. */
     createCategory(name, heName, {parent = ["Tanakh"], staffOnly = true} = {}) {
       const category = {path: [...parent, name], sharedTitle: name, heSharedTitle: heName};
-      if (staffOnly) category.admin_only = true;
+      if (staffOnly) category.unreleased = true;
       return call("POST", "/api/category", {json: category});
     },
 
     /**
-     * A simple book (chapters and verses). Inside a staff-only category it is made staff-only automatically.
+     * A simple book (chapters and verses). Inside an unreleased category it is made unreleased automatically.
      * In a public category it is public unless {staffOnly: true}.
      */
     createBook(title, heTitle, categoryPath, {staffOnly = false} = {}) {
@@ -64,15 +64,15 @@
           titles: [{lang: "en", text: title, primary: true}, {lang: "he", text: heTitle, primary: true}],
         },
       };
-      if (staffOnly) index.admin_only = true;
+      if (staffOnly) index.unreleased = true;
       return call("POST", `/api/v2/raw/index/${url(title)}`, {form: index});
     },
 
     /**
      * A whole version of a book. `chapters` is a list of chapters, each a list of verse strings.
-     * A version of a staff-only book is made staff-only automatically. To add a staff-only version to a
+     * A version of an unreleased book is made unreleased automatically. To add an unreleased version to a
      * PUBLIC book (e.g. Genesis), pass {staffOnly: true}. {forcePublic: true} explicitly asks for a public
-     * version, which must be refused for a staff-only book.
+     * version, which must be refused for an unreleased book.
      */
     addVersion(bookTitle, versionTitle, language, chapters, {staffOnly = false, forcePublic = false, primary = false} = {}) {
       const hebrew = language === "he";
@@ -81,12 +81,12 @@
         languageFamilyName: hebrew ? "hebrew" : "english", direction: hebrew ? "rtl" : "ltr",
         isSource: hebrew, isPrimary: primary, versionSource: "https://www.sefaria.org", chapter: chapters,
       };
-      if (staffOnly) version.admin_only = true;
-      if (forcePublic) version.admin_only = false;
+      if (staffOnly) version.unreleased = true;
+      if (forcePublic) version.unreleased = false;
       return call("POST", "/api/versions", {form: version});
     },
 
-    /** A link between two refs. It is staff-only automatically if either ref's book is staff-only. */
+    /** A link between two refs. It is unreleased automatically if either ref's book is unreleased. */
     addLink(ref1, ref2, type = "commentary") {
       return call("POST", "/api/links/", {form: {refs: [ref1, ref2], type}});
     },
@@ -96,7 +96,7 @@
      * `maxSections` sections of each part) and some of the links on those sections.
      *   source        the book to copy, e.g. "Ruth", "Pesach Haggadah", "Rashi on Ruth"
      *   newTitle      English title for the copy (no hyphens); newHeTitle: Hebrew title
-     *   categoryPath  where to put the copy; a staff-only category makes the whole copy staff-only.
+     *   categoryPath  where to put the copy; an unreleased category makes the whole copy unreleased.
      *                 Defaults to the source's own categories (then pass {staffOnly: true}).
      *   versions      how many versions to copy (default 2: the first English and first Hebrew), or a
      *                 list of exact version titles
@@ -115,7 +115,7 @@
       for (const key of ["_id", "alt_structs", "compPlace", "pubPlace", "match_templates", "lexiconName"]) delete index[key];
       index.title = newTitle;
       if (categoryPath) index.categories = categoryPath;
-      if (staffOnly) index.admin_only = true;
+      if (staffOnly) index.unreleased = true;
       Object.assign(index.schema, {key: newTitle, titles: [{lang: "en", text: newTitle, primary: true},
                                                            {lang: "he", text: newHeTitle, primary: true}]});
       delete index.schema.sharedTitle;
@@ -154,7 +154,7 @@
         };
         primaryGiven = true;
         if (doc.license) version.license = doc.license;
-        if (staffOnly) version.admin_only = true;
+        if (staffOnly) version.unreleased = true;
         const saved = await call("POST", "/api/versions", {form: version});
         (Array.isArray(saved) && !saved.some(s => s.error) ? report.versions : report.errors).push(
           Array.isArray(saved) && !saved.some(s => s.error) ? doc.versionTitle : `version ${doc.versionTitle}: ${JSON.stringify(saved).slice(0, 300)}`);
@@ -193,9 +193,9 @@
 
     // ---- inspect ----
 
-    /** What is staff-only about a book: its categories, base texts, versions and links. */
+    /** What is unreleased about a book: its categories, base texts, versions and links. */
     status(bookTitle) {
-      return call("GET", `/_api/staff-only/status?index=${encodeURIComponent(bookTitle)}`);
+      return call("GET", `/_api/release/status?index=${encodeURIComponent(bookTitle)}`);
     },
 
     /** Pages and API calls to open on BOTH cauldrons to compare. */
@@ -218,26 +218,26 @@
       return rows;
     },
 
-    // ---- publish (on the staff cauldron; one way only: staff-only -> public) ----
+    // ---- release (on the staff cauldron; one way only: unreleased -> public) ----
 
-    publishCategory(path, {dryRun = false} = {}) {
-      return call("POST", "/_api/staff-only/category/publish", {json: {path, dry_run: dryRun}});
+    releaseCategory(path, {dryRun = false} = {}) {
+      return call("POST", "/_api/release/category", {json: {path, dry_run: dryRun}});
     },
-    /** Publishes the book, and by default its staff-only versions and links. */
-    publishBook(title, {versions = true, links = true, dryRun = false} = {}) {
-      return call("POST", "/_api/staff-only/index/publish",
+    /** Releases the book, and by default its unreleased versions and links. */
+    releaseBook(title, {versions = true, links = true, dryRun = false} = {}) {
+      return call("POST", "/_api/release/index",
                   {json: {title, include_versions: versions, include_links: links, dry_run: dryRun}});
     },
-    publishVersion(title, versionTitle, language, {dryRun = false} = {}) {
-      return call("POST", "/_api/staff-only/version/publish", {json: {title, versionTitle, language, dry_run: dryRun}});
+    releaseVersion(title, versionTitle, language, {dryRun = false} = {}) {
+      return call("POST", "/_api/release/version", {json: {title, versionTitle, language, dry_run: dryRun}});
     },
-    /** Publishes the staff-only links touching a book; links whose other book is still staff-only are skipped. */
-    publishLinks(bookTitle, {dryRun = false} = {}) {
-      return call("POST", "/_api/staff-only/links/publish", {json: {index: bookTitle, dry_run: dryRun}});
+    /** Releases the unreleased links touching a book; links whose other book is still unreleased are skipped. */
+    releaseLinks(bookTitle, {dryRun = false} = {}) {
+      return call("POST", "/_api/release/links", {json: {index: bookTitle, dry_run: dryRun}});
     },
 
     /**
-     * After publishing: the public site keeps the library in memory, so it needs these refreshes.
+     * After releasing: the public site keeps the library in memory, so it needs these refreshes.
      * Open them on the PUBLIC cauldron while logged in as staff, in this order.
      */
     refreshUrls(...titles) {

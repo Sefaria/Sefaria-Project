@@ -182,33 +182,33 @@ class TocSerializationOptions:
     include_authors: bool = False
 
 
-def show_admin_only_books():
-    return abst.show_admin_only_records()
+def show_unreleased_content():
+    return abst.show_unreleased_content()
 
 
-def admin_only_index_titles(titles):
+def unreleased_index_titles(titles):
     """
-    Which of `titles` (primary titles) belong to staff-only Indexes. Reads db.index directly,
+    Which of `titles` (primary titles) belong to unreleased Indexes. Reads db.index directly,
     so it works in public processes, where those Indexes are invisible.
     """
     titles = [t for t in titles if t]
     if not titles:
         return set()
-    return set(db.index.distinct("title", {"title": {"$in": titles}, "admin_only": True}))
+    return set(db.index.distinct("title", {"title": {"$in": titles}, "unreleased": True}))
 
 
-def admin_only_category_path(path):
-    """The topmost staff-only Category among `path` and its ancestors, or None. Reads db.category directly."""
+def unreleased_category_path(path):
+    """The topmost unreleased Category among `path` and its ancestors, or None. Reads db.category directly."""
     paths = [list(path[:i]) for i in range(1, len(path or []) + 1)]
     if not paths:
         return None
-    hidden = [c["path"] for c in db.category.find({"path": {"$in": paths}, "admin_only": True}, {"path": 1})]
+    hidden = [c["path"] for c in db.category.find({"path": {"$in": paths}, "unreleased": True}, {"path": 1})]
     return min(hidden, key=len) if hidden else None
 
 
-def is_admin_only_title(title):
-    """True if any staff-only Index uses `title` as its primary or alternate title."""
-    return db.index.find_one({"admin_only": True, "$or": [{"title": title}, {"schema.titles.text": title}]}, {"_id": 1}) is not None
+def is_unreleased_title(title):
+    """True if any unreleased Index uses `title` as its primary or alternate title."""
+    return db.index.find_one({"unreleased": True, "$or": [{"title": title}, {"schema.titles.text": title}]}, {"_id": 1}) is not None
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
@@ -254,15 +254,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "dedication",           # (dict) Dedication texts, keyed by language
         "hidden",               # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
         "corpora",              # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
-        "admin_only",           # (bool) Default false.  True hides the book from every process where SHOW_ADMIN_ONLY_BOOKS is False. Set it on the very first save; it can later be cleared (published), never set again.
+        "unreleased",           # (bool) Default false.  True hides the book from every process where SHOW_UNRELEASED_CONTENT is False. Set it on the very first save; it can later be cleared (published), never set again.
     ]
-    has_admin_only_flag = True
+    has_release_flag = True
 
-    def _admin_only_parent(self):
-        hidden_bases = admin_only_index_titles(getattr(self, "base_text_titles", None) or [])
+    def _unreleased_parent(self):
+        hidden_bases = unreleased_index_titles(getattr(self, "base_text_titles", None) or [])
         if hidden_bases:
             return "its base text {}".format(sorted(hidden_bases)[0])
-        hidden_path = admin_only_category_path(getattr(self, "categories", None) or [])
+        hidden_path = unreleased_category_path(getattr(self, "categories", None) or [])
         if hidden_path:
             return "its category {}".format("/".join(hidden_path))
         return None
@@ -790,10 +790,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
-        if self.is_admin_only():
+        if self.is_unreleased():
             for place_key in ['compPlace', 'pubPlace']:  # the Index save hook would write these to public Place records
                 if getattr(self, place_key, None):
-                    raise InputError("Staff-only books may not set {}.".format(place_key))
+                    raise InputError("Unreleased books may not set {}.".format(place_key))
 
         from sefaria.model import Category
         if not Category().load({"path": self.categories}):
@@ -834,8 +834,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                             raise InputError(u'The title {} occurs twice in this Index record'.format(title))
                 """
                 for title in all_titles:
-                    # staff-only books are invisible to the library in public mode, so check them explicitly
-                    if not show_admin_only_books() and is_admin_only_title(title):
+                    # unreleased books are invisible to the library in public mode, so check them explicitly
+                    if not show_unreleased_content() and is_unreleased_title(title):
                         raise InputError('A text called "{}" already exists.'.format(title))
                     existing = library.get_schema_node(title, lang)
                     existing_index = existing.index if existing else Index().load({"title": title})
@@ -1377,11 +1377,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     history_noun = 'text'
     collection = 'texts'
 
-    has_admin_only_flag = True
+    has_release_flag = True
 
-    def _admin_only_parent(self):
+    def _unreleased_parent(self):
         title = getattr(self, "title", None)
-        if title and admin_only_index_titles([title]):
+        if title and unreleased_index_titles([title]):
             return "its book {}".format(title)
         return None
 
@@ -1425,7 +1425,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
-        "admin_only",  # (bool) staff-only version, hidden where SHOW_ADMIN_ONLY_BOOKS is False. Set automatically for versions of staff-only books.
+        "unreleased",  # (bool) unreleased version, hidden where SHOW_UNRELEASED_CONTENT is False. Set automatically for versions of unreleased books.
     ]
 
     def __str__(self):
@@ -5153,7 +5153,7 @@ class Library(object):
         # This is used in the case of a remotely triggered multiserver update
         if isinstance(indx, str):
             indx = Index().load({"title": indx})
-            if indx is None:  # admin_only book announced by a staff process
+            if indx is None:  # unreleased book announced by a staff process
                 return
 
         self.get_toc_tree().update_title(indx, recount=True)
@@ -5242,7 +5242,7 @@ class Library(object):
         # This is used in the case of a remotely triggered multiserver update
         if isinstance(index_object, str):
             index_object = Index().load({"title": index_object})
-            if index_object is None:  # admin_only book announced by a staff process
+            if index_object is None:  # unreleased book announced by a staff process
                 return
 
         self._index_map[index_object.title] = index_object
@@ -5299,8 +5299,8 @@ class Library(object):
         index_object_title = index_object.title if isinstance(index_object, Index) else index_object
         self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
         new_index = Index().load({"title": index_object_title})
-        if not new_index and not show_admin_only_books() and admin_only_index_titles([index_object_title]):
-            return  # announced by a staff process: public processes never load staff-only books
+        if not new_index and not show_unreleased_content() and unreleased_index_titles([index_object_title]):
+            return  # announced by a staff process: public processes never load unreleased books
         assert new_index, "No Index record found for {}: {}".format(index_object.__class__.__name__, index_object_title)
         self.add_index_record_to_cache(new_index, rebuild=True)
 
@@ -6269,7 +6269,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
     library.refresh_index_record_in_cache(indx, old_title=old_title)
     library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
+    if MULTISERVER_ENABLED and not indx.is_unreleased():  # hidden books are never announced to public servers
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
     elif USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title
@@ -6281,14 +6281,14 @@ def process_index_change_in_core_cache(indx, **kwargs):
         library.add_index_record_to_cache(indx)
         library.reset_text_titles_cache()
 
-        if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
+        if MULTISERVER_ENABLED and not indx.is_unreleased():  # hidden books are never announced to public servers
             server_coordinator.publish_event("library", "add_index_record_to_cache", [indx.title])
 
     else:
         library.refresh_index_record_in_cache(indx)
         library.reset_text_titles_cache()
 
-        if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
+        if MULTISERVER_ENABLED and not indx.is_unreleased():  # hidden books are never announced to public servers
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
         elif USE_VARNISH:
             from sefaria.system.varnish.wrapper import invalidate_title
@@ -6299,14 +6299,14 @@ def process_index_change_in_toc(indx, **kwargs):
     old_ref = kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None
     library.update_index_in_toc(indx, old_ref=old_ref)
 
-    if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
+    if MULTISERVER_ENABLED and not indx.is_unreleased():  # hidden books are never announced to public servers
         server_coordinator.publish_event("library", "update_index_in_toc", [indx.title, old_ref])
 
 
 def process_index_delete_in_toc(indx, **kwargs):
     library.delete_index_from_toc(indx)
 
-    if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
+    if MULTISERVER_ENABLED and not indx.is_unreleased():  # hidden books are never announced to public servers
         server_coordinator.publish_event("library", "delete_index_from_toc", [indx.title, indx.categories])
 
 
@@ -6314,7 +6314,7 @@ def process_index_delete_in_core_cache(indx, **kwargs):
     library.remove_index_record_from_cache(indx)
     library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
+    if MULTISERVER_ENABLED and not indx.is_unreleased():  # hidden books are never announced to public servers
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
     elif USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title

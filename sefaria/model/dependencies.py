@@ -76,7 +76,7 @@ def process_version_title_change_in_search(ver, **kwargs):
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
         text_index = library.get_index(ver.title)
-        if text_index.is_admin_only() or ver.is_admin_only():  # staff-only texts must never reach shared search
+        if text_index.is_unreleased() or ver.is_unreleased():  # unreleased texts must never reach shared search
             return
         from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
         search_index_name = get_new_and_current_index_names("text")['current']

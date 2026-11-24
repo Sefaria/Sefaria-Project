@@ -8,7 +8,7 @@ import remote_config.views as remote_config_views
 import api.views as api_views
 import api.linker_admin_views as linker_api_views
 import api.lexicon_admin_views as lexicon_api_views
-import api.staff_only_views as staff_only_views
+import api.release_views as release_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
@@ -108,7 +108,7 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
 
-    # Linker editor (staff-only): edit index linker metadata (match templates, address types,
+    # Linker editor (unreleased): edit index linker metadata (match templates, address types,
     # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
     path('api/linker/non-unique-terms', linker_api_views.LinkerEditorNonUniqueTermSearchView.as_view()),
     path('_api/linker-editor/address-types', linker_api_views.LinkerEditorAddressTypesListView.as_view()),
@@ -121,7 +121,7 @@ shared_patterns = [
     path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/properties', linker_api_views.LinkerEditorNodePropertiesView.as_view()),
     path('_api/linker-editor/index/<str:title>/rebuild-dibur-hamatchils', linker_api_views.LinkerEditorRebuildDiburHamatchilView.as_view()),
 
-    # Linker admin (staff-only): debug/delete/recreate individual linker-generated citations,
+    # Linker admin (unreleased): debug/delete/recreate individual linker-generated citations,
     # rerun the linker on a segment, and capture NER/ref-part training examples.
     path('_api/linker-admin/citation/delete', linker_api_views.LinkerAdminDeleteCitationView.as_view()),
     path('_api/linker-admin/citation/recreate', linker_api_views.LinkerAdminRecreateCitationView.as_view()),
@@ -130,16 +130,16 @@ shared_patterns = [
     path('_api/linker-admin/dataset/ref', linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
     path('_api/linker-admin/dataset/ref-part', linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
 
-    # Staff-only (admin_only) books: inspect and publish, from the staff site. See sefaria/helper/staff_only.py.
-    path('_api/staff-only/status', staff_only_views.StaffOnlyStatusView.as_view()),
-    path('_api/staff-only/category/publish', staff_only_views.StaffOnlyPublishCategoryView.as_view()),
-    path('_api/staff-only/index/publish', staff_only_views.StaffOnlyPublishIndexView.as_view()),
-    path('_api/staff-only/version/publish', staff_only_views.StaffOnlyPublishVersionView.as_view()),
-    path('_api/staff-only/links/publish', staff_only_views.StaffOnlyPublishLinksView.as_view()),
+    # Unreleased books: inspect and release, from the staff site. See sefaria/helper/release.py.
+    path('_api/release/status', release_views.ReleaseStatusView.as_view()),
+    path('_api/release/category', release_views.ReleaseCategoryView.as_view()),
+    path('_api/release/index', release_views.ReleaseIndexView.as_view()),
+    path('_api/release/version', release_views.ReleaseVersionView.as_view()),
+    path('_api/release/links', release_views.ReleaseLinksView.as_view()),
     # TEMPORARY (PR #3838 QA): remove before merging.
-    path('_api/staff-only/qa/copy-category', staff_only_views.StaffOnlyQACopyCategoryView.as_view()),
-    path('_api/staff-only/qa/copy-index', staff_only_views.StaffOnlyQACopyIndexView.as_view()),
-    path('_api/staff-only/qa/copy-version', staff_only_views.StaffOnlyQACopyVersionView.as_view()),
+    path('_api/release/qa/copy-category', release_views.ReleaseQACopyCategoryView.as_view()),
+    path('_api/release/qa/copy-index', release_views.ReleaseQACopyIndexView.as_view()),
+    path('_api/release/qa/copy-version', release_views.ReleaseQACopyVersionView.as_view()),
 
     path('api/ref/<path:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),

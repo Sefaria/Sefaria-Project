@@ -22,7 +22,7 @@ class Link(abst.AbstractMongoRecord):
     """
     collection = 'links'
     history_noun = 'link'
-    has_admin_only_flag = True
+    has_release_flag = True
 
     required_attrs = [
         "type",             # string of connection type
@@ -47,7 +47,7 @@ class Link(abst.AbstractMongoRecord):
         "inline_citation",    # bool acts as a flag for wrapped refs logic to run on the segments where this citation is inline.
         "versions",          # only for cases when type is `essay`: list of versionTitles corresponding to `refs`, where first versionTitle corresponds to Index of first ref, and each value is a dictionary of language and title of version
         "displayedText",      # only for cases when type is `essay`: dictionary of en and he strings to be displayed
-        "admin_only",         # bool. staff-only link, hidden where SHOW_ADMIN_ONLY_BOOKS is False. Set automatically when either ref's book is staff-only.
+        "unreleased",         # bool. unreleased link, hidden where SHOW_UNRELEASED_CONTENT is False. Set automatically when either ref's book is unreleased.
     ]
 
     def _normalize(self):
@@ -60,14 +60,14 @@ class Link(abst.AbstractMongoRecord):
         if getattr(self, "_id", None):
             self._id = ObjectId(self._id)
 
-    def _admin_only_parent(self):
+    def _unreleased_parent(self):
         # The versions a link may name (essay `versions`, `charLevelData`) are deliberately not considered.
         for tref in getattr(self, "refs", None) or []:
             try:
                 index = text.Ref(tref).index
             except InputError:
                 continue  # an unresolvable ref fails validation on its own
-            if index.is_admin_only():
+            if index.is_unreleased():
                 return "its book {}".format(index.title)
         return None
 

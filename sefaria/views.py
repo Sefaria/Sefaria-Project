@@ -2060,7 +2060,7 @@ def version_bulk_delete_api(request):
             # Capture language before delete since it's needed for history + varnish
             lang = version.language
             version.delete()
-            record_version_deletion(index_title, version_title, lang, request.user.id, admin_only=version.is_admin_only())
+            record_version_deletion(index_title, version_title, lang, request.user.id, unreleased=version.is_unreleased())
 
             if USE_VARNISH:
                 try:

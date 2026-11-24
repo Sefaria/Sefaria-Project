@@ -1,7 +1,7 @@
 # coding=utf-8
 """
-Tests for staff-only (`admin_only`) records: Categories, Indexes, Versions, Links and their History
-are invisible unless SHOW_ADMIN_ONLY_BOOKS is True.
+Tests for unreleased (`unreleased`) records: Categories, Indexes, Versions, Links and their History
+are invisible unless SHOW_UNRELEASED_CONTENT is True.
 Fixture records are inserted straight into Mongo so that no save hooks (search, TOC, cache) fire.
 """
 import pytest
@@ -10,7 +10,7 @@ from django.conf import settings
 from sefaria.model import *
 from sefaria.model import text as text_module
 from sefaria.model.abstract import merge_queries, public_query
-from sefaria.model.history import _is_admin_only_change
+from sefaria.model.history import _is_unreleased_change
 from sefaria.model.marked_up_text_chunk import CitationMUTCSpan
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
@@ -29,12 +29,12 @@ def bare_index(**attrs):
 
 @pytest.fixture
 def staff_mode(monkeypatch):
-    monkeypatch.setattr(settings, "SHOW_ADMIN_ONLY_BOOKS", True, raising=False)
+    monkeypatch.setattr(settings, "SHOW_UNRELEASED_CONTENT", True, raising=False)
 
 
 @pytest.fixture
 def public_mode(monkeypatch):
-    monkeypatch.setattr(settings, "SHOW_ADMIN_ONLY_BOOKS", False, raising=False)
+    monkeypatch.setattr(settings, "SHOW_UNRELEASED_CONTENT", False, raising=False)
 
 
 def _delete_fixture_records():
@@ -52,7 +52,7 @@ def hidden_book():
     index = {
         "title": HIDDEN,
         "categories": ["Tanakh"],
-        "admin_only": True,
+        "unreleased": True,
         "schema": {
             "nodeType": "JaggedArrayNode", "key": HIDDEN, "depth": 2, "addressTypes": ["Integer", "Integer"],
             "sectionNames": ["Chapter", "Verse"],
@@ -62,15 +62,15 @@ def hidden_book():
     }
     ids = {
         "index": db.index.insert_one(index).inserted_id,
-        "text": db.texts.insert_one({"title": HIDDEN, "versionTitle": "Zzz Version", "language": "en", "admin_only": True,
+        "text": db.texts.insert_one({"title": HIDDEN, "versionTitle": "Zzz Version", "language": "en", "unreleased": True,
                                      "actualLanguage": "en", "chapter": [["hidden text"]]}).inserted_id,
         "vstate": db.vstate.insert_one({"title": HIDDEN, "content": {}}).inserted_id,
-        "link": db.links.insert_one({"refs": [HIDDEN + " 1:1", "Genesis 1:1"], "type": "quotation", "admin_only": True,
+        "link": db.links.insert_one({"refs": [HIDDEN + " 1:1", "Genesis 1:1"], "type": "quotation", "unreleased": True,
                                      "generated_by": "zzz_test"}).inserted_id,
         "category": db.category.insert_one({"path": HIDDEN_CATEGORY, "lastPath": HIDDEN_CATEGORY[-1], "depth": 2,
-                                            "admin_only": True}).inserted_id,
+                                            "unreleased": True}).inserted_id,
         "history": db.history.insert_one({"rev_type": "add text", "user": 0, "ref": HIDDEN + " 1:1",
-                                          "admin_only": True, "method": "zzz_test"}).inserted_id,
+                                          "unreleased": True, "method": "zzz_test"}).inserted_id,
     }
     yield ids
     _delete_fixture_records()
@@ -78,8 +78,8 @@ def hidden_book():
 
 @pytest.fixture
 def hidden_genesis_version():
-    """A staff-only version of a public book."""
-    _id = db.texts.insert_one({"title": "Genesis", "versionTitle": "Zzz Hidden Genesis", "language": "en", "admin_only": True,
+    """An unreleased version of a public book."""
+    _id = db.texts.insert_one({"title": "Genesis", "versionTitle": "Zzz Hidden Genesis", "language": "en", "unreleased": True,
                                "actualLanguage": "en", "chapter": [["hidden translation"]]}).inserted_id
     yield _id
     db.texts.delete_one({"_id": _id})
@@ -93,7 +93,7 @@ def test_merge_queries_does_not_overwrite_keys():
 
 
 def test_public_query(public_mode):
-    assert public_query({"title": "Genesis"}) == {"$and": [{"title": "Genesis"}, {"admin_only": {"$ne": True}}]}
+    assert public_query({"title": "Genesis"}) == {"$and": [{"title": "Genesis"}, {"unreleased": {"$ne": True}}]}
 
 
 def test_public_query_in_staff_mode(staff_mode):
@@ -116,11 +116,11 @@ def test_public_mode_hides_flagged_records(hidden_book, public_mode):
 
 
 def test_staff_mode_shows_flagged_records(hidden_book, staff_mode):
-    assert Index().load_by_id(hidden_book["index"]).is_admin_only()
+    assert Index().load_by_id(hidden_book["index"]).is_unreleased()
     assert IndexSet({"title": HIDDEN}).count() == 1
     assert VersionSet({"title": HIDDEN}).count() == 1
     assert len(LinkSet({"generated_by": "zzz_test"})) == 1
-    assert Category().load({"path": HIDDEN_CATEGORY}).is_admin_only()
+    assert Category().load({"path": HIDDEN_CATEGORY}).is_unreleased()
     assert History().load({"method": "zzz_test"}) is not None
 
 
@@ -130,90 +130,90 @@ def test_hidden_version_of_public_book(hidden_genesis_version, public_mode):
 
 
 def test_raw_lookups_work_in_public_mode(hidden_book, public_mode):
-    assert text_module.admin_only_index_titles([HIDDEN, "Genesis"]) == {HIDDEN}
-    assert text_module.is_admin_only_title(HIDDEN_ALT)
-    assert not text_module.is_admin_only_title("Genesis")
-    assert text_module.admin_only_category_path(HIDDEN_CATEGORY + ["Sub"]) == HIDDEN_CATEGORY
-    assert text_module.admin_only_category_path(["Tanakh", "Torah"]) is None
+    assert text_module.unreleased_index_titles([HIDDEN, "Genesis"]) == {HIDDEN}
+    assert text_module.is_unreleased_title(HIDDEN_ALT)
+    assert not text_module.is_unreleased_title("Genesis")
+    assert text_module.unreleased_category_path(HIDDEN_CATEGORY + ["Sub"]) == HIDDEN_CATEGORY
+    assert text_module.unreleased_category_path(["Tanakh", "Torah"]) is None
 
 
-# ---- dependency rule: a child of a staff-only parent must be staff-only ---- #
+# ---- dependency rule: a child of an unreleased parent must be unreleased ---- #
 
 def test_new_version_of_hidden_book_is_stamped(hidden_book, staff_mode):
     v = Version({"title": HIDDEN, "versionTitle": "New", "language": "en"})
-    v._apply_admin_only_rules(is_new_obj=True)
-    assert v.admin_only is True
+    v._apply_release_rules(is_new_obj=True)
+    assert v.unreleased is True
 
 
 def test_version_of_hidden_book_can_not_be_public(hidden_book, staff_mode):
-    v = Version({"title": HIDDEN, "versionTitle": "New", "language": "en", "admin_only": False})
+    v = Version({"title": HIDDEN, "versionTitle": "New", "language": "en", "unreleased": False})
     with pytest.raises(InputError):
-        v._apply_admin_only_rules(is_new_obj=True)
+        v._apply_release_rules(is_new_obj=True)
 
 
 def test_new_version_of_public_book_stays_public(staff_mode):
     v = Version({"title": "Genesis", "versionTitle": "New", "language": "en"})
-    v._apply_admin_only_rules(is_new_obj=True)
-    assert not hasattr(v, "admin_only")
+    v._apply_release_rules(is_new_obj=True)
+    assert not hasattr(v, "unreleased")
 
 
-def test_public_record_can_not_become_staff_only(staff_mode):
-    existing = db.texts.find_one({"title": "Genesis", "admin_only": {"$ne": True}}, {"_id": 1})
-    v = Version({"_id": existing["_id"], "title": "Genesis", "versionTitle": "X", "language": "en", "admin_only": True})
+def test_public_record_can_not_become_unreleased(staff_mode):
+    existing = db.texts.find_one({"title": "Genesis", "unreleased": {"$ne": True}}, {"_id": 1})
+    v = Version({"_id": existing["_id"], "title": "Genesis", "versionTitle": "X", "language": "en", "unreleased": True})
     with pytest.raises(InputError):
-        v._apply_admin_only_rules(is_new_obj=False)
+        v._apply_release_rules(is_new_obj=False)
 
 
-def test_staff_only_record_can_be_published(hidden_genesis_version, staff_mode):
+def test_unreleased_record_can_be_released(hidden_genesis_version, staff_mode):
     v = Version({"_id": hidden_genesis_version, "title": "Genesis", "versionTitle": "Zzz Hidden Genesis",
-                 "language": "en", "admin_only": False})
-    v._apply_admin_only_rules(is_new_obj=False)
-    assert not hasattr(v, "admin_only")  # only True is ever stored
+                 "language": "en", "unreleased": False})
+    v._apply_release_rules(is_new_obj=False)
+    assert not hasattr(v, "unreleased")  # only True is ever stored
 
 
 def test_index_under_hidden_category_is_stamped(hidden_book, staff_mode):
     i = bare_index(title="Zzz Other", categories=HIDDEN_CATEGORY + ["Sub"])
-    assert "Zzz Hidden Category" in i._admin_only_parent()
-    i._apply_admin_only_rules(is_new_obj=True)
-    assert i.admin_only is True
+    assert "Zzz Hidden Category" in i._unreleased_parent()
+    i._apply_release_rules(is_new_obj=True)
+    assert i.unreleased is True
 
 
 def test_commentary_on_hidden_book_is_stamped(hidden_book, staff_mode):
     i = bare_index(title="Zzz Commentary", categories=["Tanakh"], base_text_titles=[HIDDEN])
-    i._apply_admin_only_rules(is_new_obj=True)
-    assert i.admin_only is True
+    i._apply_release_rules(is_new_obj=True)
+    assert i.unreleased is True
 
 
 def test_category_under_hidden_category_is_stamped(hidden_book, staff_mode):
     c = Category({"path": HIDDEN_CATEGORY + ["Sub"], "lastPath": "Sub"})
-    c._apply_admin_only_rules(is_new_obj=True)
-    assert c.admin_only is True
+    c._apply_release_rules(is_new_obj=True)
+    assert c.unreleased is True
 
 
 def test_link_touching_hidden_book_is_stamped(monkeypatch, staff_mode):
-    monkeypatch.setattr(Index, "is_admin_only", lambda self: self.title == "Exodus")
+    monkeypatch.setattr(Index, "is_unreleased", lambda self: self.title == "Exodus")
     link = Link({"refs": ["Genesis 1:1", "Exodus 1:1"], "type": "quotation"})
-    link._apply_admin_only_rules(is_new_obj=True)
-    assert link.admin_only is True
+    link._apply_release_rules(is_new_obj=True)
+    assert link.unreleased is True
 
     public_link = Link({"refs": ["Genesis 1:1", "Leviticus 1:1"], "type": "quotation"})
-    public_link._apply_admin_only_rules(is_new_obj=True)
-    assert not hasattr(public_link, "admin_only")
+    public_link._apply_release_rules(is_new_obj=True)
+    assert not hasattr(public_link, "unreleased")
 
 
 # ---- history ---- #
 
 def test_history_stamp_follows_state_after_change():
-    assert _is_admin_only_change(None, {"admin_only": True})
-    assert not _is_admin_only_change({"admin_only": True}, {"title": "published"})  # a publish is public
-    assert _is_admin_only_change({"admin_only": True}, None)  # deleting a hidden record
-    assert not _is_admin_only_change(None, {"title": "x"})
+    assert _is_unreleased_change(None, {"unreleased": True})
+    assert not _is_unreleased_change({"unreleased": True}, {"title": "released"})  # a release is public
+    assert _is_unreleased_change({"unreleased": True}, None)  # deleting a hidden record
+    assert not _is_unreleased_change(None, {"title": "x"})
 
 
 def test_text_edit_history_is_stamped(hidden_genesis_version, staff_mode):
     log_text(0, "edit", Ref("Genesis 1:1"), "en", "Zzz Hidden Genesis", "a", "b", method="zzz_test")
     try:
-        assert db.history.find_one({"method": "zzz_test"})["admin_only"] is True
+        assert db.history.find_one({"method": "zzz_test"})["unreleased"] is True
     finally:
         db.history.delete_many({"method": "zzz_test"})
 
@@ -233,92 +233,92 @@ def test_unresolvable_citation_renders_as_text():
     assert span.wrap_span_in_a_tag() == "Zzz 1"
 
 
-def test_status_reports_staff_only_records(hidden_genesis_version, staff_mode):
-    from sefaria.helper import staff_only
-    status = staff_only.status("Genesis")
-    assert status["index"] == {"title": "Genesis", "admin_only": False}
-    assert {"versionTitle": "Zzz Hidden Genesis", "language": "en", "admin_only": True} in status["versions"]
-    assert status["links"]["admin_only"] >= 0
+def test_status_reports_unreleased_records(hidden_genesis_version, staff_mode):
+    from sefaria.helper import release
+    status = release.status("Genesis")
+    assert status["index"] == {"title": "Genesis", "unreleased": False}
+    assert {"versionTitle": "Zzz Hidden Genesis", "language": "en", "unreleased": True} in status["versions"]
+    assert status["links"]["unreleased"] >= 0
 
 
 def test_queueing_for_search_tolerates_already_queued_segments(monkeypatch):
-    from sefaria.helper import staff_only
-    monkeypatch.setattr(staff_only, "SEARCH_INDEX_ON_SAVE", True)
+    from sefaria.helper import release
+    monkeypatch.setattr(release, "SEARCH_INDEX_ON_SAVE", True)
     version = Version().load({"title": "Ruth", "language": "en"})
     query = {"version": version.versionTitle, "lang": version.language, "ref": {"$regex": "^Ruth "}}
     already = db.index_queue.count_documents(query)
     try:
-        staff_only._queue_version_for_search(version)
-        staff_only._queue_version_for_search(version)  # second time: every segment is already queued
+        release._queue_version_for_search(version)
+        release._queue_version_for_search(version)  # second time: every segment is already queued
         assert db.index_queue.count_documents(query) == len(version.get_index().all_segment_refs())
     finally:
         if not already:
             db.index_queue.delete_many(query)
 
 
-def test_publish_links_does_not_revalidate_unrelated_fields(hidden_book, monkeypatch, staff_mode):
-    # An existing link that fails an unrelated validation must not abort a publish halfway.
-    from sefaria.helper import staff_only
-    monkeypatch.setattr(Index, "is_admin_only", lambda self: False)
-    stale = db.links.insert_one({"refs": ["Genesis 1:3", "Leviticus 1:3"], "type": "quotation", "admin_only": True,
+def test_release_links_does_not_revalidate_unrelated_fields(hidden_book, monkeypatch, staff_mode):
+    # An existing link that fails an unrelated validation must not abort a release halfway.
+    from sefaria.helper import release
+    monkeypatch.setattr(Index, "is_unreleased", lambda self: False)
+    stale = db.links.insert_one({"refs": ["Genesis 1:3", "Leviticus 1:3"], "type": "quotation", "unreleased": True,
                                  "generated_by": "zzz_publish",
                                  "charLevelData": [{"startChar": 0, "endChar": 1, "versionTitle": "No Such Version", "language": "en"},
                                                    {"startChar": 0, "endChar": 1, "versionTitle": "No Such Version", "language": "en"}]}).inserted_id
     try:
-        result = staff_only.publish_links(0, {"ids": [str(stale)]})
-        assert result["published"] == 1
-        assert "admin_only" not in db.links.find_one({"_id": stale})
+        result = release.release_links(0, {"ids": [str(stale)]})
+        assert result["released"] == 1
+        assert "unreleased" not in db.links.find_one({"_id": stale})
     finally:
         db.links.delete_many({"generated_by": "zzz_publish"})
 
 
-def test_publish_requires_staff_site(public_mode):
-    from sefaria.helper import staff_only
+def test_release_requires_staff_site(public_mode):
+    from sefaria.helper import release
     with pytest.raises(InputError):
-        staff_only.publish_links(0, {"index": "Genesis"})
+        release.release_links(0, {"index": "Genesis"})
 
 
-def test_publish_links_skips_links_to_hidden_books(hidden_book, monkeypatch, staff_mode):
-    from sefaria.helper import staff_only
-    monkeypatch.setattr(Index, "is_admin_only", lambda self: self.title == "Exodus")
-    ready = db.links.insert_one({"refs": ["Genesis 1:1", "Leviticus 1:1"], "type": "quotation", "admin_only": True,
+def test_release_links_skips_links_to_hidden_books(hidden_book, monkeypatch, staff_mode):
+    from sefaria.helper import release
+    monkeypatch.setattr(Index, "is_unreleased", lambda self: self.title == "Exodus")
+    ready = db.links.insert_one({"refs": ["Genesis 1:1", "Leviticus 1:1"], "type": "quotation", "unreleased": True,
                                  "generated_by": "zzz_publish"}).inserted_id
-    blocked = db.links.insert_one({"refs": ["Exodus 1:1", "Genesis 1:1"], "type": "quotation", "admin_only": True,
+    blocked = db.links.insert_one({"refs": ["Exodus 1:1", "Genesis 1:1"], "type": "quotation", "unreleased": True,
                                    "generated_by": "zzz_publish"}).inserted_id
     try:
-        result = staff_only.publish_links(0, {"ids": [str(ready), str(blocked)]})
-        assert result["published"] == 1
+        result = release.release_links(0, {"ids": [str(ready), str(blocked)]})
+        assert result["released"] == 1
         assert [s["id"] for s in result["skipped"]] == [str(blocked)]
-        assert "admin_only" not in db.links.find_one({"_id": ready})
-        assert db.links.find_one({"_id": blocked})["admin_only"] is True
+        assert "unreleased" not in db.links.find_one({"_id": ready})
+        assert db.links.find_one({"_id": blocked})["unreleased"] is True
     finally:
         db.links.delete_many({"generated_by": "zzz_publish"})
 
 
-# ---- TEMPORARY (PR #3838 QA): copy tools. Remove with sefaria/helper/staff_only_qa.py before merging. ---- #
+# ---- TEMPORARY (PR #3838 QA): copy tools. Remove with sefaria/helper/release_qa.py before merging. ---- #
 
 @pytest.fixture
 def qa_tools(monkeypatch):
-    monkeypatch.setattr(settings, "SHOW_ADMIN_ONLY_BOOKS", True, raising=False)
-    monkeypatch.setattr(settings, "STAFF_ONLY_QA_TOOLS", True, raising=False)
+    monkeypatch.setattr(settings, "SHOW_UNRELEASED_CONTENT", True, raising=False)
+    monkeypatch.setattr(settings, "UNRELEASED_QA_TOOLS", True, raising=False)
 
 
 def test_qa_tools_are_off_by_default(staff_mode, monkeypatch):
-    from sefaria.helper import staff_only_qa
-    monkeypatch.setattr(settings, "STAFF_ONLY_QA_TOOLS", False, raising=False)
+    from sefaria.helper import release_qa
+    monkeypatch.setattr(settings, "UNRELEASED_QA_TOOLS", False, raising=False)
     with pytest.raises(InputError):
-        staff_only_qa.copy_version(0, {"title": "Ruth", "versionTitle": "x", "language": "en", "newVersionTitle": "y"})
+        release_qa.copy_version(0, {"title": "Ruth", "versionTitle": "x", "language": "en", "newVersionTitle": "y"})
 
 
-def test_qa_copy_version_is_staff_only(qa_tools):
-    from sefaria.helper import staff_only_qa
+def test_qa_copy_version_is_unreleased(qa_tools):
+    from sefaria.helper import release_qa
     source = Version().load({"title": "Ruth", "language": "en"})
     new_title = "Zzz QA Copy Of " + source.versionTitle
     try:
-        staff_only_qa.copy_version(0, {"title": "Ruth", "versionTitle": source.versionTitle, "language": "en",
+        release_qa.copy_version(0, {"title": "Ruth", "versionTitle": source.versionTitle, "language": "en",
                                        "newVersionTitle": new_title})
         copy = db.texts.find_one({"title": "Ruth", "versionTitle": new_title})
-        assert copy["admin_only"] is True and copy["isPrimary"] is False and copy["chapter"] == source.chapter
+        assert copy["unreleased"] is True and copy["isPrimary"] is False and copy["chapter"] == source.chapter
     finally:
         v = Version().load({"title": "Ruth", "versionTitle": new_title})
         if v:
@@ -326,24 +326,24 @@ def test_qa_copy_version_is_staff_only(qa_tools):
 
 
 def test_qa_copy_book_and_category(qa_tools):
-    from sefaria.helper import staff_only_qa
+    from sefaria.helper import release_qa
     category_path = ["Tanakh", "Zzz QA Copy Category"]
     new_title = "Zzz QA Copy Of Ruth"
     try:
-        staff_only_qa.copy_category(0, {"path": ["Tanakh", "Torah"], "name": category_path[-1], "heName": "העתקה"})
-        assert db.category.find_one({"path": category_path})["admin_only"] is True
+        release_qa.copy_category(0, {"path": ["Tanakh", "Torah"], "name": category_path[-1], "heName": "העתקה"})
+        assert db.category.find_one({"path": category_path})["unreleased"] is True
 
-        result = staff_only_qa.copy_index(0, {"title": "Ruth", "newTitle": new_title, "heTitle": "העתק רות",
+        result = release_qa.copy_index(0, {"title": "Ruth", "newTitle": new_title, "heTitle": "העתק רות",
                                               "categories": category_path, "maxLinks": 20})
-        assert db.index.find_one({"title": new_title})["admin_only"] is True
+        assert db.index.find_one({"title": new_title})["unreleased"] is True
         assert db.texts.count_documents({"title": new_title}) == db.texts.count_documents({"title": "Ruth"}) == len(result["versions"])
-        assert db.texts.count_documents({"title": new_title, "admin_only": {"$ne": True}}) == 0
+        assert db.texts.count_documents({"title": new_title, "unreleased": {"$ne": True}}) == 0
         links = list(db.links.find({"refs": {"$regex": "^" + new_title}}))
-        assert links and result["links"] == len(links) and all(l.get("admin_only") for l in links)
+        assert links and result["links"] == len(links) and all(l.get("unreleased") for l in links)
         assert not any(r.startswith("Zzz QA Copy Of Ruth Rabbah") for l in links for r in l["refs"])
 
         with pytest.raises(InputError):  # hyphens are refused before anything is written
-            staff_only_qa.copy_index(0, {"title": "Ruth", "newTitle": "Zzz QA Ruth-Copy", "heTitle": "x"})
+            release_qa.copy_index(0, {"title": "Ruth", "newTitle": "Zzz QA Ruth-Copy", "heTitle": "x"})
     finally:
         index = Index().load({"title": new_title})
         if index:
