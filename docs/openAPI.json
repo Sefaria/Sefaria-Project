@@ -3,7 +3,7 @@
   "info": {
     "title": "Sefaria API",
     "version": "1.0.0",
-    "description": "The Sefaria API endpoints grant live access to Sefaria's structured database of Jewish texts and their interconnections.",
+    "description": "The Sefaria API endpoints grant live access to Sefaria's structured database of Jewish texts and their interconnections.\n\n## API keys\n\nMost endpoints need no key. A free API key, created in your [developer settings](https://www.sefaria.org/settings/developer), identifies your project. An endpoint that requires a key says so; today that is only `POST /api/knn-search`.\n\nSend the key in the `x-api-key` header. Keys start with `sfr_`. Never put the key in the URL: an `api_key` or `apikey` query parameter is not read as a key. It is removed from the request, which is then treated as having no key.\n\n- **Key not accepted:** an unknown or revoked `sfr_` key sent to an endpoint that doesn't require a key is answered as if no key had been sent, and the response carries `x-sefaria-key-status: not_accepted`. On an endpoint that requires a key, it gets `401` with code `api_key_invalid`.\n- **Keys limited to a website:** such a key is accepted only from browser requests whose `Origin` header is exactly the project's website (scheme, host and port). Any other request, including one with no `Origin` header, gets `403` with code `origin_not_allowed`. Leave the limit off for keys used from a server, script, app or agent.\n\nErrors from the key check are JSON objects with `error` (a message), `code` and `help` (a link to the developer docs).",
     "contact": {
       "url": "https://www.sefaria.org",
       "email": "developers@sefaria.org"
@@ -942,7 +942,15 @@
                 }
               }
             },
-            "description": "Successful retrieval of the desired texts."
+            "description": "Successful retrieval of the desired texts.",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Texts (v3)",
@@ -1316,7 +1324,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "deprecated": true,
@@ -1483,7 +1499,15 @@
                 }
               }
             },
-            "description": "Returns a list containing the JSON Objects for each version available for the given `index` title. Each JSON Object contains all of the metadata for a given version. "
+            "description": "Returns a list containing the JSON Objects for each version available for the given `index` title. Each JSON Object contains all of the metadata for a given version. ",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Versions",
@@ -1557,7 +1581,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Languages",
@@ -1601,7 +1633,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Translations",
@@ -1721,7 +1761,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Manuscripts",
@@ -1781,7 +1829,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Random Text",
@@ -1845,7 +1901,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -1892,7 +1956,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -2565,7 +2637,15 @@
                 }
               }
             },
-            "description": "Successful Request"
+            "description": "Successful Request",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Index (v2)",
@@ -2623,7 +2703,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Table of Contents",
@@ -3054,7 +3142,15 @@
                 }
               }
             },
-            "description": "Retrieve basic statistics and information about the \"shape\" of an `Index` on Sefaria. "
+            "description": "Retrieve basic statistics and information about the \"shape\" of an `Index` on Sefaria. ",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Shape",
@@ -4191,7 +4287,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "description": "Returns the list of indexes (works) attributed to a given Sefaria author."
@@ -4233,7 +4337,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -5389,7 +5501,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -6545,7 +6665,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -11572,7 +11700,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -11686,7 +11822,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -11763,7 +11907,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -12313,7 +12465,15 @@
                 }
               }
             },
-            "description": "All content related to the queried `Ref`. "
+            "description": "All content related to the queried `Ref`. ",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Related",
@@ -12407,7 +12567,15 @@
                 }
               }
             },
-            "description": "Webpages related to the queried `Ref`. "
+            "description": "Webpages related to the queried `Ref`. ",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Related Web Pages",
@@ -12495,7 +12663,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Links",
@@ -12578,7 +12754,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Ref-Topic-Links",
@@ -12678,7 +12862,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -12756,7 +12948,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Calendars",
@@ -12853,7 +13053,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Next Read",
@@ -12937,7 +13145,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -13009,7 +13225,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -13242,7 +13466,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -13320,7 +13552,15 @@
                 }
               }
             },
-            "description": "An array of matching words."
+            "description": "An array of matching words.",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Lexicon",
@@ -13367,7 +13607,12 @@
                 }
               }
             },
-            "description": "The matching lexicon entry."
+            "description": "The matching lexicon entry.",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
           },
           "404": {
             "content": {
@@ -13398,6 +13643,9 @@
               }
             },
             "description": "More than one entry currently matches this headword (a pre-existing data duplicate) -- resolve the duplicate before continuing."
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Get a lexicon entry",
@@ -13542,7 +13790,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Word Completion",
@@ -13711,7 +13967,15 @@
                 }
               }
             },
-            "description": "v2 Specific Topic API"
+            "description": "v2 Specific Topic API",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Topic (v2)",
@@ -13896,7 +14160,15 @@
                 }
               }
             },
-            "description": "When this endpoint is called with a specific `topic_slug`, it returns a JSON object containing the metadata for the topic. \n"
+            "description": "When this endpoint is called with a specific `topic_slug`, it returns a JSON object containing the metadata for the topic. \n",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "deprecated": true,
@@ -14346,7 +14618,15 @@
                 }
               }
             },
-            "description": "A list of JSON objects, each object representing a topic in the Sefaria database. Please note, since this list is over 30,000 topics long, in the example we only presented the first several topics that are returned in the array. When `minify=0` is specified, the full topic data is returned including images and all other fields."
+            "description": "A list of JSON objects, each object representing a topic in the Sefaria database. Please note, since this list is over 30,000 topics long, in the example we only presented the first several topics that are returned in the array. When `minify=0` is specified, the full topic data is returned including images and all other fields.",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "All Topics",
@@ -14512,7 +14792,15 @@
                 }
               }
             },
-            "description": "A list of topics connected to the `topic_slug` as well as a list of links. "
+            "description": "A list of topics connected to the `topic_slug` as well as a list of links. ",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Topic Graph",
@@ -14590,7 +14878,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Recommended Topics",
@@ -14682,7 +14978,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Random By Topic",
@@ -14745,7 +15049,15 @@
                 }
               }
             },
-            "description": "The response to a query for a specific Term in the Terms API. "
+            "description": "The response to a query for a specific Term in the Terms API. ",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Terms",
@@ -14814,7 +15126,15 @@
                 }
               }
             },
-            "description": "Successful response"
+            "description": "Successful response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Name",
@@ -15140,7 +15460,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "description": "Retrieves the full content and metadata of a single Sefaria source sheet."
@@ -15282,7 +15610,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "description": "Returns the most-used sheet tags from recent activity."
@@ -15590,7 +15926,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -16684,7 +17028,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -16938,7 +17290,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -16990,7 +17350,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -17102,7 +17470,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -17235,7 +17611,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -17691,7 +18075,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -18064,7 +18456,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -18398,7 +18798,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -18463,7 +18871,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -18948,7 +19364,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -19087,7 +19511,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -19136,7 +19568,12 @@
                 }
               }
             },
-            "description": "Task enqueued. Poll `GET /api/async/{task_id}` to retrieve results. When the task completes successfully, the result will have the shape described by `FindRefsAPIResponse`."
+            "description": "Task enqueued. Poll `GET /api/async/{task_id}` to retrieve results. When the task completes successfully, the result will have the shape described by `FindRefsAPIResponse`.",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
           },
           "200": {
             "content": {
@@ -19146,7 +19583,15 @@
                 }
               }
             },
-            "description": "Shape of the `result` field returned by `GET /api/async/{task_id}` on successful completion."
+            "description": "Shape of the `result` field returned by `GET /api/async/{task_id}` on successful completion.",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Find Refs",
@@ -19193,7 +19638,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Search",
@@ -19265,7 +19718,15 @@
             "content": {
               "image/png": {}
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Social Media Image",
@@ -19336,7 +19797,15 @@
                 }
               }
             },
-            "description": "GET requests take a full category path in the request, e.g. `/api/category/Tanakh/Torah/Genesis`, and return the full category object found. \n\nIf the category is not found, the returned object will have an error attribute. If any element of the path is found, the API will return the closest parent in an attribute called `closest_parent`. This is useful for proactively looking up a category before posting an `Index` to it."
+            "description": "GET requests take a full category path in the request, e.g. `/api/category/Tanakh/Torah/Genesis`, and return the full category object found. \n\nIf the category is not found, the returned object will have an error attribute. If any element of the path is found, the API will return the closest parent in an attribute called `closest_parent`. This is useful for proactively looking up a category before posting an `Index` to it.",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Category",
@@ -19450,7 +19919,12 @@
                 }
               }
             },
-            "description": "Returns reference metadata. If the reference string is invalid, returns `{\"is_ref\": false}` with HTTP 200."
+            "description": "Returns reference metadata. If the reference string is invalid, returns `{\"is_ref\": false}` with HTTP 200.",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
           },
           "404": {
             "content": {
@@ -19466,6 +19940,9 @@
               }
             },
             "description": "Returned when the reference string causes a parsing error."
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         },
         "summary": "Ref",
@@ -19550,7 +20027,15 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Successful Response",
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
           }
         }
       }
@@ -19591,6 +20076,11 @@
                     }
                   }
                 }
+              }
+            },
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
               }
             }
           },
@@ -19638,6 +20128,11 @@
                   }
                 }
               }
+            },
+            "headers": {
+              "x-sefaria-key-status": {
+                "$ref": "#/components/headers/XSefariaKeyStatus"
+              }
             }
           },
           "500": {
@@ -19654,6 +20149,191 @@
                       "state": "FAILURE",
                       "ready": true,
                       "error": "An unexpected error occurred while processing the request."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
+          }
+        }
+      }
+    },
+    "/api/knn-search": {
+      "post": {
+        "operationId": "post-knn-search",
+        "summary": "Semantic Search",
+        "description": "Semantic (meaning-based) search over Sefaria's library. Send a question or phrase in natural language and get the most similar passages, optionally with the refs they link to most.\n\n**Requires an API key** in the `x-api-key` header. Without one the response is `401` with code `api_key_required`.",
+        "tags": [
+          "Misc"
+        ],
+        "security": [
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnnSearchRequest"
+              },
+              "examples": {
+                "Example": {
+                  "value": {
+                    "query": "What do the sages say about humility?",
+                    "result_limit": 5
+                  }
+                },
+                "With filters and linked refs": {
+                  "value": {
+                    "query": "honoring parents",
+                    "filters": {
+                      "language": "en",
+                      "primary_category": "Talmud"
+                    },
+                    "include_linked_refs": true,
+                    "linked_ref_limit": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnnSearchResponse"
+                },
+                "examples": {
+                  "Example": {
+                    "value": {
+                      "results": [
+                        {
+                          "ref": "Pirkei Avot 4:4",
+                          "url": "https://www.sefaria.org/Pirkei_Avot.4.4",
+                          "index_title": "Pirkei Avot",
+                          "language": "en",
+                          "version_title": "On Your Way",
+                          "primary_category": "Mishnah",
+                          "all_categories": [
+                            "Mishnah",
+                            "Seder Nezikin"
+                          ],
+                          "text": "Rabbi Levitas of Yavneh said: be exceedingly humble of spirit..."
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body is not a JSON object, `query` is missing or empty, `filters` is not an object, or a limit or flag has the wrong type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnnSearchError"
+                },
+                "examples": {
+                  "Example": {
+                    "value": {
+                      "error": "Missing or empty 'query'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No key, or a key that is not valid, in `x-api-key` (`api_key_required` or `api_key_invalid`). Today the endpoint itself also checks an `Authorization: Bearer` token, which developer settings do not issue; a request without it gets `{\"error\": \"Unauthorized\"}`.",
+            "headers": {
+              "WWW-Authenticate": {
+                "$ref": "#/components/headers/WWWAuthenticate"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiKeyError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/KnnSearchError"
+                    }
+                  ]
+                },
+                "examples": {
+                  "api_key_required": {
+                    "value": {
+                      "error": "This route requires an x-api-key header.",
+                      "code": "api_key_required",
+                      "help": "https://developers.sefaria.org/#api_key_required"
+                    }
+                  },
+                  "api_key_invalid": {
+                    "value": {
+                      "error": "The x-api-key is not valid for this project.",
+                      "code": "api_key_invalid",
+                      "help": "https://developers.sefaria.org/#api_key_invalid"
+                    }
+                  },
+                  "Rejected by the endpoint": {
+                    "value": {
+                      "error": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ApiKeyOriginNotAllowed"
+          },
+          "502": {
+            "description": "The query could not be embedded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnnSearchError"
+                },
+                "examples": {
+                  "Example": {
+                    "value": {
+                      "error": "Embedding failed after 5 attempts"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Semantic search is not configured on this server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnnSearchError"
+                },
+                "examples": {
+                  "Example": {
+                    "value": {
+                      "error": "Semantic search is not configured"
                     }
                   }
                 }
@@ -29480,7 +30160,230 @@
             "description": "Human-readable description of the error that caused the task to fail."
           }
         }
+      },
+      "ApiKeyError": {
+        "type": "object",
+        "description": "Error returned by the API key check, before the request reaches the endpoint.",
+        "required": [
+          "error",
+          "code",
+          "help"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "A readable explanation of the error."
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "api_key_required",
+              "api_key_invalid",
+              "origin_not_allowed"
+            ],
+            "description": "`api_key_required`: the endpoint requires a key and none was sent in `x-api-key`. `api_key_invalid`: the `sfr_` key is unknown or revoked. `origin_not_allowed`: the key is limited to a website and the request's `Origin` isn't it."
+          },
+          "help": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to the developer docs for this error."
+          }
+        }
+      },
+      "KnnSearchRequest": {
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural-language search query. Must not be empty."
+          },
+          "filters": {
+            "type": "object",
+            "description": "Exact-match filters on the matched chunks. Supported keys: `index_title`, `language`, `version_title`, `ref`, `chunked_from_ref`, `primary_category`, `is_primary`, `is_source`, `era_name`, `direction`, and `ref__in` (a list of refs). Other keys are ignored.",
+            "additionalProperties": true
+          },
+          "result_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10,
+            "description": "Number of results to return. Values outside 1–100 are clamped. `limit` is accepted as an alias."
+          },
+          "include_text": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include the text of each result (and of each linked ref)."
+          },
+          "include_linked_refs": {
+            "type": "boolean",
+            "default": false,
+            "description": "Also return `linked_refs`: refs that the top semantic matches link to unusually often."
+          },
+          "linked_ref_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10,
+            "description": "Maximum number of linked refs to return when `include_linked_refs` is true. Values outside 1–100 are clamped."
+          }
+        }
+      },
+      "KnnSearchResult": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "type": "string",
+            "description": "Ref of the matched chunk."
+          },
+          "url": {
+            "type": "string"
+          },
+          "index_title": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "version_title": {
+            "type": "string"
+          },
+          "primary_category": {
+            "type": "string",
+            "nullable": true
+          },
+          "all_categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "text": {
+            "type": "string",
+            "description": "Chunk text. Only when `include_text` is true."
+          }
+        }
+      },
+      "KnnSearchLinkedRef": {
+        "type": "object",
+        "description": "A linked ref. When `include_text` is true and the ref's text is long, the ref is replaced by its best matching chunks (`text_source: linked_ref_semantic_chunk`, with the result fields), or its text is omitted (`text_source` explains why).",
+        "properties": {
+          "ref": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "text_source": {
+            "type": "string",
+            "enum": [
+              "linked_ref_semantic_chunk",
+              "omitted_oversized_linked_ref",
+              "omitted_unsupported_linked_ref"
+            ]
+          },
+          "linked_ref_parent": {
+            "type": "string"
+          },
+          "linked_ref_chunk_number": {
+            "type": "integer"
+          },
+          "linked_ref_chunk_count": {
+            "type": "integer"
+          },
+          "original_text_char_count": {
+            "type": "integer"
+          },
+          "semantic_chunk_limit": {
+            "type": "integer"
+          },
+          "semantic_chunk_filter_field": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "KnnSearchResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnnSearchResult"
+            }
+          },
+          "linked_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnnSearchLinkedRef"
+            },
+            "description": "Only when `include_linked_refs` is true."
+          }
+        }
+      },
+      "KnnSearchError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Your project's API key (starts with `sfr_`), from your [developer settings](https://www.sefaria.org/settings/developer). Optional, except on endpoints that require it. Send it only in this header: an `api_key` or `apikey` query parameter is ignored and removed from the request."
+      }
+    },
+    "headers": {
+      "XSefariaKeyStatus": {
+        "description": "Present only when the request sent an `sfr_` key in `x-api-key` that was not accepted (unknown or revoked). The request was answered as if no key had been sent. Check the key in your developer settings.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "not_accepted"
+          ]
+        }
+      },
+      "WWWAuthenticate": {
+        "description": "Sent with a `401` from the key check.",
+        "schema": {
+          "type": "string",
+          "example": "ApiKey realm=\"sefaria\""
+        }
+      }
+    },
+    "responses": {
+      "ApiKeyOriginNotAllowed": {
+        "description": "The `x-api-key` is limited to its project's website, and the request's `Origin` header is a different origin or missing. Only returned when a key limited to a website is sent.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiKeyError"
+            },
+            "examples": {
+              "origin_not_allowed": {
+                "value": {
+                  "error": "This key only accepts requests from its registered website, and a request without an Origin header is not one. Turn the restriction off for keys used from a server, script, app or agent.",
+                  "code": "origin_not_allowed",
+                  "help": "https://developers.sefaria.org/#origin_not_allowed"
+                }
+              }
+            }
+          }
+        }
       }
     }
-  }
+  },
+  "security": [
+    {},
+    {
+      "ApiKeyHeader": []
+    }
+  ]
 }
