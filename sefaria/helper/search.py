@@ -1122,6 +1122,8 @@ def get_elasticsearch_client_for_indexer():
 
 
 def process_index_title_change_in_search(indx, **kwargs):
+    if getattr(indx, "unreleased", False):  # hidden books must never reach the shared search index
+        return
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.model import library, text
         from sefaria.search import TextIndexer, delete_version, get_new_and_current_index_names
@@ -1189,6 +1191,8 @@ def process_index_title_change_in_search(indx, **kwargs):
 
 
 def process_index_title_change_in_book_search(indx, **kwargs):
+    if getattr(indx, "unreleased", False):  # hidden books must never reach the shared search index
+        return
     # A rename changes the book doc's ES id. Only the stale doc is deleted here:
     # save() emits attributeChange notifications before the "save" notification,
     # so process_index_save_in_book_search upserts the new-id doc right after.
@@ -1199,6 +1203,8 @@ def process_index_title_change_in_book_search(indx, **kwargs):
 
 
 def process_index_save_in_book_search(indx, **kwargs):
+    if getattr(indx, "unreleased", False):  # hidden books must never reach the shared search index
+        return
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import index_book_doc
 
@@ -1206,6 +1212,8 @@ def process_index_save_in_book_search(indx, **kwargs):
 
 
 def process_index_delete_in_book_search(indx, **kwargs):
+    if getattr(indx, "unreleased", False):  # hidden books must never reach the shared search index
+        return
     if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_book_doc
 

@@ -20,6 +20,39 @@ from sefaria.system.exceptions import InputError, SluggedMongoRecordMissingError
 logger = structlog.get_logger(__name__)
 
 
+def merge_queries(query, extra):
+    """
+    Combine two mongo queries with $and, so that a key present in both is not overwritten.
+    Returns `query` untouched when there is nothing to add.
+    """
+    query = query or {}
+    if not extra:
+        return query
+    if not query:
+        return extra
+    return {"$and": [query, extra]}
+
+
+def show_unreleased_content():
+    """
+    True in processes that see unreleased records: the staff site (preprod) only.
+    Set per environment in local settings, never per run.
+    """
+    from django.conf import settings
+
+    return bool(getattr(settings, "SHOW_UNRELEASED_CONTENT", False))
+
+
+def unreleased_filter():
+    """Query fragment hiding unreleased records, or None where they are shown."""
+    return None if show_unreleased_content() else {"unreleased": {"$ne": True}}
+
+
+def public_query(query=None):
+    """`query` with unreleased records excluded, for direct db.* reads of a collection that carries `unreleased`."""
+    return merge_queries(query, unreleased_filter())
+
+
 class AbstractMongoRecord:
     """
     AbstractMongoRecord - superclass of classes representing mongo records.
@@ -36,6 +69,7 @@ class AbstractMongoRecord:
     track_pkeys = False
     pkeys = []  # list of fields that others may depend on
     history_noun = None  # Label for history records
+    has_release_flag = False  # True for collections whose records may carry `unreleased` and are hidden by it
     ALLOWED_TAGS = list(bleach.ALLOWED_TAGS) + [
         "p",
         "br",
@@ -49,6 +83,42 @@ class AbstractMongoRecord:
         self.pkeys_orig_values = {}
         self.load_from_dict(attrs, True)
 
+    @classmethod
+    def visibility_filter(cls):
+        """
+        Extra query merged into every read of this collection. None means no filter.
+        """
+        return unreleased_filter() if cls.has_release_flag else None
+
+    def is_unreleased(self):
+        return bool(getattr(self, "unreleased", False))
+
+    def _unreleased_parent(self):
+        """
+        If a record this one depends on is unreleased, return a short description of it; otherwise None.
+        A record under an unreleased parent must itself be unreleased. Subclasses override.
+        """
+        return
+
+    def _apply_release_rules(self, is_new_obj):
+        """
+        A new record under an unreleased parent is stamped unreleased, unless it explicitly says otherwise.
+        A record may go from unreleased to public, never back.
+        """
+        parent = self._unreleased_parent()
+        if parent and is_new_obj and getattr(self, "unreleased", None) is None:
+            self.unreleased = True
+        if self.is_unreleased():
+            if not is_new_obj:
+                stored = getattr(db, self.collection).find_one({"_id": self._id}, {"unreleased": 1})
+                if stored is not None and not stored.get("unreleased"):
+                    raise InputError(f"{self} is public and can not be made unreleased.")
+        else:
+            if parent:
+                raise InputError(f"{self} must be unreleased because {parent} is unreleased.")
+            if hasattr(self, "unreleased"):
+                delattr(self, "unreleased")  # only True is ever stored
+
     def load_by_id(self, _id=None):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an argument. None provided.")
@@ -59,6 +129,7 @@ class AbstractMongoRecord:
         return self.load({"_id": _id})
 
     def load(self, query, proj=None):
+        query = merge_queries(query, self.visibility_filter())
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
             assert set(obj.keys()) <= set(self._saveable_attr_keys()), (
@@ -111,6 +182,8 @@ class AbstractMongoRecord:
         is_new_obj = self.is_new()
 
         self._normalize()
+        if self.has_release_flag:
+            self._apply_release_rules(is_new_obj)
         self._validate()
         self._sanitize()
         self._pre_save()
@@ -338,7 +411,7 @@ class AbstractMongoSet(collections.abc.Iterable):
     def __init__(
         self, query=None, page=0, limit=0, sort=None, proj=None, skip=None, hint=None, record_kwargs=None
     ):  # default sort used to be =[("_id", 1)]
-        self.query = query or {}
+        self.query = merge_queries(query, self.recordClass.visibility_filter())
         self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
         self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj)
         if sort:

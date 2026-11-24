@@ -14,6 +14,7 @@ import sefaria.model as model
 from sefaria.constants.model import get_legacy_lang_from_direction
 from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
 from sefaria.settings import CELERY_ENABLED, USE_VARNISH
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 if USE_VARNISH:
@@ -286,6 +287,13 @@ def _post_modify_changed_segments(
             )
 
 
+def _is_unreleased_version(index, vtitle):
+    if index.is_unreleased():
+        return True
+    # direct read: the model filter would hide the record in public mode
+    return db.texts.find_one({"title": index.title, "versionTitle": vtitle, "unreleased": True}, {"_id": 1}) is not None
+
+
 def count_and_index(oref, lang, vtitle, to_count=1):
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
 
@@ -293,7 +301,9 @@ def count_and_index(oref, lang, vtitle, to_count=1):
     if to_count:
         count_segments(oref.index)
 
-    if SEARCH_INDEX_ON_SAVE:
+    if SEARCH_INDEX_ON_SAVE and not _is_unreleased_version(
+        oref.index, vtitle
+    ):  # unreleased texts must never reach shared search
         model.IndexQueue(
             {
                 "ref": oref.normal(),

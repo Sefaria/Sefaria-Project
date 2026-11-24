@@ -53,10 +53,18 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "searchRoot",
         "order",
         "match_templates",
+        "unreleased",  # bool. unreleased category, hidden where SHOW_UNRELEASED_CONTENT is False. Set on creation; can be cleared, never set again.
     ]
+    has_release_flag = True
 
     def __str__(self):
         return "Category: {}".format(", ".join(self.path))
+
+    def _unreleased_parent(self):
+        from sefaria.model.text import unreleased_category_path
+
+        hidden_path = unreleased_category_path(getattr(self, "path", [])[:-1])
+        return "its parent category {}".format("/".join(hidden_path)) if hidden_path else None
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return "{}().load({{'path': [{}]}})".format(self.__class__.__name__, ", ".join([f'"{x}"' for x in self.path]))

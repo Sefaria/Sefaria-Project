@@ -383,6 +383,15 @@ SEARCH_INDEX_NAME_TOPIC = "topic"
 SEARCH_INDEX_NAME_BOOK = "book"
 SEARCH_INDEX_NAME_CATEGORY = "category"
 
+# Whether this process sees records marked `unreleased` (Categories, Indexes, Versions,
+# Links and their History). Set per environment, through local settings or the environment
+# variable (e.g. a deployment's `web.localsettings`): only the staff site (preprod) sets it True.
+# Never override it per process or script: the environment's caches must only ever hold one
+# mode's view of the library.
+SHOW_UNRELEASED_CONTENT = os.getenv("SHOW_UNRELEASED_CONTENT", "false").lower() == "true"
+# TEMPORARY (PR #3838 QA): "QA: copy as unreleased" admin buttons. Only the QA cauldron turns this on. Remove before merging.
+UNRELEASED_QA_TOOLS = os.getenv("UNRELEASED_QA_TOOLS", "false").lower() == "true"
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):

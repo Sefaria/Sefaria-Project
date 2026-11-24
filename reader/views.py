@@ -111,7 +111,7 @@ from sefaria.image_generator import (
     normalize_social_image_module,
 )
 from sefaria.model import *
-from sefaria.model.abstract import SluggedAbstractMongoRecord
+from sefaria.model.abstract import SluggedAbstractMongoRecord, public_query
 from sefaria.model.collection import CollectionSet
 from sefaria.model.following import general_follow_recommendations
 from sefaria.model.media import get_media_for_ref
@@ -411,6 +411,12 @@ def base_props(request):
             "_email": request.user.email,
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
+            # staff site (SHOW_UNRELEASED_CONTENT): moderators see unreleased badges and Release buttons
+            "show_unreleased": request.user.is_staff and bool(getattr(settings, "SHOW_UNRELEASED_CONTENT", False)),
+            # TEMPORARY (PR #3838 QA): "QA: copy as unreleased" buttons. Remove before merging.
+            "unreleased_qa_tools": request.user.is_staff
+            and bool(getattr(settings, "SHOW_UNRELEASED_CONTENT", False))
+            and bool(getattr(settings, "UNRELEASED_QA_TOOLS", False)),
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
             # Decoded here so a missing or unexpected stored value reaches the page as "unknown".
@@ -439,6 +445,8 @@ def base_props(request):
             "_email": "",
             "slug": "",
             "is_moderator": False,
+            "show_unreleased": False,
+            "unreleased_qa_tools": False,
             "is_editor": False,
             "is_sustainer": False,
             "donor_status": DonorStatus.UNKNOWN.value,
@@ -2371,7 +2379,7 @@ def texts_api(request, tref):
                 return jsonResponse({"error": "Text version not found."})
 
             v.delete()
-            record_version_deletion(tref, versionEn, "en", request.user.id)
+            record_version_deletion(tref, versionEn, "en", request.user.id, unreleased=v.is_unreleased())
 
             if USE_VARNISH:
                 invalidate_linked(oref)
@@ -2384,7 +2392,7 @@ def texts_api(request, tref):
                 return jsonResponse({"error": "Text version not found."})
 
             v.delete()
-            record_version_deletion(tref, versionHe, "he", request.user.id)
+            record_version_deletion(tref, versionHe, "he", request.user.id, unreleased=v.is_unreleased())
 
             if USE_VARNISH:
                 invalidate_linked(oref)
@@ -2446,7 +2454,8 @@ def complete_version_api(request):
             return jsonResponse({"error": "Unrecognized API key."})
     else:
         method = None
-        internal_do_post = csrf_protect(internal_do_post())
+        # csrf_protect wraps a view, which takes the request; check the token before saving anything.
+        return csrf_protect(lambda request: internal_do_post())(request)
 
     return internal_do_post()
 
@@ -2642,8 +2651,9 @@ def index_api(request, title, raw=False):
             return jsonResponse({"error": "Only moderators can delete indices."})
 
         title = title.replace("_", " ")
-        library.get_index(title).delete()
-        record_index_deletion(title, request.user.id)
+        index = library.get_index(title)
+        index.delete()
+        record_index_deletion(title, request.user.id, unreleased=index.is_unreleased())
 
         return jsonResponse({"status": "ok"})
 
@@ -4030,7 +4040,7 @@ def texts_history_api(request, tref, lang=None, version=None):
         query = {"ref": {"$regex": refRe}, "language": lang, "version": version.replace("_", " ")}
     else:
         query = {"ref": {"$regex": refRe}}
-    history = db.history.find(query)
+    history = db.history.find(public_query(query))
 
     summary = {"copiers": set(), "translators": set(), "editors": set(), "reviewers": set()}
     updated = history[0]["date"].isoformat() if len(history) else "Unknown"
@@ -5551,12 +5561,12 @@ def translations_api(request, lang=None):
     """
     bundle_commentaries_langs = ["en", "he"]
     if not lang:
-        res = db.texts.distinct("actualLanguage")
+        res = db.texts.distinct("actualLanguage", public_query())
         return jsonResponse(res)
     # import time
     # t0 = time.time()
     aggregation_query = [
-        {"$match": {"actualLanguage": lang}},
+        {"$match": public_query({"actualLanguage": lang})},
         {"$lookup": {"from": "index", "localField": "title", "foreignField": "title", "as": "index"}},
         {"$lookup": {"from": "vstate", "localField": "title", "foreignField": "title", "as": "vstate"}},
     ]

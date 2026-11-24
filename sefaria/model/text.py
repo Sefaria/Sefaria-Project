@@ -216,6 +216,38 @@ class TocSerializationOptions:
     include_authors: bool = False
 
 
+def show_unreleased_content():
+    return abst.show_unreleased_content()
+
+
+def unreleased_index_titles(titles):
+    """
+    Which of `titles` (primary titles) belong to unreleased Indexes. Reads db.index directly,
+    so it works in public processes, where those Indexes are invisible.
+    """
+    titles = [t for t in titles if t]
+    if not titles:
+        return set()
+    return set(db.index.distinct("title", {"title": {"$in": titles}, "unreleased": True}))
+
+
+def unreleased_category_path(path):
+    """The topmost unreleased Category among `path` and its ancestors, or None. Reads db.category directly."""
+    paths = [list(path[:i]) for i in range(1, len(path or []) + 1)]
+    if not paths:
+        return None
+    hidden = [c["path"] for c in db.category.find({"path": {"$in": paths}, "unreleased": True}, {"path": 1})]
+    return min(hidden, key=len) if hidden else None
+
+
+def is_unreleased_title(title):
+    """True if any unreleased Index uses `title` as its primary or alternate title."""
+    return (
+        db.index.find_one({"unreleased": True, "$or": [{"title": title}, {"schema.titles.text": title}]}, {"_id": 1})
+        is not None
+    )
+
+
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
     Index objects define the names and structure of texts stored in the system.
@@ -257,7 +289,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "dedication",  # (dict) Dedication texts, keyed by language
         "hidden",  # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
         "corpora",  # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
+        "unreleased",  # (bool) Default false.  True hides the book from every process where SHOW_UNRELEASED_CONTENT is False. Set it on the very first save; it can later be cleared (published), never set again.
     ]
+    has_release_flag = True
+
+    def _unreleased_parent(self):
+        hidden_bases = unreleased_index_titles(getattr(self, "base_text_titles", None) or [])
+        if hidden_bases:
+            return f"its base text {sorted(hidden_bases)[0]}"
+        hidden_path = unreleased_category_path(getattr(self, "categories", None) or [])
+        if hidden_path:
+            return "its category {}".format("/".join(hidden_path))
+        return None
 
     def __str__(self):
         return f"Index: {self.title}"
@@ -796,6 +839,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
+        if self.is_unreleased():
+            for place_key in ["compPlace", "pubPlace"]:  # the Index save hook would write these to public Place records
+                if getattr(self, place_key, None):
+                    raise InputError(f"Unreleased books may not set {place_key}.")
+
         from sefaria.model import Category
 
         if not Category().load({"path": self.categories}):
@@ -840,6 +888,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                             raise InputError(u'The title {} occurs twice in this Index record'.format(title))
                 """
                 for title in all_titles:
+                    # unreleased books are invisible to the library in public mode, so check them explicitly
+                    if not show_unreleased_content() and is_unreleased_title(title):
+                        raise InputError(f'A text called "{title}" already exists.')
                     existing = library.get_schema_node(title, lang)
                     existing_index = existing.index if existing else Index().load({"title": title})
                     if (
@@ -1392,6 +1443,15 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     history_noun = "text"
     collection = "texts"
+
+    has_release_flag = True
+
+    def _unreleased_parent(self):
+        title = getattr(self, "title", None)
+        if title and unreleased_index_titles([title]):
+            return f"its book {title}"
+        return None
+
     content_attr = "chapter"
     track_pkeys = True
     pkeys = ["title", "direction", "versionTitle"]
@@ -1432,6 +1492,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
+        "unreleased",  # (bool) unreleased version, hidden where SHOW_UNRELEASED_CONTENT is False. Set automatically for versions of unreleased books.
     ]
 
     def __str__(self):

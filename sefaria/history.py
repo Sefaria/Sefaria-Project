@@ -12,6 +12,7 @@ from diff_match_patch import diff_match_patch
 
 from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.model import *
+from sefaria.model.abstract import public_query
 from sefaria.system.database import db
 
 dmp = diff_match_patch()
@@ -27,7 +28,7 @@ def get_activity(query=None, page_size=100, page=1, filter_type=None, initial_sk
     query.update(filter_type_to_query(filter_type))
     skip = initial_skip + (page - 1) * page_size
     projection = {"revert_patch": 0}
-    activity = list(db.history.find(query, projection).sort([["date", -1]]).skip(skip).limit(page_size))
+    activity = list(db.history.find(public_query(query), projection).sort([["date", -1]]).skip(skip).limit(page_size))
 
     for i in range(len(activity)):
         a = activity[i]
@@ -195,7 +196,9 @@ def text_at_revision(tref, version, lang, revision):
     """
     Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
     """
-    changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([["revision", -1]])
+    changes = db.history.find(public_query({"ref": tref, "version": version, "language": lang})).sort(
+        [["revision", -1]]
+    )
     direction = get_direction_from_legacy_lang(lang)
     current = TextChunk(Ref(tref), direction=direction, vtitle=version)
     text = str(current.text)  # needed?
@@ -220,9 +223,9 @@ def next_revision_num():
 '''
 
 
-def record_index_deletion(title, uid):
+def record_index_deletion(title, uid, unreleased=False):
     """
-    Records the deletion of an index record.
+    Records the deletion of an index record. `unreleased`: the deleted index was unreleased.
     """
     log = {
         "user": uid,
@@ -230,12 +233,14 @@ def record_index_deletion(title, uid):
         "date": datetime.now(),
         "rev_type": "delete index",
     }
+    if unreleased:
+        log["unreleased"] = True
     db.history.insert_one(log)
 
 
-def record_version_deletion(title, version, lang, uid):
+def record_version_deletion(title, version, lang, uid, unreleased=False):
     """
-    Records the deletion of a text version.
+    Records the deletion of a text version. `unreleased`: the deleted version was unreleased.
     """
     log = {
         "user": uid,
@@ -245,6 +250,8 @@ def record_version_deletion(title, version, lang, uid):
         "date": datetime.now(),
         "rev_type": "delete text",
     }
+    if unreleased:
+        log["unreleased"] = True
     db.history.insert_one(log)
 
 

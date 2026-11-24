@@ -8,6 +8,7 @@ import api.lexicon_admin_views as lexicon_api_views
 import api.linker_admin_views as linker_api_views
 import api.mcp_auth_views as mcp_auth_views
 import api.newsletter_views as newsletter_views
+import api.release_views as release_views
 import api.views as api_views
 import guides.views as guides_views
 import powered_by.views as powered_by_views
@@ -145,6 +146,16 @@ shared_patterns = [
     path("_api/linker-admin/segment/rerun", linker_api_views.LinkerAdminRerunSegmentView.as_view()),
     path("_api/linker-admin/dataset/ref", linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
     path("_api/linker-admin/dataset/ref-part", linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
+    # Unreleased books: inspect and release, from the staff site. See sefaria/helper/release.py.
+    path("_api/release/status", release_views.ReleaseStatusView.as_view()),
+    path("_api/release/category", release_views.ReleaseCategoryView.as_view()),
+    path("_api/release/index", release_views.ReleaseIndexView.as_view()),
+    path("_api/release/version", release_views.ReleaseVersionView.as_view()),
+    path("_api/release/links", release_views.ReleaseLinksView.as_view()),
+    # TEMPORARY (PR #3838 QA): remove before merging.
+    path("_api/release/qa/copy-category", release_views.ReleaseQACopyCategoryView.as_view()),
+    path("_api/release/qa/copy-index", release_views.ReleaseQACopyIndexView.as_view()),
+    path("_api/release/qa/copy-version", release_views.ReleaseQACopyVersionView.as_view()),
     path("api/ref/<path:tref>", api_views.RefView.as_view()),
     re_path(r"^api/category/?(?P<path>.+)?$", reader_views.category_api),
     re_path(r"^api/tag-category/?(?P<path>.+)?$", reader_views.tag_category_api),

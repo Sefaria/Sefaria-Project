@@ -31,6 +31,7 @@ from sefaria.model import *
 
 # Aliased on import: this module already defines an unrelated `get_search_categories(oref,
 # categories)` (the text index's category-path helper, below), which would shadow it.
+from sefaria.model.abstract import public_query
 from sefaria.model.autospell import get_search_categories as get_searchable_toc_categories
 from sefaria.model.collection import CollectionSet
 from sefaria.model.text import AbstractIndex, AbstractTextRecord
@@ -1214,7 +1215,7 @@ class TextIndexer:
             # same budget/pattern as get_all_versions and _index_size_map above.
             for attempt in range(MAX_RETRY_ATTEMPTS + 1):
                 try:
-                    for v in db.texts.find({}, {"title": 1, "versionTitle": 1, "language": 1}):
+                    for v in db.texts.find(public_query(), {"title": 1, "versionTitle": 1, "language": 1}):
                         if (v.get("title"), v.get("versionTitle"), v.get("language")) in cls.version_priority_map:
                             keys.add((v.get("title"), v.get("language")))
                     break
@@ -2553,7 +2554,7 @@ def add_recent_to_queue(ndays):
     """
     cutoff = datetime.now() - timedelta(days=ndays)
     query = {"date": {"$gt": cutoff}, "rev_type": {"$in": ["add text", "edit text"]}}
-    activity = db.history.find(query)
+    activity = db.history.find(public_query(query))
     refs = set()
     for a in activity:
         refs.add((a.get("ref"), a.get("version"), a.get("language")))

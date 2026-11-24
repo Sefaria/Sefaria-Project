@@ -4432,6 +4432,8 @@ Sefaria.unpackBaseProps = function (props) {
     '_email',
     'slug',
     'is_moderator',
+    'show_unreleased',
+    'unreleased_qa_tools',
     'is_editor',
     'is_sustainer',
     'donor_status',

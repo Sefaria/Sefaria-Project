@@ -14,6 +14,7 @@ import {
   CategoryHeader,
 } from './Misc';
 import { ContentText } from './ContentText';
+import { UnreleasedBadge, useCategoryUnreleased, releaseCategoryButtons } from './ReleaseTools';
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({
@@ -55,6 +56,7 @@ const TextCategoryPage = ({
     }
   }
 
+  const catUnreleased = useCategoryUnreleased(cats);
   const tocObject = Sefaria.tocObjectByCategories(cats);
   const catContents = Sefaria.tocItemsByCategories(cats);
   const nestLevel = category === 'Commentary' ? 1 : 0;
@@ -66,9 +68,10 @@ const TextCategoryPage = ({
     categoryToggle
   ) : (
     <div className="navTitle">
-      <CategoryHeader data={cats} type="cats">
+      <CategoryHeader data={cats} type="cats" actionButtons={releaseCategoryButtons(cats, catUnreleased, heCatTitle)}>
         <h1>
           <ContentText text={{ en: catTitle, he: heCatTitle }} defaultToInterfaceOnBilingual={true} />
+          <UnreleasedBadge unreleased={catUnreleased} />
         </h1>
       </CategoryHeader>
       {categoryToggle}

@@ -11,6 +11,7 @@ import VersionBlockSelectButton from './VersionBlockSelectButton';
 import VersionInformation from './VersionInformation';
 import VersionImage from './VersionImage';
 import VersionBlockWithPreview from './VersionBlockWithPreview';
+import { UnreleasedBadge, VersionReleaseControls } from '../ReleaseTools';
 
 class VersionBlockUtils {
   static makeVersionTitle(version) {
@@ -491,6 +492,7 @@ class VersionBlock extends Component {
                 SAVE
               </div>
               <div className="clearFix"></div>
+              <VersionReleaseControls version={this.props.version} />
             </div>
           </div>
         </div>
@@ -512,6 +514,7 @@ class VersionBlock extends Component {
                 )}
               />
             </div>
+            <UnreleasedBadge unreleased={v.unreleased} />
             <i
               className={`fa fa-pencil versionEditIcon ${Sefaria.is_moderator && this.props.rendermode == 'book-page' ? 'enabled' : ''}`}
               aria-hidden="true"

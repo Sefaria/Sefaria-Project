@@ -81,7 +81,9 @@ def remove_old_counts():
     # But in this code instantiation happens in the line 'for count in counts'
     # How do we catch that? Additionally, we need access to the bad title after
     # The error has occurred. How would we get that? Reverting to direct DB call for now.
-    counts = db.vstate.find({}, {"title": 1})
+    # Public processes cannot resolve unreleased books, so they would look orphaned: never touch them.
+    hidden_titles = db.index.distinct("title", {"unreleased": True})
+    counts = db.vstate.find({"title": {"$nin": hidden_titles}}, {"title": 1})
     for count in counts:
         if count.get("title", None):
             print("Checking " + count["title"])

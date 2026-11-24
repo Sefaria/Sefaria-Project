@@ -74,6 +74,7 @@ from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.webpages import domain_for_url as webpage_domain_for_url
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url
 from sefaria.model import *
+from sefaria.model.abstract import public_query
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.user_profile import UserProfile, user_link
@@ -1993,7 +1994,7 @@ def version_indices_api(request):
     query = {"versionTitle": version_title}
     if language:
         query["language"] = language
-    indices = db.texts.distinct("title", query)
+    indices = db.texts.distinct("title", public_query(query))
     sorted_indices = sorted(indices)
 
     # Build metadata with categories for each index
@@ -2209,7 +2210,9 @@ def version_bulk_delete_api(request):
             # Capture language before delete since it's needed for history + varnish
             lang = version.language
             version.delete()
-            record_version_deletion(index_title, version_title, lang, request.user.id)
+            record_version_deletion(
+                index_title, version_title, lang, request.user.id, unreleased=version.is_unreleased()
+            )
 
             if USE_VARNISH:
                 try:

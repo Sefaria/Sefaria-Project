@@ -36,6 +36,7 @@ import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from './ReaderDisplayOptionsMenu';
 import { DropdownMenu } from './common/DropdownMenu';
 import { getCsrfToken } from './sefaria/csrf';
+import { UnreleasedBadge, releaseBookButtons } from './ReleaseTools';
 
 class BookPage extends Component {
   // Menu for the Table of Contents for a single text
@@ -274,8 +275,19 @@ class BookPage extends Component {
                 <div className="tocTop">
                   <div className="tocTitle" role="heading" aria-level="1">
                     <div className="tocTitleControls">
-                      <CategoryHeader type="books" toggleButtonIDs={['section', 'edit']} data={title}>
+                      <CategoryHeader
+                        type="books"
+                        toggleButtonIDs={['section', 'edit']}
+                        actionButtons={releaseBookButtons(
+                          title,
+                          this.state.indexDetails && this.state.indexDetails.categories,
+                          this.state.indexDetails && this.state.indexDetails.unreleased,
+                          heTitle
+                        )}
+                        data={title}
+                      >
                         <ContentText text={{ en: title, he: heTitle }} />
+                        <UnreleasedBadge unreleased={this.state.indexDetails && this.state.indexDetails.unreleased} />
                       </CategoryHeader>
                     </div>
                     {this.props.multiPanel &&

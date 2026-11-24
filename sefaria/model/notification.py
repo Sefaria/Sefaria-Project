@@ -66,7 +66,10 @@ class GlobalNotification(abst.AbstractMongoRecord):
 
         if self.type == "index":
             assert self.content.get("index")
-            assert library.get_index(self.content.get("index"))
+            index = library.get_index(self.content.get("index"))
+            assert index
+            if index.is_unreleased():
+                raise InputError(f"Can not notify about unreleased book {index.title}.")
         elif self.type == "version":
             i = self.content.get("index")
             v = self.content.get("version")
@@ -82,6 +85,8 @@ class GlobalNotification(abst.AbstractMongoRecord):
                 }
             )
             assert version, f"No Version Found: {i}/{v}/{l}"
+            if version.is_unreleased() or library.get_index(i).is_unreleased():
+                raise InputError(f"Can not notify about unreleased version {i}/{v}.")
         elif self.type == "general":
             assert self.content.get("en"), "Please provide an English message."
             assert self.content.get("he"), "Please provide a Hebrew message."

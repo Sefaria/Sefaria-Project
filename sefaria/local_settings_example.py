@@ -211,6 +211,9 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
 SEARCH_URL = "http://localhost:9200"
 
+SHOW_UNRELEASED_CONTENT = (
+    False  # Only the staff site (preprod) sets True. When False, records marked unreleased are invisible.
+)
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = "text"  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = "sheet"
