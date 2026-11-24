@@ -3198,6 +3198,27 @@
   "refs": []
  },
  {
+  "id": "SHL-079",
+  "area": "reader-shell",
+  "group": "Surfaces",
+  "name": "A text beside the social page (rebuild)",
+  "summary": "SurfaceHost 1.1 openBeside: a source opened from the social surface's page comes in beside it. The page narrows into a column at the inline start, still mounted (its state, data and place kept), and the text slides in from the inline end; on a phone the text covers the page and a Back to feed button floats at the bottom.",
+  "details": [
+   "The address is the text's with the reserved ctx=social.beside (src/lib/surfaces/beside.ts), so a refresh, a shared link or Back reopens it; a refresh shows the feed in the column.",
+   "The page view's element moves between the /social route's slot and the column (src/features/surfaces/SurfaceMount.tsx); the page mount's host.location keeps reporting the social page that opened the text, the persistent mount's is the reader's.",
+   "Close: the button on the line between the two, Escape (unless a menu, dialog or field used it), or Back. Closing goes back through history to the page's entry when it is behind, else opens the page.",
+   "Animated with the View Transitions API (social-feed, social-reader); instant where the browser lacks it or the reader asked for reduced motion. The text's data is preloaded (at most 700 ms) before it slides in.",
+   "The text collapses to a rail at the inline end that names it, and expands back: SurfaceBesideToggle, the per-tab collapse store in src/lib/surfaces/beside.ts. A new text opened beside the page comes in expanded. Collapsed, the text stays mounted and keeps following, and a hidden reader never scrolls the window (dom-position.ts, use-reading-scroll.ts). Expanding brings the address's verse to the reading line.",
+   "isBeside is any non-social path with ctx=social.beside, so a followed shiur stays beside the feed when its leader opens the library or a topic. The feed column and the collapse controls carry data-reader-state-ui, so following isn't broken by reading the feed. A follow guest reloaded on /social drops its stored session (adopt.ts)."
+  ],
+  "tier": "optional",
+  "src": "reader-next: contract/surface-host.v1.ts, src/lib/surfaces/beside.ts, src/lib/surfaces/host.ts, src/features/surfaces/SurfaceBeside.tsx, src/features/surfaces/SurfaceMount.tsx, src/routes/__root.tsx",
+  "audience": "all",
+  "platform": "all",
+  "status": "rebuild-only",
+  "refs": []
+ },
+ {
   "id": "TXD-001",
   "area": "text-display",
   "group": "Copy and paste",

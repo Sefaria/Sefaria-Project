@@ -86,6 +86,26 @@ describe("after a reload", () => {
     expect(router.navigate).not.toHaveBeenCalled();
   });
 
+  it("a guest reloaded on the social pages leaves the shiur instead of being pulled off the feed; a host re-hosts there", async () => {
+    for (const pathname of ["/social", "/social/u/abc12345"]) {
+      const storage = memoryStorage();
+      writeStoredFollow(storage, { sessionId: id, role: "guest", participantId: "abc" });
+      const { router } = fakeRouter("");
+      router.history.location.pathname = pathname;
+      const { controller, resume } = fakeController();
+      await expect(adoptFollowLocation(router, controller, storage)).resolves.toBe("none");
+      expect(resume).not.toHaveBeenCalled();
+      expect(readStoredFollow(storage)).toBeNull();
+    }
+    const storage = memoryStorage();
+    writeStoredFollow(storage, { sessionId: id, role: "host", participantId: "me" });
+    const { router } = fakeRouter("");
+    router.history.location.pathname = "/social";
+    const { controller, resume } = fakeController();
+    await expect(adoptFollowLocation(router, controller, storage)).resolves.toBe("resumed");
+    expect(resume).toHaveBeenCalledWith({ sessionId: id, role: "host", participantId: "me" });
+  });
+
   it("does nothing while a session is open or when nothing was kept", async () => {
     const storage = memoryStorage();
     const { router } = fakeRouter("");

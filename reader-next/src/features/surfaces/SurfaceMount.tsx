@@ -10,7 +10,7 @@
  * @feature SHL-077 Surface loader
  * @feature SHL-078 SurfaceHost v1
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { PUBLIC_CONFIG, SITE_ORIGIN } from "~/lib/config";
@@ -27,14 +27,14 @@ import type { Viewer } from "~/lib/auth/session";
 import { getSurface } from "~/lib/surfaces/load";
 import { socialEnvForPage } from "~/lib/surfaces/version";
 import { createIdentityTokenSource } from "~/lib/surfaces/identity";
-import { createSurfaceHost, type SurfaceRouter, type UiState } from "~/lib/surfaces/host";
+import { closeBeside, createSurfaceHost, type SurfaceRouter, type UiState } from "~/lib/surfaces/host";
 import { viewerQuery } from "~/features/auth/viewer";
 import { useReaderSettings } from "~/features/reader/settings-context";
 import { useReaderState } from "~/features/reader-state/context";
 import type { SurfaceHost } from "../../../contract/surface-host.v1";
 import styles from "./SurfaceMount.module.css";
 
-type HostFactory = (version: string) => SurfaceHost;
+type HostFactory = (version: string, kind: "page" | "persistent") => SurfaceHost;
 
 /** A tiny store: the value, read at call time, and who to tell when it changes. */
 function store<T>(initial: T) {
@@ -98,9 +98,10 @@ function useHostFactory(): HostFactory | null {
         });
       },
     };
-    const factory: HostFactory = (version) =>
+    const factory: HostFactory = (version, kind) =>
       createSurfaceHost({
         router: router as unknown as SurfaceRouter,
+        kind,
         state: readerState.api,
         commands,
         viewer,
@@ -127,64 +128,201 @@ function useHostFactory(): HostFactory | null {
   return parts?.factory ?? null;
 }
 
-function Mount({ kind }: { kind: "page" | "persistent" }) {
+/** Loads the surface and mounts one of its views into `target`; returns how to unmount it. Failures are reported, never thrown. */
+function mountInto(target: HTMLElement, kind: "page" | "persistent", hostFor: HostFactory, pathname: string, onFailed: () => void): () => void {
+  let unmount: (() => void) | undefined;
+  let gone = false;
+  getSurface(socialEnvForPage(PUBLIC_CONFIG.social), pathname).then(
+    ({ surface, version }) => {
+      if (gone) return;
+      try {
+        const fn = kind === "page" ? surface.mountPage(target, hostFor(version, "page")) : surface.mountPersistent(target, hostFor(version, "persistent"));
+        unmount = typeof fn === "function" ? fn : undefined;
+        target.dataset.surfaceState = "mounted";
+      } catch (e) {
+        reportError("boundary", e, { boundary: `surface:social@${version}:${kind}` });
+        target.replaceChildren();
+        onFailed();
+      }
+    },
+    (e: unknown) => {
+      if (gone) return;
+      // reported once per load (both mounts share it): the page mount reports, the persistent one stays quiet
+      if (kind === "page" || !document.querySelector("[data-surface-mount=page]")) reportError("boundary", e, { boundary: "surface:social:load" });
+      onFailed();
+    },
+  );
+  return () => {
+    gone = true;
+    try {
+      unmount?.();
+    } catch (e) {
+      reportError("boundary", e, { boundary: `surface:social:${kind}:unmount` });
+    }
+    target.replaceChildren();
+    delete target.dataset.surfaceState;
+  };
+}
+
+/**
+ * The page view's element, kept mounted while it moves between its two slots: the /social page (src/routes/social.*) and the column
+ * beside a text (SurfaceBesidePane, src/routes/__root.tsx). Opening a text beside the page unmounts the route's slot and mounts the
+ * pane's in the same commit; the element moves from one to the other, so the surface keeps its state, its data and its place. With
+ * no slot holding it after that commit, the surface is unmounted.
+ */
+const kept: {
+  el: HTMLDivElement | null;
+  unmount: (() => void) | null;
+  failed: boolean;
+  slot: HTMLElement | null;
+  release: ReturnType<typeof setTimeout> | null;
+  onState: Set<() => void>;
+  /** How far the /social page was scrolled, for the column beside a text to start at the same place. */
+  top: number;
+  offScroll: (() => void) | null;
+} = {
+  top: 0,
+  offScroll: null,
+  el: null,
+  unmount: null,
+  failed: false,
+  slot: null,
+  release: null,
+  onState: new Set(),
+};
+
+function acquirePage(slot: HTMLElement, hostFor: HostFactory, pathname: string) {
+  if (kept.release) clearTimeout(kept.release);
+  kept.release = null;
+  if (!kept.el) {
+    const el = document.createElement("div");
+    el.className = styles.kept!;
+    kept.el = el;
+    kept.failed = false;
+    kept.unmount = mountInto(el, "page", hostFor, pathname, () => {
+      kept.failed = true;
+      kept.onState.forEach((cb) => cb());
+    });
+  }
+  slot.appendChild(kept.el);
+  kept.slot = slot;
+  kept.offScroll?.();
+  kept.offScroll = null;
+  if (slot.dataset.surfaceSlot === "beside") {
+    // beside a text the page scrolls its own column, from where it was on /social (back on /social, the router restores the place)
+    slot.scrollTop = kept.top;
+  } else {
+    const scroller = pageScroller();
+    const note = () => void (kept.top = scroller === window ? window.scrollY : (scroller as HTMLElement).scrollTop);
+    note();
+    scroller.addEventListener("scroll", note, { passive: true });
+    kept.offScroll = () => scroller.removeEventListener("scroll", note);
+  }
+  return kept.el;
+}
+
+const RELEASE_GRACE_MS = 1_500;
+
+function releasePage(slot: HTMLElement) {
+  if (kept.slot !== slot) return;
+  // stop noting the /social page's place now: the reader's text takes over the main area and scrolls it next
+  kept.offScroll?.();
+  kept.offScroll = null;
+  // the other slot may take a moment to arrive (the column beside a text renders after a lazy chunk resolves): the surface stays
+  // mounted, off the page, for a grace period before it is unmounted
+  kept.release = setTimeout(() => {
+    kept.release = null;
+    if (kept.el && kept.slot === slot && !kept.el.isConnected) {
+      kept.unmount?.();
+      kept.el = null;
+      kept.unmount = null;
+      kept.slot = null;
+    }
+  }, RELEASE_GRACE_MS);
+}
+
+/** What scrolls the /social page: the main area on desktop, the window on a phone (App.module.css). */
+function pageScroller(): HTMLElement | Window {
+  const main = document.getElementById("main");
+  return main && getComputedStyle(main).overflowY !== "visible" ? main : window;
+}
+
+function PageSlot({ where }: { where: "route" | "beside" }) {
+  const slot = useRef<HTMLDivElement>(null);
+  const hostFor = useHostFactory();
+  const router = useRouter();
+  const [failed, setFailed] = useState(false);
+  useLayoutEffect(() => {
+    if (!hostFor || !slot.current) return;
+    const target = slot.current;
+    const sync = () => setFailed(kept.failed);
+    kept.onState.add(sync);
+    acquirePage(target, hostFor, router.history.location.pathname);
+    sync();
+    // the surface marks the element it mounted; the slot carries the same state for whoever looks at the page
+    const watch = new MutationObserver(() => {
+      if (kept.el?.dataset.surfaceState) target.dataset.surfaceState = kept.el.dataset.surfaceState;
+    });
+    if (kept.el) watch.observe(kept.el, { attributes: true, attributeFilter: ["data-surface-state"] });
+    if (kept.el?.dataset.surfaceState) target.dataset.surfaceState = kept.el.dataset.surfaceState;
+    return () => {
+      watch.disconnect();
+      kept.onState.delete(sync);
+      releasePage(target);
+    };
+  }, [hostFor, router]);
+  return (
+    <div
+      ref={slot}
+      className={where === "beside" ? styles.beside : styles.page}
+      data-surface-mount="page"
+      data-surface-slot={where}
+      data-surface-state={failed ? "failed" : undefined}
+    />
+  );
+}
+
+function PersistentMount() {
   const el = useRef<HTMLDivElement>(null);
   const hostFor = useHostFactory();
   const router = useRouter();
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     if (!hostFor || !el.current) return;
-    const target = el.current;
-    let unmount: (() => void) | undefined;
-    let gone = false;
-    getSurface(socialEnvForPage(PUBLIC_CONFIG.social), router.history.location.pathname).then(
-      ({ surface, version }) => {
-        if (gone) return;
-        try {
-          const fn = kind === "page" ? surface.mountPage(target, hostFor(version)) : surface.mountPersistent(target, hostFor(version));
-          unmount = typeof fn === "function" ? fn : undefined;
-          target.dataset.surfaceState = "mounted";
-        } catch (e) {
-          reportError("boundary", e, { boundary: `surface:social@${version}:${kind}` });
-          target.replaceChildren();
-          setFailed(true);
-        }
-      },
-      (e: unknown) => {
-        if (gone) return;
-        // reported once per load (both mounts share it): the page mount reports, the persistent one stays quiet
-        if (kind === "page" || !document.querySelector("[data-surface-mount=page]")) reportError("boundary", e, { boundary: "surface:social:load" });
-        setFailed(true);
-      },
-    );
-    return () => {
-      gone = true;
-      try {
-        unmount?.();
-      } catch (e) {
-        reportError("boundary", e, { boundary: `surface:social:${kind}:unmount` });
-      }
-      target.replaceChildren();
-      delete target.dataset.surfaceState;
-    };
-  }, [hostFor, kind, router]);
-  return <div ref={el} className={kind === "page" ? styles.page : styles.persistent} data-surface-mount={kind} data-surface-state={failed ? "failed" : undefined} />;
+    return mountInto(el.current, "persistent", hostFor, router.history.location.pathname, () => setFailed(true));
+  }, [hostFor, router]);
+  return <div ref={el} className={styles.persistent} data-surface-mount="persistent" data-surface-state={failed ? "failed" : undefined} />;
 }
 
 /** The page mount: an empty, sized element (no layout shift when the surface fills it) under /social/*. */
 export function SurfacePage() {
   return (
     <ReportingBoundary name="surface-page" fallback={() => <div className={styles.page} data-surface-mount="page" data-surface-state="failed" />}>
-      <Mount kind="page" />
+      <PageSlot where="route" />
     </ReportingBoundary>
   );
+}
+
+/** The same page view in the column beside a text (SurfaceHost.openBeside): the element the /social page had, moved here. */
+export function SurfaceBesideMount() {
+  return (
+    <ReportingBoundary name="surface-beside" fallback={() => null}>
+      <PageSlot where="beside" />
+    </ReportingBoundary>
+  );
+}
+
+/** Closes the text beside the social page (src/lib/surfaces/host.ts closeBeside). */
+export function useCloseBeside() {
+  const router = useRouter();
+  return () => void closeBeside(router as unknown as SurfaceRouter);
 }
 
 /** The persistent mount, beside <main> on every page: takes no room until the surface renders something in it. */
 export function SurfacePersistent() {
   return (
     <ReportingBoundary name="surface-persistent" fallback={() => null}>
-      <Mount kind="persistent" />
+      <PersistentMount />
     </ReportingBoundary>
   );
 }

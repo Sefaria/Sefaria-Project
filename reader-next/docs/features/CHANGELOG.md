@@ -4,6 +4,14 @@ The atlas (`features.json`) is the source of truth for the rebuild. Whenever bui
 
 Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader has that the old client did not, so the atlas also describes what we ship.
 
+## 2026-11-24 — a text beside the social page
+
+### Built
+
+- **SHL-079** (changed) The text beside the social page collapses to a rail at the inline end that names it ("Hide text" on the seam; a floating pill on a phone), and expands back to the verse its address names. Collapsed, it stays mounted and keeps following a shiur, but never scrolls the window. Any reader page with `ctx=social.beside`, not only a text, stays beside the page, because a followed shiur goes wherever its leader goes. Reading the feed beside a followed shiur doesn't count as breaking away. A follow-me guest whose tab reloads on a social page leaves the session rather than being pulled off the feed (Sefaria Social spec 032).
+
+- **SHL-079** SurfaceHost 1.1 adds the optional `openBeside(to)`: the social page narrows into a column at the inline start, still mounted, as the text slides in from the inline end (View Transitions; instant for reduced motion); a phone slides the text over the page with a floating "Back to feed". The address carries `ctx=social.beside`; Back, Escape or the close control return to the page as it was.
+
 ## 2026-11-23 — the social surface seam
 
 ### Built

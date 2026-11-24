@@ -3,7 +3,8 @@ import { createMemoryHistory, createRootRoute, createRoute, createRouter } from 
 import type { ReaderStateApi } from "~/lib/reader-state/core/types";
 import type { WorkspaceCommands } from "~/lib/workspace/commands";
 import { socialEnvFrom } from "~/lib/config";
-import { createSurfaceHost, SURFACE_STATE_KEY, type SurfaceHostDeps, type SurfaceRouter, type UiState } from "./host";
+import { closeBeside, createSurfaceHost, SURFACE_STATE_KEY, type SurfaceHostDeps, type SurfaceRouter, type UiState } from "./host";
+import { besideCollapsed, besideOrigin, closePlan, isBeside, setBesideCollapsed, setBesideOrigin } from "./beside";
 
 function makeRouter(initial = "/social") {
   const root = createRootRoute();
@@ -41,9 +42,9 @@ function hostWith(over: Partial<SurfaceHostDeps> = {}, initial?: string) {
 
 // @feature SHL-078
 describe("the SurfaceHost", () => {
-  it("is contract 1.0 and hands over the reader's own state API and commands", () => {
+  it("is contract 1.1 and hands over the reader's own state API and commands", () => {
     const { host, deps } = hostWith();
-    expect(host.contract).toEqual({ major: 1, minor: 0 });
+    expect(host.contract).toEqual({ major: 1, minor: 1 });
     expect(host.reader.state).toBe(deps.state);
     expect(host.reader.commands).toBe(deps.commands);
     expect(host.config).toEqual({ apiOrigin: "https://api.s.example.org", relayOrigin: "wss://relay.s.example.org", environment: "staging" });
@@ -107,6 +108,78 @@ describe("the SurfaceHost", () => {
     expect(deps.reportError).toHaveBeenCalledWith(expect.objectContaining({ message: "[surface social@r9] relay: closed" }), "surface:social@r9");
     host.report({ kind: "event", name: "joined", data: { room: "abc", n: 2, nested: { x: 1 } } });
     expect(deps.event).toHaveBeenCalledWith("social_joined", { room: "abc", n: 2, surface_version: "r9" });
+  });
+});
+
+// @feature SHL-079
+describe("a text beside the social page (openBeside, contract 1.1)", () => {
+  it("opens a reader address with ctx=social.beside as a new entry; the page mount keeps the social page as its location", async () => {
+    setBesideOrigin(null);
+    const { host, router, deps } = hostWith({}, "/social/u/abc?tab=posts");
+    await router.load();
+    const persistent = createSurfaceHost({ ...deps, kind: "persistent" });
+    const pageHeard = vi.fn();
+    host.location.subscribe(pageHeard);
+    const length = router.history.length;
+    host.openBeside!("/Genesis.1.3?ctx=social.room.x");
+    await vi.waitFor(() => expect(router.history.location.pathname).toBe("/Genesis.1.3"));
+    expect(router.history.location.search).toBe("?ctx=social.beside");
+    expect(router.history.length).toBe(length + 1);
+    expect(host.location.get()).toMatchObject({ pathname: "/social/u/abc", search: "?tab=posts" });
+    expect(persistent.location.get().pathname).toBe("/Genesis.1.3");
+    expect(host.reader.context.get()).toBe("social.beside");
+    // the reader's own moves beside the page (a scroll's replace, another text) say nothing to the page mount
+    const heard = pageHeard.mock.calls.length;
+    host.openBeside!("/Exodus.2");
+    await vi.waitFor(() => expect(router.history.location.pathname).toBe("/Exodus.2"));
+    expect(pageHeard.mock.calls.length).toBe(heard);
+    expect(host.location.get().pathname).toBe("/social/u/abc");
+    expect(besideOrigin()?.location.pathname).toBe("/social/u/abc");
+  });
+
+  it("refuses anything that is not a reader address", async () => {
+    const { host, router, deps } = hostWith();
+    await router.load();
+    for (const bad of ["/social/u/x", "/texts", "https://evil.example/Genesis.1", "/sheets/1"]) host.openBeside!(bad);
+    expect(deps.reportError).toHaveBeenCalledTimes(4);
+    expect(router.history.location.pathname).toBe("/social");
+  });
+
+  it("a new text opened beside the page comes in expanded, whatever was collapsed before", async () => {
+    setBesideCollapsed(true);
+    const { host, router } = hostWith({}, "/social");
+    await router.load();
+    host.openBeside!("/Genesis.1");
+    expect(besideCollapsed()).toBe(false);
+    await vi.waitFor(() => expect(router.history.location.pathname).toBe("/Genesis.1"));
+  });
+
+  it("any reader page with the context stays beside the page (a followed shiur goes where its leader goes); social's own never", () => {
+    expect(isBeside({ pathname: "/Genesis.1", search: "?ctx=social.beside" })).toBe(true);
+    expect(isBeside({ pathname: "/texts", search: "?ctx=social.beside" })).toBe(true);
+    expect(isBeside({ pathname: "/texts", search: "" })).toBe(false);
+    expect(isBeside({ pathname: "/social", search: "?ctx=social.beside" })).toBe(false);
+    expect(isBeside({ pathname: "/Genesis.1", search: "?ctx=social.room.abc" })).toBe(false);
+  });
+
+  it("a refresh beside a text shows the feed in the page mount", async () => {
+    setBesideOrigin(null);
+    const { host, router } = hostWith({}, "/Genesis.1?ctx=social.beside");
+    await router.load();
+    expect(host.location.get()).toMatchObject({ pathname: "/social", search: "" });
+  });
+
+  it("closes by going back to the page's entry when it is behind, else by opening the page", async () => {
+    expect(closePlan({ index: 5 }, { location: { pathname: "/social", search: "", hash: "", state: undefined }, index: 3 })).toEqual({ back: 2 });
+    expect(closePlan({ index: 0 }, null)).toEqual({ push: "/social" });
+    expect(closePlan({ index: 4 }, { location: { pathname: "/social/u/a", search: "?t=1", hash: "", state: undefined }, index: null })).toEqual({ push: "/social/u/a?t=1" });
+    setBesideOrigin(null);
+    const { host, router } = hostWith({}, "/social");
+    await router.load();
+    host.openBeside!("/Genesis.1");
+    await vi.waitFor(() => expect(router.history.location.pathname).toBe("/Genesis.1"));
+    await closeBeside(router as unknown as SurfaceRouter);
+    await vi.waitFor(() => expect(router.history.location.pathname).toBe("/social"));
   });
 });
 

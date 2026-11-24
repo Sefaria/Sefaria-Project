@@ -39,3 +39,33 @@
 @media (max-width: 842px) {
   .app { box-sizing: border-box; padding-bottom: var(--bottom-bar-height, 0); }
 }
+
+/* A text beside the social page (src/features/surfaces/SurfaceBeside.tsx): the page's column, then the text. The close control is
+   placed against this row. */
+.body[data-beside] { position: relative; }
+.body[data-beside] > .main { view-transition-name: social-reader; }
+/* Collapsed to its rail (SurfaceBesideToggle): the text stays mounted, so a followed shiur keeps moving underneath, but takes no room
+   and is out of the accessibility tree and the tab order; the page's column takes the row.
+   It keeps its width (no reflow into a zero-width column, which on a phone, where the window scrolls, would be miles tall) and takes
+   no height. */
+.body[data-beside="collapsed"] > .main { position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 100%; block-size: 0; overflow: hidden; visibility: hidden; view-transition-name: none; }
+
+/* Opening and closing it is a view transition (src/lib/surfaces/beside.ts withTransition; none for reduced motion): the social page
+   (social-feed) narrows into its column as the text (social-reader) slides in from the inline end, and the reverse on close. On a
+   phone the text slides over the page, which stays put underneath. */
+:global(html[data-beside-transition])::view-transition-group(*) { animation-duration: 340ms; animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1); }
+:global(html[data-beside-transition])::view-transition-group(social-feed) { animation: none; overflow: hidden; }
+/* the page does not cross-fade between its two layouts (two feeds at half opacity read as a blur): it takes its new width at once,
+   unscaled, and the text slides over the rest */
+:global(html[data-beside-transition])::view-transition-old(social-feed) { animation: none; opacity: 0; }
+:global(html[data-beside-transition])::view-transition-new(social-feed) { animation: none; inline-size: auto; block-size: auto; }
+/* on a phone the page has no column beside the text: it stays as it was underneath while the text slides over it */
+:global(html[data-beside-transition])::view-transition-old(social-feed):only-child { opacity: 1; }
+:global(html[data-beside-transition="open"])::view-transition-new(social-reader):only-child { animation: 340ms cubic-bezier(0.2, 0.7, 0.2, 1) both social-reader-in; }
+:global(html[data-beside-transition="close"])::view-transition-old(social-reader):only-child { animation: 300ms cubic-bezier(0.4, 0, 0.6, 1) both social-reader-out; }
+:global(html[data-beside-transition])::view-transition-old(social-beside-close):only-child { animation: 120ms ease-out both social-beside-fade; }
+:global(html[data-beside-transition])::view-transition-new(social-beside-close):only-child { animation: 200ms ease-in 220ms both social-beside-fade reverse; }
+@keyframes social-reader-in { from { transform: translateX(var(--social-slide-from, 100%)); } }
+@keyframes social-reader-out { to { transform: translateX(var(--social-slide-from, 100%)); } }
+@keyframes social-beside-fade { to { opacity: 0; } }
+:global(html[dir="rtl"]) { --social-slide-from: -100%; }

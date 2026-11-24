@@ -45,6 +45,9 @@ function mountPage(root, host) {
       where,
       viewer,
       el("button", { type: "button", "data-testid": "surface-open-room", onclick: () => host.navigate(roomHref) }, "Open Genesis 1 in the room"),
+      // contract 1.1: a text beside the page (an older reader has no openBeside: navigate instead)
+      el("button", { type: "button", "data-testid": "surface-open-beside", onclick: () => (host.openBeside ? host.openBeside("/Genesis.1.3?lang=bi") : host.navigate("/Genesis.1.3?lang=bi")) }, "Open Genesis 1:3 beside"),
+      el("input", { "data-testid": "surface-kept", "aria-label": "Something typed on the page" }),
       el(
         "button",
         {
