@@ -112,7 +112,8 @@ export function withTransition(update: () => Promise<void>, kind: "open" | "clos
  */
 export function rendered(kind: "open" | "close", ms = 1_000): Promise<void> {
   if (typeof document === "undefined") return Promise.resolve();
-  const done = () => !!document.querySelector("[data-social-beside=pane]") === (kind === "open");
+  // the document can go between ticks (a test environment torn down while a transition is still settling): stop then
+  const done = () => typeof document === "undefined" || !!document.querySelector("[data-social-beside=pane]") === (kind === "open");
   const start = Date.now();
   return new Promise((resolve) => {
     const tick = () => (done() || Date.now() - start > ms ? setTimeout(resolve, 0) : setTimeout(tick, 16));

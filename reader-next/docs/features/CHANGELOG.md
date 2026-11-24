@@ -14,6 +14,8 @@ Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader ha
 
 ### Built
 
+- **SHL-077** (changed) A failed social surface load no longer leaves /social blank: the page says Social could not load and offers Try again, which loads it again in place. A page that asked for a pull request preview that no longer exists (`?social_version=`, say after the pull request merged) names the preview and offers "Use the current version".
+
 - **SHL-079** (changed) The social page's column collapses, not the text. A tab on the seam folds the feed to a "Feed" rail at the inline start, and the text takes the row; the rail opens it again, with the feed still mounted and as it was. Desktop only: on a phone the text already covers the feed and "Back to feed" returns to it. This replaces the text collapse from #4133, which also hid the text's scrolling; those guards are removed. Any reader page with `ctx=social.beside` still stays beside the page (a followed shiur goes where its leader goes); reading the feed or the collapse controls doesn't break away from a followed shiur; a follow guest reloaded on a social page leaves the session (Sefaria Social spec 032).
 
 - **SHL-079** SurfaceHost 1.1 adds the optional `openBeside(to)`: the social page narrows into a column at the inline start, still mounted, as the text slides in from the inline end (View Transitions; instant for reduced motion); a phone slides the text over the page with a floating "Back to feed". The address carries `ctx=social.beside`; Back, Escape or the close control return to the page as it was.

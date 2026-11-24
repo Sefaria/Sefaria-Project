@@ -249,6 +249,22 @@ test.describe("the social surface (lab on)", () => {
       expect(errors.filter((e) => !/failed on purpose/.test(e))).toEqual([]);
     });
   }
+
+  // @feature SHL-077
+  test("when the surface does not load, /social says so and Try again mounts it once it is reachable", async ({ page }) => {
+    await serveSurface(page, "manifest-404");
+    await open(page, surfaceUrl("/social"));
+    const failed = page.getByTestId("surface-load-failed");
+    await expect(failed.getByRole("alert")).toContainText("Couldn't load Sefaria Social");
+    await expect(page.locator('[data-surface-mount="page"]')).toBeHidden();
+    // the surface comes back; the reader loads it again without a page reload
+    await page.unrouteAll();
+    const requests = await serveSurface(page, "ok");
+    await failed.getByRole("button", { name: "Try again" }).click();
+    await expect(page.locator('[data-surface-mount="page"]')).toHaveAttribute("data-surface-state", "mounted");
+    await expect(page.getByTestId("surface-load-failed")).toHaveCount(0);
+    expect(requests).toContain("manifest.json");
+  });
 });
 
 // @feature SHL-079
