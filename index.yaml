@@ -77,6 +77,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.96.0-featsocial-identity-token-4900921.1.tgz
     version: 0.96.0-featsocial-identity-token-4900921.1
   - apiVersion: v2
+    appVersion: v7.17.4-preprod.2
+    created: "2026-11-24T07:43:20.841628437Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 4caa023c5fdbbe5d118d32c03fe65c5d7ae9d68bb38f2be42c56867ab0ca6357
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.96.0-featpreprod-auth-observe-dbd3f4f.1.tgz
+    version: 0.96.0-featpreprod-auth-observe-dbd3f4f.1
+  - apiVersion: v2
     appVersion: v7.16.3
     created: "2026-11-19T07:47:58.638821063Z"
     description: Chart to deploy complete Sefaria environment
@@ -25845,4 +25860,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-23T21:28:17.428815337Z"
+generated: "2026-11-24T07:43:20.838636122Z"
