@@ -33,6 +33,8 @@ jest.mock('../ProfilePic', () => ({ ProfilePic: () => null }));
 
 const DAILY_LIMIT = "You've asked for 5 links today. Try again tomorrow, or contact hello@sefaria.org.";
 const ONE_A_MINUTE = 'Wait a minute before asking for another email.';
+const SHARED_HOST =
+  "Keys can't be limited to a shared hosting address like this one. Use your own domain, or leave the limit off.";
 const CONFIRM_TIP = 'Confirm your email in the banner above to create projects and keys.';
 const now = () => new Date().toISOString();
 
@@ -169,6 +171,20 @@ describe('refused saves', () => {
     await click(button('Limit key'));
     expect(server.calls()).toEqual(['POST projects/p1']);
     expect(screen.getByText('Invalid website')).toBeTruthy();
+  });
+
+  it('explains why a key cannot be limited to a shared host, instead of asking to try again', async () => {
+    open({ ...READY, projects: [project(1, { websiteUrl: 'https://sites.google.com/view/daf', keys: [key(1)] })] });
+    server.fail(
+      'POST',
+      'keys/k1',
+      400,
+      "A key can't be restricted to sites.google.com, because other people's sites share it. Use your site's own " +
+        'address, such as yourapp.sites.google.com, or leave the key unrestricted.'
+    );
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
+    expect(screen.getByText(SHARED_HOST)).toBeTruthy();
+    expect(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }).checked).toBe(false);
   });
 });
 

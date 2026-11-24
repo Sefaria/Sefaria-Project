@@ -958,6 +958,7 @@
     "developer.errors.key_missing.error": "המפתח הזה כבר לא קיים. רעננו את הדף כדי לראות את המפתחות שלכם.",
     "developer.errors.link_rate_limited.error": "המתינו דקה לפני שתבקשו קישור נוסף.",
     "developer.errors.no_account_email.error": "לחשבון שלכם אין כתובת דוא״ל. הוסיפו כתובת בהגדרות החשבון.",
+    "developer.errors.shared_host.error": "אי אפשר להגביל מפתחות לכתובת אירוח משותפת כמו זו. השתמשו בדומיין משלכם, או השאירו את ההגבלה כבויה.",
     "developer.errors.key_create_failed.error": "לא הצלחנו ליצור את המפתח. נסו שוב.",
     "developer.errors.save_failed.error": "משהו השתבש והשינוי לא נשמר. נסו שוב.",
     "developer.errors.session_check_failed.error": "לא הצלחנו לבדוק את ההתחברות. רעננו את הדף כדי לראות את הגדרות מפתחים.",
