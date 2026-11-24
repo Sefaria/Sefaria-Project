@@ -1,6 +1,7 @@
 import pymongo
 import pytest
 
+from sefaria.model import user_profile
 from sefaria.model.user_profile import UserHistory, UserHistorySet, UserLastPlace, UserLastPlaceSet, UserProfile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
@@ -197,14 +198,6 @@ def test_secondary_reads_and_sheets_are_not_tracked(reader):
     assert not UserLastPlace.tracks(UserHistory({"book": "Sheet"}))
 
 
-def test_last_places_fall_back_to_legacy_flag(reader):
-    make_uh(uid=READ_UID, ref="Genesis 5:1", book="Genesis", time_stamp=NOON - DAY, last_place=True)
-    make_uh(uid=READ_UID, ref="Exodus 2:1", book="Exodus", time_stamp=NOON - DAY, last_place=True)
-    read("Genesis 1:3", NOON)
-    assert [uh.ref for uh in profile().get_last_places()] == ["Genesis 1:3", "Exodus 2:1"]
-    assert [uh.ref for uh in profile().get_last_places(book="Genesis")] == ["Genesis 1:3"]
-
-
 def test_last_places_newest_first(reader):
     read("Exodus 2:1", NOON - DAY)
     read("Genesis 1:3", NOON)
@@ -230,13 +223,6 @@ def test_delete_history_excluding_last_place_keeps_last_places(reader):
     profile().delete_user_history(exclude_last_place=True)
     assert history_refs() == []
     assert [uh.ref for uh in profile().get_last_places()] == ["Genesis 1:3"]
-
-
-def test_sync_full_pull_includes_legacy_last_places(reader):
-    legacy = make_uh(uid=READ_UID, ref="Exodus 2:1", book="Exodus", time_stamp=1, server_time_stamp=1, last_place=True)
-    read("Genesis 1:3", NOON)
-    refs = [uh.ref for uh in profile().get_sync_history(0, limit=1)]
-    assert refs == [legacy.ref, "Genesis 1:3"]
 
 
 def test_sync_full_pull_includes_every_last_place(reader):
@@ -267,3 +253,65 @@ def test_backfill_keeps_newer_places(reader):
     assert last_place("Genesis").ref == "Genesis 1:3"
     assert last_place("Exodus").history_id == exodus._id
     assert [uh.ref for uh in profile().get_last_places()] == ["Genesis 1:3", "Exodus 2:1"]
+
+
+def test_recent_books_newest_first_with_titles(reader):
+    read("Exodus 2:1", NOON - DAY)
+    read("Genesis 1:3", NOON)
+    books = profile().get_recent_books(5)
+    assert [(b["book"], b["ref"]) for b in books] == [("Genesis", "Genesis 1:3"), ("Exodus", "Exodus 2:1")]
+    assert books[0]["title"]["en"] == "Genesis"
+    assert books[0]["category"] == "Tanakh"
+
+
+def test_recent_books_limit_skips_excluded_books(reader, monkeypatch):
+    monkeypatch.setattr(user_profile, "is_excluded_from_recent_books", lambda index: index.title == "Genesis")
+    read("Leviticus 1:1", NOON - 2 * DAY)
+    read("Exodus 2:1", NOON - DAY)
+    read("Genesis 1:3", NOON)
+    assert [b["book"] for b in profile().get_recent_books(1)] == ["Exodus"]
+    assert [b["book"] for b in profile().get_recent_books(5)] == ["Exodus", "Leviticus"]
+
+
+class FakeIndex:
+    def __init__(self, primary_category):
+        self.primary_category = primary_category
+
+    def get_primary_category(self):
+        return self.primary_category
+
+
+def test_liturgy_is_excluded_from_recent_books():
+    assert user_profile.recent_book_index("Genesis") is not None
+    assert user_profile.is_excluded_from_recent_books(FakeIndex("Liturgy"))
+    assert not user_profile.is_excluded_from_recent_books(FakeIndex("Commentary"))  # e.g. a commentary on the Siddur
+    assert user_profile.recent_book_index("No Such Book") is None
+
+
+def daily_places(before, utc_offset=0):
+    result = profile().get_daily_places(before, utc_offset)
+    return [p["ref"] for p in result["places"]], result["older"]
+
+
+def test_daily_places_keeps_each_books_last_place_per_day(reader):
+    read("Genesis 1:3", NOON - 60)
+    read("Genesis 1:7", NOON)
+    read("Exodus 2:1", NOON + 60)
+    read("Genesis 2:1", NOON - DAY)
+    read("Genesis 3:1", NOON, secondary=True)  # sidebar reads aren't history page places
+    assert daily_places(NOON + 600) == (["Exodus 2:1", "Genesis 1:7", "Genesis 2:1"], None)
+
+
+def test_daily_places_uses_the_readers_day(reader):
+    # 23:00 and 01:00 UTC: two days in UTC, one day (20:00 and 22:00) in UTC-3
+    read("Genesis 1:3", NOON + 11 * 60 * 60)
+    read("Genesis 1:7", NOON + 13 * 60 * 60)
+    assert daily_places(NOON + DAY)[0] == ["Genesis 1:7", "Genesis 1:3"]
+    assert daily_places(NOON + DAY, utc_offset=-180)[0] == ["Genesis 1:7"]
+
+
+def test_daily_places_points_to_older_reading(reader):
+    read("Genesis 1:3", NOON - 100 * DAY)
+    read("Exodus 2:1", NOON)
+    assert daily_places(NOON + 1) == (["Exodus 2:1"], NOON - 100 * DAY)
+    assert daily_places(NOON - 100 * DAY + 1) == (["Genesis 1:3"], None)

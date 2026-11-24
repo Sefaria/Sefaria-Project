@@ -287,6 +287,7 @@ class ReaderApp extends Component {
     if (Sefaria._uid) {
       // A logged in user is automatically a returning visitor
       Sefaria.markUserAsReturningVisitor();
+      Sefaria.mergeAnonHistory(); // what they read before logging in or signing up
     } else if (Sefaria.isNewVisitor()) {
       // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
       Sefaria.markUserAsNewVisitor();

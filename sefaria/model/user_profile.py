@@ -79,7 +79,7 @@ from django.utils.translation import ngettext_lazy
 
 from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY, VOICES_MODULE
 from sefaria.donors.types import DonorStatus
-from sefaria.system.exceptions import InputError, SheetNotFoundError
+from sefaria.system.exceptions import BookNameError, InputError, SheetNotFoundError
 
 # Profile fields that save() writes only when it creates the document. Every other save leaves
 # them as stored, because the donor webhook can change them while a request holds an older copy
@@ -102,7 +102,7 @@ from pymongo.errors import DuplicateKeyError
 
 from sefaria.model.blocking import BlockeesSet, BlockersSet
 from sefaria.model.following import FolloweesSet, FollowersSet, general_follow_recommendations
-from sefaria.model.text import Ref
+from sefaria.model.text import Ref, library
 from sefaria.system.cache import gen_cache
 from sefaria.system.database import db
 from sefaria.system.progress_context import report_progress
@@ -113,6 +113,7 @@ from . import abstract as abst
 logger = structlog.get_logger(__name__)
 
 MAX_SYNC_RESPONSE_HISTORY = 1000  # max recent history items returned by a single profile sync
+DAILY_PLACES_DAYS = 30  # the history page loads this many days of daily places at a time
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -378,6 +379,32 @@ class UserHistory(abst.AbstractMongoRecord):
         items_by_id = {uh._id: uh for uh in items}
         return sorted(items_by_id.values(), key=lambda uh: uh.server_time_stamp)
 
+    @classmethod
+    def get_daily_places(cls, uid, before, utc_offset=0, days=DAILY_PLACES_DAYS):
+        """
+        The user's reading in the `days` before `before` (epoch seconds), for the history page: the last place
+        read in each book on each of the reader's days (`utc_offset`: their offset from UTC in minutes), newest
+        first. Sidebar reads and sheets are left out.
+        Returns {"places": [...], "older": time stamp of the newest read before those days, or None}, so the next
+        load can start there and skip a stretch with no reading.
+        Reads raw documents: there can be many in 30 days, and building a UserHistory for each is the slow part.
+        """
+        since = before - days * 24 * 60 * 60
+        query = {"uid": uid, "secondary": False, "is_sheet": False}
+        fields = {"_id": 0, "book": 1, "ref": 1, "he_ref": 1, "versions": 1, "time_stamp": 1}
+        collection = getattr(db, cls.collection)
+        reads = collection.find(
+            {**query, "time_stamp": {"$gte": since, "$lt": before}}, fields, sort=[("time_stamp", -1)]
+        )
+        places = {}
+        for read in reads:
+            local_day = (read["time_stamp"] + utc_offset * 60) // (24 * 60 * 60)
+            places.setdefault((read["book"], local_day), read)  # newest first, so the first is the day's last place
+        older = collection.find_one(
+            {**query, "time_stamp": {"$lt": since}}, {"time_stamp": 1}, sort=[("time_stamp", -1)]
+        )
+        return {"places": list(places.values()), "older": older["time_stamp"] if older else None}
+
     @staticmethod
     def timeclause(start=None, end=None):
         """
@@ -406,6 +433,23 @@ class UserHistorySet(abst.AbstractMongoSet):
         # documents changes the total by ~0.57%, so it's not worth fetching and hydrating every
         # matching document to account for. count() already handles skip/limit/hint correctly.
         return self.count()
+
+
+def is_excluded_from_recent_books(index):
+    """
+    Whether `index` is left out of a user's recent books (the "currently learning" lists). Liturgy is read routinely
+    rather than learned. Mirrored by Sefaria.isExcludedFromRecentBooks in sefaria.js, for logged-out readers.
+    """
+    return index.get_primary_category() == "Liturgy"
+
+
+def recent_book_index(book):
+    """The Index of `book`, or None when `book` isn't shown among recent books: excluded, or not in the library."""
+    try:
+        index = library.get_index(book)
+    except BookNameError:
+        return None
+    return None if is_excluded_from_recent_books(index) else index
 
 
 class UserLastPlace(abst.AbstractMongoRecord):
@@ -472,6 +516,21 @@ class UserLastPlace(abst.AbstractMongoRecord):
             "language": getattr(self, "language", None),
         }
         return UserHistory(attrs)
+
+    def as_recent_book(self):
+        """This place as a recent book for the "currently learning" lists, or None when its book isn't shown there."""
+        index = recent_book_index(self.book)
+        if index is None:
+            return None
+        return {
+            "book": self.book,
+            "title": {"en": index.get_title("en"), "he": index.get_title("he")},
+            "category": index.categories[0] if index.categories else "",
+            "ref": self.ref,
+            "he_ref": self.he_ref,
+            "versions": self.versions,
+            "time_stamp": self.time_stamp,
+        }
 
     @staticmethod
     def as_history_items(last_places):
@@ -986,34 +1045,44 @@ class UserProfile:
         )
 
     def get_last_places(self, book=None):
-        """
-        The user's last place in each book (or in `book`), newest first, as UserHistory records.
-
-        Books read since UserLastPlace was introduced come from it. Until
-        scripts/migrations/backfill_user_last_place.py has run, other books fall back to the legacy
-        `last_place` flag in user_history, which is still right for them: they haven't been read since it
-        stopped being maintained. Remove the fallback once the backfill has run everywhere.
-        """
+        """The user's last place in each book (or in `book`), newest first, as UserHistory records."""
         if not self.settings.get("reading_history", True):
             return []
         book_query = {} if book is None else {"book": book}
-        last_places = UserLastPlaceSet({"uid": self.id, **book_query})
-        places = UserLastPlace.as_history_items(last_places)
-        recorded_books = {lp.book for lp in last_places}
-        legacy_places = UserHistory.get_user_history(uid=self.id, book=book, last_place=True, secondary=False)
-        places += [uh for uh in legacy_places if uh.book not in recorded_books]
-        return sorted(places, key=lambda uh: uh.time_stamp, reverse=True)
+        return UserLastPlace.as_history_items(
+            UserLastPlaceSet({"uid": self.id, **book_query}, sort=[("time_stamp", -1)])
+        )
 
     def get_sync_history(self, last_sync, limit=MAX_SYNC_RESPONSE_HISTORY):
         """History items for a syncing client (UserHistory.get_sync_items) plus the last places changed since `last_sync`."""
         items = UserHistory.get_sync_items(self.id, last_sync, limit=limit)
         if last_sync:
-            # A legacy last_place flag can't be in the window: nothing has changed it since UserLastPlace took over.
             changed = UserLastPlaceSet({"uid": self.id, "server_time_stamp": {"$gt": last_sync}})
             last_places = UserLastPlace.as_history_items(changed)
         else:
             last_places = self.get_last_places()
         return UserHistory.dedupe_and_sort_for_sync([*items, *last_places])
+
+    def get_recent_books(self, limit):
+        """The user's `limit` most recently read books, each at its last place, for the "currently learning" lists."""
+        if not self.settings.get("reading_history", True):
+            return []
+        books = []
+        batch_size = limit * 3  # some books may be excluded, so read a little ahead
+        skip = 0
+        while len(books) < limit:
+            batch = UserLastPlaceSet({"uid": self.id}, sort=[("time_stamp", -1)], skip=skip, limit=batch_size)
+            books += [book for book in (lp.as_recent_book() for lp in batch) if book]
+            if len(batch) < batch_size:
+                break
+            skip += batch_size
+        return books[:limit]
+
+    def get_daily_places(self, before, utc_offset=0):
+        """UserHistory.get_daily_places for this user, or nothing when they've turned reading history off."""
+        if not self.settings.get("reading_history", True):
+            return {"places": [], "older": None}
+        return UserHistory.get_daily_places(self.id, before, utc_offset)
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)

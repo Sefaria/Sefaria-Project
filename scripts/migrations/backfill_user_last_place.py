@@ -3,13 +3,14 @@ Backfill `user_last_place` from the legacy `last_place` flag in `user_history`.
 
 UserLastPlace replaces the flag: from the deploy that introduces it, every read of a book records
 the book's last place there, and nothing maintains the flag. Books a user hasn't read since then
-have their last place only in the flag, and UserProfile.get_last_places() falls back to it for
-them. This script copies those places over, so the fallback can be removed once it has run in
-every environment.
+have their last place only in the flag, which nothing reads any more. This script copies those
+places over.
 
-Run it any time after create_user_last_place_collection.py and the deploy. Until it has
-finished, the fallback keeps every last place available, so it can run slowly, be stopped, and be
-resumed with --start-uid. A place is written only when it's newer than what's recorded for that
+Run it after create_user_last_place_collection.py and the deploy that introduced UserLastPlace,
+and let it finish in every environment before deploying the "currently learning" UI, which
+removed the fallback to the flag: until then, a book not read since UserLastPlace shipped has no
+"Continue reading" and isn't among the reader's recent books. It can run slowly, be stopped, and
+be resumed with --start-uid. A place is written only when it's newer than what's recorded for that
 (uid, book), so a read recorded since the deploy is never overwritten, and a run is safe to repeat.
 Sheets and sidebar (secondary) reads aren't tracked and are skipped.
 

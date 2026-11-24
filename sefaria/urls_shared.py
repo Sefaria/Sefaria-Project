@@ -45,6 +45,8 @@ shared_patterns = [
     re_path(r"^people/Talmud/?$", reader_views.talmud_person_index_redirect),
     re_path(r"^people/?$", reader_views.person_index_redirect),
     path("api/profile/user_history", reader_views.user_history_api),
+    path("api/profile/recent_books", reader_views.recent_books_api),
+    path("api/profile/daily_places", reader_views.daily_places_api),
     path("api/profile/sync", reader_views.profile_sync_api),
     path("api/profile/upload-photo", reader_views.profile_upload_photo),
     path("api/profile/experiments/opt-in", reader_views.experiments_opt_in_api),
