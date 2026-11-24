@@ -145,8 +145,6 @@ export const MODULE_SELECTORS = {
 // name (a separate `<strong>` item) and the Site Language toggle (not a dropdownItem) are
 // intentionally excluded — these are the deterministic, language-invariant nav items.
 export const USER_MENU_ITEMS = {
-  // 'Settings', not 'Account Settings': the label is header.settings in
-  // static/js/sefaria/i18n/interface/en.json, renamed by a translations update.
   LIBRARY_LOGGED_IN: ['Settings', 'Torah Tracker', 'New Additions', 'Help', 'Log Out'],
   VOICES_LOGGED_IN: ['Profile', 'Saved', 'History', 'Settings', 'Help', 'Log Out'],
 } as const;
