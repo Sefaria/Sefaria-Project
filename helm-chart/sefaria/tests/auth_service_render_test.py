@@ -186,8 +186,7 @@ def check_on(env, objects):
     secret_name = secrets[0]["metadata"]["name"] if secrets else None
     check(secret_name in web_secret_refs(objects), f"{where}: the web pods read the upstream secret")
     auth_env = {
-        e["name"]: e.get("valueFrom", {}).get("secretKeyRef", {})
-        for e in pod.get("containers", [{}])[0].get("env", [])
+        e["name"]: e.get("valueFrom", {}).get("secretKeyRef", {}) for e in pod.get("containers", [{}])[0].get("env", [])
     }
     check(
         auth_env.get("UPSTREAM_SECRET") == {"name": secret_name, "key": UPSTREAM_SECRET},
