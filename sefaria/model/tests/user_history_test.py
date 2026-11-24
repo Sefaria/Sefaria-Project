@@ -315,3 +315,13 @@ def test_daily_places_points_to_older_reading(reader):
     read("Exodus 2:1", NOON)
     assert daily_places(NOON + 1) == (["Exodus 2:1"], NOON - 100 * DAY)
     assert daily_places(NOON - 100 * DAY + 1) == (["Genesis 1:3"], None)
+
+
+def test_daily_places_start_at_the_beginning_of_the_readers_day(reader):
+    # NOON - 30 days falls mid-day, so the 30 days reach back to that day's start: its morning read is included,
+    # and the next load starts at the day before.
+    read("Genesis 1:3", NOON - 30 * DAY - 3 * 60 * 60)  # 09:00, 30 days back
+    read("Exodus 2:1", NOON - 30 * DAY - 13 * 60 * 60)  # 23:00 the day before
+    assert daily_places(NOON + 1) == (["Genesis 1:3"], NOON - 30 * DAY - 13 * 60 * 60)
+    # The day is the reader's: in UTC+2, 23:00 UTC is 01:00 the next day, the same day as the 09:00 read
+    assert daily_places(NOON + 1, utc_offset=120) == (["Genesis 1:3", "Exodus 2:1"], None)

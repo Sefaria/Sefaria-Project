@@ -385,25 +385,46 @@ class UserHistory(abst.AbstractMongoRecord):
         The user's reading in the `days` before `before` (epoch seconds), for the history page: the last place
         read in each book on each of the reader's days (`utc_offset`: their offset from UTC in minutes), newest
         first. Sidebar reads and sheets are left out.
+        The days start at the beginning of the reader's day, so no day is split between two loads.
         Returns {"places": [...], "older": time stamp of the newest read before those days, or None}, so the next
         load can start there and skip a stretch with no reading.
-        Reads raw documents: there can be many in 30 days, and building a UserHistory for each is the slow part.
+        Mongo groups the reads, so a heavy reader's thousands of segment reads don't come into Python.
         """
-        since = before - days * 24 * 60 * 60
+        day = 24 * 60 * 60
+        offset = utc_offset * 60
+        since = (before - days * day + offset) // day * day - offset
         query = {"uid": uid, "secondary": False, "is_sheet": False}
-        fields = {"_id": 0, "book": 1, "ref": 1, "he_ref": 1, "versions": 1, "time_stamp": 1}
         collection = getattr(db, cls.collection)
-        reads = collection.find(
-            {**query, "time_stamp": {"$gte": since, "$lt": before}}, fields, sort=[("time_stamp", -1)]
+        places = collection.aggregate(
+            [
+                {"$match": {**query, "time_stamp": {"$gte": since, "$lt": before}}},
+                {"$sort": {"time_stamp": -1}},
+                {
+                    "$group": {
+                        "_id": {
+                            "book": "$book",
+                            "day": {"$floor": {"$divide": [{"$add": ["$time_stamp", offset]}, day]}},
+                        },
+                        # newest first, so the first is the day's last place
+                        "place": {
+                            "$first": {
+                                "book": "$book",
+                                "ref": "$ref",
+                                "he_ref": "$he_ref",
+                                "versions": "$versions",
+                                "time_stamp": "$time_stamp",
+                            }
+                        },
+                    }
+                },
+                {"$replaceRoot": {"newRoot": "$place"}},
+                {"$sort": {"time_stamp": -1}},
+            ]
         )
-        places = {}
-        for read in reads:
-            local_day = (read["time_stamp"] + utc_offset * 60) // (24 * 60 * 60)
-            places.setdefault((read["book"], local_day), read)  # newest first, so the first is the day's last place
         older = collection.find_one(
             {**query, "time_stamp": {"$lt": since}}, {"time_stamp": 1}, sort=[("time_stamp", -1)]
         )
-        return {"places": list(places.values()), "older": older["time_stamp"] if older else None}
+        return {"places": list(places), "older": older["time_stamp"] if older else None}
 
     @staticmethod
     def timeclause(start=None, end=None):

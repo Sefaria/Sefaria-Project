@@ -108,6 +108,9 @@ ContinueButton.propTypes = { item: PropTypes.object.isRequired };
 // Homepage card
 const CurrentlyLearningCard = ({ item }) => {
   const { title, category } = bookInfo(item);
+  // The time is in the reader's time zone, which the server doesn't know, so it's shown once rendered in the browser.
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
   return (
     <li className="clCard" style={{ borderTopColor: Sefaria.palette.categoryColor(category) }}>
       <BookTitle title={title} />
@@ -116,7 +119,7 @@ const CurrentlyLearningCard = ({ item }) => {
           <RefLabel item={item} />
         </span>
       </p>
-      <p className="clCardWhen">{formatWhen(item.time_stamp)}</p>
+      <p className="clCardWhen">{isMounted ? formatWhen(item.time_stamp) : '\u00a0'}</p>
       <ContinueButton item={item} />
     </li>
   );

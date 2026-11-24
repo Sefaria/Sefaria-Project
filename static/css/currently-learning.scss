@@ -146,7 +146,8 @@ $icon-button-radius: 6px; // NO TOKEN: radius
   .clVisits {
     list-style: none;
     margin: 0;
-    padding: 0 0 var(--spacing-large) var(--spacing-large);
+    padding-block: 0 var(--spacing-large);
+    padding-inline: var(--spacing-large) 0;
     font-size: var(--sans-serif-small-font-size);
 
     li {
@@ -168,7 +169,8 @@ $icon-button-radius: 6px; // NO TOKEN: radius
     display: flex;
     align-items: center;
     gap: var(--spacing-medium);
-    padding: var(--spacing-medium) var(--spacing-medium) var(--spacing-medium) 0;
+    padding-block: var(--spacing-medium);
+    padding-inline: 0 var(--spacing-medium);
     background: var(--surface-subtle);
     border: var(--border-width-thin) dashed var(--border-default);
     border-top: none;
