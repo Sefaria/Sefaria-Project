@@ -3,7 +3,7 @@
   "info": {
     "title": "Sefaria API",
     "version": "1.0.0",
-    "description": "The Sefaria API endpoints grant live access to Sefaria's structured database of Jewish texts and their interconnections.\n\n## API keys\n\nMost endpoints need no key. A free API key, created in your [developer settings](https://www.sefaria.org/settings/developer), identifies your project. An endpoint that requires a key says so; today that is only `POST /api/knn-search`.\n\nSend the key in the `x-api-key` header. Keys start with `sfr_`. Never put the key in the URL: an `api_key` or `apikey` query parameter is not read as a key. It is removed from the request, which is then treated as having no key.\n\n- **Key not accepted:** an unknown or revoked `sfr_` key sent to an endpoint that doesn't require a key is answered as if no key had been sent, and the response carries `x-sefaria-key-status: not_accepted`. On an endpoint that requires a key, it gets `401` with code `api_key_invalid`.\n- **Keys limited to a website:** such a key is accepted only from browser requests whose `Origin` header is exactly the project's website (scheme, host and port). Any other request, including one with no `Origin` header, gets `403` with code `origin_not_allowed`. Leave the limit off for keys used from a server, script, app or agent.\n\nErrors from the key check are JSON objects with `error` (a message), `code` and `help` (a link to the developer docs).",
+    "description": "The Sefaria API endpoints grant live access to Sefaria's structured database of Jewish texts and their interconnections.\n\n## API keys\n\nMost endpoints need no key. A free API key, created in your [developer settings](https://www.sefaria.org/settings/developer), identifies your project. An endpoint that requires a key says so; today that is only `POST /api/knn-search`.\n\nSend the key in the `x-api-key` header. Keys start with `sfr_`: a value without that prefix is not checked as a key and counts as no key. Send the header once; a repeated `x-api-key` header is not accepted. Never put the key in the URL: an `api_key` or `apikey` query parameter is not read as a key. It is removed from the request, which is then treated as having no key.\n\n- **Key not accepted:** an unknown or revoked `sfr_` key (or a repeated `x-api-key` header) sent to an endpoint that doesn't require a key is answered as if no key had been sent, and the response carries `x-sefaria-key-status: not_accepted`. On an endpoint that requires a key, it gets `401` with code `api_key_invalid`.\n- **Keys limited to a website:** such a key is accepted only from browser requests whose `Origin` header is exactly the project's website (scheme, host and port). Any other request, including one with no `Origin` header, gets `403` with code `origin_not_allowed`. Leave the limit off for keys used from a server, script, app or agent.\n\nErrors from the key check are JSON objects with `error` (a message), `code` and `help` (a link to the developer docs).",
     "contact": {
       "url": "https://www.sefaria.org",
       "email": "developers@sefaria.org"
@@ -20212,6 +20212,16 @@
                   "type": "string",
                   "example": "no-store"
                 }
+              },
+              "X-Sefaria-Semantic-Backend": {
+                "description": "The search index that answered the request.",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "new",
+                    "legacy"
+                  ]
+                }
               }
             },
             "content": {
@@ -20261,7 +20271,7 @@
             }
           },
           "401": {
-            "description": "No key, or a key that is not valid, in `x-api-key` (`api_key_required` or `api_key_invalid`). Today the endpoint itself also checks an `Authorization: Bearer` token, which developer settings do not issue; a request without it gets `{\"error\": \"Unauthorized\"}`.",
+            "description": "No `sfr_` key, or one that is not valid, in `x-api-key` (`api_key_required` or `api_key_invalid`). These carry `WWW-Authenticate`. Today the endpoint itself also checks an `Authorization: Bearer` token, which developer settings do not issue; a request without it gets `{\"error\": \"Unauthorized\"}`.",
             "headers": {
               "WWW-Authenticate": {
                 "$ref": "#/components/headers/WWWAuthenticate"
@@ -30181,7 +30191,7 @@
               "api_key_invalid",
               "origin_not_allowed"
             ],
-            "description": "`api_key_required`: the endpoint requires a key and none was sent in `x-api-key`. `api_key_invalid`: the `sfr_` key is unknown or revoked. `origin_not_allowed`: the key is limited to a website and the request's `Origin` isn't it."
+            "description": "`api_key_required`: the endpoint requires a key and no `sfr_` key was sent in `x-api-key` (a value without the `sfr_` prefix counts as none). `api_key_invalid`: the `sfr_` key is unknown or revoked, or `x-api-key` was sent more than once. `origin_not_allowed`: the key is limited to a website and the request's `Origin` isn't it."
           },
           "help": {
             "type": "string",
@@ -30342,7 +30352,7 @@
     },
     "headers": {
       "XSefariaKeyStatus": {
-        "description": "Present only when the request sent an `sfr_` key in `x-api-key` that was not accepted (unknown or revoked). The request was answered as if no key had been sent. Check the key in your developer settings.",
+        "description": "Present only when the request sent an `sfr_` key in `x-api-key` that was not accepted (unknown or revoked, or the header was sent more than once). The request was answered as if no key had been sent. Check the key in your developer settings.",
         "schema": {
           "type": "string",
           "enum": [
