@@ -55,6 +55,11 @@ esbuild; `room.ts` imports only relative paths). In Sefaria-Project it is under 
 - `ALLOWED_ORIGINS`: exact origins, or `https://*.suffix` for any subdomain of suffix (`www` included, not the bare domain).
   Production allows `www.sefaria.org`, `www.sefaria.org.il` and cauldrons; staging allows `*.sefariastaging.org`,
   `*.sefariastaging-il.org` and cauldrons (no localhost: use `relay:dev` locally).
+- `STATUS_SECRET` (a secret, never in the file): Sefaria Social's server reads `GET /status/<sessionId>` with
+  `Authorization: Bearer <STATUS_SECRET>` to show a shared follow-me link live in the feed (Social spec 032). The answer is the
+  spotlight stream's address, the leader's name and the head count (`{live, away, url, leader, participants}`; `away` while the leader's tab is hidden); without the secret
+  every status read is refused. Set it with `npx wrangler secret put STATUS_SECRET [--env staging]`, and give the same value to
+  the social server as `FOLLOW_RELAY_SECRET` (with `FOLLOW_RELAY_URL` set to this relay's https address).
 - Top-level keys (such as `routes`) must come before the first `[table]` in `wrangler.toml`, or TOML files them under it.
 
 Scripts: `relay:dev` (wrangler dev, staging settings, on port 3199 on all interfaces), `relay:deploy`, `relay:typecheck`.
