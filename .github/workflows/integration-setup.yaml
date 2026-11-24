@@ -112,7 +112,7 @@ jobs:
         if [[ ! -z "$SEFARIA_DB_USER" ]]; then
           URI="${URI}&authSource=admin"
         fi
-        if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+        if [[ ! -z "$MONGO_REPLICASET_NAME" ]]; then
         URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
         fi
         mongorestore --drop --uri="$URI" -v -d sefaria-integration --dir=dump/sefaria 
