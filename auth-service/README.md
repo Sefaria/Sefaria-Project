@@ -45,9 +45,10 @@ Later phases are specified in the Sefaria wiki page `wiki/meta/spec-2026-09-30-a
 Env vars (cmd/authsvc): HTTP_ADDR=:8080 GRPC_ADDR=:9090 AUTH_MODE=enforce|observe
 GATED_PATHS=/api/knn-search METERED_PATHS PG_DSN PG_NOTIFY_CHANNEL=sefaria_apikeys RELOAD_INTERVAL=60s
 SHUTDOWN_DRAIN=5s HELP_URL=https://developers.sefaria.org/#. UPSTREAM_SECRET: stamped as `x-sefaria-auth-secret` on requests
-allowed with an active key (removed from every other request); Django trusts the `x-sefaria-*` headers only alongside it,
+to a gated path allowed with an active key (removed from every other request); Django trusts the `x-sefaria-*` headers only alongside it,
 which is how an accepted key reaches `/api/knn-search`. The chart generates it once per environment in the Secret
-`auth-service-upstream-<env>` and hands the same Secret to the web pods. An empty PG_NOTIFY_CHANNEL disables the listener and
+`auth-service-upstream-<env>` and hands the same Secret to the web pods. A Check response can carry the secret, so
+`authService.networkPolicy.enabled` limits gRPC to the Envoy Gateway proxies (where the cluster enforces NetworkPolicy). An empty PG_NOTIFY_CHANNEL disables the listener and
 leaves only the periodic reload. The chart sets METERED_PATHS and SHUTDOWN_DRAIN from its values.
 
 PG_DSN comes from the cluster Secret `auth-service-registry` (key `AUTH_PG_DSN`): a read-only role

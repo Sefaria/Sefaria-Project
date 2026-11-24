@@ -350,8 +350,9 @@ func TestNCR8NeverLoadedRegistry(t *testing.T) {
 	}
 }
 
-// The upstream secret goes only on requests allowed with an active key, so the app trusts nothing else. On every other
-// allow ext_authz removes the header, so a copy that slipped past the gateway never reaches the app.
+// The upstream secret goes only on gated requests allowed with an active key, so the app trusts nothing else and the
+// secret never travels to other upstreams. On every other allow ext_authz removes the header, so a copy that slipped past
+// the gateway never reaches the app.
 func TestGRPCUpstreamSecret(t *testing.T) {
 	const secret = "s3cret-upstream-value"
 	cases := []struct {
@@ -365,7 +366,10 @@ func TestGRPCUpstreamSecret(t *testing.T) {
 	}{
 		{"valid key, gated", enforce, secret, "POST", "/api/knn-search", map[string]string{"x-api-key": alpha}, true},
 		{"valid key, observe", observe, secret, "POST", "/api/knn-search", map[string]string{"x-api-key": alpha}, true},
-		{"valid key, ungated", enforce, secret, "GET", "/api/texts/Genesis.1", map[string]string{"x-api-key": alpha}, true},
+		{"valid key, encoded gated path", enforce, secret, "POST", "/api/%6bnn-search", map[string]string{"x-api-key": alpha}, true},
+		{"valid key, ungated", enforce, secret, "GET", "/api/texts/Genesis.1", map[string]string{"x-api-key": alpha}, false},
+		{"valid key, search proxy", enforce, secret, "POST", "/api/search/text/_search", map[string]string{"x-api-key": alpha}, false},
+		{"valid key, sitemaps", enforce, secret, "GET", "/static/sitemaps/sitemap.xml", map[string]string{"x-api-key": alpha}, false},
 		{"no secret configured", enforce, "", "POST", "/api/knn-search", map[string]string{"x-api-key": alpha}, false},
 		{"no key, observe", observe, secret, "POST", "/api/knn-search", nil, false},
 		{"revoked key, observe", observe, secret, "POST", "/api/knn-search", map[string]string{"x-api-key": revoked}, false},
