@@ -155,6 +155,7 @@ class ProjectCapTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 400)
         self.assertIn(f"at most {developer.MAX_PROJECTS_PER_ACCOUNT} projects", body["error"])
+        self.assertIn("developers@sefaria.org", body["error"])
         self.assertEqual(ApiProject.objects.filter(owner=self.user).count(), developer.MAX_PROJECTS_PER_ACCOUNT)
 
     def test_N_CR7_a_deleted_project_frees_a_slot(self):
