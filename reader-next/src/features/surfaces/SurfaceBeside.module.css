@@ -9,8 +9,51 @@
 }
 .close { display: none; }
 
+/* Collapsing the text (SurfaceBesideToggle). Expanded: a tab on the seam, at the top of the text's column. Collapsed: the page takes
+   the row and the text is a rail at the inline end that names it. */
+:global([data-beside="collapsed"]) > .pane { flex: 1 1 auto; border-inline-end: 0; }
+.collapse, .rail {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--sefaria-color-border);
+  background: var(--sefaria-color-surface); color: var(--sefaria-color-text-secondary, var(--sefaria-color-text)); font: inherit;
+  cursor: pointer;
+}
+.collapse:hover, .rail:hover { color: var(--sefaria-color-text); background: var(--sefaria-color-surface-muted, var(--sefaria-color-surface)); }
+.collapse:focus-visible, .rail:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+.collapse svg, .rail svg { inline-size: 14px; block-size: 14px; flex: none; }
+.collapse {
+  position: absolute; z-index: 5; inset-block-start: 72px; inset-inline-start: clamp(360px, 36%, 540px); translate: -50% 0;
+  block-size: 28px; inline-size: 28px; justify-content: center; padding: 0; border-radius: 14px; box-shadow: var(--sefaria-shadow-1);
+}
+:global([dir="rtl"]) .collapse { translate: 50% 0; }
+/* the tab points to the inline end (the text goes that way) */
+.collapse svg { transform: scaleX(-1); }
+:global([dir="rtl"]) .collapse svg { transform: none; }
+.collapseLabel { display: none; }
+.rail {
+  flex: 0 0 40px; flex-direction: column; justify-content: flex-start; padding: 14px 0; border-block: 0; border-inline-end: 0;
+  border-radius: 0; view-transition-name: social-beside-rail;
+}
+:global([dir="rtl"]) .rail svg { transform: scaleX(-1); }
+.railTitle { writing-mode: vertical-rl; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-block-size: 60vh; }
+
 @media (max-width: 842px) {
   .pane { display: none; }
+  /* collapsed on a phone: the page is shown and the text waits behind a floating pill */
+  :global([data-beside="collapsed"]) > .pane { display: block; }
+  .collapse, .rail {
+    position: fixed; z-index: 9001; inset-block: auto calc(16px + var(--bottom-bar-height, 0px)); inset-inline-start: auto;
+    inset-inline-end: 16px; translate: none; flex-direction: row; block-size: 44px; inline-size: auto; max-inline-size: 60vw;
+    padding-inline: 14px 18px; border: 1px solid var(--sefaria-color-border); border-radius: 22px; box-shadow: var(--sefaria-shadow-1);
+    font-size: 16px;
+  }
+  .collapseLabel { display: inline; }
+  .collapse svg { transform: rotate(-90deg); }
+  :global([dir="rtl"]) .collapse svg { transform: rotate(-90deg); }
+  .rail svg { transform: rotate(90deg); }
+  :global([dir="rtl"]) .rail svg { transform: rotate(90deg); }
+  .railTitle { writing-mode: horizontal-tb; max-inline-size: 50vw; }
+  /* "Back to feed" is the text's control; while the text is hidden it has nothing to close */
+  :global([data-beside="collapsed"]) .close { display: none; }
   .close {
     position: fixed; z-index: 9001; inset-block-end: calc(16px + var(--bottom-bar-height, 0px)); inset-inline-start: 16px;
     display: inline-flex; align-items: center; gap: 8px; block-size: 44px; padding: 0 18px 0 14px; padding-inline: 14px 18px;

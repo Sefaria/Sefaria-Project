@@ -11,7 +11,6 @@
  * @feature SHL-079 A text beside the social page
  */
 import { ctxOf, withCtx } from "~/lib/reader/ctx";
-import { isReaderPath } from "~/lib/reader/paths";
 
 /** The reserved context of a text open beside the social page. */
 export const BESIDE_CTX = "social.beside";
@@ -19,8 +18,11 @@ export const BESIDE_CTX = "social.beside";
 /** The social surface's own pages. */
 export const isSocialPath = (pathname: string) => pathname === "/social" || pathname.startsWith("/social/");
 
-/** Is this location a text open beside the social page? */
-export const isBeside = (loc: { pathname: string; search: string }) => isReaderPath(loc.pathname) && ctxOf(loc.search) === BESIDE_CTX;
+/**
+ * Is this location open beside the social page? A text, usually; but a followed shiur (Sefaria Social spec 032) goes wherever its
+ * leader goes, the library or a topic too, and keeps the context, so any reader page but social's own stays beside the page.
+ */
+export const isBeside = (loc: { pathname: string; search: string }) => !isSocialPath(loc.pathname) && ctxOf(loc.search) === BESIDE_CTX;
 
 /** The address of `to` (a reader address) opened beside: the reserved context replaced by social.beside. */
 export const besideHref = (to: string) => withCtx(to, BESIDE_CTX);
@@ -48,6 +50,21 @@ export const besideOrigin = () => origin;
 export const setBesideOrigin = (next: BesideOrigin | null) => {
   origin = next;
 };
+
+/**
+ * Whether the text beside the social page is collapsed to a rail at the inline end (the page takes the room; the text stays mounted,
+ * so a followed shiur keeps moving underneath and comes back where the leader is). A per-tab view choice, not part of the address:
+ * a new text opened beside the page comes in expanded, and closing the text forgets it.
+ */
+let collapsed = false;
+const collapsedSubs = new Set<() => void>();
+export const besideCollapsed = () => collapsed;
+export function setBesideCollapsed(next: boolean): void {
+  if (collapsed === next) return;
+  collapsed = next;
+  collapsedSubs.forEach((cb) => cb());
+}
+export const subscribeBesideCollapsed = (cb: () => void) => (collapsedSubs.add(cb), () => void collapsedSubs.delete(cb));
 
 /** The router's index of a history entry (TanStack keeps `__TSR_index` in each entry's state), or null. */
 export function entryIndex(state: unknown): number | null {

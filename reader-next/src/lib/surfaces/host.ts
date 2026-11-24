@@ -12,7 +12,7 @@ import type { SocialEnv } from "~/lib/config";
 import { ctxOf } from "~/lib/reader/ctx";
 import { acceptsUrl } from "~/lib/reader-state/sefaria/safe-url";
 import { isReaderPath } from "~/lib/reader/paths";
-import { besideHref, besideOrigin, DEFAULT_ORIGIN, entryIndex, isBeside, isSocialPath, rendered, setBesideOrigin, within, withTransition, type PageLocation } from "./beside";
+import { besideHref, besideOrigin, DEFAULT_ORIGIN, entryIndex, isBeside, isSocialPath, rendered, setBesideCollapsed, setBesideOrigin, within, withTransition, type PageLocation } from "./beside";
 import type { SurfaceHost, Unsubscribe } from "../../../contract/surface-host.v1";
 import { SURFACE_HOST_CONTRACT } from "../../../contract/surface-host.v1";
 
@@ -153,6 +153,7 @@ export function createSurfaceHost(d: SurfaceHostDeps): SurfaceHost {
       // the page that opens the text, kept while texts are swapped beside it (a refresh beside a text knows none: the feed)
       if (!isBeside(l)) setBesideOrigin(isSocialPath(l.pathname) ? { location: realLocation(d.router), index: entryIndex(l.state) } : { location: DEFAULT_ORIGIN, index: null });
       const href = besideHref(to);
+      setBesideCollapsed(false); // a text opened beside the page comes in expanded
       void (async () => {
         // the text's data first (briefly: a slow network never holds the click back), so it is there when it slides in
         if (d.router.preloadRoute) await within(d.router.preloadRoute({ href }), 700);

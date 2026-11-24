@@ -9,7 +9,10 @@
  * Separate from the component so it can be tested with a fake router and controller.
  */
 import type { FollowController } from "./controller";
-import { followParamOf, readStoredFollow, withoutFollowParam, writeStoredFollow } from "./params";
+import { clearStoredFollow, followParamOf, readStoredFollow, withoutFollowParam, writeStoredFollow } from "./params";
+
+/** The social surface's own pages (/social, /social/...). */
+const onSocialPage = (pathname: string) => pathname === "/social" || pathname.startsWith("/social/");
 import { newParticipantId } from "~/lib/session/ids";
 
 export interface AdoptRouter {
@@ -53,6 +56,13 @@ export async function adoptFollowLocation(router: AdoptRouter, controller: Follo
   if (current) return "none";
   const stored = readStoredFollow(storage);
   if (!stored) return "none";
+  // A guest whose tab (re)loads on the social pages left the shiur's view for the feed: following on would pull them off it into
+  // the text. They rejoin from the post (Sefaria Social spec 032), which opens it beside the feed. Only a path test here: the follow
+  // code never imports surface code (architecture rule surface-boundary). A host keeps hosting wherever it reloads.
+  if (stored.role === "guest" && onSocialPage(loc.pathname)) {
+    clearStoredFollow(storage);
+    return "none";
+  }
   controller.resume(stored);
   return "resumed";
 }

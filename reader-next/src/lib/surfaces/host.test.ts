@@ -4,7 +4,7 @@ import type { ReaderStateApi } from "~/lib/reader-state/core/types";
 import type { WorkspaceCommands } from "~/lib/workspace/commands";
 import { socialEnvFrom } from "~/lib/config";
 import { closeBeside, createSurfaceHost, SURFACE_STATE_KEY, type SurfaceHostDeps, type SurfaceRouter, type UiState } from "./host";
-import { besideOrigin, closePlan, setBesideOrigin } from "./beside";
+import { besideCollapsed, besideOrigin, closePlan, isBeside, setBesideCollapsed, setBesideOrigin } from "./beside";
 
 function makeRouter(initial = "/social") {
   const root = createRootRoute();
@@ -143,6 +143,23 @@ describe("a text beside the social page (openBeside, contract 1.1)", () => {
     for (const bad of ["/social/u/x", "/texts", "https://evil.example/Genesis.1", "/sheets/1"]) host.openBeside!(bad);
     expect(deps.reportError).toHaveBeenCalledTimes(4);
     expect(router.history.location.pathname).toBe("/social");
+  });
+
+  it("a new text opened beside the page comes in expanded, whatever was collapsed before", async () => {
+    setBesideCollapsed(true);
+    const { host, router } = hostWith({}, "/social");
+    await router.load();
+    host.openBeside!("/Genesis.1");
+    expect(besideCollapsed()).toBe(false);
+    await vi.waitFor(() => expect(router.history.location.pathname).toBe("/Genesis.1"));
+  });
+
+  it("any reader page with the context stays beside the page (a followed shiur goes where its leader goes); social's own never", () => {
+    expect(isBeside({ pathname: "/Genesis.1", search: "?ctx=social.beside" })).toBe(true);
+    expect(isBeside({ pathname: "/texts", search: "?ctx=social.beside" })).toBe(true);
+    expect(isBeside({ pathname: "/texts", search: "" })).toBe(false);
+    expect(isBeside({ pathname: "/social", search: "?ctx=social.beside" })).toBe(false);
+    expect(isBeside({ pathname: "/Genesis.1", search: "?ctx=social.room.abc" })).toBe(false);
   });
 
   it("a refresh beside a text shows the feed in the page mount", async () => {

@@ -32,7 +32,7 @@ import { RouteError } from "~/features/shared/RouteError";
 import { openAssistantFromHeader, useAssistantShown } from "~/features/shell/assistant-pill";
 import { LibraryAssistant } from "~/features/assistant/LibraryAssistant";
 import { SurfacePersistentSlot } from "~/features/surfaces/SurfacePersistentSlot";
-import { SurfaceBesideClose, SurfaceBesidePane, useBeside } from "~/features/surfaces/SurfaceBeside";
+import { SurfaceBesideClose, SurfaceBesidePane, SurfaceBesideToggle, useBeside, useBesideCollapsed } from "~/features/surfaces/SurfaceBeside";
 import { installLegacyEvents } from "~/lib/integration/legacy-events";
 import { remoteConfigQueryOptions } from "~/lib/shell/remote-config";
 import { useViewer, viewerQuery } from "~/features/auth/viewer";
@@ -257,6 +257,7 @@ function Shell() {
   const optIn = useReaderOptIn(viewer);
   // a text open beside the social page (src/lib/surfaces/beside.ts)
   const beside = useBeside();
+  const besideCollapsed = useBesideCollapsed();
   return (
     <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
       <SkipLink />
@@ -265,13 +266,14 @@ function Shell() {
       </div>
       {/* the page and the Library Assistant side by side: docked, the widget is a full-height column in this row and the page narrows
           beside it (sefaria.org's #main, a flex row of .panelContainer and <lc-chatbot>) */}
-      <div className={appCss.body} data-beside={beside ? "" : undefined}>
+      <div className={appCss.body} data-beside={beside ? (besideCollapsed ? "collapsed" : "") : undefined}>
         {/* a text opened beside the social page: the page's column first (src/features/surfaces/SurfaceBeside.tsx) */}
         {beside && <SurfaceBesidePane />}
         <main id="main" className={appCss.main} tabIndex={-1} data-scroll-restoration-id="main">
           <Outlet />
         </main>
         {beside && <SurfaceBesideClose />}
+        {beside && <SurfaceBesideToggle />}
         <LibraryAssistant search={loc.searchStr ?? ""} />
         {/* the social surface's persistent mount (src/features/surfaces), loaded only while its lab is on */}
         <SurfacePersistentSlot />

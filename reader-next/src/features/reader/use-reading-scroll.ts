@@ -119,8 +119,13 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
   const scrollBy = useCallback(
     (dy: number) => {
       const s = scroller();
-      if (s === window) window.scrollTo(0, window.scrollY + dy);
-      else (s as HTMLElement).scrollTop += dy;
+      if (s === window) {
+        // a column kept mounted but hidden (collapsed beside a surface's page) must not move the window: on a phone that is the page
+        // the person is looking at
+        const el = optsRef.current.scrollerRef.current;
+        if (el && typeof el.checkVisibility === "function" && !el.checkVisibility({ visibilityProperty: true })) return;
+        window.scrollTo(0, window.scrollY + dy);
+      } else (s as HTMLElement).scrollTop += dy;
     },
     [scroller],
   );
