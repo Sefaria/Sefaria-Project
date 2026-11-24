@@ -169,7 +169,7 @@ export function getSurface(env: SocialEnv | undefined, pathname: string, deps?: 
   return entry.promise;
 }
 
-/** Test helper. */
+/** Forget the current load, failed or not, so the next getSurface loads again: the page mount's Try again, and tests. */
 export function resetSurfaceLoader(): void {
   current = undefined;
 }
