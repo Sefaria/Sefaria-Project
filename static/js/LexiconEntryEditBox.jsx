@@ -4,13 +4,31 @@ import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
 import { LoadingMessage, InterfaceText } from './Misc';
 
-export const resolveLexiconEntryRef = async (ref) => {
+// Some Dictionary books (e.g. Sefer HeArukh, Otzar La'azei Rashi) have no lexiconName -- they
+// are ordinary texts with no lexicon tools.
+export const getLexiconName = async (ref) => {
   const oref = Sefaria.ref(ref);
   if (!oref?.categories?.includes('Dictionary')) {
     return null;
   }
   const indexData = await Sefaria.getIndexDetails(oref.indexTitle);
-  const lexiconName = indexData?.lexiconName;
+  return indexData?.lexiconName || null;
+};
+
+export const useIsLexiconBook = (ref) => {
+  const [isLexiconBook, setIsLexiconBook] = useState(false);
+  useEffect(() => {
+    getLexiconName(ref).then((lexiconName) => setIsLexiconBook(!!lexiconName));
+  }, [ref]);
+  return isLexiconBook;
+};
+
+export const resolveLexiconEntryRef = async (ref) => {
+  const lexiconName = await getLexiconName(ref);
+  if (!lexiconName) {
+    return null;
+  }
+  const oref = Sefaria.ref(ref);
   // oref.indexTitle is the Index's own title (server-side: self._inode.index.title), while
   // oref.sectionRef is built from the ref's node's full_title() (self.index_node.full_title,
   // see Ref._get_normal in sefaria/model/text.py) -- for a simple, flat dictionary these are
@@ -25,7 +43,7 @@ export const resolveLexiconEntryRef = async (ref) => {
     return null;
   }
   const headword = oref.sectionRef.slice(prefix.length);
-  return lexiconName && headword ? { lexiconName, headword } : null;
+  return headword ? { lexiconName, headword } : null;
 };
 
 // Shared by LexiconHeadwordEditBox and LexiconContentEditBox. Sefaria.apiRequestWithBody

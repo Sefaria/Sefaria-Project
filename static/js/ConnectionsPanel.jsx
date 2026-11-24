@@ -34,6 +34,7 @@ import TranslationsBox from './TranslationsBox';
 import LinkerAdminBox from './LinkerAdminBox';
 import LexiconHeadwordEditBox from './LexiconHeadwordEditBox';
 import LexiconContentEditBox from './LexiconContentEditBox';
+import { useIsLexiconBook } from './LexiconEntryEditBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
 import Component from 'react-class';
@@ -1290,9 +1291,11 @@ const AdvancedToolsList = ({
   toggleSignUpModal,
 }) => {
   const { textsData } = useContext(ReaderPanelContext);
-  const isDictionaryBook = Sefaria.ref(currentlyVisibleRef)?.categories?.includes('Dictionary');
+  // Lexicon books get the lexicon tools alongside Edit Text. On a ref that isn't a lexicon entry
+  // (e.g. a preface) the lexicon tools fail from the server; on an entry, Edit Text fails on save.
+  const isLexiconBook = useIsLexiconBook(currentlyVisibleRef);
   const editText =
-    canEditText && textsData && !isDictionaryBook
+    canEditText && textsData
       ? function () {
           const isTranslation = masterPanelLanguage === 'english';
           const versionType = isTranslation ? 'translation' : 'primary';
@@ -1348,7 +1351,7 @@ const AdvancedToolsList = ({
       {Sefaria.is_moderator && (
         <ToolsButton en="Linker Admin Tools" he="כלי ניהול לינקר" icon="wrench" onClick={openLinkerAdminTools} />
       )}
-      {Sefaria.is_moderator && isDictionaryBook && (
+      {Sefaria.is_moderator && isLexiconBook && (
         <ToolsButton
           en="Change Lexicon Headword"
           he="שינוי ערך ראשי במילון"
@@ -1356,7 +1359,7 @@ const AdvancedToolsList = ({
           onClick={() => setConnectionsMode('LexiconHeadwordEdit')}
         />
       )}
-      {Sefaria.is_moderator && isDictionaryBook && (
+      {Sefaria.is_moderator && isLexiconBook && (
         <ToolsButton
           en="Edit Lexicon Content"
           he="עריכת תוכן ערך מילוני"

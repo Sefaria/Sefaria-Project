@@ -27,7 +27,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
-import LexiconEntryEditBox, { resolveLexiconEntryRef, useLexiconEntrySave } from '../LexiconEntryEditBox';
+import LexiconEntryEditBox, {
+  getLexiconName,
+  resolveLexiconEntryRef,
+  useIsLexiconBook,
+  useLexiconEntrySave,
+} from '../LexiconEntryEditBox';
 
 let container = null;
 
@@ -105,6 +110,60 @@ describe('resolveLexiconEntryRef', () => {
     });
     Sefaria.getIndexDetails.mockResolvedValue({ lexiconName: 'BDB Dictionary' });
     expect(await resolveLexiconEntryRef('some ref')).toBeNull();
+  });
+});
+
+describe('getLexiconName', () => {
+  test('returns null for a non-Dictionary ref without fetching index details', async () => {
+    Sefaria.ref.mockReturnValue({ categories: ['Tanakh'], indexTitle: 'Genesis' });
+    expect(await getLexiconName('Genesis 1:1')).toBeNull();
+    expect(Sefaria.getIndexDetails).not.toHaveBeenCalled();
+  });
+
+  test('returns null for a Dictionary book whose Index has no lexiconName (e.g. Sefer HeArukh)', async () => {
+    Sefaria.ref.mockReturnValue({ categories: ['Reference', 'Dictionary'], indexTitle: 'Sefer HeArukh' });
+    Sefaria.getIndexDetails.mockResolvedValue({ title: 'Sefer HeArukh' });
+    expect(await getLexiconName('Sefer HeArukh, Letter Ayin 187')).toBeNull();
+  });
+
+  test("returns the Index's lexiconName for a lexicon book", async () => {
+    Sefaria.ref.mockReturnValue({ categories: ['Reference', 'Dictionary'], indexTitle: 'Jastrow' });
+    Sefaria.getIndexDetails.mockResolvedValue({ lexiconName: 'Jastrow Dictionary' });
+    expect(await getLexiconName('Jastrow, אב')).toBe('Jastrow Dictionary');
+  });
+});
+
+describe('useIsLexiconBook', () => {
+  let result;
+  const Probe = ({ sref }) => {
+    result = useIsLexiconBook(sref);
+    return null;
+  };
+
+  const mountProbe = async (sref) => {
+    mount(<Probe sref={sref} />);
+    await act(async () => {});
+  };
+
+  test('is false for a Dictionary book without a lexiconName', async () => {
+    Sefaria.ref.mockReturnValue({ categories: ['Reference', 'Dictionary'], indexTitle: "Otzar La'azei Rashi" });
+    Sefaria.getIndexDetails.mockResolvedValue({});
+    await mountProbe("Otzar La'azei Rashi 1");
+    expect(result).toBe(false);
+  });
+
+  test('is true for a lexicon book', async () => {
+    Sefaria.ref.mockReturnValue({ categories: ['Reference', 'Dictionary'], indexTitle: 'Jastrow' });
+    Sefaria.getIndexDetails.mockResolvedValue({ lexiconName: 'Jastrow Dictionary' });
+    await mountProbe('Jastrow, אב');
+    expect(result).toBe(true);
+  });
+
+  test('is false for a non-Dictionary ref', async () => {
+    Sefaria.ref.mockReturnValue({ categories: ['Tanakh'], indexTitle: 'Genesis' });
+    await mountProbe('Genesis 1:1');
+    expect(result).toBe(false);
+    expect(Sefaria.getIndexDetails).not.toHaveBeenCalled();
   });
 });
 
