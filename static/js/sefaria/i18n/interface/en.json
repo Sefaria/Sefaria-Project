@@ -970,6 +970,5 @@
     "developer.common.name_and_logo_usage.url": "https://developers.sefaria.org/docs/usage-of-our-name-and-logo",
     "developer.common.developers_email.address": "developers@sefaria.org",
     "developer.publish_form.source_code.invalid.error": "Invalid link",
-    "developer.key_form.restrict.help": "Turn this {on} if your key is going in your web page's code. Leave this {off} if your key is going on a server or in an AI tool. You can change this setting at any time in Developer Settings.",
-    "developer.errors.<name>.error": "Keys can’t be limited to a shared hosting address like this one. Use your own domain, or leave the limit off."
+    "developer.key_form.restrict.help": "Turn this {on} if your key is going in your web page's code. Leave this {off} if your key is going on a server or in an AI tool. You can change this setting at any time in Developer Settings."
 }
