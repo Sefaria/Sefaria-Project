@@ -12,7 +12,7 @@ import type { SocialEnv } from "~/lib/config";
 import { ctxOf } from "~/lib/reader/ctx";
 import { acceptsUrl } from "~/lib/reader-state/sefaria/safe-url";
 import { isReaderPath } from "~/lib/reader/paths";
-import { besideHref, besideOrigin, closePlan, DEFAULT_ORIGIN, entryIndex, isBeside, isSocialPath, nextFrame, setBesideOrigin, within, withTransition, type PageLocation } from "./beside";
+import { besideHref, besideOrigin, DEFAULT_ORIGIN, entryIndex, isBeside, isSocialPath, rendered, setBesideOrigin, within, withTransition, type PageLocation } from "./beside";
 import type { SurfaceHost, Unsubscribe } from "../../../contract/surface-host.v1";
 import { SURFACE_HOST_CONTRACT } from "../../../contract/surface-host.v1";
 
@@ -98,34 +98,7 @@ function realLocation(router: SurfaceRouter): PageLocation {
   return { pathname: l.pathname, search: l.search, hash: l.hash, state };
 }
 
-/** Resolves after the router's location next changes, or after `ms`. */
-function locationChange(router: SurfaceRouter, ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    const done = () => {
-      clearTimeout(t);
-      off();
-      resolve();
-    };
-    const off = router.history.subscribe(done);
-    const t = setTimeout(done, ms);
-  });
-}
-
-/**
- * Closes a text open beside the social page: back to the page's own history entry when it is behind this one (as Back would), else a
- * new entry for the page (a text reached by a refresh or a link). Animated like the opening (./beside.ts withTransition).
- */
-export function closeBeside(router: SurfaceRouter): Promise<void> {
-  const plan = closePlan({ index: entryIndex(router.history.location.state) }, besideOrigin());
-  return withTransition(async () => {
-    if ("back" in plan && router.history.go) {
-      const changed = locationChange(router, 1_000);
-      router.history.go(-plan.back);
-      await changed;
-    } else await router.navigate({ href: "push" in plan ? plan.push : DEFAULT_ORIGIN.pathname });
-    await nextFrame();
-  }, "close");
-}
+export { closeBeside } from "./beside";
 
 export function createSurfaceHost(d: SurfaceHostDeps): SurfaceHost {
   const loc = () => d.router.history.location;
@@ -162,8 +135,8 @@ export function createSurfaceHost(d: SurfaceHostDeps): SurfaceHost {
         // leaving a text beside the page for another of the surface's pages: the text slides away as it would on close
         if (isBeside(loc()) && isSocialPath(pathOf(to)))
           void withTransition(async () => {
-            await go();
-            await nextFrame();
+            await within(Promise.resolve(go()), 2_500);
+            await rendered("close");
           }, "close");
         else void go();
         return;
@@ -184,8 +157,9 @@ export function createSurfaceHost(d: SurfaceHostDeps): SurfaceHost {
         // the text's data first (briefly: a slow network never holds the click back), so it is there when it slides in
         if (d.router.preloadRoute) await within(d.router.preloadRoute({ href }), 700);
         await withTransition(async () => {
-          await d.router.navigate({ href, state: {} });
-          await nextFrame();
+          // the browser gives a view transition's update a few seconds; a text slower than that appears without the slide
+          await within(Promise.resolve(d.router.navigate({ href, state: {} })), 2_500);
+          await rendered("open");
         }, "open");
       })();
     },

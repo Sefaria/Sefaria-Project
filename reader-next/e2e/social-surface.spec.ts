@@ -223,6 +223,7 @@ test.describe("the social surface (lab on)", () => {
   test("openBeside refuses anything that is not a reader address", async ({ page }) => {
     await serveSurface(page);
     await open(page, surfaceUrl("/social"));
+    await expect(page.getByTestId("reference-surface")).toBeVisible();
     await page.evaluate(() => (window as unknown as { __socialHost: { openBeside: (to: string) => void } }).__socialHost.openBeside("/texts"));
     await page.waitForTimeout(300);
     await expect(page).toHaveURL(/\/social$/);

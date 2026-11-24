@@ -4,6 +4,7 @@ import { useLocation, useRouter } from "@tanstack/react-router";
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { leaf, split, type LayoutNode } from "~/lib/layout/tree";
 import { isReaderPath } from "~/lib/reader/paths";
+import { useSolePanelClose } from "~/lib/reader/sole-panel-close";
 import { formatWith, parseWith, type ConnectionsView } from "~/lib/connections/url";
 import { displayMenuAvailability, hasNikud, layoutKeyFor, type ReaderSettings } from "~/lib/reader/settings";
 import { headerLabels, narrowToVerses, titleVerses } from "~/lib/reader/header";
@@ -542,7 +543,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
 
   // The header's close button closes this panel; closing the only panel goes back to the library (SHL-048).
   // Closing one of several panels leaves keyboard focus on the panel beside it (its current verse), not on <body>.
+  // the shell may own what closing the only panel does (a text beside the social page closes back to it: SHL-079)
+  const soleClose = useSolePanelClose();
+  const override = alone ? soleClose : null;
   const closePanel = useCallback(() => {
+    if (override) return Promise.resolve(override.close());
     const panels = [...document.querySelectorAll<HTMLElement>("section[data-panel-id]")];
     const at = rootEl.current ? panels.indexOf(rootEl.current) : -1;
     const beside = at < 0 ? undefined : (panels[at - 1] ?? panels[at + 1]);
@@ -550,7 +555,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     return Promise.resolve(apply((ws) => close(ws, id))).then(() => {
       if (hadFocus && beside) focusVerseAfterClose(beside);
     });
-  }, [apply, id]);
+  }, [apply, id, override]);
 
   // "Want to change the translation?" (TXD-064): after mount, so the server render and the first client render agree
   const [bannerGone, setBannerGone] = useState(Boolean(data.bannerDismissed));
@@ -727,7 +732,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         start={
           <>
-            <span className={styles.notPhone}><CloseTextButton label={alone ? (he ? "חזרה לספריה" : "Back to the library") : he ? "סגירת הטקסט" : "Close this text"} onClick={() => void closePanel()} /></span>
+            <span className={styles.notPhone}><CloseTextButton label={override ? (he ? override.label.he : override.label.en) : alone ? (he ? "חזרה לספריה" : "Back to the library") : he ? "סגירת הטקסט" : "Close this text"} onClick={() => void closePanel()} /></span>
             <span className={styles.onlyPhone}><button type="button" className={styles.phoneMenu} data-he={he || undefined} aria-label={he ? "תפריט" : "Menu"} title={he ? "תפריט" : "Menu"} aria-expanded={phoneMenuOpen} aria-controls="mobile-nav" onClick={() => setMobileMenuOpen(!phoneMenuOpen)}><MenuBars /></button></span>
           </>
         }

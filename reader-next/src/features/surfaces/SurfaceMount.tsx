@@ -10,7 +10,7 @@
  * @feature SHL-077 Surface loader
  * @feature SHL-078 SurfaceHost v1
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { PUBLIC_CONFIG, SITE_ORIGIN } from "~/lib/config";
@@ -221,9 +221,15 @@ function acquirePage(slot: HTMLElement, hostFor: HostFactory, pathname: string) 
   return kept.el;
 }
 
+const RELEASE_GRACE_MS = 1_500;
+
 function releasePage(slot: HTMLElement) {
   if (kept.slot !== slot) return;
-  // remember the place before the slot leaves the page (its scroller goes with it)
+  // stop noting the /social page's place now: the reader's text takes over the main area and scrolls it next
+  kept.offScroll?.();
+  kept.offScroll = null;
+  // the other slot may take a moment to arrive (the column beside a text renders after a lazy chunk resolves): the surface stays
+  // mounted, off the page, for a grace period before it is unmounted
   kept.release = setTimeout(() => {
     kept.release = null;
     if (kept.el && kept.slot === slot && !kept.el.isConnected) {
@@ -232,7 +238,7 @@ function releasePage(slot: HTMLElement) {
       kept.unmount = null;
       kept.slot = null;
     }
-  }, 0);
+  }, RELEASE_GRACE_MS);
 }
 
 /** What scrolls the /social page: the main area on desktop, the window on a phone (App.module.css). */
@@ -246,7 +252,7 @@ function PageSlot({ where }: { where: "route" | "beside" }) {
   const hostFor = useHostFactory();
   const router = useRouter();
   const [failed, setFailed] = useState(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!hostFor || !slot.current) return;
     const target = slot.current;
     const sync = () => setFailed(kept.failed);

@@ -67,7 +67,9 @@ export function closePlan(current: { index: number | null }, o: BesideOrigin | n
   return { push: pageHref(o?.location ?? DEFAULT_ORIGIN) };
 }
 
-type ViewTransitionDocument = Document & { startViewTransition?: (update: () => Promise<void> | void) => { finished: Promise<void> } };
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (update: () => Promise<void> | void) => { finished: Promise<void>; ready?: Promise<void>; updateCallbackDone?: Promise<void> };
+};
 
 /** Run `update` (a navigation) as a view transition where the browser can and the reader has not asked for reduced motion. */
 export function withTransition(update: () => Promise<void>, kind: "open" | "close"): Promise<void> {
@@ -78,13 +80,64 @@ export function withTransition(update: () => Promise<void>, kind: "open" | "clos
   // the stylesheet picks the direction from this (App.module.css: html[data-beside-transition])
   document.documentElement.dataset.besideTransition = kind;
   const t = doc.startViewTransition(update);
+  // a transition the browser skips (a timeout, another one starting) rejects these; the navigation itself has happened
+  void t.ready?.catch(() => undefined);
+  void t.updateCallbackDone?.catch(() => undefined);
   return t.finished.catch(() => undefined).finally(() => {
     delete document.documentElement.dataset.besideTransition;
   });
 }
 
-/** Resolves on the next painted frame (the new state has rendered before the browser captures it). */
-export const nextFrame = () => new Promise<void>((resolve) => (typeof requestAnimationFrame === "undefined" ? resolve() : requestAnimationFrame(() => setTimeout(resolve, 0))));
+/**
+ * Resolves once the page shows the beside layout (`open`) or no longer does (`close`), or after `ms`: the browser captures the new
+ * state when a transition's update resolves, so it waits for React to have rendered it. Polls with timers: a view transition's
+ * update runs while the browser renders no frames, so requestAnimationFrame would never fire.
+ */
+export function rendered(kind: "open" | "close", ms = 1_000): Promise<void> {
+  if (typeof document === "undefined") return Promise.resolve();
+  const done = () => !!document.querySelector("[data-social-beside=pane]") === (kind === "open");
+  const start = Date.now();
+  return new Promise((resolve) => {
+    const tick = () => (done() || Date.now() - start > ms ? setTimeout(resolve, 0) : setTimeout(tick, 16));
+    tick();
+  });
+}
 
 /** Resolves when `p` settles or after `ms`, whichever comes first (a slow preload never holds the click back for long). */
 export const within = (p: Promise<unknown>, ms: number) => Promise.race([p.then(() => undefined, () => undefined), new Promise<void>((r) => setTimeout(r, ms))]);
+
+/** The slice of the router closing needs (TanStack's router; src/lib/surfaces/host.ts SurfaceRouter is a superset). */
+export interface BesideRouter {
+  history: { location: { state: unknown }; subscribe: (cb: () => void) => () => void; go?: (delta: number) => void };
+  navigate: (opts: { href: string }) => Promise<void> | void;
+}
+
+/** Resolves after the router's location next changes, or after `ms`. */
+function locationChange(router: BesideRouter, ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    const done = () => {
+      clearTimeout(t);
+      off();
+      resolve();
+    };
+    const off = router.history.subscribe(done);
+    const t = setTimeout(done, ms);
+  });
+}
+
+/**
+ * Closes a text open beside the social page: back to the page's own history entry when it is behind this one (as Back would), else a
+ * new entry for the page (a text reached by a refresh or a link). Animated like the opening (./beside.ts withTransition).
+ */
+export function closeBeside(router: BesideRouter): Promise<void> {
+  const plan = closePlan({ index: entryIndex(router.history.location.state) }, besideOrigin());
+  return withTransition(async () => {
+    if ("back" in plan && router.history.go) {
+      const changed = locationChange(router, 1_000);
+      router.history.go(-plan.back);
+      await changed;
+    } else await within(Promise.resolve(router.navigate({ href: "push" in plan ? plan.push : DEFAULT_ORIGIN.pathname })), 2_500);
+    await rendered("close");
+  }, "close");
+}
+
