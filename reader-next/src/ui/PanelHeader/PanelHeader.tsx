@@ -26,7 +26,7 @@ export interface PanelHeaderProps {
 export function PanelHeader({ title, subtitle, headingLevel = 1, start, end, category, sticky }: PanelHeaderProps) {
   const Heading = `h${headingLevel}` as "h1" | "h2" | "h3";
   return (
-    <header className={`${styles.header} ${sticky ? styles.sticky : ""}`}>
+    <header className={`${styles.header} ${sticky ? styles.sticky : ""}`} data-surface-chrome={sticky ? "top" : undefined}>
       {category ? <div className={styles.colorLine}><CategoryColorLine category={category} /></div> : null}
       <div className={styles.bar}>
         <div className={styles.start}>{start}</div>

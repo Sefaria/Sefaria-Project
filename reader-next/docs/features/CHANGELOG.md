@@ -4,6 +4,12 @@ The atlas (`features.json`) is the source of truth for the rebuild. Whenever bui
 
 Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader has that the old client did not, so the atlas also describes what we ship.
 
+## 2026-11-24 — the reader's chrome for a surface
+
+### Built
+
+- **SHL-080** SurfaceHost 1.2 adds the optional `ui.chrome`: the pixels at each edge of the viewport that the reader's own chrome occupies (site header and sticky panel headers at the top, an open connections panel at the inline end), live, so Sefaria Social's floating call window keeps clear of them (Sefaria Social spec 036).
+
 ## 2026-11-24 — a text beside the social page
 
 ### Built

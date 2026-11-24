@@ -16,7 +16,7 @@
  * the entry module and reads its default export, which must be a {@link Surface}.
  */
 
-export const SURFACE_HOST_CONTRACT = { major: 1, minor: 1 } as const;
+export const SURFACE_HOST_CONTRACT = { major: 1, minor: 2 } as const;
 
 export type Unmount = () => void;
 export type Unsubscribe = () => void;
@@ -90,10 +90,30 @@ export interface SurfaceHost {
    * The interface language and colour theme, read at access time. The reader pins its theme to "light" today (dark mode is behind its
    * own flag, sepia was dropped at launch), so `theme` is "light" until that changes.
    */
-  ui: { interfaceLang: "english" | "hebrew"; theme: "light" | "dark" | "sepia"; subscribe(cb: () => void): Unsubscribe };
+  ui: {
+    interfaceLang: "english" | "hebrew";
+    theme: "light" | "dark" | "sepia";
+    subscribe(cb: () => void): Unsubscribe;
+    /**
+     * Since 1.2 (optional: an older reader lacks it, and the surface keeps clear of a fixed header instead). The CSS pixels at each
+     * edge of the viewport that the reader's own chrome occupies now — the site header and sticky panel headers at the top, an open
+     * side panel at the inline end — so a surface's floating UI (a call window) can stay clear of them. `inlineStart`/`inlineEnd`
+     * follow the interface's direction. `subscribe` fires when the values change (a panel opens or closes, the window resizes, the
+     * header scrolls away). Read-only; the surface never learns the reader's markup.
+     */
+    chrome?: { get(): ChromeInsets; subscribe(cb: () => void): Unsubscribe };
+  };
   config: { apiOrigin: string; relayOrigin: string; environment: "local" | "staging" | "production" };
   /** Errors go to the reader's browser error reporting, events to its analytics; both tagged with the surface's version. */
   report(event: { kind: "error" | "event"; name: string; data?: Record<string, unknown> }): void;
+}
+
+/** Since 1.2: see `SurfaceHost.ui.chrome`. */
+export interface ChromeInsets {
+  top: number;
+  inlineStart: number;
+  inlineEnd: number;
+  bottom: number;
 }
 
 // ── The reader state API (mirrors src/lib/reader-state/core/types.ts) ──────────────────────────────────────────────────────
