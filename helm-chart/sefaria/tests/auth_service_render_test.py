@@ -26,7 +26,7 @@ CHART = ROOT / "helm-chart" / "sefaria"
 ENVS = ("staging", "preprod", "prod")
 # What each env file ships, changed only on purpose: staging rehearses every prod step first, so it is turned on before
 # preprod and prod (Yotam, 2026-11-18). A flip here must come with the flip in envs/<env>/helmrelease.yaml.
-SHIPPED_ENABLED = {"staging": True, "preprod": True, "prod": False}
+SHIPPED_ENABLED = {"staging": True, "preprod": True, "prod": True}
 # The auth service's mode per env file, with the same rule: staging enforces on the gated paths first (R4).
 SHIPPED_MODE = {"staging": "enforce", "preprod": "observe", "prod": "observe"}
 SEFARIA_HEADERS = {
@@ -267,7 +267,8 @@ def check_release_rules(env, release, rendered_on):
         local_settings = find(rendered_on, "ConfigMap", r"^local-settings-preprod$")
         data = local_settings[0]["data"] if len(local_settings) == 1 else {}
         check(
-            str(data.get("DEVELOPER_SETTINGS_ENABLED")) == "True" and str(data.get("DEVELOPER_SETTINGS_STAFF_ONLY")) == "True",
+            str(data.get("DEVELOPER_SETTINGS_ENABLED")) == "True"
+            and str(data.get("DEVELOPER_SETTINGS_STAFF_ONLY")) == "True",
             f"{env}: developer settings are on for staff only",
         )
 
