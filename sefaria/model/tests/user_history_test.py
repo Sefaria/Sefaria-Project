@@ -2,6 +2,7 @@ import pymongo
 import pytest
 
 from sefaria.model import user_profile
+from sefaria.model.text import Ref
 from sefaria.model.user_profile import UserHistory, UserHistorySet, UserLastPlace, UserLastPlaceSet, UserProfile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
@@ -325,3 +326,25 @@ def test_daily_places_start_at_the_beginning_of_the_readers_day(reader):
     assert daily_places(NOON + 1) == (["Genesis 1:3"], NOON - 30 * DAY - 13 * 60 * 60)
     # The day is the reader's: in UTC+2, 23:00 UTC is 01:00 the next day, the same day as the 09:00 read
     assert daily_places(NOON + 1, utc_offset=120) == (["Genesis 1:3", "Exodus 2:1"], None)
+
+
+@pytest.mark.parametrize(
+    "tref, expected",
+    [
+        ("Genesis 1", "Genesis 1:1"),
+        ("Genesis 1-2", "Genesis 1:1"),
+        ("Berakhot 2a", "Berakhot 2a:1"),
+        ("Rashi on Genesis 1:1", "Rashi on Genesis 1:1:1"),
+        ("Genesis 1:3", "Genesis 1:3"),  # already a segment
+        ("Genesis", "Genesis"),  # a whole book isn't a section
+        ("Not a ref", "Not a ref"),
+    ],
+)
+def test_section_start(tref, expected):
+    assert UserHistory.section_start(tref) == expected
+
+
+def test_section_read_is_saved_at_its_first_segment(reader):
+    uh = read("Genesis 2", NOON)
+    assert (uh.ref, uh.he_ref) == ("Genesis 2:1", Ref("Genesis 2:1").he_normal())
+    assert last_place().ref == "Genesis 2:1"

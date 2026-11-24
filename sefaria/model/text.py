@@ -3456,6 +3456,23 @@ class Ref(metaclass=RefCacheType):
         o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
         return Ref(_obj=o)
 
+    def first_segment_ref(self):
+        """
+        The first segment of this section-level :class:`Ref` (of its first section, for a range of sections), by address
+        alone: it doesn't check which segments have text, so it costs no database access, and the segment may be empty.
+
+        ::
+
+            >>> Ref("Genesis 1").first_segment_ref()
+            Ref("Genesis 1:1")
+            >>> Ref("Berakhot 2a-3b").first_segment_ref()
+            Ref("Berakhot 2a:1")
+
+        :return: :class:`Ref`
+        """
+        assert self.is_section_level(), f"first_segment_ref() expects a section-level Ref, got {self.normal()}"
+        return self.starting_ref().subref(1)
+
     def first_available_section_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
