@@ -53,6 +53,15 @@ RULES = [
      rf"({BLANK}|\s*#.*|\s*map \$\S+ \$(uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d|request_uri_scrubbed|referer_scrubbed) \{{"
      r"|\s*\"~\*.*\" .*;|\s*default \$(request_uri|http_referer|uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d);|\s*\}|\s*log_format structured .*)"),
     ("staging sync-postgres CronJob", ("staging",), "CronJob", r"sync-postgres", r".*"),
+    # The auth service's upstream secret: generated per environment (random in a render), stamped by the auth service,
+    # read by the web pods, and stripped from clients at the listener. Renders only where authService.enabled.
+    ("auth service upstream secret", ENVS, "Secret", r"^auth-service-upstream-", r".*"),
+    ("auth service UPSTREAM_SECRET env", ENVS, "Deployment", r"-auth-service$",
+     rf"({BLANK}|\s*- name: UPSTREAM_SECRET|\s*valueFrom:|\s*secretKeyRef:|\s*name: auth-service-upstream-\S+|\s*key: AUTH_SERVICE_UPSTREAM_SECRET)"),
+    ("web reads the upstream secret", ENVS, "Rollout", r"-web$",
+     rf"({BLANK}|\s*# AUTH_SERVICE_UPSTREAM_SECRET: .*|\s*- secretRef:|\s*name: auth-service-upstream-\S+|\s*optional: true)"),
+    ("listener strips x-sefaria-auth-secret", ENVS, "ClientTrafficPolicy", r".*",
+     r"\s*remove: \[x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result, x-sefaria-meter, x-sefaria-key-status(, x-sefaria-auth-secret)?\]"),
     # Not in the plan's list: one comment line in the ClientTrafficPolicy, a no-op for Kubernetes.
     ("ClientTrafficPolicy comment", ENVS, "ClientTrafficPolicy", r".*", rf"({BLANK}|\s*# Port 80 still serves the site here.*)"),
 ]

@@ -8,8 +8,8 @@ what the auth service work must and must not render:
   nginx logs the x-sefaria-* fields that ext_authz sets; ext_authz fails open with an explicit timeout.
 - Phase 1 policy, per environment file: mode observe, ext_authz fails open, no rate limiting; the flag-on render hands
   the auth service container the same mode. A self-test proves the policy check rejects a prod copy set to enforce.
-- Django trusts the auth service's x-sefaria-* headers (AUTH_SERVICE_HEADERS_TRUSTED, which lets an accepted API key
-  use /api/knn-search) exactly when the listener strips client-sent copies: on with the flag, off without it.
+- The upstream secret (x-sefaria-auth-secret, without which Django trusts no x-sefaria-* header) exists only with the
+  flag on, reaches the auth service and the web pods from one Secret, and is stripped from clients at the listener.
 - Both: the nginx access log records the scrubbed request URI and referer, never the raw ones, and no key header.
 
 Needs helm and PyYAML. Run from the repository root: python3 helm-chart/sefaria/tests/auth_service_render_test.py
@@ -38,7 +38,10 @@ SEFARIA_HEADERS = {
     "x-sefaria-meter",
     # nginx echoes this one to the caller, so a forged copy would be shown as the auth service's answer.
     "x-sefaria-key-status",
+    # The secret the auth service shares with Django; a client must never be able to supply it.
+    "x-sefaria-auth-secret",
 }
+UPSTREAM_SECRET = "AUTH_SERVICE_UPSTREAM_SECRET"
 NGINX_LOG_FIELDS = {
     "sefariaProject": "$http_x_sefaria_project",
     "sefariaTier": "$http_x_sefaria_tier",
@@ -121,9 +124,14 @@ def check_log_format_never_logs_a_key(where, log_format, allowed):
     check(not unexpected, f"{where}: nginx logs only reviewed variables (unexpected: {sorted(unexpected)})")
 
 
-def headers_trusted(objects):
-    (local_settings,) = find(objects, "ConfigMap", r"^local-settings-[^-]+$")
-    return local_settings["data"].get("AUTH_SERVICE_HEADERS_TRUSTED")
+def upstream_secrets(objects):
+    return find(objects, "Secret", r"^auth-service-upstream-")
+
+
+def web_secret_refs(objects):
+    (web,) = find(objects, "Rollout", r"-web$")
+    container = web["spec"]["template"]["spec"]["containers"][0]
+    return [e["secretRef"]["name"] for e in container.get("envFrom", []) if "secretRef" in e]
 
 
 def check_off(env, objects):
@@ -136,7 +144,11 @@ def check_off(env, objects):
         all("headers" not in p["spec"] for p in find(objects, "ClientTrafficPolicy")),
         f"{where}: the ClientTrafficPolicy has no header rules",
     )
-    check(headers_trusted(objects) == "False", f"{where}: Django does not trust client-sendable x-sefaria-* headers")
+    check(not upstream_secrets(objects), f"{where}: no upstream secret")
+    check(
+        not any(n.startswith("auth-service-upstream-") for n in web_secret_refs(objects)),
+        f"{where}: the web pods get no upstream secret, so Django trusts no x-sefaria-* header",
+    )
     log_format = nginx_log_format(objects)
     check(not any(field in log_format for field in NGINX_LOG_FIELDS), f"{where}: no x-sefaria-* nginx log fields")
     check_log_format_never_logs_a_key(where, log_format, LOGGED_VARIABLES)
@@ -164,7 +176,23 @@ def check_on(env, objects):
     (policy,) = find(objects, "ClientTrafficPolicy")
     removed = set(policy["spec"].get("headers", {}).get("earlyRequestHeaders", {}).get("remove", []))
     check(removed >= SEFARIA_HEADERS, f"{where}: the listener strips client-sent {sorted(SEFARIA_HEADERS)}")
-    check(headers_trusted(objects) == "True", f"{where}: Django trusts the x-sefaria-* headers the listener strips")
+    secrets = upstream_secrets(objects)
+    check(
+        len(secrets) == 1
+        and UPSTREAM_SECRET in secrets[0].get("data", {})
+        and secrets[0]["metadata"].get("annotations", {}).get("helm.sh/resource-policy") == "keep",
+        f"{where}: one upstream Secret, kept when the auth service is turned off",
+    )
+    secret_name = secrets[0]["metadata"]["name"] if secrets else None
+    check(secret_name in web_secret_refs(objects), f"{where}: the web pods read the upstream secret")
+    auth_env = {
+        e["name"]: e.get("valueFrom", {}).get("secretKeyRef", {})
+        for e in pod.get("containers", [{}])[0].get("env", [])
+    }
+    check(
+        auth_env.get("UPSTREAM_SECRET") == {"name": secret_name, "key": UPSTREAM_SECRET},
+        f"{where}: the auth service stamps the same upstream secret",
+    )
     # The strip covers a listener only if the policy names it, and Envoy Gateway rejects a policy on the shared port-80
     # listeners or the whole Gateway. So it must name exactly the Gateway's HTTPS listeners, the site must be served on
     # those alone, and port 80 must serve nothing but the redirect to HTTPS.

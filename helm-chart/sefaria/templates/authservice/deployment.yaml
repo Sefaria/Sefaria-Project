@@ -78,6 +78,11 @@ spec:
                 secretKeyRef:
                   name: {{ template "sefaria.secrets.authServicePg" . }}
                   key: {{ .Values.authService.postgres.secrets.dsn.key }}
+            - name: UPSTREAM_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service-upstream-{{ .Values.deployEnv }}
+                  key: AUTH_SERVICE_UPSTREAM_SECRET
           ports:
             - name: http
               containerPort: 8080
