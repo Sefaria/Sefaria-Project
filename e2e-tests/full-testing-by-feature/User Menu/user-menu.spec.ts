@@ -133,7 +133,7 @@ test.describe.serial('User Menu', () => {
 
     // Navigate to account settings via user menu
     await openHeaderDropdown(page, 'user');
-    await selectDropdownOption(page, 'Account Settings');
+    await selectDropdownOption(page, 'Settings');
     await hideAllModalsAndPopups(page);
 
     // Verify account settings page loaded
