@@ -4,7 +4,8 @@
  * request here in the chart's `optin` mode; while it is present the opt-in exists for this reader, so the menus offer the way back.
  *
  *  - Back to the classic reader: POST READER_CHOICE_URL {reader: "legacy"} (Django stores the profile choice and clears the cookie;
- *    sefaria/helper/reader_choice.py), then clear the cookie here too and reload: the next request goes to the classic reader.
+ *    sefaria/helper/reader_choice.py), then clear the cookie here too (and follow me's reader_follow) and reload without `follow`: the
+ *    next request goes to the classic reader.
  *  - Kill switch: remote config `feature.reader.next.disabled` true clears the cookie (and follow me's routing cookie, which brought a
  *    guest who never opted in; follow/params.ts) and reloads into the classic reader, without a `follow` parameter, at most once
  *    every RELOAD_INTERVAL_MS per browser session (a deployment that still serves this client must not reload forever, and a switch
@@ -91,10 +92,10 @@ export function applyKillSwitch(remote: Record<string, unknown> | undefined, dep
 }
 
 /** Reload; an address still carrying `follow` (which nginx routes to this client) is replaced by the same address without it. */
-function reloadWithoutFollow() {
-  const search = withoutFollowParam(location.search);
-  if (search === location.search) location.reload();
-  else location.replace(`${location.pathname}${search}${location.hash}`);
+export function reloadWithoutFollow(loc: Pick<Location, "pathname" | "search" | "hash" | "reload" | "replace"> = location): void {
+  const search = withoutFollowParam(loc.search);
+  if (search === loc.search) loc.reload();
+  else loc.replace(`${loc.pathname}${search}${loc.hash}`);
 }
 
 function safeSession(): Storage | null {
@@ -118,8 +119,11 @@ export async function backToClassic(deps: LeaveDeps & { post?: typeof postJson; 
   const ok = !timedOut && res.ok;
   const status = timedOut ? 0 : res.status;
   if (!ok) reportError("error", new Error(`reader-choice: back to classic ${timedOut ? "timed out" : `failed (HTTP ${status})`}`));
-  // the cookie is ours to clear whatever Django said: this browser goes back now
-  clearReaderCookie(deps.doc ?? document, deps.hostname ?? location.hostname);
-  (deps.reload ?? (() => location.reload()))();
+  // the cookie is ours to clear whatever Django said: this browser goes back now. Follow me's routing cookie too (and the address's
+  // `follow`), or nginx would send the reload straight back here while this browser is in a follow session
+  const doc = deps.doc ?? document;
+  clearReaderCookie(doc, deps.hostname ?? location.hostname);
+  clearFollowCookie(doc);
+  (deps.reload ?? (() => reloadWithoutFollow()))();
   return { ok, status, timedOut };
 }

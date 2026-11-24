@@ -172,7 +172,7 @@ also routes a page request to the reader when it carries `follow=<session id>` (
 `Max-Age` 6 hours, cleared when the person leaves or the session ends or is lost) — the reader takes `follow` out of the address at
 once, so without it a guest's reload would land on legacy, out of the session. Without these routes such a guest landed on
 the legacy reader, which dropped the parameter without a word, and the host saw "0 following". Like the opt-in cookie this is routing,
-not access: anyone can add either to a request. The kill switch's client half clears `reader_follow` too and reloads without `follow`;
+not access: anyone can add either to a request. The kill switch's client half and "back to the classic reader" clear `reader_follow` too and reload without `follow`;
 lever 3 (`reader.optin.enabled: false`) removes the map, so neither routes anywhere. `build/ci/reader-nginx-routing.py` asserts these
 routes in every mode.
 
