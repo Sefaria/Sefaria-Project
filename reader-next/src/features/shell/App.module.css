@@ -1,0 +1,66 @@
+/* A fixed-height page on desktop: the header, then the workspace filling the rest (each panel scrolls on its own). */
+.app { display: flex; flex-direction: column; height: 100dvh; }
+.header { flex: none; }
+/* Under the header, the page and the Library Assistant side by side (sefaria.org's #main: a flex row of .panelContainer, flex 1 and
+   min-width 0, and <lc-chatbot>). Floating, the widget's element takes no room; docked, it is a full-height column (its own
+   :host rule, height 100%) and the page narrows beside it. The row starts under the header, so the docked column needs no inset
+   for it (the widget's --lc-docked-top-offset, 60px for sefaria.org's header drawn over #main). */
+.body { flex: 1; min-height: 0; display: flex; flex-direction: row; }
+.body > :global(lc-chatbot) { --lc-docked-top-offset: 0px; }
+/* the page scrolls inside, under a header (and banner) that stay put, as the old .readerNavMenu .content did */
+.main { flex: 1; min-width: 0; min-height: 0; overflow-y: auto; outline: none; }
+
+/* Phone: the page scrolls; a reader hides the site header (the panel has its own controls). */
+@media (max-width: 842px) {
+  .app { display: block; height: auto; }
+  .main { overflow-y: visible; }
+  .body { align-items: flex-start; }
+  /* the site header stays at the top of the screen as the page scrolls, as sefaria.org's .headerInner.mobile is fixed (z-index
+     1001; measured 2026-11-18: its menu button at 15,18 after scrolling 900px on /texts, /Genesis, search, calendars) */
+  .header { position: sticky; top: 0; z-index: 70; background: var(--sefaria-color-surface); }
+  .app[data-reading="true"] .header { display: none; }
+  /* ...unless the panel's menu button opened the navigation menu */
+  .app[data-reading="true"][data-menu="open"] .header { display: block; position: sticky; top: 0; z-index: 70; background: var(--sefaria-color-surface); }
+}
+/* 601-842px the page scrolls the window, and the widget can dock: a docked widget stays in view beside the page as a column the
+   height of the screen, as the old #main kept it, under the header's 60px, and above the cookie notice while it spans the bottom
+   (--bottom-bar-height), as the old #main ended above it. Sticky makes the element its own stacking context, which would trap the
+   widget's z-index (its container is fixed at 10000) under the page's sticky bars: the element carries that z-index itself, so the
+   floating window and its Ask button stay above the page as on sefaria.org. A phone (600px and less) always gets the widget's own
+   full-screen sheet and leaves the element static, as sefaria.org does. */
+@media (min-width: 601px) and (max-width: 842px) {
+  .body > :global(lc-chatbot) {
+    position: sticky; top: 0; z-index: 10000; height: calc(100dvh - var(--bottom-bar-height, 0px)); max-height: calc(100dvh - var(--bottom-bar-height, 0px));
+    --lc-docked-top-offset: 60px;
+  }
+}
+/* Phone: while the cookie notice spans the bottom of the screen, the page's end stays above it (--bottom-bar-height, set by
+   src/ui/CookieNotice/bottom-bar.ts; the old #readerAppWrap rule of static/css/cookies-notification.scss, master #3948) */
+@media (max-width: 842px) {
+  .app { box-sizing: border-box; padding-bottom: var(--bottom-bar-height, 0); }
+}
+
+/* A text beside the social page (src/features/surfaces/SurfaceBeside.tsx): the page's column, then the text. The close control is
+   placed against this row. */
+.body[data-beside] { position: relative; }
+.body[data-beside] > .main { view-transition-name: social-reader; }
+
+/* Opening and closing it is a view transition (src/lib/surfaces/beside.ts withTransition; none for reduced motion): the social page
+   (social-feed) narrows into its column as the text (social-reader) slides in from the inline end, and the reverse on close. On a
+   phone the text slides over the page, which stays put underneath. */
+:global(html[data-beside-transition])::view-transition-group(*) { animation-duration: 340ms; animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1); }
+:global(html[data-beside-transition])::view-transition-group(social-feed) { animation: none; overflow: hidden; }
+/* the page does not cross-fade between its two layouts (two feeds at half opacity read as a blur): it takes its new width at once,
+   unscaled, and the text slides over the rest */
+:global(html[data-beside-transition])::view-transition-old(social-feed) { animation: none; opacity: 0; }
+:global(html[data-beside-transition])::view-transition-new(social-feed) { animation: none; inline-size: auto; block-size: auto; }
+/* on a phone the page has no column beside the text: it stays as it was underneath while the text slides over it */
+:global(html[data-beside-transition])::view-transition-old(social-feed):only-child { opacity: 1; }
+:global(html[data-beside-transition="open"])::view-transition-new(social-reader):only-child { animation: 340ms cubic-bezier(0.2, 0.7, 0.2, 1) both social-reader-in; }
+:global(html[data-beside-transition="close"])::view-transition-old(social-reader):only-child { animation: 300ms cubic-bezier(0.4, 0, 0.6, 1) both social-reader-out; }
+:global(html[data-beside-transition])::view-transition-old(social-beside-close):only-child { animation: 120ms ease-out both social-beside-fade; }
+:global(html[data-beside-transition])::view-transition-new(social-beside-close):only-child { animation: 200ms ease-in 220ms both social-beside-fade reverse; }
+@keyframes social-reader-in { from { transform: translateX(var(--social-slide-from, 100%)); } }
+@keyframes social-reader-out { to { transform: translateX(var(--social-slide-from, 100%)); } }
+@keyframes social-beside-fade { to { opacity: 0; } }
+:global(html[dir="rtl"]) { --social-slide-from: -100%; }

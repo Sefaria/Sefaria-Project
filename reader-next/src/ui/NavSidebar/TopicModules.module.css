@@ -1,0 +1,13 @@
+/* The topics sidebar modules (static/css/s2.css .topic-landing-sidebar-list, .appButton, .navSidebar .button + .button). */
+/* the topic lists: 18px serif links on a 20px line (the module's .navSidebarLink .ref gives the 10px between rows) */
+.list { font-size: 18px; font-weight: 400; line-height: 20px; }
+.list a { color: var(--sefaria-color-text-strong); text-decoration: none; }
+.list a:hover { text-decoration: underline; }
+/* "All Topics A-Z ›": the module's title is the link */
+.azLink { color: inherit; text-decoration: none; }
+.azLink:hover { text-decoration: none; }
+/* the old AppStoreButton (.button.small.white.appButton): white, a 1px light-grey frame, no shadow, the icon as it is */
+.store { display: inline-block; margin: 12px 0 0; padding: 10px 14px; border: 1px solid var(--sefaria-color-border-strong); border-radius: 6px; background: var(--sefaria-color-surface); color: var(--sefaria-color-text-dark-grey); font-size: 16px; line-height: 19px; text-align: center; text-decoration: none; box-sizing: border-box; }
+.store + .store { margin-inline-start: 7px; }
+.store img { width: 18px; height: 18px; margin-block-start: -2px; margin-inline-end: 10px; vertical-align: middle; }
+.store:first-of-type img { margin-block-start: -5px; }

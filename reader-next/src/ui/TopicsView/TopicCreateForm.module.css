@@ -1,0 +1,13 @@
+/* The old AdminEditor in the sidebar (s2.css .editTextInfo .section): a label over each field, full-width inputs, Save and Cancel */
+.form { margin-block-start: 30px; font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text); }
+.section { display: flex; flex-direction: column; gap: 6px; margin-block-end: var(--sefaria-space-4); }
+.section label { color: var(--sefaria-color-text-secondary); }
+.input, .select, .textarea { box-sizing: border-box; width: 100%; padding: 8px 10px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); background: var(--sefaria-color-surface); font: inherit; font-size: 16px; color: inherit; }
+.textarea { min-height: 90px; resize: vertical; }
+.error { margin: 0 0 var(--sefaria-space-3); color: var(--sefaria-color-danger); }
+.actions { display: flex; justify-content: flex-end; gap: var(--sefaria-space-3); }
+.primary, .secondary { height: 32px; padding: 0 var(--sefaria-space-4); border-radius: var(--sefaria-radius-md); font: inherit; cursor: pointer; }
+.primary { border: 0; background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.primary:hover { background: var(--sefaria-color-brand-hover); }
+.secondary { border: 1px solid var(--sefaria-color-border-strong); background: var(--sefaria-color-surface); color: var(--sefaria-color-text); }
+.primary:disabled, .secondary:disabled { opacity: 0.6; cursor: progress; }

@@ -1,0 +1,22 @@
+/* The old .topicSearch.addInterfaceInput (s2.css): a 250px pill, 30px tall, 30px above the first topic, serif 20px with a
+   grey magnifier at its start; "Add Topic" a small navy button beside it; suggestions a white shadowed box under the field,
+   20px rows with a rule between */
+.root { position: relative; margin-block-start: 30px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--sefaria-space-4); }
+.field { position: relative; display: inline-flex; align-items: center; }
+.magnifier { position: absolute; inset-inline-start: 8px; display: inline-flex; color: var(--sefaria-color-text-muted); pointer-events: none; }
+.input { box-sizing: border-box; width: 250px; height: 30px; padding-inline: 30px; border: 0; border-radius: var(--sefaria-radius-pill); background: var(--sefaria-color-border); font-family: var(--sefaria-font-text-en); font-size: 20px; color: var(--sefaria-color-text); }
+.input::placeholder { color: var(--sefaria-color-text-muted); font-size: 20px; }
+.input[data-chosen] { color: var(--sefaria-color-link); }
+.button { flex: none; height: 30px; padding: 0 var(--sefaria-space-4); border: 0; border-radius: var(--sefaria-radius-md); background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); font-family: var(--sefaria-font-ui-en); font-size: 14px; white-space: nowrap; cursor: pointer; }
+.button:hover { background: var(--sefaria-color-brand-hover); }
+.button:disabled { opacity: 0.6; cursor: progress; }
+.list { position: absolute; z-index: 2; inset-inline-start: 0; inset-block-start: 36px; min-width: 250px; max-width: 100%; margin: 0; padding: 0; list-style: none; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-md); background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-1); }
+.option { padding: 9px 40px 9px 36px; border-block-end: 1px solid var(--sefaria-color-border); font-family: var(--sefaria-font-text-en); font-size: 20px; cursor: pointer; }
+.option:last-child { border-block-end: 0; }
+.option:hover, .option[aria-selected="true"] { background: var(--sefaria-color-border); outline: none; }
+.ok, .error { margin: var(--sefaria-space-2) 0 0; font-family: var(--sefaria-font-ui-en); font-size: 14px; }
+.ok { color: var(--sefaria-color-text-secondary); }
+.error { color: var(--sefaria-color-danger); }
+.creating { margin-block-start: 30px; font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text-secondary); }
+.creating a { color: var(--sefaria-color-link); }

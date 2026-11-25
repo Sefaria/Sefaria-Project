@@ -1,0 +1,38 @@
+.root { position: relative; display: inline-flex; }
+
+/* VERIFIED on sefaria.org (s2.css .tooltip-toggle::before): white card, 13px Roboto, 10px padding, radius 5,
+   shadow 0 1px 3px rgba(0,0,0,.2), fades in over .75s, z-index 1 */
+.tip {
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 10px;
+  background: var(--sefaria-color-surface);
+  color: var(--sefaria-color-text-strong);
+  font-family: var(--sefaria-font-ui-en);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: normal;
+  text-align: center;
+  white-space: normal;
+  border-radius: 5px;
+  box-shadow: var(--sefaria-shadow-legacy);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s ease, visibility 0s linear 0.5s;
+}
+:lang(he) > .tip, .tip:lang(he) { font-family: var(--sefaria-font-ui-he); }
+.root:hover > .tip,
+.root:focus-within > .tip {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.75s ease, visibility 0s;
+}
+.root[data-dismissed] > .tip { opacity: 0; visibility: hidden; transition: none; }
+
+/* the old default: under the trigger */
+.below { top: 30px; inset-inline-start: -70px; width: 140px; }
+
+/* the three dots (topics, named entities): beside the trigger, toward the text, 180px wide, grey text */
+.start { top: 0; inset-inline-end: 30px; width: 180px; color: var(--sefaria-color-text-muted); text-align: start; }

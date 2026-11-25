@@ -1,0 +1,25 @@
+/* Desktop: the column is its own scroll container (like the old reader; panels scroll independently). */
+/* Place keeping is ours (the inline script, then the engine); the browser's own anchoring would fight it. */
+.scroller { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; overflow-anchor: none; }
+/* The panel's outer box (scroller and scrollbar): the `panel` size container, so width rules match sefaria.org's panel width. */
+.frame { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; container: panel / inline-size; }
+:global(html):has(.scroller) { overflow-anchor: none; }
+.content { overflow-anchor: none; padding-block-end: var(--sefaria-space-12); }
+/* Each loaded section is its own surface, a size container, so a verse's bottom margin cannot collapse into the next section title's
+   top margin as it does on sefaria.org (one flow there: 30px between a section's last verse and the next title, not 26 + 30). The
+   last verse before a titled section drops its margin, leaving the title's 30px. Only the verse above the new section changes, so a
+   section arriving below moves nothing on screen, and one arriving above is measured with it already in place. */
+.content > :has(+ * > section:first-child > [data-section-title]:first-child) > section:last-child > :last-child { margin-block-end: 0; }
+/* Placeholders at each end have a constant height, whatever they show, so loading never moves the text. */
+.edge { display: grid; place-items: center; height: 90px; color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-sans-small); }
+.bookTitle { margin: 0; text-align: center; font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); color: var(--sefaria-color-text-secondary); letter-spacing: 0.04em; }
+.bookTitle[lang="he"] { font-family: var(--sefaria-font-text-he); }
+/* Phone: the page scrolls, so the browser can collapse its address bar. */
+@media (max-width: 842px) {
+  .scroller { overflow: visible; flex: none; }
+  .frame { display: block; flex: none; }
+}
+/* The book's title above its first section, as sefaria.org's .bookMetaDataBox .title (measured 2026-11-18 on Genesis 1 at 1280 and
+   375): 30px black on a 1.3 line, the Hebrew face at 122% (36.6px) */
+.bookTitle { font-size: 30px; line-height: 1.3; letter-spacing: 0; color: var(--sefaria-color-text-strong); }
+.bookTitle[lang="he"] { font-size: calc(30px * var(--sefaria-reader-body-he-ratio)); }

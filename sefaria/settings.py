@@ -164,6 +164,7 @@ MIDDLEWARE = [
     "sefaria.system.middleware.LanguageCookieMiddleware",
     "sefaria.system.middleware.LanguageSettingsMiddleware",
     "sefaria.system.middleware.ProfileMiddleware",
+    "sefaria.helper.reader_choice.ReaderChoiceMiddleware",
     "sefaria.system.middleware.CORSDebugMiddleware",
     "sefaria.system.middleware.SharedCacheMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
@@ -382,6 +383,15 @@ SEARCH_INDEX_NAME_SHEET = "sheet"
 SEARCH_INDEX_NAME_TOPIC = "topic"
 SEARCH_INDEX_NAME_BOOK = "book"
 SEARCH_INDEX_NAME_CATEGORY = "category"
+
+# Sefaria Social identity (sso/social_token.py, sso/user_deleted_webhook.py). Defaulted here, before
+# local_settings is imported, so a local_settings.py without them still boots; these defaults turn
+# both features off. See local_settings_example.py for what each one means.
+SOCIAL_TOKEN_PRIVATE_KEYS = []
+SOCIAL_TOKEN_ISSUER = ""
+SOCIAL_TOKEN_LIFETIME_SECONDS = 600
+USER_DELETED_WEBHOOK_URLS = []
+USER_DELETED_WEBHOOK_SECRET = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

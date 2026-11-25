@@ -1,0 +1,59 @@
+/* The recording dock: floats bottom-centre above the reader (and its panel chrome and header), below menus, modals and toasts. */
+.dock {
+  position: fixed;
+  inset-block-end: var(--sefaria-space-4);
+  /* Centred on the screen in vw, not on its containing block in %: on a phone the reader's layout viewport can be wider than the screen
+     (445px on a 375px one), and a fixed box measured in % follows it off the right edge. Physical, so it centres in either direction. */
+  left: 50vw;
+  transform: translateX(-50%);
+  z-index: var(--sefaria-z-sheet);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sefaria-space-2);
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--sefaria-space-4));
+  padding: var(--sefaria-space-2) var(--sefaria-space-3);
+  border: 1px solid var(--sefaria-color-border);
+  border-radius: var(--sefaria-radius-lg);
+  background: var(--sefaria-color-surface);
+  color: var(--sefaria-color-text);
+  box-shadow: var(--sefaria-shadow-menu);
+  font-family: var(--sefaria-font-ui-en);
+  font-size: var(--sefaria-text-sans-small);
+}
+.dock[data-mode="playback"] { width: min(560px, calc(100vw - 2 * var(--sefaria-space-4))); }
+.dock[data-drag-over] { border-color: var(--sefaria-color-focus); outline: 2px dashed var(--sefaria-color-focus); outline-offset: -6px; }
+
+.row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sefaria-space-2) var(--sefaria-space-3); }
+.status { flex: 1 1 auto; font-weight: 500; }
+.actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sefaria-space-2); }
+.clock { font-variant-numeric: tabular-nums; color: var(--sefaria-color-text-secondary); }
+
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--sefaria-radius-round);
+  background: var(--sefaria-color-danger);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .dot { animation: none; } }
+
+.error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sefaria-space-2);
+  padding: var(--sefaria-space-2);
+  border-radius: var(--sefaria-radius-sm);
+  background: var(--sefaria-color-danger-bg);
+  color: var(--sefaria-color-danger);
+}
+.error > :first-child { flex: 1 1 auto; }
+
+.dropHint { color: var(--sefaria-color-text-secondary); text-align: center; }
+
+/* The picker the menu entry and the Load button open; never shown itself. */
+.fileInput { display: none; }

@@ -1,0 +1,17 @@
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--sefaria-radius-round);
+  background: transparent;
+  color: var(--sefaria-color-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+.iconButton:hover:not([aria-disabled="true"]) { background: var(--sefaria-color-surface-muted); color: var(--sefaria-color-text); }
+.iconButton[aria-pressed="true"] { color: var(--sefaria-color-brand); }
+.iconButton[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+.sm { width: 32px; height: 32px; }

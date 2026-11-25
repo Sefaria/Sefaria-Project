@@ -1,0 +1,52 @@
+/* A text beside the social page (src/features/surfaces/SurfaceBeside.tsx, contract 1.1 openBeside). Desktop: the page is a column at
+   the inline start, the text fills the rest, and the text's own close button (its panel header's ×) closes it. Phone: the text covers
+   the page (the column stays in the document, hidden, so the page keeps its state) and a "Back to feed" button floats at the bottom,
+   where the panel header has the menu instead of a close button. */
+.pane {
+  position: relative; flex: 0 0 clamp(360px, 36%, 540px); min-width: 0; min-height: 0; height: 100%;
+  border-inline-end: 1px solid var(--sefaria-color-border); background: var(--sefaria-color-surface);
+  view-transition-name: social-feed;
+}
+.close { display: none; }
+
+/* Collapsing the page's column (SurfaceBesideToggle; desktop only). Open: a tab on the seam, near the top. Collapsed: the column takes
+   no room (its page stays mounted, out of the accessibility tree and the tab order) and a rail at the inline start opens it again;
+   the text takes the row. */
+:global([data-beside="collapsed"]) > .pane { flex: 0 0 0; inline-size: 0; border-inline-end: 0; overflow: hidden; visibility: hidden; view-transition-name: none; }
+.collapse, .rail {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--sefaria-color-border);
+  background: var(--sefaria-color-surface); color: var(--sefaria-color-text-secondary, var(--sefaria-color-text)); font: inherit;
+  cursor: pointer;
+}
+.collapse:hover, .rail:hover { color: var(--sefaria-color-text); background: var(--sefaria-color-surface-muted, var(--sefaria-color-surface)); }
+.collapse:focus-visible, .rail:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+.collapse svg, .rail svg { inline-size: 14px; block-size: 14px; flex: none; }
+.collapse {
+  position: absolute; z-index: 5; inset-block-start: 72px; inset-inline-start: clamp(360px, 36%, 540px); translate: -50% 0;
+  block-size: 28px; inline-size: 28px; justify-content: center; padding: 0; border-radius: 14px; box-shadow: var(--sefaria-shadow-1);
+}
+:global([dir="rtl"]) .collapse { translate: 50% 0; }
+/* the rail sits first in the row, where the column was; its chevron points to the inline end (the column opens that way) */
+.rail {
+  order: -1; flex: 0 0 40px; flex-direction: column; justify-content: flex-start; padding: 14px 0; border-block: 0;
+  border-inline-start: 0; border-radius: 0; view-transition-name: social-beside-rail;
+}
+.rail svg { transform: scaleX(-1); }
+:global([dir="rtl"]) .rail svg { transform: none; }
+.railTitle { writing-mode: vertical-rl; font-size: 14px; font-weight: 600; white-space: nowrap; }
+
+@media (max-width: 842px) {
+  .pane { display: none; }
+  /* on a phone the text already covers the page: no collapse, "Back to feed" returns to it */
+  .collapse, .rail { display: none; }
+  .close {
+    position: fixed; z-index: 9001; inset-block-end: calc(16px + var(--bottom-bar-height, 0px)); inset-inline-start: 16px;
+    display: inline-flex; align-items: center; gap: 8px; block-size: 44px; padding: 0 18px 0 14px; padding-inline: 14px 18px;
+    border: 1px solid var(--sefaria-color-border); border-radius: 22px; background: var(--sefaria-color-surface);
+    color: var(--sefaria-color-text); font: inherit; font-size: 16px; cursor: pointer; box-shadow: var(--sefaria-shadow-1);
+    view-transition-name: social-beside-close;
+  }
+  .close:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+  .close svg { inline-size: 16px; block-size: 16px; }
+  :global([dir="rtl"]) .close svg { transform: scaleX(-1); }
+}

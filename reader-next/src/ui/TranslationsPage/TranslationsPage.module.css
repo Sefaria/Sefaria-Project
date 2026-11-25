@@ -1,0 +1,42 @@
+/* The old TranslationsPage (static/css/s2.css .readerNavMenu h1, .tab-view.largeTabs, .translationsPage, .languageItem), VERIFIED on
+   sefaria.org /translations/de at 1280px, with a phone User-Agent and in the Hebrew interface, 2026-11-04. The old elements' fonts
+   are kept one inside the other (a 22px sans h1 holding a 30px serif title, an 18px serif summary holding a Hebrew span…): their
+   line boxes are what set the heights. */
+/* every element sets its font: the global :lang(he) rule (base.css) would otherwise give the Hebrew interface's sans to all of them */
+.page { font-family: var(--sefaria-font-text-en); font-size: 16px; line-height: normal; color: var(--sefaria-color-text-strong); }
+
+/* h1.serif.pageTitle: a grey 22px/500 sans line (the old .readerNavMenu h1) holding the black 30px title */
+.title { margin: 0 0 30px; font-family: var(--sefaria-font-ui-en); font-size: 22px; font-weight: 500; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-align: start; text-transform: none; letter-spacing: 0; }
+/* .pageTitle .int-en / .int-he: by the interface, whatever the title's language (a German title in the Hebrew interface is Heebo) */
+.title .titleText { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-size: 30px; font-weight: 400; color: var(--sefaria-color-text-strong); }
+.page[data-ui="he"] .title .titleText { font-family: "Heebo", sans-serif; }
+
+/* .tab-view.largeTabs: one tab, 22px, its 4px underline over the list's 1px rule */
+.tabList { display: flex; flex-direction: row; justify-content: flex-start; margin-block-end: 18px; border-block-end: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-ui-en); font-size: 16px; }
+.tab { font-family: var(--sefaria-font-ui-en); margin: 0; margin-inline-end: 30px; padding: 10px 0; border-block-end: 4px solid var(--sefaria-color-border-strong); font-size: 22px; color: var(--sefaria-color-text-strong); text-align: center; cursor: pointer; user-select: none; }
+.tab [lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.tabItem:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+
+/* .translationsPage: a corpus — 24px black heading 40px under what is above it */
+.corpusTitle { margin: 40px 0 0; font-family: var(--sefaria-font-text-en); font-size: 24px; font-weight: 400; line-height: normal; color: var(--sefaria-color-text-strong); text-align: start; text-transform: none; letter-spacing: 0; }
+.group { display: block; }
+/* details > summary: 18px uppercase grey, no marker, 30px over it */
+.summary { display: list-item; list-style: none; margin: 30px 0 0; font-family: var(--sefaria-font-text-en); font-size: 18px; font-weight: normal; line-height: normal; color: var(--sefaria-color-text-dark-grey); text-align: start; text-transform: uppercase; cursor: pointer; }
+.summary::-webkit-details-marker { display: none; }
+/* the texts: a wrapping row of 18px serif links, "•" between them */
+.list { font-family: var(--sefaria-font-text-en); display: flex; flex-wrap: wrap; margin: 20px 0; padding: 0; list-style: none; }
+.item { display: inline; font-family: var(--sefaria-font-text-en); font-size: 18px; }
+.item::after { content: "\2022"; white-space: pre; margin: 0 5px; }
+.item:last-child::after { content: none; }
+.item a { font-family: var(--sefaria-font-text-en); color: var(--sefaria-color-text-strong); text-decoration: none; }
+.item a:hover { text-decoration: underline; }
+/* attribute selectors, not :lang() — :lang(he) would also match the elements around the Hebrew span (they inherit the page's lang),
+   and the old ones kept their serif strut: an li 26px high in the Hebrew interface, not 28 */
+.corpusTitle [lang="he"], .summary [lang="he"], .item [lang="he"] { font-family: var(--sefaria-font-text-he); }
+.item [lang="en"] { font-family: var(--sefaria-font-text-en); }
+
+@media (max-width: 700px) {
+  /* the phone layout (700px or less, where the sidebar goes under the page; the old .singlePanel): the title 10px over the tabs, a 16px tab with 18px under its label */
+  .title { margin-block-end: 10px; }
+  .tab { padding-block-end: 18px; font-size: 16px; }
+}

@@ -1,0 +1,19 @@
+/* The page mount fills the page area from the first paint (the server renders it empty), so the surface mounting into it later
+   shifts nothing below the header. */
+.page { display: block; box-sizing: border-box; width: 100%; height: 100%; min-height: calc(100dvh - 60px); view-transition-name: social-feed; }
+
+/* The persistent mount takes no room in the layout: fixed at the bottom inline-end corner, above the page and below the cookie notice,
+   sized by what the surface puts in it (a mini view, a room link); empty, it is nothing (the surface renders nothing without a context). */
+.persistent { position: fixed; inset-block-end: 0; inset-inline-end: 0; z-index: 9000; max-width: 100vw; }
+
+/* The page view's own element (SurfaceMount.tsx `kept`): it moves, still mounted, between the /social page and the column beside a
+   text, and fills whichever holds it. It is a size container: the surface lays out by its own width (contract 1.1). */
+.kept { display: block; box-sizing: border-box; width: 100%; min-height: 100%; container-type: inline-size; container-name: social-page; }
+
+/* The column beside a text scrolls on its own (SurfaceBeside.module.css sizes the column around it). */
+.beside { display: block; box-sizing: border-box; width: 100%; height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+
+/* What the page area says when the surface did not load (SurfaceMount.tsx PageLoadFailed): in place of the page view, below the header. */
+.failed { box-sizing: border-box; width: 100%; min-height: calc(100dvh - 60px); padding-block: 48px; padding-inline: 16px; }
+/* While the failure message stands in for it, the empty mount takes no room (its display rules above would override `hidden`). */
+.page[hidden], .beside[hidden] { display: none; }

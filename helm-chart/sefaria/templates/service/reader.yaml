@@ -1,0 +1,14 @@
+{{- if eq .Values.nodejs.mode "optin" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: "reader-{{ .Values.deployEnv }}"
+  labels:
+    app: reader-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  ports:
+  - port: 3000
+  selector:
+    app: reader-{{ .Values.deployEnv }}
+{{- end }}

@@ -1,0 +1,19 @@
+/* After sefaria.org's .addToSourceSheetBox (s2.css) */
+.view { display: flex; flex-direction: column; gap: 10px; }
+.label { font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text-secondary, #666); letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; }
+.view[lang="he"] .label { font-family: var(--sefaria-font-ui-he); text-transform: none; }
+.citation { font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", Georgia, serif); font-size: 18px; }
+.view[lang="he"] .citation { font-family: var(--sefaria-font-text-he, "Taamey Frank", serif); }
+.select { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid var(--sefaria-color-border, #ccc); border-radius: 6px; background: #fff; font: inherit; font-size: 16px; }
+.error { margin: 0; color: var(--sefaria-color-error, #b3261e); }
+.confirm { font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", Georgia, serif); font-size: 18px; line-height: 1.4; }
+.confirm a { color: inherit; text-decoration: underline; }
+
+/* The Google Docs extension promotion (old s2.css .gDocAdvertBox): 50px under the button, light grey, 20px padding, 6px corners;
+   16px Roboto in dark grey, "new extension" semibold, Learn more underlined; Install Now a white 6px-rounded button. */
+.gdoc { margin-top: 50px; padding: 20px; border-radius: 6px; background: var(--sefaria-color-border-light); font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 19px; color: var(--sefaria-color-text-dark-grey); }
+.gdoc:lang(he), :lang(he) > .gdoc { font-family: var(--sefaria-font-ui-he); }
+.gdocText { margin: 0; }
+.gdocText strong { font-weight: 600; }
+.gdocText a { color: inherit; text-decoration: underline; }
+.gdocInstall { display: inline-block; margin-top: 18px; padding: 4px 9px; border-radius: 6px; background: var(--sefaria-color-surface); color: var(--sefaria-color-text-dark-grey); text-decoration: none; }

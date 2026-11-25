@@ -1,0 +1,4 @@
+.state { display: grid; justify-items: center; gap: var(--sefaria-space-3); padding: var(--sefaria-space-8) var(--sefaria-space-4); text-align: center; color: var(--sefaria-color-text-secondary); }
+.title { margin: 0; font-size: var(--sefaria-text-sans-h3); font-weight: 500; color: var(--sefaria-color-text); }
+.body { margin: 0; max-width: 40ch; }
+.error .title { color: var(--sefaria-color-danger); }

@@ -9,3 +9,6 @@ static/css/*.css.map
 **/migrations/*.py
 # Lock file
 package-lock.json
+# The new reader client has its own checks (reader-next/: tsc and ESLint, eslint.config.mjs) and is not Prettier-formatted:
+# none of its files, Markdown included, are checked or rewritten from here
+reader-next/
