@@ -81,7 +81,9 @@ def version(index, text):
             "direction": "ltr",
             "isSource": False,
             "isPrimary": True,
-            "title": "test",
+            # Index._normalize capitalizes the first letter of the stored title ("test" -> "Test"),
+            # and Version.get_index() is an exact, case-sensitive Index().load({"title": ...}).
+            "title": "Test",
             "versionSource": "",
             "versionTitle": "test",
             "chapter": text,
@@ -90,8 +92,6 @@ def version(index, text):
     return v
 
 
-# Quarantined: fixture does not register the Index for Version.save; tracked as follow-up.
-@pytest.mark.failing
 def test_version(version):
     version._validate()
     version.chapter.append([["bar"]])
@@ -99,8 +99,6 @@ def test_version(version):
         version._validate()
 
 
-# Quarantined: fixture does not register the Index for Version.save; tracked as follow-up.
-@pytest.mark.failing
 def test_invalid_version(version):
     version.chapter[0].append(["foo", "bar"])
     with pytest.raises(AssertionError):
