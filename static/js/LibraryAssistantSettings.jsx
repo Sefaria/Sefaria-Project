@@ -448,12 +448,14 @@ const Personalization = ({ base, token, off, onSaving }) => {
     };
   }, [call, loadAttempt]);
 
-  // Arriving from the chat's "Configure here" (#personalization) lands on the Profile (Penina, 2026-11-19).
+  // Arriving from the chat's Personalization menu item or the toast's Manage (#personalization) lands on the top of the
+  // Personalized answers section (Penina, 2026-11-25; earlier it landed on the Profile). #profile still lands on the Profile.
   const scrolled = useRef(false);
   useEffect(() => {
     if (!data || scrolled.current) return;
     scrolled.current = true;
-    if (INITIAL_HASH === '#personalization' || INITIAL_HASH === '#profile') scrollToId('profile');
+    if (INITIAL_HASH === '#personalization') scrollToId('personalization');
+    if (INITIAL_HASH === '#profile') scrollToId('profile');
     if (INITIAL_HASH === '#about-personalization') scrollToId('about-personalization');
   }, [data]);
 
