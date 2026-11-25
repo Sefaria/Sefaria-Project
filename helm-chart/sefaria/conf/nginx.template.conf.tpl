@@ -186,10 +186,17 @@ http {
     keepalive 32;
   }
   {{- if .Values.reader.optin.enabled }}
-  # "1" for a page request that goes to the new reader (location / hands it to @reader); empty for everyone else
-  map $cookie_reader_version $reader_page {
-    default "";
-    next    1;
+  # "1" for a page request that goes to the new reader (location / hands it to @reader); empty for everyone else. Three ways in:
+  #  - reader_version=next: the reader opted in (set by Django, sefaria/helper/reader_choice.py);
+  #  - follow=<session id> (43 base62 characters): a follow-me link, which only the new reader can open — whoever opens it, opted in
+  #    or not, signed in or not; otherwise a guest outside the opt-in lands on legacy, which drops the parameter without a word;
+  #  - reader_follow=1: the new reader set it while this browser is in a follow session (reader-next follow/params.ts), so a reload
+  #    keeps the guest in the session once the reader has taken `follow` out of the address.
+  map "$cookie_reader_version|$cookie_reader_follow|$arg_follow" $reader_page {
+    default                  "";
+    "~^next\|"               1;
+    "~^[^|]*\|1\|"           1;
+    "~\|[0-9A-Za-z]{43}$"    1;
   }
   {{- else }}
   # reader.optin.enabled is false (the kill switch): the cookie is ignored, location / is legacy's, and the reader rollout keeps

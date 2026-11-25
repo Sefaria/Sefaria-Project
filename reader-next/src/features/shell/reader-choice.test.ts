@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { applyKillSwitch, backToClassic, cookieDomains, killSwitchOn, optedIn, READER_CHOICE_URL } from "./reader-choice";
+import { applyKillSwitch, backToClassic, cookieDomains, killSwitchOn, optedIn, READER_CHOICE_URL, reloadWithoutFollow } from "./reader-choice";
 
 const fakeDoc = (cookie: string) => {
   const writes: string[] = [];
@@ -34,6 +34,14 @@ describe("kill switch (remote config feature.reader.next.disabled)", () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
+  it("on, for a follow-me guest who never opted in (only reader_follow): clears that cookie and reloads", () => {
+    const { doc, writes } = fakeDoc("a=1; reader_follow=1");
+    const reload = vi.fn();
+    expect(applyKillSwitch({ "feature.reader.next.disabled": true }, { doc, hostname: "www.sefaria.org", reload, storage: memory() })).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(writes).toContain("reader_follow=; max-age=0; path=/; samesite=lax");
+  });
+
   it("off, or no cookie: nothing happens", () => {
     const reload = vi.fn();
     expect(applyKillSwitch({ "feature.reader.next.disabled": false }, { ...fakeDoc("reader_version=next"), hostname: "x.org", reload, storage: memory() })).toBe(false);
@@ -48,7 +56,34 @@ describe("kill switch (remote config feature.reader.next.disabled)", () => {
   });
 });
 
+describe("reloading out of this client", () => {
+  const fakeLoc = (search: string) => ({ pathname: "/Genesis.1", search, hash: "#x", reload: vi.fn(), replace: vi.fn() });
+
+  it("reloads an address without `follow` as it is", () => {
+    const loc = fakeLoc("?lang=en");
+    reloadWithoutFollow(loc);
+    expect(loc.reload).toHaveBeenCalledTimes(1);
+    expect(loc.replace).not.toHaveBeenCalled();
+  });
+
+  it("replaces an address carrying `follow` (which nginx routes here) with the same address without it", () => {
+    const loc = fakeLoc(`?lang=en&follow=${"A".repeat(43)}&with=Share`);
+    reloadWithoutFollow(loc);
+    expect(loc.replace).toHaveBeenCalledWith("/Genesis.1?lang=en&with=Share#x");
+    expect(loc.reload).not.toHaveBeenCalled();
+  });
+});
+
 describe("back to the classic reader", () => {
+  it("also clears follow me's routing cookie, so nginx does not send the reload straight back", async () => {
+    const post = vi.fn(async () => ({ ok: true, status: 200, data: {}, networkError: false }));
+    const reload = vi.fn();
+    const { doc, writes } = fakeDoc("reader_version=next; reader_follow=1");
+    await backToClassic({ post, reload, doc, hostname: "localhost" });
+    expect(writes).toEqual(["reader_version=; path=/; max-age=0; samesite=lax", "reader_follow=; max-age=0; path=/; samesite=lax"]);
+    expect(reload).toHaveBeenCalled();
+  });
+
   it("posts {reader: legacy} to the reader-choice endpoint, clears the cookie and reloads (even if the endpoint fails)", async () => {
     const post = vi.fn(async () => ({ ok: false, status: 404, data: {}, networkError: false }));
     const reload = vi.fn();

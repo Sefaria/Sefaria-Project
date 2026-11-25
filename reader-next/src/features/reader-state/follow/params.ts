@@ -76,17 +76,66 @@ export function readStoredFollow(storage: Storage | null): StoredFollow | null {
   }
 }
 
-export function writeStoredFollow(storage: Storage | null, value: StoredFollow): void {
+/** Keeping a session also sets the routing cookie (below), so a reload of a reader who never opted in still reaches this client. */
+export function writeStoredFollow(storage: Storage | null, value: StoredFollow, doc: Document | null = maybeDocument()): void {
   try {
     storage?.setItem(FOLLOW_STORAGE_KEY, JSON.stringify(value));
   } catch {
     /* blocked or full: a reload then simply does not rejoin */
   }
+  setFollowCookie(doc);
 }
 
-export function clearStoredFollow(storage: Storage | null): void {
+export function clearStoredFollow(storage: Storage | null, doc: Document | null = maybeDocument()): void {
   try {
     storage?.removeItem(FOLLOW_STORAGE_KEY);
+  } catch {
+    /* blocked */
+  }
+  clearFollowCookie(doc);
+}
+
+// ── The routing cookie ────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * In the chart's optin mode nginx sends a page request to this client only with the opt-in cookie (reader_version=next), a `follow`
+ * parameter, or this cookie (helm-chart/sefaria/conf/nginx.template.conf.tpl, `$reader_page`). A guest who never opted in arrives by the
+ * link's parameter, but the reader takes the parameter out of the address at once, so without this cookie their next reload would land on
+ * the legacy reader, out of the session. It says only "this browser is in a follow session"; the session id stays in sessionStorage.
+ *
+ * Host-only (no Domain): the link, the session and the reload are all on this host. It lives FOLLOW_COOKIE_MAX_AGE_S at most, so a tab
+ * closed without leaving does not keep a reader who never opted in on this client for long; leaving, ending or losing the session
+ * clears it at once.
+ */
+export const FOLLOW_COOKIE = "reader_follow";
+export const FOLLOW_COOKIE_MAX_AGE_S = 6 * 60 * 60;
+
+function maybeDocument(): Document | null {
+  return typeof document === "undefined" ? null : document;
+}
+
+export function hasFollowCookie(cookie: string): boolean {
+  return cookie.split(/;\s*/).includes(`${FOLLOW_COOKIE}=1`);
+}
+
+function cookieTail(doc: Document): string {
+  const secure = doc.location?.protocol === "https:" ? "; secure" : "";
+  return `; path=/; samesite=lax${secure}`;
+}
+
+export function setFollowCookie(doc: Document | null = maybeDocument()): void {
+  if (!doc) return;
+  try {
+    doc.cookie = `${FOLLOW_COOKIE}=1; max-age=${FOLLOW_COOKIE_MAX_AGE_S}${cookieTail(doc)}`;
+  } catch {
+    /* cookies blocked: a reload of a reader who never opted in leaves the session, as before */
+  }
+}
+
+export function clearFollowCookie(doc: Document | null = maybeDocument()): void {
+  if (!doc || !hasFollowCookie(doc.cookie)) return;
+  try {
+    doc.cookie = `${FOLLOW_COOKIE}=; max-age=0${cookieTail(doc)}`;
   } catch {
     /* blocked */
   }
