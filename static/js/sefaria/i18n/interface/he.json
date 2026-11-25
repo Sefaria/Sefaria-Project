@@ -972,5 +972,18 @@
   "developer.common.name_and_logo_usage.url": "https://developers.sefaria.org/docs/usage-of-our-name-and-logo",
   "developer.common.developers_email.address": "developers@sefaria.org",
   "developer.publish_form.source_code.invalid.error": "קישור לא תקין",
-  "developer.key_form.restrict.help": "{on} את ההגבלה אם המפתח ישולב בקוד של דף אינטרנט. השאירו אותה {off} אם המפתח ישמש בשרת או בכלי AI. אפשר לשנות את ההגדרה הזו בכל עת בהגדרות מפתחים."
+  "developer.key_form.restrict.help": "{on} את ההגבלה אם המפתח ישולב בקוד של דף אינטרנט. השאירו אותה {off} אם המפתח ישמש בשרת או בכלי AI. אפשר לשנות את ההגדרה הזו בכל עת בהגדרות מפתחים.",
+  "developer.errors.shared_host.error": "אי אפשר להגביל מפתחות לכתובת של שירותי ענן. השתמשו בדומיין משלכם, או השאירו את ההגבלה כבויה.",
+  "developer.publish_form.sefaria_tools.option_01": "API",
+  "developer.publish_form.sefaria_tools.option_02": "MCP",
+  "developer.publish_form.sefaria_tools.option_03": "Export",
+  "developer.publish_form.sefaria_tools.option_04": "Project code",
+  "developer.publish_form.sefaria_tools.option_05": "ai-chatbot code",
+  "developer.publish_form.sefaria_tools.option_06": "Embedded code",
+  "developer.publish_form.sefaria_tools.option_07": "ML models on HuggingFace",
+  "developer.publish_form.sefaria_tools.option_08": "מדריכים",
+  "developer.publish_form.sefaria_tools.option_09": "תיעוד טכני",
+  "developer.publish_form.sefaria_tools.option_10": "Patot",
+  "developer.publish_form.sefaria_tools.option_11": "אחר",
+  "developer.errors.not_a_domain.error": "אי אפשר להגביל מפתחות לכתובת שאינה דומיין ציבורי. השאירו מפתחות לפיתוח מקומי ללא הגבלה."
 }

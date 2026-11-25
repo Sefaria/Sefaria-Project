@@ -399,6 +399,13 @@ export const blur = (element) => {
   });
 };
 
+/* React builds onMouseEnter from mouseover, so that is the event to fire. */
+export const hover = (element) => {
+  current.act(() => {
+    fireEvent.mouseOver(element);
+  });
+};
+
 export const focus = (element) => {
   current.act(() => {
     element.focus();

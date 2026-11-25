@@ -1,6 +1,7 @@
 import json
 from unittest import mock
 
+import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase, TestCase
 
@@ -115,12 +116,14 @@ class ProfileSyncApiTest(LibraryAssistantUserTestCase):
             },
         )
 
+    @pytest.mark.needs_corpus  # hint="uid_1_server_time_stamp_1" (reader/views.py profile_sync) is ignored by mongomock
     def test_posted_string_false_is_not_truthy(self):
         self.sync_settings({SETTING_KEY: "false"})
 
         self.assertIs(self.stored_setting(), False)
         self.assertFalse(library_assistant.is_enabled(UserProfile(id=self.user.id)))
 
+    @pytest.mark.needs_corpus  # hint="uid_1_server_time_stamp_1" is ignored by mongomock
     def test_toggle_on_persists(self):
         self.sync_settings({SETTING_KEY: True})
 

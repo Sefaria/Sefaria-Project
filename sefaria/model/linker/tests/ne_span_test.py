@@ -4,6 +4,8 @@ django.setup()
 import pytest
 from ne_span import NEDoc, NESpan
 
+pytestmark = pytest.mark.needs_linker
+
 
 class TestNEDoc:
     @pytest.mark.parametrize(

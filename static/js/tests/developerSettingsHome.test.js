@@ -23,6 +23,7 @@ import {
   advance,
   blur,
   focus,
+  hover,
   type,
   within,
 } from './developerSettingsTestUtils';
@@ -513,6 +514,18 @@ describe('Limit to website', () => {
     const help = button('About Limit to website');
     await click(help);
     expect(screen.getByRole('tooltip').textContent).toContain("Limit a key to your project's website");
+  });
+
+  it('closes the tip opened by hovering with Escape, leaving focus where it was', async () => {
+    openHome({ projects: [project(1, { websiteUrl: SITE, keys: [key(1)] })] });
+    const editProfile = button('Edit profile');
+    focus(editProfile);
+    const tip = button('About Limit to website').closest('.devPocTip');
+    hover(tip);
+    expect(screen.getByRole('tooltip')).toBeTruthy();
+    press(document.body, 'Escape');
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    expect(document.activeElement).toBe(editProfile);
   });
 
   it("limits a key to the project's website, and lifts the limit", async () => {

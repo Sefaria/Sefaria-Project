@@ -100,16 +100,21 @@ def find_refs_api_task(raw_find_refs_input: dict) -> dict:
 
 @app.task(name="linker.link_segment_with_worker")
 def link_segment_with_worker(linking_args_dict: dict) -> None:
+    """Result is stored so callers that return the task id to a client (the linker admin UI) can poll it."""
+    _link_segment(linking_args_dict)
+
+
+@app.task(name="linker.link_segment_with_worker_ignore_result", ignore_result=True)
+def link_segment_with_worker_ignore_result(linking_args_dict: dict) -> None:
     """
-    Returns a payload for the next task in the chain:
-      {
-        "ref": <str>,
-        "linked_refs": <list[str]>,
-        "text_id": <optional>,
-        "user_id": <optional>,
-        "tracker_kwargs": <optional dict>
-      }
+    Same work as link_segment_with_worker, but the result is not stored in the result backend.
+    Celery cannot ignore a result per call, so fire-and-forget callers (text-save and bulk linking) use this
+    separate task name to avoid one result SET plus its expiry DEL in Redis per segment.
     """
+    _link_segment(linking_args_dict)
+
+
+def _link_segment(linking_args_dict: dict) -> None:
     linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
@@ -1142,9 +1147,13 @@ def delete_and_save_new_links(payload: dict):
     _add_new_links(msg, linked_trefs_to_add)
 
 
-def enqueue_linking_chain(linking_args: LinkingArgs):
+def enqueue_linking_chain(linking_args: LinkingArgs, store_result: bool = True):
+    """
+    Pass store_result=False only if nothing reads the returned AsyncResult; it routes to a task that ignores its result.
+    """
+    task_name = "linker.link_segment_with_worker" if store_result else "linker.link_segment_with_worker_ignore_result"
     sig = signature(
-        "linker.link_segment_with_worker",
+        task_name,
         args=(asdict(linking_args),),
         options={"queue": CELERY_QUEUES.get("tasks", "TASK QUEUE UNDEFINED")},
     )
@@ -1216,7 +1225,7 @@ def rebuild_nonuniqueterm_index_task(self) -> dict:
     return {"count": count}
 
 
-@app.task(name="linker.process_ambiguous_resolution")
+@app.task(name="linker.process_ambiguous_resolution", ignore_result=True)
 def process_ambiguous_resolution(resolution_data: dict) -> None:
     """
     Process an ambiguous resolution from LinkerOutput.
@@ -1282,7 +1291,7 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
     logger.info("=====================================")
 
 
-@app.task(name="linker.process_non_segment_resolution")
+@app.task(name="linker.process_non_segment_resolution", ignore_result=True)
 def process_non_segment_resolution(resolution_data: dict) -> None:
     """
     Process a non-segment-level resolution from LinkerOutput.

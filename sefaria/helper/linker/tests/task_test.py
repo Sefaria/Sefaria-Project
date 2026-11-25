@@ -11,21 +11,25 @@ from sefaria.helper.linker.tasks import _extract_resolved_spans, _get_link_trefs
 from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.ref_resolver import ResolvedRef
 
+pytestmark = pytest.mark.needs_linker
+
 
 @pytest.mark.parametrize(
-    "trefs_found,existing_linked_trefs,all_linked_trefs,expected_add,expected_delete,test_id",
+    "added,existing,other,expected_add,expected_delete,test_id",
     [
         # Empty sets
         (set(), set(), set(), set(), set(), "all_empty"),
         # Adding new refs
         ({"Genesis 1:1", "Exodus 2:3"}, set(), set(), {"Genesis 1:1", "Exodus 2:3"}, set(), "add_new_refs"),
         # No additions when already linked
-        ({"Genesis 1:1", "Exodus 2:3"}, set(), {"Genesis 1:1", "Exodus 2:3"}, set(), set(), "already_linked"),
+        pytest.param(
+            {"Genesis 1:1", "Exodus 2:3"}, {"Genesis 1:1", "Exodus 2:3"}, set(), set(), set(), "already_linked"
+        ),
         # Partial additions
         (
             {"Genesis 1:1", "Exodus 2:3", "Leviticus 3:4"},
-            set(),
             {"Genesis 1:1"},
+            set(),
             {"Exodus 2:3", "Leviticus 3:4"},
             set(),
             "partial_add",
@@ -63,16 +67,16 @@ from sefaria.model.linker.ref_resolver import ResolvedRef
         # Complex scenarios
         (
             {"Genesis 1:1", "Exodus 2:3", "Leviticus 3:4"},
-            {"Leviticus 3:4", "Numbers 4:5", "Deuteronomy 5:6"},
-            {"Leviticus 3:4", "Genesis 1:1"},
+            {"Leviticus 3:4", "Genesis 1:1", "Numbers 4:5", "Deuteronomy 5:6"},
+            {"Leviticus 3:4"},
             {"Exodus 2:3"},
             {"Numbers 4:5", "Deuteronomy 5:6"},
             "complex_overlapping",
         ),
         (
             {"Genesis 1:1", "Exodus 2:3"},
-            {"Leviticus 3:4", "Numbers 4:5"},
             {"Genesis 1:1", "Exodus 2:3", "Leviticus 3:4", "Numbers 4:5"},
+            {"Leviticus 3:4", "Numbers 4:5"},
             set(),
             set(),
             "all_preserved",
@@ -87,11 +91,9 @@ from sefaria.model.linker.ref_resolver import ResolvedRef
         ),
     ],
 )
-def test_link_trefs_operations(
-    trefs_found, existing_linked_trefs, all_linked_trefs, expected_add, expected_delete, test_id
-):
+def test_link_trefs_operations(added, existing, other, expected_add, expected_delete, test_id):
     """Test various scenarios for adding and deleting link trefs"""
-    to_add, to_delete = _get_link_trefs_to_add_and_delete(trefs_found, existing_linked_trefs, all_linked_trefs)
+    to_add, to_delete = _get_link_trefs_to_add_and_delete(added, existing, other)
 
     assert to_add == expected_add, f"Failed for test: {test_id}"
     assert to_delete == expected_delete, f"Failed for test: {test_id}"
@@ -132,3 +134,54 @@ def test_extract_resolved_spans_end_paren(doc_text, span_text, tref):
     assert spans[0]["text"] == resolved_ref.pretty_text
     start, end = spans[0]["charRange"]
     assert doc_text[start:end] == resolved_ref.pretty_text
+
+
+def test_fire_and_forget_tasks_do_not_store_results():
+    """
+    These tasks return None and nothing reads their result, so storing one only adds a Redis SET (and its
+    later expiry DEL) per call to the AOF.
+    """
+    from sefaria.helper.linker.tasks import (
+        link_segment_with_worker_ignore_result,
+        process_ambiguous_resolution,
+        process_non_segment_resolution,
+    )
+    from sefaria.helper.llm.tasks.sheet_scoring import save_sheet_scoring
+
+    assert process_ambiguous_resolution.ignore_result is True
+    assert process_non_segment_resolution.ignore_result is True
+    assert save_sheet_scoring.ignore_result is True
+    assert link_segment_with_worker_ignore_result.ignore_result is True
+
+
+def test_tasks_whose_result_is_read_keep_storing_it():
+    """
+    Do not add ignore_result to these: their task id is returned to a client that polls the task status
+    (rerun_linker_for_segment, generate_topic_prompts_api), or their result is awaited with .get()
+    (find-refs, parse-citation), and an ignored result would leave the task PENDING forever.
+    """
+    from sefaria.helper.linker.tasks import find_refs_api_task, link_segment_with_worker, parse_linker_citation_task
+    from sefaria.helper.llm.tasks.topic_prompts import save_topic_prompts
+
+    assert not link_segment_with_worker.ignore_result
+    assert not find_refs_api_task.ignore_result
+    assert not parse_linker_citation_task.ignore_result
+    assert not save_topic_prompts.ignore_result
+
+
+def test_enqueue_linking_chain_routes_by_store_result(monkeypatch):
+    from sefaria.helper.linker import tasks
+
+    names = []
+
+    class FakeSig:
+        def apply_async(self):
+            return "async_result"
+
+    monkeypatch.setattr(tasks, "signature", lambda name, **kw: names.append(name) or FakeSig())
+    args = tasks.LinkingArgs(ref="Genesis 1:1", text="t", lang="en", vtitle="v", user_id=None, kwargs={})
+
+    tasks.enqueue_linking_chain(args)
+    tasks.enqueue_linking_chain(args, store_result=False)
+
+    assert names == ["linker.link_segment_with_worker", "linker.link_segment_with_worker_ignore_result"]

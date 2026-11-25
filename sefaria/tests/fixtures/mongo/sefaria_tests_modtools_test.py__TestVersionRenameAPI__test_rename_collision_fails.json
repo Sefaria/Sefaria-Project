@@ -1,0 +1,709 @@
+{
+  "collections": {
+    "texts": [
+      {
+        "_id": {
+          "$oid": "50341dcd1b9f44b42c1f1ead"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "http://opensiddur.org/2010/08/%D7%AA%D7%A0%D7%B4%D7%9A-the-holy-scriptures-a-new-translation-jps-1917/",
+        "versionTitle": "The Holy Scriptures: A New Translation (JPS 1917)"
+      },
+      {
+        "_id": {
+          "$oid": "5141fde8f8af4f5062356f14"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://www.sefaria.org",
+        "versionTitle": "Sefaria Community Translation"
+      },
+      {
+        "_id": {
+          "$oid": "51c0cea28799930990f63daa"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "http://opensiddur.org/translations/jewish-english-torah/",
+        "versionTitle": "Jewish English Torah"
+      },
+      {
+        "_id": {
+          "$oid": "51f590198799930990f63fd1"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "http://modernizedtanakh.blogspot.com",
+        "versionTitle": "Modernized Tanakh - Based on JPS 1917, Edited by Adam Cohn"
+      },
+      {
+        "_id": {
+          "$oid": "5497026bfbfba238003b8c14"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "languageFamilyName": "hebrew",
+        "title": "Genesis",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Ta'amei Hamikra"
+      },
+      {
+        "_id": {
+          "$oid": "5497c04afbfba238003bfa1b"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "languageFamilyName": "hebrew",
+        "title": "Genesis",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Text Only"
+      },
+      {
+        "_id": {
+          "$oid": "5497c1cefbfba238003c54f9"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "languageFamilyName": "hebrew",
+        "title": "Genesis",
+        "versionSource": "http://www.tanach.us/Tanach.xml",
+        "versionTitle": "Tanach with Nikkud"
+      },
+      {
+        "_id": {
+          "$oid": "549c206ffbfba238003cb8a2"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "french",
+        "title": "Genesis",
+        "versionSource": "http://nachouraqui.tripod.com/id83.htm",
+        "versionTitle": "La bible d'Andr\u00e9 Chouraqui [fr]"
+      },
+      {
+        "_id": {
+          "$oid": "55a3aae7fbfba277e99701e5"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "http://www.sefaria.org/shraga-silverstein",
+        "versionTitle": "The Rashi chumash by Rabbi Shraga Silverstein"
+      },
+      {
+        "_id": {
+          "$oid": "5673548ad6e4a902b90a3ee4"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "finnish",
+        "title": "Genesis",
+        "versionSource": "https://www.sefaria.org",
+        "versionTitle": "Suomi K\u00e4\u00e4nn\u00f6s [fi]"
+      },
+      {
+        "_id": {
+          "$oid": "5676906fd6e4a93a4879f8cb"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "finnish",
+        "title": "Genesis",
+        "versionSource": "https://www.sefaria.org",
+        "versionTitle": "Suomi K\u00e4\u00e4nn\u00f6s By Ezra Lindholm [fi]"
+      },
+      {
+        "_id": {
+          "$oid": "56ee4b6cd6e4a969cc53cc40"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://www.sefaria.org",
+        "versionTitle": "Rabbi Mike Feuer, Jerusalem Anthology"
+      },
+      {
+        "_id": {
+          "$oid": "5762addbd6e4a96dfa6efea8"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "french",
+        "title": "Genesis",
+        "versionSource": "http://www.mechon-mamre.org/f/ft/ft0.htm",
+        "versionTitle": "Traduction fran\u00e7aise sous la direction du Grand-Rabbin Zadoc Kahn [fr]"
+      },
+      {
+        "_id": {
+          "$oid": "581555f9d6e4a931092b0844"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "spanish",
+        "title": "Genesis",
+        "versionSource": "La Tor\u00e1 Con Rashi",
+        "versionTitle": "El Pentateuco Con El Comentario de Rab\u00ed Shelom\u00f3 Itzjak\u00ed (Rash\u00ed) [es]"
+      },
+      {
+        "_id": {
+          "$oid": "58cf4499d6e4a9516c3eb3f2"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "portuguese",
+        "title": "Genesis",
+        "versionSource": "https://www.bibliaonline.com.br/tb/gn/3",
+        "versionTitle": "Sociedade Biblica Brit\u00e2nica [pt]"
+      },
+      {
+        "_id": {
+          "$oid": "58d721e9d6e4a953b19a0052"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "portuguese",
+        "title": "Genesis",
+        "versionSource": "Biblia Judaica Completa",
+        "versionTitle": "BJC - [pt]"
+      },
+      {
+        "_id": {
+          "$oid": "590ea3efd6e4a92a514800cd"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "he",
+        "languageFamilyName": "yiddish",
+        "title": "Genesis",
+        "versionSource": "http://opensiddur.org/praxes/study/yehoyeshs-yiddish-translation-of-the-tanakh/",
+        "versionTitle": "Yehoyesh's Yiddish Tanakh Translation [yi]"
+      },
+      {
+        "_id": {
+          "$oid": "59389daed6e4a96d139c6c77"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "german",
+        "title": "Genesis",
+        "versionSource": "Translated on the fly on sefaria in german. (still in progress)",
+        "versionTitle": "Deutsche Torah \u00dcbersetzung - William Grayson - 2017 (zur freien Verwendung) [de]"
+      },
+      {
+        "_id": {
+          "$oid": "5a15482dd6e4a92409ac58e0"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "portuguese",
+        "title": "Genesis",
+        "versionSource": "https://www.sefaria.org",
+        "versionTitle": "Sefaria Community Translation [pt]"
+      },
+      {
+        "_id": {
+          "$oid": "5a154a7cd6e4a92409ac59f8"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "finnish",
+        "title": "Genesis",
+        "versionSource": "https://www.sefaria.org",
+        "versionTitle": "Sefaria Community Translation [fi]"
+      },
+      {
+        "_id": {
+          "$oid": "5a4defbcd6e4a94103944cc5"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://www.korenpub.com/koren_en_usd/koren/tanakh-bible/the-koren-jerusalem-bible.html",
+        "versionTitle": "The Koren Jerusalem Bible"
+      },
+      {
+        "_id": {
+          "$oid": "5acb3e56d6e4a954dcda6cc0"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "french",
+        "title": "Genesis",
+        "versionSource": "https://fr.wikisource.org/wiki/Bible_du_Rabbinat_1899",
+        "versionTitle": "Bible du Rabbinat 1899 [fr]"
+      },
+      {
+        "_id": {
+          "$oid": "5af81f505f01ed0017678c1f"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002691623",
+        "versionTitle": "Metsudah Chumash, Metsudah Publications, 2009 [with Onkelos translation]"
+      },
+      {
+        "_id": {
+          "$oid": "5af846908012b100176eac4c"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002691623",
+        "versionTitle": "Metsudah Chumash, Metsudah Publications, 2009"
+      },
+      {
+        "_id": {
+          "$oid": "5bc3b938aace600018d2ebe0"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "russian",
+        "title": "Genesis",
+        "versionSource": "https://torah.ru/article/339/",
+        "versionTitle": "\u041f\u0435\u0440\u0435\u0432\u043e\u0434 \u0441 \u0438\u0432\u0440\u0438\u0442\u0430 \u0414\u0430\u0432\u0438\u0434\u0430 \u0421\u0430\u0444\u0440\u043e\u043d\u043e\u0432\u0430 \u043f\u043e\u0434 \u0440\u0435\u0434\u0430\u043a\u0446\u0438\u0435\u0439 \u0410\u043d\u0434\u0440\u0435\u044f \u0413\u0440\u0430\u0444\u043e\u0432\u0430 [ru]"
+      },
+      {
+        "_id": {
+          "$oid": "5d1393eab1d3ae0018b666ee"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://www.churchofjesuschrist.org/study/scriptures/ot/gen/1?lang=eng",
+        "versionTitle": "THE OLD TESTAMENT TRANSLATED OUT OF THE ORIGINAL TONGUES: AND WITH THE FORMER TRANSLATIONS DILIGENTLY COMPARED AND REVISED, BY HIS MAJESTY\u2019S SPECIAL COMMAND  AUTHORIZED KING JAMES VERSION  "
+      },
+      {
+        "_id": {
+          "$oid": "5da73dd5ba8ad387e0b43108"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "german",
+        "title": "Genesis",
+        "versionSource": "https://www.talmud.de/tlmd/creative-commons/arbeit-mit-transkribus/raschitest/",
+        "versionTitle": "Die f\u00fcnf B\u00fccher Moses, trans. Dr. J. Wohlgemuth, R\u00f6delheim 1899 [de]"
+      },
+      {
+        "_id": {
+          "$oid": "5ddb9ae1d3856202cc7f672e"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "german",
+        "title": "Genesis",
+        "versionSource": "https://www.talmud.de/tlmd/tanach/",
+        "versionTitle": "Der Pentateuch, \u00fcbersetzt und erl\u00e4utert von Samson Raphael Hirsch. Frankfurt am Main, 1867-1878 [de]"
+      },
+      {
+        "_id": {
+          "$oid": "5e1aac768c417f2d775f3c0c"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "esperanto",
+        "title": "Genesis",
+        "versionSource": "https://eo.wikisource.org/wiki/Malnova_Testamento_(Zamenhof)/Genezo/5",
+        "versionTitle": "La Malnova Testamento, L.L.Zamenhof [eo]"
+      },
+      {
+        "_id": {
+          "$oid": "5e1c56a819a27ac269bd0d97"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001969090/NLI",
+        "versionTitle": "Torah Yesharah, translated and edited by Chas. Kahane. New York, 1963"
+      },
+      {
+        "_id": {
+          "$oid": "5e2ecbca51179b71a0ce034e"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "italian",
+        "title": "Genesis",
+        "versionSource": "http://www.archivio-torah.it",
+        "versionTitle": "Il Pentateuco. Traduzione italiana di Samuel David Luzzatto, 1872 [it]"
+      },
+      {
+        "_id": {
+          "$oid": "5e36b27effb2000f4de049dd"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "polish",
+        "title": "Genesis",
+        "versionSource": "http://bibliepolskie.pl/",
+        "versionTitle": "Bible in Polish, trans. Izaak Cylkow, 1841 - 1908 [pl]"
+      },
+      {
+        "_id": {
+          "$oid": "5e8c61e13b9a2e9c687e9022"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "he",
+        "languageFamilyName": "persian",
+        "title": "Genesis",
+        "versionSource": "http://www.iranjewish.com/Torah/bereshit.htm",
+        "versionTitle": "Persian translation by Mashallah Rahman Pour Davud and Hakham Musa Zargari, Otzar haTorah, 1985 [fa]"
+      },
+      {
+        "_id": {
+          "$oid": "5ffdafc1ad309a06c4bea14a"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "languageFamilyName": "hebrew",
+        "title": "Genesis",
+        "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
+        "versionTitle": "Miqra according to the Masorah"
+      },
+      {
+        "_id": {
+          "$oid": "606f0449e47a19b731a06e0c"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://jps.org/books/tanakh-the-holy-scriptures-blue/",
+        "versionTitle": "Tanakh: The Holy Scriptures, published by JPS"
+      },
+      {
+        "_id": {
+          "$oid": "619371d52c3c2f9e5ef0d85a"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "french",
+        "title": "Genesis",
+        "versionSource": "https://www.levangile.com/Bible-CAH-1-1-1-complet-Contexte-oui.htm",
+        "versionTitle": "La Bible, Traduction Nouvelle, Samuel Cahen, 1831 [fr]"
+      },
+      {
+        "_id": {
+          "$oid": "61b9f59c6a0fe830ca4b058e"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "spanish",
+        "title": "Genesis",
+        "versionSource": "https://www.sefaria.org",
+        "versionTitle": "Sefaria Community Translation [es]"
+      },
+      {
+        "_id": {
+          "$oid": "61e6d04ab9f30f2c5653dd23"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "ladino",
+        "title": "Genesis",
+        "versionSource": "http://folkmasa.org/av/biblial.htm",
+        "versionTitle": "Trazladado en la lingua Espanyola, Estamperia de A. H. Boyadjian, Konstantinopla 1873. Transkrito por Yehuda Sidi, 2021 [lad]"
+      },
+      {
+        "_id": {
+          "$oid": "6203599f14945149881d9abe"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002529489/NLI",
+        "versionTitle": "The Contemporary Torah, Jewish Publication Society, 2006"
+      },
+      {
+        "_id": {
+          "$oid": "62e5245ee7caf937d6f5cf62"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "he",
+        "languageFamilyName": "persian",
+        "title": "Genesis",
+        "versionSource": "translated by comparison between Hebrew and English translations on this site ",
+        "versionTitle": "benjamin derhambakhsh 2022 [fa]"
+      },
+      {
+        "_id": {
+          "$oid": "6497952c443d4751844edbf1"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "The Philosophical Tanakh - Pieter Kriel",
+        "versionTitle": "The Philosophical Tanakh "
+      },
+      {
+        "_id": {
+          "$oid": "64b0410ae7521796bd7e028f"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "he",
+        "languageFamilyName": "italic",
+        "title": "Genesis",
+        "versionSource": "https://digital.bodleian.ox.ac.uk/objects/cb6ea495-383b-491a-af36-43a370994520/surfaces/c5abdda3-e138-42dd-a37c-b3c929f75a43/#",
+        "versionTitle": "Judeo-Italian Pentateuch transcribed by Robbie Kramm [itk]"
+      },
+      {
+        "_id": {
+          "$oid": "64ffc4addeea356152530665"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "portuguese",
+        "title": "Genesis",
+        "versionSource": "Tanach Completo em Portugu\u00eas",
+        "versionTitle": "Tanach Completo em Portugu\u00eas [pt]"
+      },
+      {
+        "_id": {
+          "$oid": "6514324e58139e9e128c62a6"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "he",
+        "languageFamilyName": "hebrew",
+        "title": "Genesis",
+        "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A7%D7%A8%D7%90_%D7%9E%D7%91%D7%95%D7%90%D7%A8",
+        "versionTitle": "Miqra Mevoar, trans. and edited by David Kokhav, Jerusalem 2020"
+      },
+      {
+        "_id": {
+          "$oid": "65152b796f6b5876d67ebce9"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://jps.org/books/the-jps-tanakh-gender-sensitive-edition/",
+        "versionTitle": "THE JPS TANAKH: Gender-Sensitive Edition"
+      },
+      {
+        "_id": {
+          "$oid": "65559ef0e049b1b77a7da7e1"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "The Ferrara Bible (1553)",
+        "versionTitle": "Biblia de Ferrara [lad]"
+      },
+      {
+        "_id": {
+          "$oid": "656dd92d023230c8f33aaed9"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "russian",
+        "title": "Genesis",
+        "versionSource": "https://dadada.live/books",
+        "versionTitle": "Russian Torah translation, by Dmitri Slivniak, Ph.D., edited by Dr. Itzhak Streshinsky. Da Project, 2011 [ru]"
+      },
+      {
+        "_id": {
+          "$oid": "66a914b1c16a19ac0ca182a0"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "Tora ve Aftara, Mo\u015fe Farsi",
+        "versionTitle": "Tora ve Aftara [tr]"
+      },
+      {
+        "_id": {
+          "$oid": "66a916909bf54f9196873bdc"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "http://toraoku.com",
+        "versionTitle": "Turkish Torah Translation by Moshe Farsi [tr]"
+      },
+      {
+        "_id": {
+          "$oid": "66f4678e7774b58d0b1b99c3"
+        },
+        "chapter": [],
+        "isPrimary": true,
+        "isSource": true,
+        "language": "he",
+        "languageFamilyName": "hebrew",
+        "title": "Genesis",
+        "versionSource": "Myself",
+        "versionTitle": "Yiddish Translation [YI]"
+      },
+      {
+        "_id": {
+          "$oid": "672d2a6907980353f5adf211"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "he",
+        "languageFamilyName": "hebrew",
+        "title": "Genesis",
+        "versionSource": "https://hebrewbooks.org/44090",
+        "versionTitle": "Tanakh in Yiddish. Translated by Ch. Neuhausen, A. Hyman Charlap; NY 1914 [yi]"
+      },
+      {
+        "_id": {
+          "$oid": "672dde7da8245850d0a6c08b"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "portuguese",
+        "title": "Genesis",
+        "versionSource": "Chavruta Chats Tradu\u00e7\u00f5es",
+        "versionTitle": "Publicado em 5784, Saymon Pires da Silva [pt]"
+      },
+      {
+        "_id": {
+          "$oid": "67b1eb7ac8e06d6eac797f3f"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "english",
+        "title": "Genesis",
+        "versionSource": "https://bac-lac.on.worldcat.org/oclc/1410394504",
+        "versionTitle": "Tora \u00een rom\u00e2n\u0103 \u2013 tradus\u0103 de rabin \u0218lomo Sorin Rosen, 2023 [ro]"
+      },
+      {
+        "_id": {
+          "$oid": "6a9e5f12d1af70418ebebf0e"
+        },
+        "chapter": [],
+        "isPrimary": false,
+        "isSource": false,
+        "language": "en",
+        "languageFamilyName": "spanish",
+        "title": "Genesis",
+        "versionSource": "https://serjudio.com",
+        "versionTitle": "Tanaj Espa\u00f1ol, trans. Rav Yehuda Ribco, 2026 [es]"
+      }
+    ]
+  },
+  "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_collision_fails"
+}

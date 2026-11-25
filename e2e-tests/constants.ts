@@ -145,8 +145,8 @@ export const MODULE_SELECTORS = {
 // name (a separate `<strong>` item) and the Site Language toggle (not a dropdownItem) are
 // intentionally excluded — these are the deterministic, language-invariant nav items.
 export const USER_MENU_ITEMS = {
-  LIBRARY_LOGGED_IN: ['Account Settings', 'Torah Tracker', 'New Additions', 'Help', 'Log Out'],
-  VOICES_LOGGED_IN: ['Profile', 'Saved', 'History', 'Account Settings', 'Help', 'Log Out'],
+  LIBRARY_LOGGED_IN: ['Settings', 'Torah Tracker', 'New Additions', 'Help', 'Log Out'],
+  VOICES_LOGGED_IN: ['Profile', 'Saved', 'History', 'Settings', 'Help', 'Log Out'],
 } as const;
 
 // Reader and text selectors

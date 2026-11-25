@@ -2,6 +2,8 @@ import pytest
 
 from sefaria.model.linker.named_entity_resolver import PersonTitleGenerator
 
+pytestmark = pytest.mark.needs_linker
+
 
 @pytest.mark.parametrize(
     ("title", "expected_output"),
