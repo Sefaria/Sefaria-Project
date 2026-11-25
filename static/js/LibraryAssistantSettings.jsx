@@ -429,10 +429,10 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
   // The last instructions text put on the queue (not the last one acknowledged): a save is queued whenever the
   // field differs from it, which includes going back to the acknowledged text while a write is still out.
   const queuedDraft = useRef('');
-  // Called when the tab goes away. Unmount queues a normal write behind any outstanding ones (the queue outlives
-  // the component). pagehide sends with keepalive: straight away if nothing is outstanding, otherwise queued behind
-  // the writes that are. Residual: on a full page unload with a write still outstanding, the last edit may be
-  // lost; doing better needs server-side revisions. Kept in a ref so it sees the latest props.
+  // Called when the tab goes away: a write of unqueued text goes behind any outstanding ones (the queue outlives
+  // the component). Every instructions write is keepalive, so one already running survives unload. Residual: on a
+  // full page unload, a write still waiting in the queue may never be sent; doing better needs server-side
+  // revisions. Kept in a ref so it sees the latest props.
   const teardownSave = useRef(() => {});
   teardownSave.current = (keepalive) => {
     clearTimeout(saveTimer.current);
@@ -496,7 +496,7 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
       } finally {
         if (saves) outstanding.current -= 1;
         if (mounted.current) setInFlight((n) => Math.max(0, n - 1));
-        if (saves) onSaving(-1, ok ? 'ok' : 'fail');
+        if (saves) onSaving(-1, ok ? 'ok' : 'fail', action);
       }
     },
     [base, token, mock, onSaving]
@@ -549,7 +549,9 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
   // its text to be queued again.
   const enqueueDraft = async (text, sendOpts) => {
     queuedDraft.current = text;
-    const res = await act('set_instructions', { text }, isState, undefined, sendOpts);
+    // Every instructions write is keepalive (the text is at most MAX_TEXT characters), so one still running when
+    // the page unloads is not cancelled.
+    const res = await act('set_instructions', { text }, isState, undefined, { ...sendOpts, keepalive: true });
     if (res) savedDraft.current = text;
     else if (queuedDraft.current === text) queuedDraft.current = savedDraft.current;
   };
@@ -688,7 +690,8 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
               fieldAddon={<Counter length={editRequest.length} />}
               onChange={(e) => setEditRequest(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                // Not the Enter that confirms an IME composition
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
                   e.preventDefault();
                   sendEdit();
                 }
@@ -880,12 +883,17 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
   useEffect(() => {
     if (!inFlight.current) setAssistantOn(!!props.libraryAssistantEnabled);
   }, [props.libraryAssistantEnabled]);
-  // `result`: 'ok' or 'fail' when a save ends. The header shows the last save's result.
-  const onSaving = useCallback((delta, result) => {
+  // `result`: 'ok' or 'fail' when a save of `kind` (the action) ends. The header says "Changes saved" only when no
+  // kind's latest save failed: a later toggle that succeeds does not hide unsaved instructions.
+  const failedKinds = useRef(new Set());
+  const onSaving = useCallback((delta, result, kind = 'other') => {
     // A write queued at unmount finishes after the tab is gone.
     if (!tabMounted.current) return;
     setPending((n) => Math.max(0, n + delta));
-    if (result) setSaved(result);
+    if (!result) return;
+    if (result === 'fail') failedKinds.current.add(kind);
+    else failedKinds.current.delete(kind);
+    setSaved(failedKinds.current.size ? 'fail' : 'ok');
   }, []);
 
   // The assistant's on/off is a Sefaria profile setting. It saves at once, with no page reload (Penina, 2026-11-19).
@@ -904,7 +912,7 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
     onSaving(1);
     const fail = () => {
       inFlight.current = false;
-      onSaving(-1, 'fail');
+      onSaving(-1, 'fail', 'assistant');
       if (!tabMounted.current) return;
       setAssistantOn(!on);
       setSettingError(STRINGS.settingFailed);
@@ -922,7 +930,7 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
           return;
         }
         inFlight.current = false;
-        onSaving(-1, 'ok');
+        onSaving(-1, 'ok', 'assistant');
         if (props.onAssistantChanged) props.onAssistantChanged(on);
       }
     );

@@ -519,7 +519,7 @@ describe('LibraryAssistantSettings', () => {
       await act(async () => calls[0].answer(text('A')));
       await settle();
       expect(calls.map((c) => c.body.text)).toEqual(['A', 'AB']);
-      expect(calls[1].init.keepalive).toBeFalsy();
+      expect(calls[1].init.keepalive).toBe(true);
       await act(async () => calls[1].answer(text('AB')));
       await settle();
       expect(calls).toHaveLength(2);
@@ -625,6 +625,44 @@ describe('LibraryAssistantSettings', () => {
     expect(q('#laEdit').value).toBe('make it shorter, and warmer');
   });
 
+  it('does not send the edit on the Enter that confirms an IME composition', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: '# A\nB' } })));
+    await render();
+    await type(q('#laEdit'), 'קצר יותר');
+    await act(async () => Simulate.keyDown(q('#laEdit'), { key: 'Enter', keyCode: 229 }));
+    await act(async () => Simulate.keyDown(q('#laEdit'), { key: 'Enter', nativeEvent: { isComposing: true } }));
+    await flush();
+    expect(actions()).not.toContain('edit_profile');
+    await act(async () => Simulate.keyDown(q('#laEdit'), { key: 'Enter' }));
+    await flush();
+    expect(actions()).toContain('edit_profile');
+  });
+
+  it('keeps Changes not saved while Instructions are unsaved, even after another save succeeds', async () => {
+    await render();
+    await type(q('#laInstructionsText'), 'Short answers.');
+    global.fetch.mockImplementation(() => reply({}, 500));
+    await act(async () => Simulate.blur(q('#laInstructionsText')));
+    await flush();
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+    global.fetch.mockImplementation(() => reply(state()));
+    await check(q('#laProfile'), false);
+    await flush();
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+    await act(async () => Simulate.blur(q('#laInstructionsText')));
+    await flush();
+    expect(q('.laSaveStatus').textContent).toBe('Changes saved');
+  });
+
+  it('sends every Instructions write with keepalive, so one running at unload is not cancelled', async () => {
+    await render();
+    const before = global.fetch.mock.calls.length;
+    await type(q('#laInstructionsText'), 'Short answers.');
+    await act(async () => Simulate.blur(q('#laInstructionsText')));
+    await flush();
+    expect(global.fetch.mock.calls[before][1].keepalive).toBe(true);
+  });
+
   it('clears the edit field after an edit when it still holds what was sent', async () => {
     global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: '# A\nB' } })));
     await render();
@@ -670,7 +708,7 @@ describe('LibraryAssistantSettings', () => {
     unmount();
     expect(global.fetch.mock.calls.length).toBe(before + 1);
     expect(sent(before)).toEqual({ userId: 'tok', action: 'set_instructions', text: 'Short answers.' });
-    expect(global.fetch.mock.calls[before][1].keepalive).toBeFalsy();
+    expect(global.fetch.mock.calls[before][1].keepalive).toBe(true);
   });
 
   it('sends Instructions still waiting to save on pagehide, once, with keepalive', async () => {
