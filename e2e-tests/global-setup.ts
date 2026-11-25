@@ -37,6 +37,8 @@ const userGroups: { credentials: Credentials; profiles: Profile[]; label: string
   { label: 'testUser',      credentials: creds('PLAYWRIGHT_USER_EMAIL', 'PLAYWRIGHT_USER_PASSWORD'),           profiles: [BROWSER_SETTINGS.enUser,   BROWSER_SETTINGS.heUser],  site: 'EN' },
   { label: 'testAdminUser', credentials: creds('PLAYWRIGHT_SUPERUSER_EMAIL', 'PLAYWRIGHT_SUPERUSER_PASSWORD'), profiles: [BROWSER_SETTINGS.enAdmin,  BROWSER_SETTINGS.heAdmin], site: 'EN' },
   { label: 'testLAUser',    credentials: creds('PLAYWRIGHT_LA_USER_EMAIL', 'PLAYWRIGHT_LA_USER_PASSWORD'),     profiles: [BROWSER_SETTINGS.enLAUser], site: 'EN' },
+  { label: 'testDevUser',    credentials: creds('PLAYWRIGHT_DEV_USER_EMAIL', 'PLAYWRIGHT_DEV_USER_PASSWORD'),   profiles: [BROWSER_SETTINGS.enDevUser, BROWSER_SETTINGS.heDevUser], site: 'EN' },
+  { label: 'testDevNewUser', credentials: creds('PLAYWRIGHT_DEV_NEW_USER_EMAIL', 'PLAYWRIGHT_DEV_NEW_USER_PASSWORD'), profiles: [BROWSER_SETTINGS.enDevNewUser], site: 'EN' },
   { label: 'testHeLAUser',  credentials: creds('PLAYWRIGHT_LA_USER_HE_EMAIL', 'PLAYWRIGHT_LA_USER_HE_PASSWORD'), profiles: [BROWSER_SETTINGS.heLAUser], site: 'IL' },
 ];
 

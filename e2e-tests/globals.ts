@@ -45,6 +45,10 @@ export const AUTH_PATHS = {
     heUserFile: `auth_hebrew_user.json`,
     enLAUserFile: `auth_english_la_user.json`,
     heLAUserFile: `auth_hebrew_la_user.json`,
+    // Developer Settings stories (feature-specs/features/account/developer-settings-behavior-specs.feature)
+    enDevUserFile: `auth_english_dev_user.json`,
+    heDevUserFile: `auth_hebrew_dev_user.json`,
+    enDevNewUserFile: `auth_english_dev_new_user.json`,
 }
 
 export const BROWSER_SETTINGS = {
@@ -84,6 +88,23 @@ export const BROWSER_SETTINGS = {
         // Account is Django staff → the LA More-options menu shows the extra
         // "Settings" item (the chatbot's `is-moderator` branch).
         isModerator: true,
+    },
+    // Developer Settings stories. A staff account (staging runs Developer Settings staff-only)
+    // whose email is confirmed and whose developer profile is saved. The stories delete and
+    // re-create its projects and keys, so no other test may use it.
+    enDevUser: {
+        file: AUTH_PATHS.enDevUserFile,
+        lang: LANGUAGES.EN,
+    },
+    heDevUser: {
+        file: AUTH_PATHS.heDevUserFile,
+        lang: LANGUAGES.HE,
+    },
+    // A staff account with no developer profile and an unconfirmed email: the welcome screen
+    // and "Confirm your email". The stories never send it a real confirmation link.
+    enDevNewUser: {
+        file: AUTH_PATHS.enDevNewUserFile,
+        lang: LANGUAGES.EN,
     },
     // Logs in natively on the Hebrew (.org.il) domain — see global-setup.ts.
     heLAUser: {
