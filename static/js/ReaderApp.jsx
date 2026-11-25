@@ -46,6 +46,7 @@ import { io } from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { shouldUseEditor } from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
+import { LandyWelcome, shouldShowLandyWelcome, markLandyWelcomeSeen } from './LandyWelcome';
 import AuthPage from './auth/AuthPage';
 import SignupOptions from './auth/SignupOptions';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
@@ -148,6 +149,7 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      showLandyWelcome: false, // POC first-visit welcome; set after mount so SSR never renders it
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
@@ -292,6 +294,10 @@ class ReaderApp extends Component {
     }
 
     resumePendingAuthAttempt();
+    if (this.canUseChatbot() && shouldShowLandyWelcome()) {
+      markLandyWelcomeSeen();
+      this.setState({ showLandyWelcome: true });
+    }
     if (sessionStorage.getItem('sa.reader_app_mounted') === null) {
       sessionStorage.setItem('sa.reader_app_mounted', 'true');
       sa_event('reader_app_mounted');
@@ -1214,6 +1220,36 @@ class ReaderApp extends Component {
         modalContentKind: modalContentKind,
       });
     }
+  }
+
+  // Whether the Library Assistant is on this page. On phones the widget itself becomes a
+  // full-screen sheet, opened from its own button or the mobile menu. A logged-out visitor has no
+  // chatbot_user_token; chatbot_enabled alone decides. Not on the login and registration screens,
+  // which logged-out visitors reach from the assistant itself; it comes back once they leave them.
+  canUseChatbot() {
+    const chatbotHiddenByRemoteConfig = this.props.remoteConfig?.chatbot?.hide === 1;
+    return (
+      !!this.props.chatbot_enabled &&
+      Sefaria.activeModule === Sefaria.LIBRARY_MODULE &&
+      !this.state.showAuth &&
+      !chatbotHiddenByRemoteConfig
+    );
+  }
+
+  closeLandyWelcome() {
+    this.setState({ showLandyWelcome: false });
+  }
+
+  askLibraryAssistant(text, intent) {
+    // POC landy hands the welcome's prompt over both ways, and each widget takes only its own:
+    // the pinned ai-chatbot#228 preview takes a queued ask (on mount or on 'chatbot:ask'), with
+    // its intent; the production widget takes 'chatbot:open' with a question (no intent).
+    // Sent once the welcome (a modal <dialog>) is gone, so it doesn't hold focus from the assistant.
+    window.lcChatbotPendingAsk = { text, intent };
+    this.setState({ showLandyWelcome: false }, () => {
+      document.dispatchEvent(new Event('chatbot:ask'));
+      document.dispatchEvent(new CustomEvent('chatbot:open', { detail: { source: 'landy_welcome', question: text } }));
+    });
   }
 
   handleNavigationClick(ref, currVersions, options) {
@@ -2691,14 +2727,7 @@ class ReaderApp extends Component {
       widths = panelStates.map((panel) => evenWidth);
     }
 
-    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    const chatbotHiddenByRemoteConfig = this.props.remoteConfig?.chatbot?.hide === 1;
-    // On phones the widget itself becomes a full-screen sheet, opened from its own button or the mobile menu.
-    // A logged-out visitor has no chatbot_user_token; chatbot_enabled alone decides. Not on the
-    // login and registration screens, which logged-out visitors reach from the assistant itself;
-    // it comes back once they leave them.
-    const displayChatbot =
-      this.props.chatbot_enabled && isLibraryModule && !this.state.showAuth && !chatbotHiddenByRemoteConfig;
+    const displayChatbot = this.canUseChatbot();
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -2929,6 +2958,13 @@ class ReaderApp extends Component {
                   )}
                 </main>
                 {signUpModal}
+                {this.state.showLandyWelcome && (
+                  <LandyWelcome
+                    mobile={Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE}
+                    onAsk={this.askLibraryAssistant}
+                    onClose={this.closeLandyWelcome}
+                  />
+                )}
                 <CookiesNotification />
               </div>
               <BannerImpressionProbe />

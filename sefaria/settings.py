@@ -110,6 +110,9 @@ MCP_TOKEN_SECRET = os.getenv("MCP_TOKEN_SECRET") or None
 # comma-separated, matched exactly.
 MCP_AUTH_CALLBACK_URLS = [url.strip() for url in os.getenv("MCP_AUTH_CALLBACK_URLS", "").split(",") if url.strip()]
 CHATBOT_USE_LOCAL_SCRIPT = False
+# POC landy: the ai-chatbot PR preview used when no ?chatbot_version is set
+# (Sefaria/ai-chatbot#228, which adds host asks and 3 free anonymous answers). None = the default chatbot.
+CHATBOT_DEFAULT_VERSION = "228"
 
 TEMPLATES = [
     {

@@ -159,7 +159,7 @@ from sefaria.utils.calendars import (
     get_todays_calendar_items,
     parashat_hashavua_and_haftara,
 )
-from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.utils.chatbot import build_chatbot_user_token, resolve_chatbot_version
 from sefaria.utils.design_system import design_system_preview
 from sefaria.utils.domains_and_languages import (
     current_domain_lang,
@@ -387,9 +387,11 @@ def chatbot_access_props(request, profile):
 
 def requested_chatbot_version(request):
     """The chatbot preview build to use, or None. The query param wins over the session, so the
-    first visit with ?chatbot_version= already talks to that build's server (the context processor
-    saves it to the session only while the template renders, after these props are built)."""
-    chatbot_version = request.GET.get("chatbot_version", "").strip() or request.session.get("chatbot_version")
+    first visit with ?chatbot_version= already talks to that build's server (these props are built
+    before the context processor runs). POC landy: resolved exactly as the context processor
+    resolves the script, so with none requested both use the pinned preview,
+    settings.CHATBOT_DEFAULT_VERSION."""
+    chatbot_version = resolve_chatbot_version(request)
     return chatbot_version if is_int(chatbot_version) else None
 
 

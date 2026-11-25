@@ -2,7 +2,7 @@ import json
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from reader.conftest import create_test_user, make_profile_missing_la_setting, page_props, purge_test_profiles
 from reader.models import UserExperimentSettings, _set_user_experiments
@@ -346,6 +346,8 @@ class FloatingButtonHiddenTest(LibraryAssistantUserTestCase):
         self.assertIs(self.access_props()["chatbot_hide_launcher"], True)
 
 
+# POC landy pins a preview in settings.CHATBOT_DEFAULT_VERSION; these cases are about no pin.
+@override_settings(CHATBOT_DEFAULT_VERSION=None)
 class RequestedChatbotVersionTest(SimpleTestCase):
     def request(self, query="", session=None):
         from django.test import RequestFactory
@@ -376,3 +378,11 @@ class RequestedChatbotVersionTest(SimpleTestCase):
         self.assertIsNone(requested_chatbot_version(self.request("?chatbot_version=clear")))
         self.assertIsNone(requested_chatbot_version(self.request("?chatbot_version=abc")))
         self.assertIsNone(requested_chatbot_version(self.request()))
+
+    @override_settings(CHATBOT_DEFAULT_VERSION="228")
+    def test_pinned_preview_when_none_is_requested(self):
+        from reader.views import requested_chatbot_version
+
+        self.assertEqual(requested_chatbot_version(self.request()), "228")
+        self.assertEqual(requested_chatbot_version(self.request("?chatbot_version=clear")), "228")
+        self.assertEqual(requested_chatbot_version(self.request("?chatbot_version=303")), "303")

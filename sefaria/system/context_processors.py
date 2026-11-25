@@ -16,7 +16,7 @@ from sefaria.helper import library_assistant
 from sefaria.model import library
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.utils.chatbot import CLEAR_STORAGE_COOKIE
+from sefaria.utils.chatbot import CLEAR_STORAGE_COOKIE, resolve_chatbot_version
 from sefaria.utils.design_system import design_system_preview
 from sefaria.utils.util import is_int
 
@@ -152,17 +152,7 @@ def _chatbot_script_url_and_type(chatbot_version):
 
 @user_only
 def chatbot_user_token(request):
-    chatbot_version = request.GET.get("chatbot_version", "").strip()
-    # if chatbot_version add it to cookies so it can be used in subsequent requests
-    if chatbot_version:
-        if chatbot_version == "clear":
-            if "chatbot_version" in request.session:
-                del request.session["chatbot_version"]
-        else:
-            request.session["chatbot_version"] = chatbot_version
-    # if chatbot_version is not in request.GET, check if it's in session (from previous requests)
-    elif "chatbot_version" in request.session:
-        chatbot_version = request.session["chatbot_version"]
+    chatbot_version = resolve_chatbot_version(request)
 
     clearing = _chatbot_storage_clearing(request)
     if not library_assistant.is_enabled_for_user(request.user):
