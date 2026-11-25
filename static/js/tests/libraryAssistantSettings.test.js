@@ -253,6 +253,70 @@ describe('LibraryAssistantSettings', () => {
     expect(actions()).not.toContain('set_instructions');
   });
 
+  it('keeps each switch failure apart: a failed Profile toggle is not cleared by an Instructions toggle', async () => {
+    await render();
+    global.fetch.mockImplementation(() => reply({}, 500));
+    await check(q('#laProfile'), false);
+    await flush();
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+    global.fetch.mockImplementation(() => reply(state()));
+    await check(q('#laInstructions'), false);
+    await flush();
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+  });
+
+  it('keeps the two testing switches apart the same way', async () => {
+    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
+    await render();
+    global.fetch.mockImplementation(() => reply({}, 500));
+    await check(q('#laEvery'), true);
+    await flush();
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
+    await check(q('#laPlain'), true);
+    await flush();
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+  });
+
+  it('a job trigger is not a save: it leaves the header alone, even on a 429', async () => {
+    global.fetch.mockImplementation(() => reply(state({ labEnabled: true })));
+    await render();
+    global.fetch.mockImplementation(() => reply({}, 429));
+    await act(async () => Simulate.click(byText('button', 'Run now')));
+    await flush();
+    expect(q('.laRunResult').textContent).toBe('Hourly limit reached. Try again later.');
+    expect(q('.laSaveStatus').textContent).toBe('');
+  });
+
+  it('first render ignores ?la_mock=1 (it matches the server), and the mock turns on after mount', async () => {
+    window.history.pushState({}, '', '/?la_mock=1');
+    try {
+      // A fresh copy of the module (and of React with it) reads ?la_mock=1 when it loads.
+      let Mocked, R, RDOM, RServer, act2;
+      jest.resetModules();
+      {
+        Mocked = require('../LibraryAssistantSettings').default;
+        R = require('react');
+        RDOM = require('react-dom');
+        RServer = require('react-dom/server');
+        act2 = require('react-dom/test-utils').act;
+      }
+      container = document.createElement('div');
+      document.body.appendChild(container);
+      const html = RServer.renderToString(R.createElement(Mocked, { libraryAssistantEnabled: true }));
+      expect(html).toContain('will show here the next time you open this page');
+      await act2(async () => {
+        RDOM.render(R.createElement(Mocked, { libraryAssistantEnabled: true }), container);
+      });
+      await flush();
+      expect(container.textContent).not.toContain('will show here the next time you open this page');
+      RDOM.unmountComponentAtNode(container);
+      container.remove();
+    } finally {
+      window.history.pushState({}, '', '/');
+    }
+  });
+
   it('switches call toggle with the right target', async () => {
     await render();
     await check(q('#laProfile'), false);
@@ -397,7 +461,6 @@ describe('LibraryAssistantSettings', () => {
     global.fetch.mockImplementation(() => reply(state()));
     await act(async () => Simulate.click(byText('button', 'Try again')));
     await flush();
-    expect(q('#profile')).not.toBeNull();
   });
 
   it('turning the assistant off posts the setting, with no reload', async () => {

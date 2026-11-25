@@ -4987,6 +4987,8 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, chatb
   /* The Library Assistant tab saved the assistant's on/off: keep the cached settings (for Back/Forward and for a
      remount of the tab) in step with it. */
   const assistantChanged = (on) => {
+    // ReaderApp hides or shows the widget right away
+    if (chatbotProps && chatbotProps.onAssistantToggled) chatbotProps.onAssistantToggled(on);
     if (latestSettings.account) rememberAccountSettings({ libraryAssistantEnabled: on });
     // Between pagehide and resumeAccount the cache is held aside: a save that lands then must reach it too, or
     // resuming would put the old value back.
@@ -5283,6 +5285,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, chatb
     'library-assistant': (
       <LibraryAssistantSettings
         {...(chatbotProps || {})}
+        onAssistantToggled={undefined}
         libraryAssistantEnabled={!!settings.libraryAssistantEnabled}
         active={tab === 'library-assistant'}
         onAssistantChanged={assistantChanged}

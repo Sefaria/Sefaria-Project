@@ -123,6 +123,16 @@ describe('settings tabs', () => {
     expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('true');
   });
 
+  it('tells ReaderApp (chatbotProps.onAssistantToggled) when the assistant is switched, so the widget follows at once', async () => {
+    fakeServer();
+    const onAssistantToggled = jest.fn();
+    renderSettings('library-assistant', null, { chatbotProps: { chatbot_user_token: 'tok', onAssistantToggled } });
+    await click(screen.getByTestId('library-assistant-turn-on'));
+    expect(onAssistantToggled).toHaveBeenCalledWith(true);
+    inAct(() => global.laOnAssistantChanged(false));
+    expect(onAssistantToggled).toHaveBeenLastCalledWith(false);
+  });
+
   it('a save that lands between pagehide and resume is kept when the page resumes', async () => {
     fakeServer();
     renderSettings('library-assistant', {}, { chatbotProps: { chatbot_user_token: 'tok' } });

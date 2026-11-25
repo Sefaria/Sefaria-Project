@@ -208,7 +208,9 @@ export const shouldMock = (hostname, search) => {
   if (!MOCK_HOSTS.test(host)) return false;
   return new URLSearchParams(search).get('la_mock') === '1';
 };
-// Read once, when the script loads (unlike the hash): the app rewrites the address bar (dropping the query) before the tab renders.
+// Read once, when the script loads (unlike the hash): the app rewrites the address bar (dropping the query) before
+// the tab renders. It is only used through `useMock`, whose first render is always false: the server render has no
+// window, so a first render that read ?la_mock=1 would not match it (hydration).
 const MOCK = (() => {
   try {
     return shouldMock(window.location.hostname, window.location.search);
@@ -216,7 +218,14 @@ const MOCK = (() => {
     return false;
   }
 })();
-const isMock = () => MOCK;
+// Not a hook: a flag held in state, false on the first render and set after mount.
+const useMock = () => {
+  const [mock, setMock] = useState(false);
+  useEffect(() => {
+    if (MOCK) setMock(true);
+  }, []);
+  return mock;
+};
 // The chat's "Configure here" links to #personalization, "Learn more" to #about-personalization. Read when the
 // tab becomes active (and its data is loaded), so in-app navigation to the tab with a hash works too.
 const currentHash = () => {
@@ -402,8 +411,10 @@ const ClearDialog = ({ onClear, onCancel }) => {
 
 /* ---------- Personalization: Profile, Instructions, Testing tools ---------- */
 
-const Personalization = ({ base, token, off, onSaving, active }) => {
-  const mock = isMock();
+// The actions that write a setting or the profile.
+const SAVE_ACTIONS = new Set(['toggle', 'set_instructions', 'set_testing', 'clear_profile', 'edit_profile']);
+
+const Personalization = ({ base, token, off, onSaving, active, mock }) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [inFlight, setInFlight] = useState(0);
@@ -473,7 +484,17 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
   // Every action but the reads counts as a save for the header's status.
   const call = useCallback(
     async (action, body, accept = isState, onQuota, sendOpts = {}) => {
-      const saves = action !== 'get' && action !== 'health';
+      // Only real writes count as saves (header status, serial queue). Reads and job triggers (run_now, dream, ...)
+      // do not: a 429 on a trigger must not leave "Changes not saved".
+      const saves = SAVE_ACTIONS.has(action);
+      const saveKey =
+        action === 'toggle'
+          ? `toggle:${body && body.target}`
+          : action === 'set_testing'
+            ? `set_testing:${Object.keys(body || {})
+                .sort()
+                .join(',')}`
+            : action;
       if (mounted.current) {
         setError(null);
         setInFlight((n) => n + 1);
@@ -514,7 +535,7 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
       } finally {
         if (saves) outstanding.current -= 1;
         if (mounted.current) setInFlight((n) => Math.max(0, n - 1));
-        if (saves) onSaving(-1, ok ? 'ok' : 'fail', action);
+        if (saves) onSaving(-1, ok ? 'ok' : 'fail', saveKey);
       }
     },
     [base, token, mock, onSaving]
@@ -887,7 +908,8 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
 const LibraryAssistantSettings = ({ active = true, ...props }) => {
   const base = chatbotApiBaseUrl(props);
   const token = props.chatbot_user_token;
-  const hasAccess = isMock() || !!(token && base);
+  const mock = useMock();
+  const hasAccess = mock || !!(token && base);
   const [assistantOn, setAssistantOn] = useState(!!props.libraryAssistantEnabled);
   const [settingError, setSettingError] = useState(null);
   const [pending, setPending] = useState(0);
@@ -923,12 +945,14 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
   }, []);
 
   // The assistant's on/off is a Sefaria profile setting. It saves at once, with no page reload (Penina, 2026-11-19).
-  // ⚠ For engineering: the widget on the page, and the user token personalization needs, follow the setting only
-  // from the next page load. Turned on from off, this page has no token yet (see `onWithoutToken`).
+  // ⚠ For engineering: turning it off takes effect at once: `onAssistantChanged(false)` reaches ReaderApp, which
+  // hides the widget (and the LibraryAssistantContext). Turning it on shows the widget again only if the page was
+  // loaded with it, and the user token personalization needs arrives with the next page load: turned on from off,
+  // this page has no token yet (see `onWithoutToken`).
   // The switch stays clickable while it saves (Penina, 2026-11-25): a click during a save shows at once and is
   // sent when the running save ends, unless it puts back the value the server already has.
   const setAssistant = (on) => {
-    if (isMock()) {
+    if (mock) {
       setAssistantOn(on);
       setSaved('ok');
       return;
@@ -1023,7 +1047,7 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
             </p>
           </div>
           {hasAccess ? (
-            <Personalization base={base} token={token} off={off} onSaving={onSaving} active={active} />
+            <Personalization base={base} token={token} off={off} onSaving={onSaving} active={active} mock={mock} />
           ) : (
             <section className="laCard">
               <p className="laHint">
