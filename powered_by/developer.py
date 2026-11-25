@@ -452,7 +452,7 @@ def clean_profile(data):
         "notADeveloper": bool(data.get("notADeveloper")),
     }
     if not profile["termsAccepted"]:
-        raise InputError("Accept the API terms to continue.")
+        raise InputError("Accept the Terms of Use to continue.")
     if profile["additionalEmail"]:
         try:
             validate_email(profile["additionalEmail"])
@@ -785,7 +785,7 @@ def _check_project_limit(user):
     _lock_account(user)
     limit = max_projects(user)
     if owned_projects(user).count() >= limit:
-        raise InputError(f"An account can have at most {limit} projects. To add more, contact hello@sefaria.org.")
+        raise InputError(f"An account can have at most {limit} projects. To add more, contact developers@sefaria.org.")
 
 
 def _unpublish(profile):

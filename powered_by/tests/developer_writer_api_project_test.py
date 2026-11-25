@@ -24,6 +24,7 @@ PROJECT_KEYS = {
     "description",
     "organization",
     "websiteUrl",
+    "purpose",
     "visibility",
     "aiAssisted",
     "linkedListing",
