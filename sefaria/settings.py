@@ -371,6 +371,15 @@ DEVELOPER_SETTINGS_ENABLED = False
 # gets what they would with it off.
 DEVELOPER_SETTINGS_STAFF_ONLY = False
 
+# A read-back mailbox for end-to-end tests on staging (powered_by/e2e_mailbox.py): keeps a copy
+# of emails sent to addresses matching TEST_MAILBOX_ADDRESS_REGEX, served by
+# /api/test-mailbox/latest to requests carrying TEST_MAILBOX_TOKEN. Off unless both the flag and
+# the token are set.
+TEST_MAILBOX_ENABLED = os.getenv("TEST_MAILBOX_ENABLED", "false").lower() == "true"
+TEST_MAILBOX_TOKEN = os.getenv("TEST_MAILBOX_TOKEN") or None
+TEST_MAILBOX_ADDRESS_REGEX = os.getenv("TEST_MAILBOX_ADDRESS_REGEX") or r"@sefaria-e2e\.test$"
+TEST_MAILBOX_TTL_SECONDS = 60 * 60
+
 # Elasticsearch index names, defaulted here (before local_settings is imported) so that a
 # deployment whose local_settings.py predates one of these constants still boots. Without a
 # default, an omitted name is simply undefined, and `global_settings`
