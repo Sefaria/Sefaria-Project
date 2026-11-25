@@ -160,7 +160,7 @@ export const PROFILE = {
   additionalEmail: '',
   termsAccepted: true,
   developerNews: false,
-  notADeveloper: false,
+  technicalLevel: 'very',
 };
 
 /* An account signed in with Google or Apple, never set up. */
@@ -193,7 +193,7 @@ export const project = (n, extra = {}) => ({
   poweredBy: {
     showName: false,
     currentRole: '',
-    isDeveloper: false,
+    technicalLevel: null,
     categories: [],
     sourceCode: '',
     tools: [],

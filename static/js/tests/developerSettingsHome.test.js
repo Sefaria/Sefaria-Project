@@ -102,6 +102,21 @@ describe('the home page', () => {
     expect(server.count('POST', 'profile')).toBe(0);
   });
 
+  it.each([
+    ['Very technical', 'very'],
+    ['Somewhat technical', 'somewhat'],
+    ['Not technical', 'not'],
+  ])('saves "%s" as what best describes you and reads it back as picked', async (label, level) => {
+    openHome();
+    await click(button('Edit profile'));
+    await choose('What best describes you?', label);
+    await click(button('Save'));
+    expect(server.sent('POST', 'profile')[0].profile).toEqual(expect.objectContaining({ technicalLevel: level }));
+    expect(server.sent('POST', 'profile')[0].profile).not.toHaveProperty('role');
+    await click(button('Edit profile'));
+    expect(screen.getByRole('button', { name: /What best describes you\?/ }).textContent).toContain(label);
+  });
+
   it('links to the API docs and the library download, and to publishing a project', () => {
     openHome({ projects: [project(1)] });
     expect(screen.getAllByRole('link', { name: /Technical documentation/ })[0].getAttribute('href')).toBe(
@@ -868,7 +883,7 @@ describe('publishing a project', () => {
     expect(sent.poweredBy).toEqual({
       showName: true,
       currentRole: 'Teacher',
-      isDeveloper: true,
+      technicalLevel: 'very',
       categories: ['learning', 'visualization'],
       sourceCode: 'https://github.com/example/daf',
       tools: ['Sefaria API', 'Sefaria MCP'],
@@ -881,13 +896,29 @@ describe('publishing a project', () => {
     });
   });
 
+  it.each([
+    ['Somewhat technical', 'somewhat'],
+    ['Not technical', 'not'],
+  ])('shows and sends "%s" as picked', async (label, level) => {
+    openHome({
+      projects: [project(1, { websiteUrl: SITE, keys: [key(1)] })],
+      profile: { ...READY.profile, technicalLevel: level },
+    });
+    await click(button('Publish project'));
+    expect(screen.getByText(label)).toBeTruthy();
+    await click(field('Learning & Study Tools'));
+    await click(button('Submit for review'));
+    expect(server.sent('POST', 'profile')[0].profile.technicalLevel).toBe(level);
+    expect(server.sent('POST', 'projects/p1')[0].project.poweredBy.technicalLevel).toBe(level);
+  });
+
   it('reopens with the answers the project was submitted with', async () => {
     await openPublish({
       aiAssisted: false,
       poweredBy: {
         showName: true,
         currentRole: 'Teacher',
-        isDeveloper: true,
+        technicalLevel: 'very',
         categories: ['ai'],
         sourceCode: 'https://github.com/example/daf',
         tools: ['Sefaria-Export'],

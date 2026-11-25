@@ -302,7 +302,7 @@ describe('About you', () => {
         additionalEmail: 'tova@work.example',
         termsAccepted: true,
         developerNews: true,
-        notADeveloper: true,
+        technicalLevel: 'somewhat',
       })
     );
     expect(heading('Step 2 of 3: Your project')).toBeTruthy();
