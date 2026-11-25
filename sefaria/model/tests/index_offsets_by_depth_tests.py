@@ -4,6 +4,9 @@ from sefaria.model import *
 from sefaria.model.legacy_text import TextFamily
 from sefaria.system.exceptions import InputError
 
+# Creates Versions against real Index records from the restored dump (corpus job).
+pytestmark = pytest.mark.needs_corpus
+
 
 @pytest.fixture
 def index_offsets_by_depth():
