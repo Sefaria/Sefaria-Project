@@ -11,7 +11,7 @@ jobs:
     if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
-      date: ${{ steps.data.outputs.date }}
+      date: ${{ steps.date.outputs.date }}
       commit: ${{ steps.get-sha.outputs.sha_short }}
       branch: ${{ steps.branch-name.outputs.current_branch }}
       runner-image: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT}}/containers/hosted-runner:latest
@@ -95,7 +95,10 @@ jobs:
       - variables
     strategy:
       matrix:
-        app: [ asset, linker ]
+        # build/linker was deleted in Aug 2025 (its work moved to the tasks pod), the same
+        # change that removed it from continuous.yaml. Building it failed every run here,
+        # which skipped Playwright entirely.
+        app: [ asset ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
@@ -194,25 +197,51 @@ jobs:
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
       - name: Wait for env
         run: while [[ $( curl -s -o /dev/null -w "%{http_code}" "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}/texts") != "200" ]]; do sleep 10; done
-        timeout-minutes: 5
+        timeout-minutes: 10
 
+      # The e2e config derives https://www.<domain> and https://voices.<domain> from
+      # SANDBOX_URL, so it must be the public gateway host the chart serves
+      # (domains.root = <deployEnv>.cauldron.sefaria.org), not the in-cluster nginx
+      # service. The chart puts en and he on that one root domain, so SANDBOX_URL_IL
+      # is the same host.
       - name: Set SANDBOX_URL
-        run: echo "SANDBOX_URL=http://nginx-integration-${{ needs.variables.outputs.commit }}.${{ secrets.DEV_SANDBOX_NAMESPACE }}/texts" >> $GITHUB_ENV
-      
+        run: |
+          echo "SANDBOX_URL=https://www.integration-${{ needs.variables.outputs.commit }}.cauldron.sefaria.org" >> "$GITHUB_ENV"
+          echo "SANDBOX_URL_IL=https://www.integration-${{ needs.variables.outputs.commit }}.cauldron.sefaria.org" >> "$GITHUB_ENV"
+          # The chart serves Hebrew Voices on the shared voices. host (no chiburim. alias on cauldrons).
+          echo "SANDBOX_HE_VOICES_HOST=voices" >> "$GITHUB_ENV"
+
+      - name: Wait for public hostnames
+        run: |
+          for host in "www.integration-${{ needs.variables.outputs.commit }}.cauldron.sefaria.org" "voices.integration-${{ needs.variables.outputs.commit }}.cauldron.sefaria.org"; do
+            until [[ "$(curl -s -k -L -o /dev/null -w '%{http_code}' "https://${host}/health-check")" == "200" ]]; do
+              echo "waiting for https://${host}/health-check"; sleep 15
+            done
+            echo "reached https://${host}"
+          done
+        timeout-minutes: 15
+
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
-      
+          node-version: '22'   # matches build/base-node
+
+      # package-lock.json is out of sync with package.json, so `npm ci` refuses to
+      # install. The Jest job and the node/web images already use `npm install`.
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       
+      # The merge-queue gate is the curated release-gate set (chrome-sanity), not every
+      # project across three browsers. The Library Assistant specs are left out: this
+      # workflow has no PLAYWRIGHT_LA_USER_* credentials, so they cannot log in.
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --project=chrome-sanity --grep-invert "Library Assistant" --reporter=github,html
         env:
+          PLAYWRIGHT_HTML_OPEN: never
           PLAYWRIGHT_SUPERUSER_EMAIL: "${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}"
           PLAYWRIGHT_SUPERUSER_PASSWORD: "${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}"
           PLAYWRIGHT_USER_EMAIL: "${{ secrets.PLAYWRIGHT_USER_EMAIL }}"
@@ -223,12 +252,17 @@ jobs:
         if: always()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            e2e-tests/e2e-test-logs/test-results/
           retention-days: 30
       - name: Uninstall
+        if: always()
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
   ending-notification:
-    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
+    # Slack-notifies the committer; a manual dispatch run should not post.
+    # always() so a failed run-tests still notifies.
+    if: ${{ always() && github.event_name == 'merge_group' }}
     runs-on: ubuntu-latest
     needs:
       - run-tests
