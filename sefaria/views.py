@@ -97,7 +97,7 @@ from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.utils.chatbot import mark_chatbot_storage_for_clearing
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
-from sefaria.utils.util import strip_tags
+from sefaria.utils.util import is_int, strip_tags
 from sso.adapters import import_gravatar
 
 if USE_VARNISH:
@@ -157,7 +157,11 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         return self.post(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        # Logout flushes the session; keep a chatbot preview deployment choice across it.
+        chatbot_version = request.session.get("chatbot_version")
         response = super().post(request, *args, **kwargs)
+        if is_int(chatbot_version):
+            request.session["chatbot_version"] = chatbot_version
         return mark_chatbot_storage_for_clearing(request, response)
 
     def get_next_page(self):

@@ -33,6 +33,8 @@ import Select from './common/Select.jsx';
 import { DropdownMenu, DropdownMenuItemWithCallback } from './common/DropdownMenu.jsx';
 import ErrorBanner from './auth/ErrorBanner.jsx';
 import { requiredFieldValidate } from './auth/utils';
+import LibraryAssistantSettings from './LibraryAssistantSettings';
+import { useDialogKeys } from './common/useDialogKeys';
 
 /* Interface strings by Weblate key (static/js/sefaria/i18n/interface/*.json, "developer." keys). tK renders both
    languages (like InterfaceText's text prop); vK returns the current language's string. `params` fills {name} placeholders with plain values. */
@@ -289,12 +291,6 @@ const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = fa
   );
 };
 
-/* Escape closes, and the given button takes focus when the dialog opens. */
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-/* A modal dialog: focus moves in on open and back to where it was on close, Tab stays inside,
-   and Escape closes it. */
 /* True at the header's phone breakpoint (842px and below), updating on resize. False on the server and in tests.
    It starts false in the browser too and is set right after the page loads: the server can't know the width, so a
    first render that differed from the server's left a mix of both layouts on phones (Add key at zero size; Daniel,
@@ -366,48 +362,6 @@ const ETipWrap = ({ children }) => {
     </span>
   );
 };
-const useDialogKeys = (focusRef, onEscape) => {
-  useEffect(() => {
-    const opener = typeof document !== 'undefined' ? document.activeElement : null;
-    if (focusRef.current) {
-      focusRef.current.focus();
-    }
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onEscape();
-        return;
-      }
-      if (e.key !== 'Tab' || !focusRef.current) {
-        return;
-      }
-      const dialog = focusRef.current.closest('[role="dialog"], [role="alertdialog"]');
-      const focusable = dialog ? Array.from(dialog.querySelectorAll(FOCUSABLE)) : [];
-      if (!focusable.length) {
-        return;
-      }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!dialog.contains(document.activeElement)) {
-        e.preventDefault();
-        first.focus();
-      } else if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      if (opener && opener.isConnected && typeof opener.focus === 'function') {
-        opener.focus();
-      }
-    };
-  }, []);
-};
-
 /* One entry per settings section. A new section is an entry here, a panel in
    SettingsPage, and a URL in urls_library.py and ReaderApp's history. */
 const SETTINGS_TABS = [
@@ -416,6 +370,13 @@ const SETTINGS_TABS = [
     url: '/settings/account',
     label: eBi('developer.frame.account_tab.label'),
     shortLabel: eBi('developer.frame.account_tab.short_label'),
+  },
+  /* Library Assistant second (Penina, 2026-11-19). */
+  {
+    tab: 'library-assistant',
+    url: '/settings/library-assistant',
+    label: eBi('developer.frame.library_assistant_tab.label'),
+    shortLabel: eBi('developer.frame.library_assistant_tab.short_label'),
   },
   {
     tab: 'developer',
@@ -440,6 +401,15 @@ const SETTINGS_TAB_ICONS = {
     <path key="a" d="m18 16 4-4-4-4" />,
     <path key="b" d="m6 8-4 4 4 4" />,
     <path key="c" d="m14.5 4-5 16" />,
+  ],
+  /* Lucide bot */
+  'library-assistant': [
+    <path key="a" d="M12 8V4H8" />,
+    <rect key="b" width="16" height="12" x="4" y="8" rx="2" />,
+    <path key="c" d="M2 14h2" />,
+    <path key="d" d="M20 14h2" />,
+    <path key="e" d="M15 13v2" />,
+    <path key="f" d="M9 13v2" />,
   ],
 };
 const SettingsTabIcon = ({ tab }) =>
@@ -4627,7 +4597,6 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
   const [translationLanguage, setTranslationLanguage] = useState(settings.translationLanguagePreference);
   const [readingHistory, setReadingHistory] = useState(settings.readingHistory === false ? 'false' : 'true');
   const [textualCustom, setTextualCustom] = useState(settings.textualCustom);
-  const [libraryAssistant, setLibraryAssistant] = useState(settings.libraryAssistantEnabled ? 'true' : 'false');
   /* The warning belongs to the moment the visitor picks Off, not to a setting that was already Off on load. */
   const [warnReadingHistory, setWarnReadingHistory] = useState(false);
 
@@ -4635,7 +4604,6 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
      a second save should only re-fetch the calendars if it changed again. */
   const saved = useRef({
     interfaceLanguage: settings.interfaceLanguage,
-    libraryAssistant: settings.libraryAssistantEnabled ? 'true' : 'false',
     translationLanguage: settings.translationLanguagePreference,
     textualCustom: settings.textualCustom,
   });
@@ -4665,13 +4633,6 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
         translation_language_preference_suggested: true,
       },
     };
-    // Only send library_assistant when the toggle was actually changed. The toggle
-    // renders the *effective* value, so submitting it unconditionally would persist
-    // the setting for users whose profiles don't carry the key yet — and a profile
-    // that has the key is skipped by the opt-out migration.
-    if (libraryAssistant !== saved.current.libraryAssistant) {
-      profile.settings.library_assistant = libraryAssistant === 'true';
-    }
     // see trans pref in cookie in case user is logged out
     if (profile.settings.translation_language_preference) {
       $.cookie('translation_language_preference', profile.settings.translation_language_preference, { path: '/' });
@@ -4688,7 +4649,6 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
       }
       rememberAccountSettings({
         emailNotifications,
-        libraryAssistantEnabled: libraryAssistant === 'true',
         ...(torahSpecific
           ? {
               interfaceLanguage,
@@ -4705,8 +4665,8 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
       if (languageChanged) {
         Sefaria.track.setInterfaceLanguage('interface language account settings', interfaceLanguage);
       }
-      // Interface language or Library Assistant changed → reload (interface language affects RTL/LTR and server-rendered content; the assistant needs a fresh chatbot_user_token and script tag)
-      if (languageChanged || libraryAssistant !== saved.current.libraryAssistant) {
+      // Interface language changed → reload (it affects RTL/LTR and server-rendered content)
+      if (languageChanged) {
         window.location.reload();
         return;
       }
@@ -4898,23 +4858,7 @@ const AccountTab = ({ settings, socialProviders, onEmailChanged, onSessionEnded 
           </React.Fragment>
         ) : null}
 
-        {/* The Library Assistant is a plain user setting, shown to every logged-in user. Its
-            value is the effective one: users who are on through the pre-migration rule carry
-            no setting key yet. */}
-        <SettingSection
-          id="libraryAssistantSetting"
-          label={<InterfaceText text={{ en: 'Library Assistant', he: 'עוזר הספרייה' }} />}
-        >
-          <SettingToggle
-            optionClass="doubleOption"
-            value={libraryAssistant}
-            onChange={setLibraryAssistant}
-            options={[
-              { value: 'true', content: <InterfaceText text={{ en: 'On', he: 'פעיל' }} /> },
-              { value: 'false', content: <InterfaceText text={{ en: 'Off', he: 'כבוי' }} /> },
-            ]}
-          />
-        </SettingSection>
+        {/* The Library Assistant switch moved to its own tab (Penina with Mickey, 2026-11-16). */}
 
         <div id="username-change" className="section">
           <label className="control-elem">
@@ -5036,7 +4980,7 @@ const CONFIRMATION_MAX_POLL_MS = 60 * 1000;
 const CONFIRMATION_LINK_MS = 3 * 24 * 60 * 60 * 1000;
 const SETUP_MS = 1200;
 
-const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTab, setProjectId }) => {
+const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, chatbotProps, setTab, setProjectId }) => {
   const [developerHome, setDeveloperHome] = useState(0);
   /* Restored from the browser's back/forward cache, the page has no fresh props: it reuses the settings it last
      remembered, or reloads when it remembers nothing (from the API keys branch, b7468aae8). */
@@ -5087,6 +5031,19 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
       setSessionEnded(true);
     }
     window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+  };
+
+  /* The Library Assistant tab saved the assistant's on/off: keep the cached settings (for Back/Forward and for a
+     remount of the tab) in step with it. */
+  const assistantChanged = (on) => {
+    // ReaderApp hides or shows the widget right away
+    if (chatbotProps && chatbotProps.onAssistantToggled) chatbotProps.onAssistantToggled(on);
+    if (latestSettings.account) rememberAccountSettings({ libraryAssistantEnabled: on });
+    // Between pagehide and resumeAccount the cache is held aside: a save that lands then must reach it too, or
+    // resuming would put the old value back.
+    if (pausedSettings.current) pausedSettings.current = { ...pausedSettings.current, libraryAssistantEnabled: on };
+    if (pageMounted.current)
+      setSettings((current) => (current ? { ...current, libraryAssistantEnabled: on } : current));
   };
 
   /* Brings back the account content that pagehide took down, as it was when the page left. */
@@ -5363,7 +5320,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
   }
 
   /* The server sends no developer state where developer settings are off, and then there is no developer tab. */
-  const tabs = SETTINGS_TABS.filter((t) => t.tab !== 'developer' || hasDeveloper);
+  const tabs = SETTINGS_TABS.filter((t) => t.tab !== 'developer' || hasDeveloper); // every signed-in user sees the Library Assistant tab
 
   const panels = {
     account: (
@@ -5372,6 +5329,15 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
         socialProviders={socialProviders}
         onEmailChanged={hasDeveloper ? developerEmailChanged : null}
         onSessionEnded={endSession}
+      />
+    ),
+    'library-assistant': (
+      <LibraryAssistantSettings
+        {...(chatbotProps || {})}
+        onAssistantToggled={undefined}
+        libraryAssistantEnabled={!!settings.libraryAssistantEnabled}
+        active={tab === 'library-assistant'}
+        onAssistantChanged={assistantChanged}
       />
     ),
     developer: !verified ? (
@@ -5420,7 +5386,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
             />
             <div className="settingsPanels">
               {tabs.map((t) => (
-                <div key={t.tab} className="settingsPanel" hidden={tab !== t.tab}>
+                <div key={t.tab} className="settingsPanel" data-tab={t.tab} hidden={tab !== t.tab}>
                   {panels[t.tab]}
                 </div>
               ))}

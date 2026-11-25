@@ -1190,6 +1190,7 @@ class ReaderPanel extends Component {
           projectId={this.state.developerProjectId}
           accountSettings={this.state.accountSettings}
           initialDeveloper={this.state.developer}
+          chatbotProps={this.props.chatbotProps}
           setTab={this.setSettingsTab.bind(this)}
           setProjectId={this.setDeveloperProjectId.bind(this)}
         />

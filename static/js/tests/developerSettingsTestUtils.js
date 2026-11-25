@@ -371,6 +371,9 @@ export const flush = async () => {
 };
 
 /* Lets pending promises (the fake API's answers) settle inside act. */
+/* Runs a synchronous change (a window event, a callback) inside the renderer's act. */
+export const inAct = (fn) => current.act(fn);
+
 export const settle = async () => {
   await current.act(async () => {
     await flush();

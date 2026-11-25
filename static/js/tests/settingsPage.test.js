@@ -16,6 +16,7 @@ import {
   cleanup,
   click,
   fakeServer,
+  inAct,
   field,
   heading,
   key,
@@ -36,6 +37,28 @@ jest.mock('../sefaria/sefariaJquery', () => require('./developerSettingsTestUtil
 jest.mock('../Misc', () => require('./developerSettingsTestUtils').miscMock());
 // The profile card's ProfilePic pulls in the image cropper's CSS, which Jest can't parse.
 jest.mock('../ProfilePic', () => ({ ProfilePic: () => null }));
+jest.mock('../LibraryAssistantSettings', () => ({
+  __esModule: true,
+  default: (props) => {
+    const React = require('react');
+    // The panel's save can finish after the panel is gone, so tests call the callback by hand.
+    global.laOnAssistantChanged = props.onAssistantChanged;
+    return React.createElement(
+      'div',
+      {
+        'data-testid': 'library-assistant-settings',
+        'data-enabled': String(props.libraryAssistantEnabled),
+        'data-token': props.chatbot_user_token || '',
+        'data-active': String(props.active),
+      },
+      React.createElement('button', {
+        type: 'button',
+        'data-testid': 'library-assistant-turn-on',
+        onClick: () => props.onAssistantChanged(true),
+      })
+    );
+  },
+}));
 
 const HEBREW = /[֐-׿]/;
 
@@ -62,17 +85,86 @@ afterEach(() => {
 });
 
 describe('settings tabs', () => {
-  it('has an Account tab and a Developer tab, marking the open one', () => {
+  it('has an Account, a Library Assistant and a Developer tab, marking the open one', () => {
     fakeServer();
     renderSettings('account');
     const nav = screen.getByRole('navigation', { name: 'Settings' });
     const links = within(nav).getAllByRole('link');
     expect(links.map((a) => [a.getAttribute('aria-label'), a.getAttribute('href')])).toEqual([
       ['Account Settings', '/settings/account'],
+      ['Library Assistant', '/settings/library-assistant'],
       ['Developer Settings', '/settings/developer'],
     ]);
     expect(links[0].getAttribute('aria-current')).toBe('page');
     expect(links[1].getAttribute('aria-current')).toBeNull();
+    expect(links[2].getAttribute('aria-current')).toBeNull();
+  });
+
+  it('shows the Library Assistant tab to a user without developer settings, and mounts its panel', () => {
+    fakeServer();
+    const page = renderSettings('library-assistant', null, { chatbotProps: { chatbot_user_token: 'tok' } });
+    const nav = screen.getByRole('navigation', { name: 'Settings' });
+    const links = within(nav).getAllByRole('link');
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/settings/account', '/settings/library-assistant']);
+    const library = links.find((a) => a.getAttribute('href') === '/settings/library-assistant');
+    expect(library.getAttribute('aria-current')).toBe('page');
+    const panel = screen.getByTestId('library-assistant-settings');
+    expect(panel.getAttribute('data-token')).toBe('tok');
+    expect(panel.getAttribute('data-enabled')).toBe('false');
+    expect(panel.getAttribute('data-active')).toBe('true');
+    expect(page.props.tab).toBe('library-assistant');
+  });
+
+  it('keeps the Library Assistant on/off the tab saved, so the tab remounts with the new value', async () => {
+    fakeServer();
+    renderSettings('library-assistant', null, { chatbotProps: { chatbot_user_token: 'tok' } });
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('false');
+    await click(screen.getByTestId('library-assistant-turn-on'));
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('true');
+  });
+
+  it('tells ReaderApp (chatbotProps.onAssistantToggled) when the assistant is switched, so the widget follows at once', async () => {
+    fakeServer();
+    const onAssistantToggled = jest.fn();
+    renderSettings('library-assistant', null, { chatbotProps: { chatbot_user_token: 'tok', onAssistantToggled } });
+    await click(screen.getByTestId('library-assistant-turn-on'));
+    expect(onAssistantToggled).toHaveBeenCalledWith(true);
+    inAct(() => global.laOnAssistantChanged(false));
+    expect(onAssistantToggled).toHaveBeenLastCalledWith(false);
+  });
+
+  it('a save that lands between pagehide and resume is kept when the page resumes', async () => {
+    fakeServer();
+    renderSettings('library-assistant', {}, { chatbotProps: { chatbot_user_token: 'tok' } });
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('false');
+    const pageEvent = (name) => {
+      const event = new Event(name);
+      event.persisted = true;
+      inAct(() => {
+        window.dispatchEvent(event);
+      });
+    };
+    pageEvent('pagehide');
+    expect(screen.queryByTestId('library-assistant-settings')).toBeNull();
+    inAct(() => {
+      global.laOnAssistantChanged(true);
+    });
+    pageEvent('pageshow');
+    await settle();
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('true');
+  });
+
+  it('tells the Library Assistant panel it is not the active tab while on Account', () => {
+    fakeServer();
+    renderSettings('account', null, { chatbotProps: { chatbot_user_token: 'tok' } });
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-active')).toBe('false');
+  });
+
+  it('switches to the Library Assistant tab in place', async () => {
+    fakeServer();
+    const page = renderSettings('account');
+    await click(screen.getByRole('link', { name: 'Library Assistant' }));
+    expect(page.props.setTab).toHaveBeenCalledWith('library-assistant');
   });
 
   it('switches tabs in place, without following the link', async () => {
@@ -97,8 +189,8 @@ describe('settings tabs', () => {
       within(nav)
         .getAllByRole('link')
         .map((a) => a.getAttribute('href'))
-    ).toEqual(['/settings/account']);
-    expect(container.querySelectorAll('.settingsPanel').length).toBe(1);
+    ).toEqual(['/settings/account', '/settings/library-assistant']);
+    expect(container.querySelectorAll('.settingsPanel').length).toBe(2);
     expect(container.querySelector('[data-agent-instructions]')).toBeNull();
   });
 
@@ -626,7 +718,7 @@ describe('developer settings after Back', () => {
     expect(projectSection('Project 2')).toBeTruthy();
   });
 
-  it('has no Developer tab where developer settings are off', async () => {
+  it('has no Developer tab (only Account and Library Assistant) where developer settings are off', async () => {
     fakeServer();
     renderSettings('account', null);
     cleanup();
@@ -638,7 +730,7 @@ describe('developer settings after Back', () => {
       within(nav)
         .getAllByRole('link')
         .map((a) => a.getAttribute('href'))
-    ).toEqual(['/settings/account']);
+    ).toEqual(['/settings/account', '/settings/library-assistant']);
     expect(server.requests).toEqual([]);
   });
 });

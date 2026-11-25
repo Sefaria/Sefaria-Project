@@ -143,6 +143,7 @@ from sefaria.settings import (
 from sefaria.sheets import annotate_user_links, get_sheet_for_panel, get_sheets_for_ref
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache, gen_cache
+from sefaria.system.context_processors import apply_chatbot_version_param
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_json, json_response_decorator, sanitize_get_params
 from sefaria.system.exceptions import (
@@ -386,10 +387,9 @@ def chatbot_access_props(request, profile):
 
 
 def requested_chatbot_version(request):
-    """The chatbot preview build to use, or None. The query param wins over the session, so the
-    first visit with ?chatbot_version= already talks to that build's server (the context processor
-    saves it to the session only while the template renders, after these props are built)."""
-    chatbot_version = request.GET.get("chatbot_version", "").strip() or request.session.get("chatbot_version")
+    """The chatbot preview build to use, or None. Applies a ?chatbot_version=N|clear on this very request
+    to the session first, so the props see it on the request that carries it, not only the next one."""
+    chatbot_version = apply_chatbot_version_param(request)
     return chatbot_version if is_int(chatbot_version) else None
 
 
@@ -5313,6 +5313,8 @@ def settings_page(request, tab="account", project_id=None):
     developer_on = developer_settings_enabled(request.user)
     profile = UserProfile(id=request.user.id)
     props = {
+        # The assistant starts closed on its own settings tab: its panel would cover the controls.
+        "chatbotStartClosed": tab == "library-assistant",
         "initialSettingsTab": tab,
         "initialDeveloperProjectId": project_id,
         "initialAccountSettings": _account_settings_props(request, profile),
@@ -5321,10 +5323,12 @@ def settings_page(request, tab="account", project_id=None):
     titles = {
         "account": "Account Settings",
         "developer": "Developer Settings",
+        "library-assistant": "Library Assistant Settings",
     }
     descs = {
         "account": "Manage your Sefaria account settings.",
         "developer": "Register your projects and manage keys for the Sefaria API.",
+        "library-assistant": "Choose how the Library Assistant answers you.",
     }
     response = menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
     if props["initialDeveloper"] is not None:
@@ -5338,7 +5342,8 @@ def home(request):
     """
     Homepage (which is the texts page)
     """
-    return redirect("/texts")
+    query_string = request.META.get("QUERY_STRING", "")
+    return redirect("/texts?" + query_string if query_string else "/texts")
 
 
 def new_home_redirect(request):

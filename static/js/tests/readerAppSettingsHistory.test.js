@@ -102,20 +102,33 @@ const historyFor = (panel) => {
 };
 
 describe('settings page history state', () => {
-  it.each(['account', 'developer'])('leaves the settings and API keys out of the %s tab entry', (tab) => {
-    const panel = settingsPanel(tab);
-    const hist = historyFor(panel);
-    expect(hist.url).toBe('/settings/' + tab);
-    expect(hist.state.panels[0].settingsTab).toBe(tab);
-    expect(hist.state.panels[0].accountSettings).toBeNull();
-    expect(hist.state.panels[0].developer).toBeNull();
-    expect(JSON.stringify(hist.state)).not.toContain('sfr_secret');
-  });
+  it.each(['account', 'developer', 'library-assistant'])(
+    'leaves the settings and API keys out of the %s tab entry',
+    (tab) => {
+      const panel = settingsPanel(tab);
+      const hist = historyFor(panel);
+      expect(hist.url).toBe('/settings/' + tab);
+      expect(hist.state.panels[0].settingsTab).toBe(tab);
+      expect(hist.state.panels[0].accountSettings).toBeNull();
+      expect(hist.state.panels[0].developer).toBeNull();
+      expect(JSON.stringify(hist.state)).not.toContain('sfr_secret');
+    }
+  );
 
   it('leaves the panel the page renders untouched', () => {
     const panel = settingsPanel('account');
     historyFor(panel);
     expect(panel.accountSettings.emailNotifications).toBe('daily');
     expect(panel.developer.projects[0].keys[0].value).toBe('sfr_secret');
+  });
+});
+
+describe('ReaderApp.setAssistantTurnedOff', () => {
+  it('keeps the state the widget and its context follow: off hides at once, on clears it', () => {
+    const app = { state: { assistantTurnedOff: false }, setState: jest.fn((s) => Object.assign(app.state, s)) };
+    ReaderApp.prototype.setAssistantTurnedOff.call(app, true);
+    expect(app.state.assistantTurnedOff).toBe(true);
+    ReaderApp.prototype.setAssistantTurnedOff.call(app, false);
+    expect(app.state.assistantTurnedOff).toBe(false);
   });
 });
