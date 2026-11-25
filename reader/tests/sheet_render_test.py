@@ -1,5 +1,6 @@
 """Sheet pages print user-written fields as escaped text or as bleached HTML, and embed sheet JSON safely."""
 
+import re
 from html.parser import HTMLParser
 from unittest import mock
 
@@ -111,7 +112,9 @@ class _MarkupAudit(HTMLParser):
                 self.problems.append(f"script URL in {name} on <{tag}>")
             if tag == "img" and value == "x":
                 self.problems.append("injected <img src=x>")
-            if "alert(" in value:
+            # Meta content is inert text: the escaped title legitimately reads `alert(1)` once parsed back.
+            # What matters is that it carries no raw markup, which the meta check below asserts.
+            if "alert(" in value and not (tag == "meta" and name == "content"):
                 self.problems.append(f"payload in {name} on <{tag}>")
 
     handle_startendtag = handle_starttag
@@ -130,6 +133,8 @@ def _assert_no_executable_injection(html):
     assert audit.problems == []
     assert html.lower().count("</script") == audit.script_blocks
     assert "</script><img" not in html
+    for meta_tag in re.findall(r"<meta\b[^>]*>", html, flags=re.I):
+        assert "<" not in meta_tag[1:], meta_tag
     # The payload's closing tag reaches the page only inside the escaped JSON.
     assert "\\u003c/script\\u003e" in html
 
