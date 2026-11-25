@@ -157,6 +157,9 @@ class ReaderApp extends Component {
       // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
       // legitimately has no attributable source.
       authSource: null,
+      // A logged-in user's "Hide Ask button" choice; null when logged out. Updated when they flip it,
+      // so a remounted <lc-chatbot> gets the current value, not the one from page load.
+      chatbotHideLauncher: props.chatbot_hide_launcher ?? null,
     };
   }
   setEditorSaveState = (nextState) => {
@@ -275,6 +278,7 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, { capture: true });
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+    document.addEventListener('chatbot:launcher_visibility', this.handleChatbotLauncherVisibility);
 
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
@@ -310,6 +314,7 @@ class ReaderApp extends Component {
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+    document.removeEventListener('chatbot:launcher_visibility', this.handleChatbotLauncherVisibility);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -734,13 +739,13 @@ class ReaderApp extends Component {
             hist.mode = 'calendars';
             break;
           case 'settings':
-            if (state.settingsTab === 'developer') {
+            if (state.settingsTab === 'library-assistant') {
+              hist.title = Sefaria.getPageTitle('Library Assistant Settings');
+              hist.url = 'settings/library-assistant';
+            } else if (state.settingsTab === 'developer') {
               hist.title = Sefaria.getPageTitle('Developer Settings');
               hist.url =
                 'settings/developer' + (state.developerProjectId ? '/projects/' + state.developerProjectId : '');
-            } else if (state.settingsTab === 'library-assistant') {
-              hist.title = Sefaria.getPageTitle('Library Assistant Settings');
-              hist.url = 'settings/library-assistant';
             } else {
               hist.title = Sefaria.getPageTitle('Account Settings');
               hist.url = 'settings/account';
@@ -1433,6 +1438,14 @@ class ReaderApp extends Component {
     const replaceHistory = typeof detail === 'object' ? detail.replaceHistory : false;
     this.bootstrapUrl(url, { replaceHistory: replaceHistory });
   }
+  // The Library Assistant's "Hide Ask button" switch: save a logged-in user's choice to their
+  // account, so every device starts with it (passed back as <lc-chatbot hide-launcher>).
+  // Logged out, the assistant keeps it in that browser on its own.
+  handleChatbotLauncherVisibility = (event) => {
+    if (!Sefaria._uid || typeof event?.detail?.hidden !== 'boolean') return;
+    this.setState({ chatbotHideLauncher: event.detail.hidden });
+    Sefaria.editProfileAPI({ settings: { library_assistant_floating_button_hidden: event.detail.hidden } });
+  };
   handleSettingsUpdatedEvent(event) {
     const detail = event?.detail;
     if (!detail) return;
@@ -2767,17 +2780,17 @@ class ReaderApp extends Component {
       panels.push(
         <div className={classes} style={style} key={key}>
           <ReaderPanel
-            chatbot={{
-              chatbot_version: this.props.chatbot_version,
-              chatbot_api_base_url: this.props.chatbot_api_base_url,
-              chatbot_user_token: this.props.chatbot_user_token,
-            }}
             openPanelAt={this.openPanelAt}
             updateSearchState={updateSearchState}
             resetSearchFilters={resetSearchFilters}
             panelPosition={i}
             initialState={panel}
             interfaceLang={this.props.interfaceLang}
+            chatbotProps={{
+              chatbot_user_token: this.props.chatbot_user_token,
+              chatbot_version: this.props.chatbot_version,
+              chatbot_api_base_url: this.props.chatbot_api_base_url,
+            }}
             setCentralState={setPanelState}
             multiPanel={this.props.multiPanel}
             onSegmentClick={onSegmentClick}
@@ -2902,6 +2915,10 @@ class ReaderApp extends Component {
                       max-prompts={this.props.chatbot_max_prompts}
                       interface-lang={Sefaria._getShortInterfaceLang()}
                       anon-free-answers={this.props.chatbot_anon_free_answers ?? undefined}
+                      // A logged-in user's saved "Hide Ask button" choice; absent when logged out
+                      hide-launcher={
+                        this.state.chatbotHideLauncher == null ? undefined : String(this.state.chatbotHideLauncher)
+                      }
                       design-system-preview={this.props.design_system_preview || undefined}
                     >
                       {!Sefaria._uid && (

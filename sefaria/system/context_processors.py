@@ -162,6 +162,7 @@ def apply_chatbot_version_param(request):
         if chatbot_version == "clear":
             if "chatbot_version" in request.session:
                 del request.session["chatbot_version"]
+            chatbot_version = ""  # cleared: no preview version on this request either
         else:
             request.session["chatbot_version"] = chatbot_version
     # if chatbot_version is not in request.GET, check if it's in session (from previous requests)

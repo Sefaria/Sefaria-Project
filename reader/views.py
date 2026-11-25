@@ -373,6 +373,7 @@ def chatbot_access_props(request, profile):
         if library_assistant.is_enabled(profile):
             props["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             props["chatbot_enabled"] = True
+            props["chatbot_hide_launcher"] = library_assistant.is_floating_button_hidden(profile)
         # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
         # suppresses the "try the Library Assistant" promo banner for users who have
         # already made a choice about the assistant — whether they are using it or
@@ -383,6 +384,13 @@ def chatbot_access_props(request, profile):
         props["chatbot_enabled"] = True
         props["chatbot_anon_free_answers"] = library_assistant.anonymous_free_answers()
     return props
+
+
+def requested_chatbot_version(request):
+    """The chatbot preview build to use, or None. Applies a ?chatbot_version=N|clear on this very request
+    to the session first, so the props see it on the request that carries it, not only the next one."""
+    chatbot_version = apply_chatbot_version_param(request)
+    return chatbot_version if is_int(chatbot_version) else None
 
 
 def base_props(request):
@@ -478,9 +486,7 @@ def base_props(request):
         }
     )
 
-    apply_chatbot_version_param(request)  # a ?chatbot_version=N on this very request must reach the props
-    chatbot_version = request.session.get("chatbot_version")
-    chatbot_version = chatbot_version if is_int(chatbot_version) else None
+    chatbot_version = requested_chatbot_version(request)
 
     # Chatbot props (passed through base_props for ReaderApp)
     chatbot_data = {
@@ -4821,13 +4827,15 @@ def profile_api(request, slug=None):
             profileUpdate.pop("experiments", None)
 
         drop_developer_settings(profileUpdate.get("settings"))
-        la_key = library_assistant.SETTING_KEY
-        if la_key in profileUpdate.get("settings", {}):
-            # Public endpoint — coerce so a posted "false" can't read as truthy.
-            profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
+        for la_key in (library_assistant.SETTING_KEY, library_assistant.FLOATING_BUTTON_HIDDEN_KEY):
+            if la_key in profileUpdate.get("settings", {}):
+                # Public endpoint — coerce so a posted "false" can't read as truthy.
+                profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
+        la_was_enabled = library_assistant.is_enabled(profile)
         profile.update(profileUpdate)
+        library_assistant.show_floating_button_if_turned_on(profile, la_was_enabled)
 
         error = profile.errors()
         # TODO: should validation not need to be called manually? maybe inside the save
@@ -5064,9 +5072,11 @@ def profile_sync_api(request):
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
+                    la_was_enabled = library_assistant.is_enabled(profile)
                     settingsInDB = profile.settings
                     settingsInDB.update(field_data)
                     profile.update({field: settingsInDB, "attr_time_stamps": profile.attr_time_stamps})
+                    library_assistant.show_floating_button_if_turned_on(profile, la_was_enabled)
                     profile_updated = True
             elif field == "user_history":
                 if len(field_data) > MAX_LEN_USER_HISTORY:
@@ -5303,6 +5313,8 @@ def settings_page(request, tab="account", project_id=None):
     developer_on = developer_settings_enabled(request.user)
     profile = UserProfile(id=request.user.id)
     props = {
+        # The assistant starts closed on its own settings tab: its panel would cover the controls.
+        "chatbotStartClosed": tab == "library-assistant",
         "initialSettingsTab": tab,
         "initialDeveloperProjectId": project_id,
         "initialAccountSettings": _account_settings_props(request, profile),

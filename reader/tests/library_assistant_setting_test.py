@@ -3,7 +3,7 @@ import re
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from reader.conftest import create_test_user, make_profile_missing_la_setting, page_props, purge_test_profiles
 from reader.models import UserExperimentSettings, _set_user_experiments
@@ -208,10 +208,14 @@ class AccountSettingsPageTest(LibraryAssistantUserTestCase):
 
 class LibraryAssistantSettingsPageTest(LibraryAssistantUserTestCase):
     """
-    The Library Assistant tab is a tab of the React settings page; the assistant starts closed on it.
+    The Library Assistant tab is the third tab of the settings page, for every signed-in user.
     """
 
     url = "/settings/library-assistant"
+
+    def props(self, query=""):
+        self.client.force_login(self.user)
+        return page_props(self.client.get(self.url + query).content.decode("utf-8"))
 
     def test_requires_login(self):
         response = self.client.get(self.url)
@@ -220,12 +224,24 @@ class LibraryAssistantSettingsPageTest(LibraryAssistantUserTestCase):
         self.assertIn("login", response["Location"])
 
     def test_opens_the_library_assistant_tab(self):
-        self.client.force_login(self.user)
-        props = page_props(self.client.get(self.url).content.decode("utf-8"))
+        props = self.props()
 
         self.assertEqual(props["initialSettingsTab"], "library-assistant")
-        self.assertIs(props["chatbotStartClosed"], True)
+        self.assertEqual(props["initialMenu"], "settings")
         self.assertIn("libraryAssistantEnabled", props["initialAccountSettings"])
+
+    def test_assistant_starts_closed_on_this_tab_only(self):
+        self.assertIs(self.props()["chatbotStartClosed"], True)
+
+        self.client.force_login(self.user)
+        account = page_props(self.client.get("/settings/account").content.decode("utf-8"))
+        self.assertIs(account["chatbotStartClosed"], False)
+
+    def test_toggle_value_is_the_effective_one(self):
+        self.enroll_in_experiments(True)
+        make_profile_missing_la_setting(self.user)
+
+        self.assertIs(self.props()["initialAccountSettings"]["libraryAssistantEnabled"], True)
 
 
 class ChatbotVersionPropTest(LibraryAssistantUserTestCase):
@@ -242,9 +258,7 @@ class ChatbotVersionPropTest(LibraryAssistantUserTestCase):
 
     def props_version(self, query):
         html = self.client.get(self.url + query).content.decode("utf-8")
-        found = re.search(r'"chatbot_version":\s*(null|"[^"]*"|-?\d+)', html)
-        self.assertIsNotNone(found, "chatbot_version not found in the page props")
-        return json.loads(found.group(1))
+        return page_props(html)["chatbot_version"]
 
     def test_version_is_in_the_props_of_the_request_that_carries_it(self):
         self.assertEqual(str(self.props_version("?chatbot_version=9298")), "9298")
@@ -323,3 +337,119 @@ class LoggedInFreeAnswerLimitTest(LibraryAssistantUserTestCase):
         with mock.patch("sefaria.helper.library_assistant.remoteConfigCache", cache):
             props = chatbot_access_props(request, UserProfile(id=self.user.id))
         self.assertNotIn("chatbot_anon_free_answers", props)
+
+
+class FloatingButtonHiddenTest(LibraryAssistantUserTestCase):
+    """
+    The assistant's "Hide Ask button" switch, saved to the account through /api/profile
+    and passed back to the widget as `chatbot_hide_launcher`.
+    """
+
+    KEY = library_assistant.FLOATING_BUTTON_HIDDEN_KEY
+
+    def access_props(self):
+        request = mock.Mock()
+        request.user = self.user
+        return chatbot_access_props(request, UserProfile(id=self.user.id))
+
+    def post_hidden(self, value):
+        return self.post_profile({"settings": {self.KEY: value}})
+
+    def test_not_hidden_until_the_user_hides_it(self):
+        self.post_setting(True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_hiding_is_saved_and_passed_to_the_assistant(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], True)
+
+    def test_showing_again(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+        self.post_hidden(False)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_posted_string_false_is_not_truthy(self):
+        self.post_setting(True)
+        self.post_hidden("false")
+
+        self.assertIs(UserProfile(id=self.user.id).settings.get(self.KEY), False)
+
+    def test_hiding_the_button_leaves_the_assistant_on(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+
+        self.assertIs(self.stored_setting(), True)
+
+    def test_not_passed_when_the_assistant_is_off(self):
+        self.post_setting(False)
+
+        self.assertNotIn("chatbot_hide_launcher", self.access_props())
+
+    def test_turning_the_assistant_back_on_shows_the_button(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+        self.post_setting(False)
+        self.post_setting(True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_turning_back_on_wins_over_a_hidden_choice_posted_with_it(self):
+        # The settings page posts every setting at once, the old hidden choice included.
+        self.post_setting(True)
+        self.post_hidden(True)
+        self.post_setting(False)
+        self.post_profile({"settings": {SETTING_KEY: True, self.KEY: True}})
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_enabling_through_the_signup_flow_shows_the_button(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+        library_assistant.set_enabled(self.user, False)
+        library_assistant.set_enabled(self.user, True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], False)
+
+    def test_saving_other_settings_keeps_the_button_hidden(self):
+        self.post_setting(True)
+        self.post_hidden(True)
+        self.post_setting(True)
+
+        self.assertIs(self.access_props()["chatbot_hide_launcher"], True)
+
+
+class RequestedChatbotVersionTest(SimpleTestCase):
+    def request(self, query="", session=None):
+        from django.test import RequestFactory
+
+        request = RequestFactory().get("/texts" + query)
+        request.session = session or {}
+        return request
+
+    def test_first_visit_uses_the_query_param(self):
+        from reader.views import requested_chatbot_version
+
+        self.assertEqual(requested_chatbot_version(self.request("?chatbot_version=302")), "302")
+
+    def test_later_visits_use_the_session(self):
+        from reader.views import requested_chatbot_version
+
+        self.assertEqual(requested_chatbot_version(self.request(session={"chatbot_version": "302"})), "302")
+
+    def test_query_param_beats_the_session(self):
+        from reader.views import requested_chatbot_version
+
+        request = self.request("?chatbot_version=303", {"chatbot_version": "302"})
+        self.assertEqual(requested_chatbot_version(request), "303")
+
+    def test_clear_and_junk_mean_no_preview(self):
+        from reader.views import requested_chatbot_version
+
+        self.assertIsNone(requested_chatbot_version(self.request("?chatbot_version=clear")))
+        self.assertIsNone(requested_chatbot_version(self.request("?chatbot_version=abc")))
+        self.assertIsNone(requested_chatbot_version(self.request()))

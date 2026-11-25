@@ -13,6 +13,7 @@ jest.mock('../sefaria/sefaria', () => ({
     activeModule: 'library',
     _: (k) => k,
     _bilingual: (s) => ({ en: s, he: s }),
+    _keyedString: (s) => s,
     interfaceLang: 'english',
     _getShortInterfaceLang: () => 'en',
     getPageTitle: (title) => title,
@@ -101,15 +102,18 @@ const historyFor = (panel) => {
 };
 
 describe('settings page history state', () => {
-  it.each(['account', 'developer'])('leaves the settings and API keys out of the %s tab entry', (tab) => {
-    const panel = settingsPanel(tab);
-    const hist = historyFor(panel);
-    expect(hist.url).toBe('/settings/' + tab);
-    expect(hist.state.panels[0].settingsTab).toBe(tab);
-    expect(hist.state.panels[0].accountSettings).toBeNull();
-    expect(hist.state.panels[0].developer).toBeNull();
-    expect(JSON.stringify(hist.state)).not.toContain('sfr_secret');
-  });
+  it.each(['account', 'developer', 'library-assistant'])(
+    'leaves the settings and API keys out of the %s tab entry',
+    (tab) => {
+      const panel = settingsPanel(tab);
+      const hist = historyFor(panel);
+      expect(hist.url).toBe('/settings/' + tab);
+      expect(hist.state.panels[0].settingsTab).toBe(tab);
+      expect(hist.state.panels[0].accountSettings).toBeNull();
+      expect(hist.state.panels[0].developer).toBeNull();
+      expect(JSON.stringify(hist.state)).not.toContain('sfr_secret');
+    }
+  );
 
   it('leaves the panel the page renders untouched', () => {
     const panel = settingsPanel('account');

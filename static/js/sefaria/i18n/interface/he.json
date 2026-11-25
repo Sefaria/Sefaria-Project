@@ -820,6 +820,8 @@
   "developer.frame.account_tab.short_label": "חשבון",
   "developer.frame.developer_tab.label": "הגדרות מפתחים",
   "developer.frame.developer_tab.short_label": "מפתחים",
+  "developer.frame.library_assistant_tab.label": "עוזר הספרייה",
+  "developer.frame.library_assistant_tab.short_label": "העוזר",
   "developer.frame.settings_nav.aria": "הגדרות",
   "developer.frame.step_count.aria": "שלב {current} מתוך {total}:",
   "developer.frame.optional.label": "לא חובה",
