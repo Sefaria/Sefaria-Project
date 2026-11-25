@@ -187,6 +187,20 @@ describe('refused saves', () => {
     expect(screen.queryByText("Something went wrong and your change wasn't saved. Please try again.")).toBeNull();
     expect(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }).checked).toBe(false);
   });
+
+  it('explains that a local address is not a public domain, not that it is a shared host', async () => {
+    open({ ...READY, projects: [project(1, { websiteUrl: 'http://localhost:3000', keys: [key(1)] })] });
+    server.fail(
+      'POST',
+      'keys/k1',
+      400,
+      "A key can't be restricted to localhost, because it isn't a public domain. Leave keys you use for local " +
+        'development unrestricted.'
+    );
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
+    expect(screen.getByText(Sefaria._keyedString('developer.errors.not_a_domain.error', 'en'))).toBeTruthy();
+    expect(screen.queryByText(Sefaria._keyedString('developer.errors.shared_host.error', 'en'))).toBeNull();
+  });
 });
 
 describe('after the account email changes', () => {

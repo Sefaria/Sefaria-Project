@@ -616,7 +616,8 @@ const E_SERVER_COPY = [
   /* Same copy as the website field's own check. */
   [/^The website is not a valid web address/, eBi('developer.common.invalid_website.error')],
   [/^Your account has no email address/, eBi('developer.errors.no_account_email.error')],
-  [/^A key can't be restricted to/, eBi('developer.errors.shared_host.error')],
+  [/^A key can't be restricted to .+ because other people's sites share it/, eBi('developer.errors.shared_host.error')],
+  [/^A key can't be restricted to .+ because it isn't a public domain/, eBi('developer.errors.not_a_domain.error')],
 ];
 const eMessage = (err, fallback = SAVE_FAILED) => {
   const raw = err && err.message;
