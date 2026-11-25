@@ -411,6 +411,7 @@ def test_classify_candidates_shipping_release_tag_equal_to_current_attaches_hydr
         "workflow_id": STANDARD_WORKFLOW_ID,
         "workflow_state_id": DEPLOY_READY_STATE_ID,
         "story_type": "feature",
+        "post_deploy_items": [],
     }
 
 
@@ -469,6 +470,7 @@ def test_story_for_release_notes_matches_shipped_stories_hydrated_shape():
         "workflow_id",
         "workflow_state_id",
         "story_type",
+        "post_deploy_items",
     }
     assert hydrated["url"] == story["app_url"]
 

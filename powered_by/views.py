@@ -6,6 +6,7 @@ import re
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import URLValidator, validate_email
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
@@ -14,7 +15,8 @@ from django.views.decorators.http import require_http_methods
 from sefaria.client.util import jsonResponse
 from sefaria.system.decorators import catch_error_as_json
 
-from .models import Project, SubmissionSource, TechnicalExperience
+from .formstack_answers import NOTES_HEADING, append_notes, convert_category, convert_reach, convert_tools
+from .models import ApiProject, Project, SubmissionSource, TechnicalExperience
 
 REQUIRED_FIELDS = ("project_name", "project_link")
 
@@ -313,7 +315,25 @@ def powered_by_api(request):
         return _powered_by_post(request)
 
     authenticated = request.user.is_staff
-    queryset = Project.objects.all() if authenticated else Project.objects.filter(is_published=True)
+    if authenticated:
+        queryset = Project.objects.all()
+    else:
+        # A profile with an internal- or mcp-tier (staff-only system tiers) live API project is never listed. A settings-created profile
+        # is listed only while it has a live API project; a legacy listing needs none.
+        live_api_projects = ApiProject.objects.filter(profile=OuterRef("pk"), deleted_at__isnull=True)
+        queryset = (
+            Project.objects.filter(
+                is_published=True,
+                request_not_to_publish=False,
+                deleted_at__isnull=True,
+            )
+            .filter(
+                ~Exists(live_api_projects.filter(tier_id__in=("internal", "mcp"))),
+            )
+            .filter(
+                ~Q(submission_source=SubmissionSource.DEVELOPER_SETTINGS) | Exists(live_api_projects),
+            )
+        )
     projects = [project.contents(authenticated=authenticated) for project in queryset]
     return jsonResponse({"projects": projects})
 
@@ -334,6 +354,33 @@ def _formstack_signature_ok(request):
     return hmac.compare_digest(f"sha256={digest}", sent)
 
 
+def _convert_to_publish_form_format(cleaned):
+    """
+    Save categories, tools and monthly users in the new publish form's format (ids), so the form reopens a Formstack
+    submission and the gallery reads one format. Project.contents() turns the ids back into labels for the gallery.
+    What doesn't fit (the text typed under "Other") goes to the staff-only notes.
+    """
+    # clean_and_default_post_body accepts any JSON type for these; the model stores them as text anyway.
+    for field in ("project_category", "project_reach", "notes"):
+        value = cleaned.get(field)
+        if isinstance(value, list):
+            cleaned[field] = ", ".join(str(item) for item in value)
+        elif value is not None and not isinstance(value, str):
+            cleaned[field] = str(value)
+    lines = []
+    if "project_category" in cleaned:
+        cleaned["project_category"], category_lines = convert_category(cleaned["project_category"])
+        lines += category_lines
+    if "sefaria_tools_used" in cleaned:
+        cleaned["sefaria_tools_used"], tool_lines = convert_tools(cleaned["sefaria_tools_used"])
+        lines += tool_lines
+    if "project_reach" in cleaned:
+        cleaned["project_reach"] = convert_reach(cleaned["project_reach"])
+    notes = append_notes(cleaned.get("notes"), lines, NOTES_HEADING)
+    if notes:
+        cleaned["notes"] = notes
+
+
 def _powered_by_post(request):
     if not _formstack_signature_ok(request):  ## BEFORE json.loads
         return jsonResponse({"error": "Unauthorized"}, status=401)
@@ -352,6 +399,7 @@ def _powered_by_post(request):
     if error:
         return jsonResponse({"error": error}, status=400)
 
+    _convert_to_publish_form_format(cleaned)
     cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
     cleaned.setdefault("submission_date", timezone.now())
     # Consent is assumed; a submitter who explicitly asks not to be published never is.

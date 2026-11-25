@@ -3333,6 +3333,17 @@ Sefaria = extend(Sefaria, {
     // Return the most recently visited item for text `title` or undefined if `title` is not present in last_place.
     return Sefaria.last_place.find((x) => x.book === title);
   },
+  _lastPlaceLoaded: {},
+  loadLastPlaceForText: async function (title) {
+    // Loads the user's last place in text `title` into last_place. Resolves when it is available to lastPlaceForText.
+    if (!Sefaria._uid || Sefaria._lastPlaceLoaded[title]) {
+      return;
+    }
+    const params = { book: title, last_place: 1, secondary: 0, limit: 1 };
+    const items = await Sefaria.apiRequestWithBody('/api/profile/user_history', params, null, 'GET');
+    Sefaria._lastPlaceLoaded[title] = true;
+    Sefaria.last_place = Sefaria.last_place.concat(items);
+  },
   _topicList: null,
   topicList: function (callback) {
     // Returns promise for all topics list.
@@ -4436,7 +4447,6 @@ Sefaria.unpackBaseProps = function (props) {
     'notifications',
     'saved',
     'userHistory',
-    'last_place',
     'interfaceLang',
     'countryCode',
     'multiPanel',
@@ -4529,6 +4539,7 @@ Sefaria.resetCache = function () {
 
   // Caches that are user-level or can grow unbounded
   this.last_place = []; // Code smell: user state stored in library
+  this._lastPlaceLoaded = {};
   this._parseRef = {};
   this._texts = {};
   this._textsStore = {};

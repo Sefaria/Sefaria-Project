@@ -25,6 +25,13 @@ def delete_user_account(uid, confirm=True):
             print("Canceled.")
             return None
 
+    # Before anything is deleted, so a failure here leaves the whole account in place.
+    django_user = User.objects.filter(id=uid).first()
+    if django_user is not None:
+        from powered_by import developer
+
+        developer.release_account_projects(django_user)
+
     try:
         crm_mediator = CrmMediator()
         if not crm_mediator.mark_for_review_in_crm(profile=user):
@@ -53,10 +60,10 @@ def delete_user_account(uid, confirm=True):
     # Delete Following Relationships
     db.following.delete_many({"follower": uid})
     db.following.delete_many({"followee": uid})
-    # Delete Sheet Likes
-    db.sheets.update_many({"likes": uid}, {"$pull": {"likes": uid}})
     # Delete Profile
     db.profiles.delete_one({"id": uid})
+    # The developer settings' email-confirmation throttle
+    db.developer_confirmation_throttle.delete_many({"uid": uid})
     # Delete User Object
     user = User.objects.get(id=uid)
     user.delete()
