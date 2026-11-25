@@ -6,6 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act, Simulate } from 'react-dom/test-utils';
 import LibraryAssistantSettings, {
+  changedSectionIndex,
   describeRun,
   INSTRUCTIONS_SAVE_MS,
   isPreviewBase,
@@ -18,7 +19,6 @@ jest.mock('../Misc', () => ({
   __esModule: true,
   InterfaceText: ({ text, children }) => (text ? text.en : (children ?? null)),
 }));
-jest.mock('../SettingsPage.jsx', () => ({ __esModule: true, useDialogKeys: () => {} }));
 
 const BASE = 'https://la.example/api';
 const state = (over = {}) => ({
@@ -102,6 +102,19 @@ describe('helpers', () => {
       { heading: 'How you learn', body: 'Short answers.' },
       { heading: 'Studying', body: 'Genesis' },
     ]);
+  });
+});
+
+describe('changedSectionIndex', () => {
+  it('finds a new section, and nothing when nothing changed', () => {
+    expect(changedSectionIndex('# A\nOne', '# A\nOne\n# B\nTwo')).toBe(1);
+    expect(changedSectionIndex('# A\nOne', '# A\nOne')).toBeNull();
+  });
+  it('finds an edit to the untitled first section', () => {
+    expect(changedSectionIndex('Intro\n# A\nOne', 'Intro, edited\n# A\nOne')).toBe(0);
+  });
+  it('tells repeated headings apart', () => {
+    expect(changedSectionIndex('# A\nx\n# A\ny', '# A\nx\n# A\nz')).toBe(1);
   });
 });
 
@@ -387,6 +400,141 @@ describe('LibraryAssistantSettings', () => {
     expect(q('#personalization').getAttribute('inert')).toBe('true');
     expect(q('#laProfile').checked).toBe(false);
     expect(q('#laProfile').disabled).toBe(true);
+  });
+
+  it('retries an Instructions save that failed when the same text is left again', async () => {
+    await render();
+    await type(q('#laInstructionsText'), 'Short answers.');
+    global.fetch.mockImplementation(() => reply({}, 500));
+    await act(async () => Simulate.blur(q('#laInstructionsText')));
+    await flush();
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+    global.fetch.mockImplementation(() => reply(state()));
+    await act(async () => Simulate.blur(q('#laInstructionsText')));
+    await flush();
+    expect(actions().filter((a) => a === 'set_instructions')).toHaveLength(2);
+    expect(q('.laSaveStatus').textContent).toBe('Changes saved');
+  });
+
+  it('sends Instructions still waiting to save when the tab unmounts', async () => {
+    await render();
+    await type(q('#laInstructionsText'), 'Short answers.');
+    const before = global.fetch.mock.calls.length;
+    unmount();
+    expect(global.fetch.mock.calls.length).toBe(before + 1);
+    expect(sent(before)).toEqual({ userId: 'tok', action: 'set_instructions', text: 'Short answers.' });
+    expect(global.fetch.mock.calls[before][1].keepalive).toBe(true);
+  });
+
+  it('sends Instructions still waiting to save on pagehide, once', async () => {
+    await render();
+    await type(q('#laInstructionsText'), 'Short answers.');
+    const before = global.fetch.mock.calls.length;
+    window.dispatchEvent(new Event('pagehide'));
+    expect(actions().slice(before)).toEqual(['set_instructions']);
+    unmount();
+    expect(actions().slice(before)).toEqual(['set_instructions']);
+  });
+
+  it('sends nothing on unmount when the Instructions are already saved', async () => {
+    await render();
+    const before = global.fetch.mock.calls.length;
+    unmount();
+    expect(global.fetch.mock.calls.length).toBe(before);
+  });
+
+  it('stays busy until every running action has finished', async () => {
+    await render();
+    const finishers = [];
+    global.fetch.mockImplementation(
+      () => new Promise((resolve) => finishers.push(() => resolve({ ok: true, status: 200, json: () => state() })))
+    );
+    jest.useFakeTimers();
+    await type(q('#laInstructionsText'), 'Short answers.');
+    await check(q('#laProfile'), false);
+    await act(async () => {
+      jest.advanceTimersByTime(INSTRUCTIONS_SAVE_MS);
+    });
+    jest.useRealTimers();
+    expect(finishers).toHaveLength(2);
+    expect(q('#laProfile').disabled).toBe(true);
+    await act(async () => finishers[0]());
+    await flush();
+    expect(q('#laProfile').disabled).toBe(true);
+    await act(async () => finishers[1]());
+    await flush();
+    expect(q('#laProfile').disabled).toBe(false);
+  });
+
+  it('tells the page the assistant was switched, once the server took it', async () => {
+    const onAssistantChanged = jest.fn();
+    await render({ onAssistantChanged });
+    await check(q('#laAssistant'), false);
+    expect(onAssistantChanged).not.toHaveBeenCalled();
+    await act(async () => global.$.post.mock.calls[0][2]({}));
+    expect(onAssistantChanged).toHaveBeenCalledWith(false);
+  });
+
+  it.each([
+    ['a login page handed back with status 200', '<html>Log in</html>'],
+    ['a 200 body with an error field', { error: 'nope' }],
+  ])('treats %s as a failed assistant save', async (_name, body) => {
+    const onAssistantChanged = jest.fn();
+    await render({ onAssistantChanged });
+    await check(q('#laAssistant'), false);
+    await act(async () => global.$.post.mock.calls[0][2](body));
+    expect(q('#libraryAssistantSetting').textContent).toContain('Could not save the setting. Try again.');
+    expect(q('#laAssistant').checked).toBe(true);
+    expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+    expect(onAssistantChanged).not.toHaveBeenCalled();
+  });
+
+  describe('arriving with a hash', () => {
+    let scrolled;
+    beforeEach(() => {
+      scrolled = [];
+      Element.prototype.scrollIntoView = function () {
+        scrolled.push(this.id);
+      };
+    });
+    afterEach(() => {
+      delete Element.prototype.scrollIntoView;
+      window.location.hash = '';
+    });
+
+    it('scrolls to the Profile for #personalization set after the script loaded', async () => {
+      window.location.hash = '#personalization';
+      await render();
+      expect(scrolled).toEqual(['profile']);
+    });
+
+    it('scrolls to the explanation for #about-personalization, and nowhere with no hash', async () => {
+      window.location.hash = '#about-personalization';
+      await render();
+      expect(scrolled).toEqual(['about-personalization']);
+      unmount();
+      scrolled.length = 0;
+      window.location.hash = '';
+      await render();
+      expect(scrolled).toEqual([]);
+    });
+  });
+
+  it('marks an edit to the untitled first section as Just updated', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: 'Intro\n# A\nOne' } })));
+    await render();
+    global.fetch.mockImplementation(() =>
+      reply({
+        ...state({ profile: { ...state().profile, text: 'Intro, edited\n# A\nOne' } }),
+        edit: { status: 'applied' },
+      })
+    );
+    await type(q('#laEdit'), 'Change intro');
+    await act(async () => Simulate.click(byText('button', 'Update profile')));
+    await flush();
+    const items = [...container.querySelectorAll('.laProfileItem')];
+    expect(items[0].textContent).toContain('Just updated');
+    expect(items[1].textContent).not.toContain('Just updated');
   });
 
   it('does not update state after unmount', async () => {

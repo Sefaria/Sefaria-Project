@@ -31,7 +31,7 @@ export const chatbotApiBaseUrl = ({ chatbot_version, chatbot_api_base_url } = {}
 // as `userId`, exactly as the widget sends it; no custom header (the server's CORS list refuses one).
 // Resolves to the parsed JSON; rejects with {status, body} on an error status, or {status: 0} when
 // the server cannot be reached or does not answer within `timeoutMs` (when given).
-export const laSettings = async (base, token, action, body = {}, { timeoutMs } = {}) => {
+export const laSettings = async (base, token, action, body = {}, { timeoutMs, keepalive } = {}) => {
   const controller = timeoutMs && typeof AbortController !== 'undefined' ? new AbortController() : null;
   const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
   try {
@@ -42,6 +42,7 @@ export const laSettings = async (base, token, action, body = {}, { timeoutMs } =
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: token, action, ...body }),
         ...(controller ? { signal: controller.signal } : {}),
+        ...(keepalive ? { keepalive: true } : {}),
       });
     } catch (e) {
       throw { status: 0, body: null };

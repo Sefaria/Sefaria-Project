@@ -40,11 +40,19 @@ jest.mock('../LibraryAssistantSettings', () => ({
   __esModule: true,
   default: (props) => {
     const React = require('react');
-    return React.createElement('div', {
-      'data-testid': 'library-assistant-settings',
-      'data-enabled': String(props.libraryAssistantEnabled),
-      'data-token': props.chatbot_user_token || '',
-    });
+    return React.createElement(
+      'div',
+      {
+        'data-testid': 'library-assistant-settings',
+        'data-enabled': String(props.libraryAssistantEnabled),
+        'data-token': props.chatbot_user_token || '',
+      },
+      React.createElement('button', {
+        type: 'button',
+        'data-testid': 'library-assistant-turn-on',
+        onClick: () => props.onAssistantChanged(true),
+      })
+    );
   },
 }));
 
@@ -100,6 +108,14 @@ describe('settings tabs', () => {
     expect(panel.getAttribute('data-token')).toBe('tok');
     expect(panel.getAttribute('data-enabled')).toBe('false');
     expect(page.props.tab).toBe('library-assistant');
+  });
+
+  it('keeps the Library Assistant on/off the tab saved, so the tab remounts with the new value', async () => {
+    fakeServer();
+    renderSettings('library-assistant', null, { chatbotProps: { chatbot_user_token: 'tok' } });
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('false');
+    await click(screen.getByTestId('library-assistant-turn-on'));
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('true');
   });
 
   it('switches to the Library Assistant tab in place', async () => {

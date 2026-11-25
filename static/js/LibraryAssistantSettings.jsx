@@ -3,7 +3,7 @@ import { chatbotApiBaseUrl, laSettings } from './chatbotApi';
 import { InterfaceText } from './Misc';
 import Input from './common/Input.jsx';
 import ToggleSwitch from './common/ToggleSwitch.jsx';
-import { useDialogKeys } from './SettingsPage.jsx';
+import { useDialogKeys } from './common/useDialogKeys';
 
 // The Library Assistant tab of Settings. The assistant's on/off is a Sefaria profile setting;
 // Instructions and Profile live in the assistant's own service and are read and written over HTTP
@@ -161,11 +161,26 @@ export const parseSections = (text) => {
   });
   return sections.map((s) => ({ ...s, body: s.body.join(' ') }));
 };
-// The first section whose text changed, or that is new, between two Profiles (for "Just updated").
-const changedHeading = (before, after) => {
-  const old = new Map(parseSections(before).map((s) => [s.heading, s.body]));
-  const hit = parseSections(after).find((s) => old.get(s.heading) !== s.body);
-  return hit ? hit.heading : null;
+// Sections are matched by heading and by how many times it has appeared so far, so a repeated heading does not
+// collide; the untitled first section (heading null) is matched like any other.
+const sectionKeys = (sections) => {
+  const seen = new Map();
+  return sections.map((s) => {
+    const n = seen.get(s.heading) || 0;
+    seen.set(s.heading, n + 1);
+    return `${s.heading === null ? '' : `#${s.heading}`}@${n}`;
+  });
+};
+// The index (in the new Profile) of the first section whose text changed, or that is new (for "Just updated");
+// null when nothing changed.
+export const changedSectionIndex = (before, after) => {
+  const prev = parseSections(before);
+  const prevKeys = sectionKeys(prev);
+  const old = new Map(prev.map((s, i) => [prevKeys[i], s.body]));
+  const next = parseSections(after);
+  const nextKeys = sectionKeys(next);
+  const hit = next.findIndex((s, i) => old.get(nextKeys[i]) !== s.body);
+  return hit === -1 ? null : hit;
 };
 
 // Whether a server reply is a usable State: everything the panel reads on render must be there.
@@ -183,7 +198,7 @@ const acceptEdit = (res) => isState(res) || (!!res && !!res.edit && res.edit.sta
 /* ---------- ?la_mock=1: an in-memory server, for looking at the design ---------- */
 
 const PRODUCTION_HOSTS = /(^|\.)sefaria\.org(\.il)?$/;
-// Read once, when the script loads: the app rewrites the address bar (dropping the query) before the tab renders.
+// Read once, when the script loads (unlike the hash): the app rewrites the address bar (dropping the query) before the tab renders.
 const MOCK = (() => {
   try {
     const host = window.location.hostname;
@@ -194,14 +209,15 @@ const MOCK = (() => {
   }
 })();
 const isMock = () => MOCK;
-// Also read at load: the chat's "Configure here" links to #personalization, "Learn more" to #about-personalization.
-const INITIAL_HASH = (() => {
+// The chat's "Configure here" links to #personalization, "Learn more" to #about-personalization. Read when the
+// tab mounts, so in-app navigation to the tab with a hash works too.
+const currentHash = () => {
   try {
     return window.location.hash;
   } catch (e) {
     return '';
   }
-})();
+};
 const scrollToId = (id) => {
   const el = typeof document !== 'undefined' && document.getElementById(id);
   if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start' });
@@ -214,19 +230,19 @@ const MOCK_PROFILE = [
   '# What you write',
   'You write a short d’var Torah every week for your community newsletter.',
 ].join('\n');
-let mockState = null;
-const mockLaSettings = (action, body = {}) =>
+// `store` is a ref owned by the mounted panel, so the mock's state never outlives it.
+const mockLaSettings = (store, action, body = {}) =>
   new Promise((resolve) => {
     const now = new Date().toISOString();
-    if (!mockState) {
-      mockState = {
+    if (!store.current) {
+      store.current = {
         instructions: { text: '', enabled: true, updatedAt: null },
         profile: { text: MOCK_PROFILE, enabled: true, updatedAt: '2026-11-17T14:14:00', updatedBy: 'la' },
         labEnabled: true,
         testing: { updateEveryMessage: false, showPlainResponse: true, jobState: { hourUsed: 2, hourLimit: 20 } },
       };
     }
-    const s = mockState;
+    const s = store.current;
     let out = s;
     if (action === 'toggle') s[body.target] = { ...s[body.target], enabled: body.enabled };
     if (action === 'set_instructions') s.instructions = { ...s.instructions, text: body.text, updatedAt: now };
@@ -382,9 +398,13 @@ const Personalization = ({ base, token, off, onSaving }) => {
   const mock = isMock();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [inFlight, setInFlight] = useState(0);
+  const busy = inFlight > 0;
   const [draft, setDraft] = useState('');
   const savedDraft = useRef('');
+  const latestDraft = useRef('');
+  const mockStore = useRef(null);
+  const initialHash = useRef(currentHash());
   const [confirmClear, setConfirmClear] = useState(false);
   const [editRequest, setEditRequest] = useState('');
   const [editing, setEditing] = useState(false);
@@ -394,13 +414,25 @@ const Personalization = ({ base, token, off, onSaving }) => {
   const [health, setHealth] = useState(null);
   const mounted = useRef(true);
   const saveTimer = useRef(null);
-  useEffect(
-    () => () => {
+  // Sends the instructions text still waiting to be saved, if any, without waiting for the reply: used when the
+  // tab goes away (unmount, pagehide), where a timer would never fire. Kept in a ref so it sees the latest props.
+  const flushDraft = useRef(() => {});
+  flushDraft.current = () => {
+    clearTimeout(saveTimer.current);
+    const text = latestDraft.current;
+    if (mock || text === savedDraft.current || text.length > MAX_TEXT) return;
+    savedDraft.current = text;
+    Promise.resolve(laSettings(base, token, 'set_instructions', { text }, { keepalive: true })).catch(() => {});
+  };
+  useEffect(() => {
+    const onPageHide = () => flushDraft.current();
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
       mounted.current = false;
-      clearTimeout(saveTimer.current);
-    },
-    []
-  );
+      flushDraft.current();
+    };
+  }, []);
 
   // Runs one action. On success returns the response; `accept` says what a usable reply looks like
   // (a State by default). On failure, or a reply that is not usable, sets the message and returns null.
@@ -409,12 +441,12 @@ const Personalization = ({ base, token, off, onSaving }) => {
     async (action, body, accept = isState, onQuota) => {
       const saves = action !== 'get' && action !== 'health';
       setError(null);
-      setBusy(true);
+      setInFlight((n) => n + 1);
       if (saves) onSaving(1);
       let ok = false;
       try {
         const res = mock
-          ? await mockLaSettings(action, body)
+          ? await mockLaSettings(mockStore, action, body)
           : await laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : {});
         if (!accept(res)) throw new Error('unexpected response');
         ok = true;
@@ -426,7 +458,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
         } else if (mounted.current) setError(errorMessage(e, isPreviewBase(base)));
         return null;
       } finally {
-        if (mounted.current) setBusy(false);
+        if (mounted.current) setInFlight((n) => Math.max(0, n - 1));
         if (saves) onSaving(-1, ok ? 'ok' : 'fail');
       }
     },
@@ -442,6 +474,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
       setData(res);
       setDraft(res.instructions.text || '');
       savedDraft.current = res.instructions.text || '';
+      latestDraft.current = res.instructions.text || '';
     })();
     return () => {
       cancelled = true;
@@ -453,8 +486,9 @@ const Personalization = ({ base, token, off, onSaving }) => {
   useEffect(() => {
     if (!data || scrolled.current) return;
     scrolled.current = true;
-    if (INITIAL_HASH === '#personalization' || INITIAL_HASH === '#profile') scrollToId('profile');
-    if (INITIAL_HASH === '#about-personalization') scrollToId('about-personalization');
+    const hash = initialHash.current;
+    if (hash === '#personalization' || hash === '#profile') scrollToId('profile');
+    if (hash === '#about-personalization') scrollToId('about-personalization');
   }, [data]);
 
   const act = async (action, body, accept, onQuota) => {
@@ -463,14 +497,16 @@ const Personalization = ({ base, token, off, onSaving }) => {
     return res;
   };
 
-  const saveDraft = (text) => {
+  const saveDraft = async (text) => {
     clearTimeout(saveTimer.current);
     if (text === savedDraft.current || text.length > MAX_TEXT) return;
-    savedDraft.current = text;
-    act('set_instructions', { text });
+    // Remembered as saved only once the server took it, so a later blur or pause with the same text tries again.
+    const res = await act('set_instructions', { text });
+    if (res) savedDraft.current = text;
   };
   const onDraft = (text) => {
     setDraft(text);
+    latestDraft.current = text;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => saveDraft(text), INSTRUCTIONS_SAVE_MS);
   };
@@ -490,7 +526,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
       return;
     }
     setEditRequest('');
-    setChanged(changedHeading(before, res.profile.text));
+    setChanged(changedSectionIndex(before, res.profile.text));
   };
   const runNow = async (kind) => {
     setRunResult(null);
@@ -558,7 +594,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
                 <li key={i} className="laProfileItem">
                   {s.heading ? <h4 className="laProfileHeading">{s.heading}</h4> : null}
                   <p className="laProfileBody">{s.body}</p>
-                  {changed && s.heading === changed ? (
+                  {changed !== null && i === changed ? (
                     <span className="laBadge">
                       <T>{STRINGS.justUpdated}</T>
                     </span>
@@ -804,17 +840,21 @@ const LibraryAssistantSettings = (props) => {
       setAssistantOn(!on);
       setSettingError(STRINGS.settingFailed);
     };
+    // Anything but a JSON object without an error (a login page handed back with status 200 when the session
+    // ended, for one) is a failure.
+    const isJsonAnswer = (data) => typeof data === 'object' && data !== null;
     // jQuery, so the page's CSRF setup applies; the endpoint takes a form field named "json".
     const request = $.post(
       '/api/profile',
       { json: JSON.stringify({ settings: { library_assistant: on } }) },
       (data) => {
-        if (data && data.error) {
+        if (!isJsonAnswer(data) || data.error) {
           fail();
           return;
         }
         inFlight.current = false;
         onSaving(-1, 'ok');
+        if (props.onAssistantChanged) props.onAssistantChanged(on);
       }
     );
     if (request && request.fail) request.fail(fail);
