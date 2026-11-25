@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 legacy_text.py -- the binary en/he text-access classes superseded by the real-language-based
 TextChunk in text.py: LegacyTextChunk, its VirtualTextChunk delegate for virtual nodes, and
@@ -6,17 +5,18 @@ TextFamily, the bridge class that backs the legacy v2 texts API.
 """
 
 import itertools
-import structlog
 from functools import reduce
 
 import re2 as re
-from .schema import JaggedArrayNode, AddressTalmud
-from sefaria.system.exceptions import InputError, MissingKeyError, NoVersionFoundError, ComplexBookLevelRefError
-from sefaria.utils.hebrew import hebrew_term
-from sefaria.utils.util import list_depth, flatten_jagged_array
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
+import structlog
 
-from .text import AbstractTextRecord, Version, VersionSet, Ref, library
+from sefaria.datatype.jagged_array import JaggedArray, JaggedTextArray
+from sefaria.system.exceptions import ComplexBookLevelRefError, InputError, MissingKeyError, NoVersionFoundError
+from sefaria.utils.hebrew import hebrew_term
+from sefaria.utils.util import flatten_jagged_array, list_depth
+
+from .schema import AddressTalmud, JaggedArrayNode
+from .text import AbstractTextRecord, Ref, Version, VersionSet, library
 
 logger = structlog.get_logger(__name__)
 
@@ -34,8 +34,7 @@ class TextFamilyDelegator(type):
 
         if oref and oref.index_node.is_virtual:
             return VirtualTextChunk(*args, **kwargs)
-        else:
-            return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
+        return super().__call__(*args, **kwargs)
 
 
 class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
@@ -65,7 +64,15 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
+    def __init__(
+        self,
+        oref,
+        lang="en",
+        vtitle=None,
+        exclude_copyrighted=False,
+        actual_lang=None,
+        fallback_on_default_version=False,
+    ):
         """
         :param oref:
         :type oref: Ref
@@ -96,15 +103,20 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
         if lang and vtitle and not fallback_on_default_version:
             self._saveable = True
-            v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
+            v = Version().load(
+                {"title": self._oref.index.title, "language": lang, "versionTitle": vtitle},
+                self._oref.part_projection(),
+            )
             if exclude_copyrighted and v.is_copyrighted():
-                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), vtitle, lang))
+                raise InputError(f"Can not provision copyrighted text. {oref.normal()} ({vtitle}/{lang})")
             if v:
                 self._versions += [v]
                 try:
                     self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
                 except TypeError:
-                    raise MissingKeyError(f'The version {vtitle} exists but has no key for the node {self._oref.index_node}')
+                    raise MissingKeyError(
+                        f"The version {vtitle} exists but has no key for the node {self._oref.index_node}"
+                    )
         elif lang:
             if actual_lang is not None:
                 self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle)
@@ -113,25 +125,29 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         else:
             raise Exception("LegacyTextChunk requires a language.")
 
-    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None) -> None:
+    def _choose_version_by_lang(
+        self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None
+    ) -> None:
         if prioritized_vtitle:
             actual_lang = None
         vset = VersionSet(self._oref.condition_query(lang, actual_lang), proj=self._oref.part_projection())
         if len(vset) == 0:
             if VersionSet({"title": self._oref.index.title}).count() == 0:
-                raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
+                raise NoVersionFoundError(f"No text record found for '{self._oref.index.title}'")
             return
         if len(vset) == 1:
             v = vset[0]
             if exclude_copyrighted and v.is_copyrighted():
-                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
+                raise InputError(f"Can not provision copyrighted text. {oref.normal()} ({v.versionTitle}/{v.language})")
             self._versions += [v]
             self.text = self.trim_text(v.content_node(self._oref.index_node))
-            #todo: Should this instance, and the non-merge below, be made saveable?
+            # TODO: Should this instance, and the non-merge below, be made saveable?
         else:  # multiple versions available, merge
             if exclude_copyrighted:
                 vset.remove(Version.is_copyrighted)
-            merged_text, sources = vset.merge(self._oref.index_node, prioritized_vtitle=prioritized_vtitle)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+            merged_text, sources = vset.merge(
+                self._oref.index_node, prioritized_vtitle=prioritized_vtitle
+            )  # TODO: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
             self.text = self.trim_text(merged_text)
             flat_sources = flatten_jagged_array(sources)
             real_sources = [s for s in flat_sources if s]
@@ -147,21 +163,21 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 self._versions = vset.array()
 
     def __str__(self):
-        args = "{}, {}".format(self._oref, self.lang)
+        args = f"{self._oref}, {self.lang}"
         if self.vtitle:
-            args += ", {}".format(self.vtitle)
+            args += f", {self.vtitle}"
         return args
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        args = "{}, {}".format(self._oref, self.lang)
+        args = f"{self._oref}, {self.lang}"
         if self.vtitle:
-            args += ", {}".format(self.vtitle)
-        return "{}({})".format(self.__class__.__name__, args)
+            args += f", {self.vtitle}"
+        return f"{self.__class__.__name__}({args})"
 
     def version_ids(self):
         if self._version_ids is None:
             if self._versions:
-                vtitle_query = [{'versionTitle': v.versionTitle} for v in self._versions]
+                vtitle_query = [{"versionTitle": v.versionTitle} for v in self._versions]
                 query = {"title": self._oref.index.title, "$or": vtitle_query}
                 self._version_ids = VersionSet(query).distinct("_id")
             else:
@@ -171,8 +187,7 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     def ja(self, remove_html=False):
         if remove_html:
             return JaggedTextArray(AbstractTextRecord.remove_html(self.text))
-        else:
-            return JaggedTextArray(self.text)
+        return JaggedTextArray(self.text)
 
     def save(self, force_save=False):
         """
@@ -182,13 +197,13 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         :param force_save: If set to True, will force a save even if no change was detected in the text.
         :return:
         """
-        assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
-        assert not self._oref.is_range(), "Only non-range references can be saved: {}".format(self._oref.normal())
-        #may support simple ranges in the future.
-        #self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
+        assert self._saveable, f"Tried to save a read-only text: {self._oref.normal()}"
+        assert not self._oref.is_range(), f"Only non-range references can be saved: {self._oref.normal()}"
+        # may support simple ranges in the future.
+        # self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
         if not force_save:
             if self.text == self._original_text:
-                logger.warning("Aborted save of {}. No change in text.".format(self._oref.normal()))
+                logger.warning(f"Aborted save of {self._oref.normal()}. No change in text.")
                 return False
 
         self._validate()
@@ -202,18 +217,22 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                     "versionTitle": self.vtitle,
                     "versionSource": self.versionSource,
                     "language": self.lang,
-                    "title": self._oref.index.title
+                    "title": self._oref.index.title,
                 }
             )
         else:
-            self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
-            assert self.full_version, "Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
+            self.full_version = Version().load(
+                {"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle}
+            )
+            assert self.full_version, f"Failed to load Version record for {self._oref.normal()}, {self.vtitle}"
             if self.versionSource:
                 self.full_version.versionSource = self.versionSource  # hack
 
         content = self.full_version.sub_content(self._oref.index_node.version_address())
         self._pad(content)
-        self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
+        self.full_version.sub_content(
+            self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text
+        )
 
         self._check_available_text_pre_save()
 
@@ -254,7 +273,7 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         so that we can know if segments have been added or deleted overall.
         """
         self._available_text_pre_save = {}
-        langs_checked = [self.lang] # swtich to ["en", "he"] when global availability checks are needed
+        langs_checked = [self.lang]  # swtich to ["en", "he"] when global availability checks are needed
         for lang in langs_checked:
             try:
                 self._available_text_pre_save[lang] = LegacyTextChunk(self._oref, lang).text
@@ -297,7 +316,9 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 if lang:
                     text_still_available = bool(LegacyTextChunk(old_text[0], lang).text)
                 else:
-                    text_still_available = bool(LegacyTextChunk(old_text[0], "en").text) or bool(LegacyTextChunk(old_text[0], "he").text)
+                    text_still_available = bool(LegacyTextChunk(old_text[0], "en").text) or bool(
+                        LegacyTextChunk(old_text[0], "he").text
+                    )
                 if not text_still_available:
                     changed.append([old_text[0], False])
 
@@ -325,6 +346,7 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
         if len(changed):
             from . import link
+
             for change in changed:
                 link.update_link_language_availabiliy(change[0], self.lang, change[1])
 
@@ -338,54 +360,46 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         implied_depth = ref_depth + posted_depth
         if implied_depth != self._oref.index_node.depth:
             raise InputError(
-                "Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
-                .format(self._oref.index_node.full_title(), self._oref.index_node.depth, self._oref.normal(), implied_depth)
+                f"Text Structure Mismatch. The stored depth of {self._oref.index_node.full_title()} is {self._oref.index_node.depth}, but the text posted to {self._oref.normal()} implies a depth of {implied_depth}."
             )
 
-        #validate that length of the array matches length of the ref
-        #todo: double check for depth >= 3
+        # validate that length of the array matches length of the ref
+        # TODO: double check for depth >= 3
         if self._oref.is_spanning():
             span_size = self._oref.span_size()
-            if posted_depth == 0: #possible?
+            if posted_depth == 0:  # possible?
                 raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a string."
-                        .format(self._oref.normal(), span_size)
+                    f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, but the text posted is a string."
                 )
-            elif posted_depth == 1: #possible?
+            if posted_depth == 1:  # possible?
                 raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a simple list."
-                        .format(self._oref.normal(), span_size)
+                    f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, but the text posted is a simple list."
                 )
-            else:
-                posted_length = len(self.text)
-                if posted_length != span_size:
-                    raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted has {} elements."
-                        .format(self._oref.normal(), span_size, posted_length)
-                    )
-                #todo: validate last section size if provided
+            posted_length = len(self.text)
+            if posted_length != span_size:
+                raise InputError(
+                    f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, but the text posted has {posted_length} elements."
+                )
+                # TODO: validate last section size if provided
 
         elif self._oref.is_range():
             range_length = self._oref.range_size()
             if posted_depth == 0:
                 raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {}, but the text posted is a string."
-                        .format(self._oref.normal(), range_length)
+                    f"Text Structure Mismatch. {self._oref.normal()} implies a length of {range_length}, but the text posted is a string."
                 )
-            elif posted_depth == 1:
+            if posted_depth == 1:
                 posted_length = len(self.text)
                 if posted_length != range_length:
                     raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {}, but the text posted has {} elements."
-                        .format(self._oref.normal(), range_length, posted_length)
+                        f"Text Structure Mismatch. {self._oref.normal()} implies a length of {range_length}, but the text posted has {posted_length} elements."
                     )
             else:  # this should never happen.  The depth check should catch it.
                 raise InputError(
-                    "Text Structure Mismatch. {} implies an simple array of length {}, but the text posted has depth {}."
-                    .format(self._oref.normal(), range_length, posted_depth)
+                    f"Text Structure Mismatch. {self._oref.normal()} implies an simple array of length {range_length}, but the text posted has depth {posted_depth}."
                 )
 
-    #maybe use JaggedArray.subarray()?
+    # maybe use JaggedArray.subarray()?
     def trim_text(self, txt):
         """
         Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
@@ -401,11 +415,11 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         if not sections:
             pass
         else:
-            for i in range(0, self._ref_depth):
+            for i in range(self._ref_depth):
                 if i == 0 == range_index:  # First level slice handled at DB level
                     pass
                 elif range_index > i:  # Either not range, or range begins later.  Return simple value.
-                    if i == 0 and len(txt):   # We already sliced the first level w/ Ref.part_projection()
+                    if i == 0 and len(txt):  # We already sliced the first level w/ Ref.part_projection()
                         txt = txt[0]
                     elif len(txt) >= sections[i]:
                         txt = txt[sections[i] - 1]
@@ -420,8 +434,8 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                     for _ in range(range_index, i - 1):
                         begin = begin[0]
                         end = end[-1]
-                    begin[0] = begin[0][sections[i] - 1:]
-                    end[-1] = end[-1][:toSections[i]]
+                    begin[0] = begin[0][sections[i] - 1 :]
+                    end[-1] = end[-1][: toSections[i]]
 
         return txt
 
@@ -431,8 +445,7 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         """
         if not self._oref.is_range() and self._ref_depth == self._oref.index_node.depth:
             return ""
-        else:
-            return []
+        return []
 
     def version(self):
         """
@@ -444,12 +457,11 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
             return None
         if len(self._versions) == 1:
             return self._versions[0]
-        else:
-            raise Exception("Called LegacyTextChunk.version() on merged LegacyTextChunk.")
+        raise Exception("Called LegacyTextChunk.version() on merged LegacyTextChunk.")
 
     def has_manually_wrapped_refs(self):
         try:
-            return getattr(self.version(), 'hasManuallyWrappedRefs', False)
+            return getattr(self.version(), "hasManuallyWrappedRefs", False)
         except:
             # merged version
             return False
@@ -462,7 +474,6 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         r = self._oref
         ref_list = []
 
-
         if r.is_range():
             input_refs = r.range_list()
         else:
@@ -472,16 +483,19 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
             ja = temp_tc.ja()
             jarray = ja.mask().array()
 
-            #TODO do I need to check if this ref exists for this version?
+            # TODO do I need to check if this ref exists for this version?
             if temp_ref.is_segment_level():
-                if jarray: #it's an int if ref is segment_level
+                if jarray:  # it's an int if ref is segment_level
                     ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
                 ref_list += [temp_ref.subref(i + 1) for i, v in enumerate(jarray) if v]
-            else: # higher than section level
-                ref_list += [temp_ref.subref([j + 1 for j in ne] + [i + 1])
-                             for ne in ja.non_empty_sections()
-                             for i, v in enumerate(ja.subarray(ne).mask().array()) if v]
+            else:  # higher than section level
+                ref_list += [
+                    temp_ref.subref([j + 1 for j in ne] + [i + 1])
+                    for ne in ja.non_empty_sections()
+                    for i, v in enumerate(ja.subarray(ne).mask().array())
+                    if v
+                ]
 
         return ref_list
 
@@ -497,19 +511,22 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         text_list = [x for x in self.ja().flatten_to_array() if len(x) > 0]
         if len(text_list) != len(ref_list):
             if strict:
-                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
-            else:
-                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
+                raise ValueError(
+                    f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)}"  # noqa: F821 -- pre-existing: `ind_list` undefined; needs owner review
+                )
+            print(
+                f"Warning: The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)} {str(self._oref)}"  # noqa: F821 -- pre-existing: `ind_list` undefined; needs owner review
+            )
 
         matches = []
         for r, t in zip(ref_list, text_list):
             cleaned = cleaner(t)
-            for m in re.finditer(regex_str,cleaned):
+            for m in re.finditer(regex_str, cleaned):
                 matches += [(r, m, cleaned)]
 
         return matches
 
-    def text_index_map(self, tokenizer=lambda x: re.split(r'\s+', x), strict=True, ret_ja=False):
+    def text_index_map(self, tokenizer=lambda x: re.split(r"\s+", x), strict=True, ret_ja=False):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
@@ -519,31 +536,33 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         :param ret_ja: True if you want to return the flattened ja
         :return: (list,list) - index_list (0 based index of start word of each segment ref as compared with the text chunk ref), ref_list
         """
-        #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
+        # TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
         ref_list = self.nonempty_segment_refs()
 
         total_len = 0
         text_list = self.ja().flatten_to_array()
-        for i,segment in enumerate(text_list):
+        for i, segment in enumerate(text_list):
             if len(segment) > 0:
                 ind_list.append(total_len)
                 total_len += len(tokenizer(segment))
 
         if len(ind_list) != len(ref_list):
             if strict:
-                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+                raise ValueError(
+                    f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)}"
+                )
+            print(
+                f"Warning: The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)} {str(self._oref)}"
+            )
+            if len(ind_list) > len(ref_list):
+                ind_list = ind_list[: len(ref_list)]
             else:
-                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
-                if len(ind_list) > len(ref_list):
-                    ind_list = ind_list[:len(ref_list)]
-                else:
-                    ref_list = ref_list[:len(ind_list)]
+                ref_list = ref_list[: len(ind_list)]
 
         if ret_ja:
             return ind_list, ref_list, total_len, text_list
-        else:
-            return ind_list, ref_list, total_len
+        return ind_list, ref_list, total_len
 
 
 class VirtualTextChunk(AbstractTextRecord):
@@ -554,7 +573,15 @@ class VirtualTextChunk(AbstractTextRecord):
 
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
+    def __init__(
+        self,
+        oref,
+        lang="en",
+        vtitle=None,
+        exclude_copyrighted=False,
+        actual_lang=None,
+        fallback_on_default_version=False,
+    ):
 
         self._oref = oref
         self._ref_depth = len(self._oref.sections)
@@ -576,11 +603,14 @@ class VirtualTextChunk(AbstractTextRecord):
             self._versions = []
             return
 
-        v = Version().load({
-            "title": self._oref.index_node.get_index_title(),
-            "versionTitle": self._oref.index_node.get_version_title(self.lang),
-            "language": self.lang
-        }, {"chapter": 0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
+        v = Version().load(
+            {
+                "title": self._oref.index_node.get_index_title(),
+                "versionTitle": self._oref.index_node.get_version_title(self.lang),
+                "language": self.lang,
+            },
+            {"chapter": 0},
+        )  # Currently vtitle is thrown out.  There's only one version of each lexicon.
         self._versions = [v] if v else []
 
     def version(self):
@@ -590,11 +620,11 @@ class VirtualTextChunk(AbstractTextRecord):
         return [self._versions[0]._id] if self._versions else []
 
     def has_manually_wrapped_refs(self):
-        return not getattr(self._oref.index_node.parent.lexicon, 'needsRefsWrapping', False)
+        return not getattr(self._oref.index_node.parent.lexicon, "needsRefsWrapping", False)
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
-class TextFamily(object):
+class TextFamily:
     """
     A text with its translations and optionally the commentary on it.
 
@@ -619,16 +649,10 @@ class TextFamily(object):
     Later on we decided to translate all of our versionTitles into Hebrew. To avoid direct conflict with the text api,
     these got the names versionTitleInHebrew and versionNotesInHebrew.
     """
-    text_attr_map = {
-        "en": "text",
-        "he": "he"
-    }
+    text_attr_map = {"en": "text", "he": "he"}
 
     attr_map = {
-        "versionTitle": {
-            "en": "versionTitle",
-            "he": "heVersionTitle"
-        },
+        "versionTitle": {"en": "versionTitle", "he": "heVersionTitle"},
         "versionTitleInHebrew": {
             "en": "versionTitleInHebrew",
             "he": "heVersionTitleInHebrew",
@@ -641,26 +665,11 @@ class TextFamily(object):
             "en": "shortVersionTitleInHebrew",
             "he": "heShortVersionTitleInHebrew",
         },
-        "versionSource": {
-            "en": "versionSource",
-            "he": "heVersionSource"
-        },
-        "status": {
-            "en": "versionStatus",
-            "he": "heVersionStatus"
-        },
-        "versionNotes": {
-            "en": "versionNotes",
-            "he": "heVersionNotes"
-        },
-        "extendedNotes": {
-            "en": "extendedNotes",
-            "he": "heExtendedNotes"
-        },
-        "extendedNotesHebrew": {
-            "en": "extendedNotesHebrew",
-            "he": "heExtendedNotesHebrew"
-        },
+        "versionSource": {"en": "versionSource", "he": "heVersionSource"},
+        "status": {"en": "versionStatus", "he": "heVersionStatus"},
+        "versionNotes": {"en": "versionNotes", "he": "heVersionNotes"},
+        "extendedNotes": {"en": "extendedNotes", "he": "heExtendedNotes"},
+        "extendedNotesHebrew": {"en": "extendedNotesHebrew", "he": "heExtendedNotesHebrew"},
         "versionNotesInHebrew": {
             "en": "versionNotesInHebrew",
             "he": "heVersionNotesInHebrew",
@@ -670,25 +679,31 @@ class TextFamily(object):
             "he": "heDigitizedBySefaria",
             "default": False,
         },
-        "license": {
-            "en": "license",
-            "he": "heLicense",
-            "default": "unknown"
-        },
-        "formatAsPoetry": { # Setup for Fox translation. Perhaps we want in other places as well?
+        "license": {"en": "license", "he": "heLicense", "default": "unknown"},
+        "formatAsPoetry": {  # Setup for Fox translation. Perhaps we want in other places as well?
             "he": "formatHeAsPoetry",
             "en": "formatEnAsPoetry",
             "default": False,
-        }
+        },
     }
-    sourceMap = {
-        "en": "sources",
-        "he": "heSources"
-    }
+    sourceMap = {"en": "sources", "he": "heSources"}
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None,
-                 version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False,
-                 translationLanguagePreference=None, fallbackOnDefaultVersion=False):
+    def __init__(
+        self,
+        oref,
+        context=1,
+        commentary=True,
+        version=None,
+        lang=None,
+        version2=None,
+        lang2=None,
+        pad=True,
+        alts=False,
+        wrapLinks=False,
+        stripItags=False,
+        translationLanguagePreference=None,
+        fallbackOnDefaultVersion=False,
+    ):
         """
         :param oref:
         :param context:
@@ -713,37 +728,38 @@ class TextFamily(object):
         if version2:
             version2 = version2.replace("_", " ")
 
-        self.ref            = oref.normal()
-        self.heRef          = oref.he_normal()
-        self.isComplex      = oref.index.is_complex()
-        self.text           = None
-        self.he             = None
+        self.ref = oref.normal()
+        self.heRef = oref.he_normal()
+        self.isComplex = oref.index.is_complex()
+        self.text = None
+        self.he = None
         self._nonExistantVersions = {}
-        self._lang          = lang
+        self._lang = lang
         self._original_oref = oref
-        self._context_oref  = None
-        self._chunks        = {}
-        self._inode         = oref.index_node
-        self._alts          = []
+        self._context_oref = None
+        self._chunks = {}
+        self._inode = oref.index_node
+        self._alts = []
 
         if not isinstance(oref.index_node, JaggedArrayNode) and not oref.index_node.is_virtual:
             raise InputError("Unable to find text for that ref")
 
-        for i in range(0, context):
+        for i in range(context):
             oref = oref.context_ref()
         self._context_oref = oref
 
         # processes "en" and "he" LegacyTextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in list(self.text_attr_map.items()):
-            tc_kwargs = dict(oref=oref, lang=language, fallback_on_default_version=fallbackOnDefaultVersion)
-            if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
+            tc_kwargs = {"oref": oref, "lang": language, "fallback_on_default_version": fallbackOnDefaultVersion}
+            if language == "en":
+                tc_kwargs["actual_lang"] = translationLanguagePreference
             if language in {lang, lang2}:
                 curr_version = version if language == lang else version2
                 c = LegacyTextChunk(vtitle=curr_version, **tc_kwargs)
                 if len(c._versions) == 0:  # indicates `version` doesn't exist
-                    if tc_kwargs.get('actual_lang', False) and not curr_version:
+                    if tc_kwargs.get("actual_lang", False) and not curr_version:
                         # actual_lang is only used if curr_version is not passed
-                        tc_kwargs.pop('actual_lang', None)
+                        tc_kwargs.pop("actual_lang", None)
                         c = LegacyTextChunk(vtitle=curr_version, **tc_kwargs)
                     elif curr_version:
                         self._nonExistantVersions[language] = curr_version
@@ -752,26 +768,41 @@ class TextFamily(object):
             self._chunks[language] = c
             text_modification_funcs = []
             if stripItags:
-                text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
+                text_modification_funcs += [
+                    lambda s, secs: c.strip_itags(s),
+                    lambda s, secs: " ".join(s.split()).strip(),
+                ]
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
-                #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
-                #then count how many links came from that version. If any- do the wrapping.
+                # only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
+                # then count how many links came from that version. If any- do the wrapping.
                 from . import Link
+
                 query = oref.ref_regex_query()
                 query.update({"inline_citation": True})  # , "source_text_oid": {"$in": c.version_ids()}
                 if Link().load(query) is not None:
-                    link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(c.ja().flatten_to_string(), lang=language, citing_only=True)
-                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True, reg=link_wrapping_reg, title_nodes=title_nodes)]
+                    link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(
+                        c.ja().flatten_to_string(), lang=language, citing_only=True
+                    )
+                    text_modification_funcs += [
+                        lambda s, secs: library.get_wrapped_refs_string(
+                            s, lang=language, citing_only=True, reg=link_wrapping_reg, title_nodes=title_nodes
+                        )
+                    ]
             padded_sections, _ = oref.get_padded_sections()
-            setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections))
+            setattr(
+                self,
+                self.text_attr_map[language],
+                c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections),
+            )
 
         if oref.is_spanning():
             self.spanning = True
-        #// todo: should this parameter be renamed? it gets all links, not strictly commentary...
+        # // todo: should this parameter be renamed? it gets all links, not strictly commentary...
         if commentary:
             from sefaria.client.wrapper import get_links
+
             if not oref.is_spanning():
-                links = get_links(oref.normal())  #todo - have this function accept an object
+                links = get_links(oref.normal())  # TODO - have this function accept an object
             else:
                 links = [get_links(r.normal()) for r in oref.split_spanning_ref()]
             self.commentary = links if "error" not in links else []
@@ -793,53 +824,57 @@ class TextFamily(object):
         """
         d = {k: getattr(self, k) for k in list(vars(self).keys()) if k[0] != "_"}
 
-        d["textDepth"]       = getattr(self._inode, "depth", None)
-        d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
-        d["addressTypes"]    = getattr(self._inode, "addressTypes", None)
+        d["textDepth"] = getattr(self._inode, "depth", None)
+        d["sectionNames"] = getattr(self._inode, "sectionNames", None)
+        d["addressTypes"] = getattr(self._inode, "addressTypes", None)
         if getattr(self._inode, "lengths", None):
-            d["lengths"]     = getattr(self._inode, "lengths")
+            d["lengths"] = self._inode.lengths
             if len(d["lengths"]):
-                d["length"]  = d["lengths"][0]
+                d["length"] = d["lengths"][0]
         elif getattr(self._inode, "length", None):
-            d["length"]      = getattr(self._inode, "length")
-        d["textDepth"]       = self._inode.depth
-        d["heTitle"]         = self._inode.full_title("he")
-        d["titleVariants"]   = self._inode.all_tree_titles("en")
+            d["length"] = self._inode.length
+        d["textDepth"] = self._inode.depth
+        d["heTitle"] = self._inode.full_title("he")
+        d["titleVariants"] = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
-        d["type"]            = getattr(self._original_oref, "primary_category")
-        d["primary_category"] = getattr(self._original_oref, "primary_category")
-        d["book"]            = getattr(self._original_oref, "book")
+        d["type"] = self._original_oref.primary_category
+        d["primary_category"] = self._original_oref.primary_category
+        d["book"] = self._original_oref.book
 
         for attr in ["categories", "order"]:
             d[attr] = getattr(self._inode.index, attr, "")
         for attr in ["sections", "toSections"]:
             d[attr] = getattr(self._original_oref, attr)[:]
 
-        if getattr(self._inode.index, 'collective_title', None):
-            d["commentator"] = getattr(self._inode.index, 'collective_title', "") # todo: deprecate Only used in s1 js code
-            d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
-            d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
-            d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+        if getattr(self._inode.index, "collective_title", None):
+            d["commentator"] = getattr(
+                self._inode.index, "collective_title", ""
+            )  # TODO: deprecate Only used in s1 js code
+            d["heCommentator"] = hebrew_term(
+                getattr(self._inode.index, "collective_title", "")
+            )  # TODO: deprecate Only used in s1 js code
+            d["collectiveTitle"] = getattr(self._inode.index, "collective_title", "")
+            d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, "collective_title", ""))
 
         if len(self._nonExistantVersions) > 0:
-            d['nonExistantVersions'] = self._nonExistantVersions
+            d["nonExistantVersions"] = self._nonExistantVersions
 
         if self._inode.index.is_dependant_text():
-            #d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
-            #d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', [])
-            d["baseTexTitles"] = getattr(self._inode.index, 'base_text_titles', [])
+            # d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
+            # d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', [])
+            d["baseTexTitles"] = getattr(self._inode.index, "base_text_titles", [])
 
-        d["isComplex"]    = self.isComplex
+        d["isComplex"] = self.isComplex
         d["isDependant"] = self._inode.index.is_dependant_text()
-        d["indexTitle"]   = self._inode.index.title
+        d["indexTitle"] = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
-        d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["sectionRef"] = self._original_oref.section_ref().normal()
         try:
             d["firstAvailableSectionRef"] = self._original_oref.first_available_section_ref().normal()
         except AttributeError:
             pass
         d["heSectionRef"] = self._original_oref.section_ref().he_normal()
-        d["isSpanning"]   = self._original_oref.is_spanning()
+        d["isSpanning"] = self._original_oref.is_spanning()
         if d["isSpanning"]:
             d["spanningRefs"] = [r.normal() for r in self._original_oref.split_spanning_ref()]
 
@@ -874,6 +909,6 @@ class TextFamily(object):
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])"""
 
         d["alts"] = self._alts
-        d['index_offsets_by_depth'] = self._index_offsets_by_depth
+        d["index_offsets_by_depth"] = self._index_offsets_by_depth
 
         return d

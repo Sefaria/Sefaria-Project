@@ -6,15 +6,17 @@ import pytest
 from bson import ObjectId
 from django.test import Client
 
-from sefaria.model.topic import Topic, RefTopicLink
 from sefaria.helper import topic_prompts_admin as tpa
+from sefaria.model.topic import RefTopicLink, Topic
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.utils.chatbot import build_chatbot_user_token, MCP_TOKEN_AUDIENCE
+from sefaria.utils.chatbot import MCP_TOKEN_AUDIENCE, build_chatbot_user_token
 
 MCP_SECRET = "test-mcp-secret"
 HOST = "www.modularization.testing.sefaria.org"
-TEST_DOMAIN_MODULES = {lang: {"library": f"https://{HOST}", "voices": f"https://voices.{HOST}"} for lang in ("en", "he")}
+TEST_DOMAIN_MODULES = {
+    lang: {"library": f"https://{HOST}", "voices": f"https://voices.{HOST}"} for lang in ("en", "he")
+}
 
 
 pytestmark = pytest.mark.django_db
@@ -40,13 +42,25 @@ def prompt_topic(django_db_setup, django_db_blocker, skip_topic_pool_updates):
 
 @pytest.fixture
 def ai_link(prompt_topic):
-    link = RefTopicLink({
-        "toTopic": prompt_topic.slug, "ref": "Genesis 1:1", "linkType": "about", "dataSource": "learning-team",
-        "descriptions": {"en": {
-            "title": "AI title", "ai_title": "AI title", "prompt": "AI prompt", "ai_prompt": "AI prompt",
-            "ai_context": "context", "published": False, "review_state": "not reviewed",
-        }},
-    })
+    link = RefTopicLink(
+        {
+            "toTopic": prompt_topic.slug,
+            "ref": "Genesis 1:1",
+            "linkType": "about",
+            "dataSource": "learning-team",
+            "descriptions": {
+                "en": {
+                    "title": "AI title",
+                    "ai_title": "AI title",
+                    "prompt": "AI prompt",
+                    "ai_prompt": "AI prompt",
+                    "ai_context": "context",
+                    "published": False,
+                    "review_state": "not reviewed",
+                }
+            },
+        }
+    )
     link.save()
     yield link
     db.topic_links.delete_one({"_id": link._id})
@@ -55,10 +69,15 @@ def ai_link(prompt_topic):
 
 @pytest.fixture
 def human_link(prompt_topic):
-    link = RefTopicLink({
-        "toTopic": prompt_topic.slug, "ref": "Exodus 20:8", "linkType": "about", "dataSource": "learning-team",
-        "descriptions": {"en": {"title": "Remember the day", "prompt": "Human written prompt"}},
-    })
+    link = RefTopicLink(
+        {
+            "toTopic": prompt_topic.slug,
+            "ref": "Exodus 20:8",
+            "linkType": "about",
+            "dataSource": "learning-team",
+            "descriptions": {"en": {"title": "Remember the day", "prompt": "Human written prompt"}},
+        }
+    )
     link.save()
     yield link
     db.topic_links.delete_one({"_id": link._id})
@@ -70,7 +89,6 @@ def _list(prompt_topic, **kwargs):
 
 
 class TestListPrompts:
-
     def test_lists_prompts_for_topic(self, prompt_topic, ai_link, human_link):
         results = _list(prompt_topic)["results"]
         by_ref = {r["ref"]: r for r in results}
@@ -83,7 +101,9 @@ class TestListPrompts:
         assert by_ref["Exodus 20:8"]["published"] is True
 
     def test_filters(self, prompt_topic, ai_link, human_link):
-        refs = lambda **kw: {r["ref"] for r in _list(prompt_topic, **kw)["results"]}
+        def refs(**kw):
+            return {r["ref"] for r in _list(prompt_topic, **kw)["results"]}
+
         assert refs(review_state="not reviewed") == {"Genesis 1:1"}
         assert refs(review_state="none") == {"Exodus 20:8"}
         assert refs(published="false") == {"Genesis 1:1"}
@@ -109,7 +129,6 @@ class TestListPrompts:
 
 
 class TestUpdatePrompt:
-
     def _version(self, link):
         return tpa.list_prompts(link_id=str(link._id))["results"][0]["version"]
 
@@ -137,7 +156,9 @@ class TestUpdatePrompt:
         assert out["result"]["review_state"] == "reviewed"
 
     def test_dry_run_does_not_save(self, ai_link):
-        out = tpa.update_prompt(str(ai_link._id), "en", {"title": "Preview"}, self._version(ai_link), uid=1, dry_run=True)
+        out = tpa.update_prompt(
+            str(ai_link._id), "en", {"title": "Preview"}, self._version(ai_link), uid=1, dry_run=True
+        )
         assert out["dry_run"] is True and out["result"]["title"] == "Preview"
         assert RefTopicLink().load({"_id": ai_link._id}).descriptions["en"]["title"] == "AI title"
         assert db[tpa.AUDIT_COLLECTION].count_documents({"link_id": ai_link._id}) == 0
@@ -157,8 +178,16 @@ class TestUpdatePrompt:
         out = tpa.update_prompt(str(human_link._id), "en", {"prompt": "Edited"}, self._version(human_link), uid=1)
         assert out["result"]["review_state"] is None
 
-    @pytest.mark.parametrize("fields", [{}, {"ref": "Genesis 2:1"}, {"prompt": 5}, {"prompt": "x" * 6000},
-                                        {"prompt": "x", "review_state": "not reviewed"}])
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            {},
+            {"ref": "Genesis 2:1"},
+            {"prompt": 5},
+            {"prompt": "x" * 6000},
+            {"prompt": "x", "review_state": "not reviewed"},
+        ],
+    )
     def test_invalid_fields(self, ai_link, fields):
         with pytest.raises(InputError):
             tpa.update_prompt(str(ai_link._id), "en", fields, self._version(ai_link), uid=1)
@@ -180,11 +209,11 @@ def _during_write_window(action):
         result = original(*args, **kwargs)
         action()
         return result
+
     return patch.object(tpa, "_prepare_description", wrapped)
 
 
 class TestUpdatePromptConcurrency:
-
     def test_simultaneous_updates_only_one_wins(self, ai_link):
         version = _version(ai_link)
         barrier = threading.Barrier(2, timeout=10)
@@ -211,7 +240,10 @@ class TestUpdatePromptConcurrency:
 
     def test_concurrent_edit_to_other_language_is_preserved(self, ai_link):
         concurrent_he = {"title": "כותרת", "prompt": "הנחיה"}
-        set_he = lambda: db.topic_links.update_one({"_id": ai_link._id}, {"$set": {"descriptions.he": concurrent_he}})
+
+        def set_he():
+            return db.topic_links.update_one({"_id": ai_link._id}, {"$set": {"descriptions.he": concurrent_he}})
+
         with _during_write_window(set_he):
             tpa.update_prompt(str(ai_link._id), "en", {"prompt": "English edit"}, _version(ai_link), uid=1)
 
@@ -220,46 +252,61 @@ class TestUpdatePromptConcurrency:
         assert stored["he"] == concurrent_he
 
     def test_concurrent_publish_of_same_language_conflicts(self, ai_link):
-        publish = lambda: db.topic_links.update_one({"_id": ai_link._id}, {"$set": {"descriptions.en.published": True}})
-        with _during_write_window(publish):
-            with pytest.raises(tpa.TopicPromptConflict) as e:
-                tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, _version(ai_link), uid=1)
+        def publish():
+            return db.topic_links.update_one({"_id": ai_link._id}, {"$set": {"descriptions.en.published": True}})
+
+        with _during_write_window(publish), pytest.raises(tpa.TopicPromptConflict) as e:
+            tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, _version(ai_link), uid=1)
 
         assert e.value.current["published"] is True
         assert _stored(ai_link)["en"]["prompt"] == "AI prompt"
         assert _stored(ai_link)["en"]["published"] is True
 
     def test_link_deleted_mid_edit_is_not_found(self, ai_link):
-        delete = lambda: db.topic_links.delete_one({"_id": ai_link._id})
-        with _during_write_window(delete):
-            with pytest.raises(tpa.TopicPromptNotFound):
-                tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, _version(ai_link), uid=1)
+        def delete():
+            return db.topic_links.delete_one({"_id": ai_link._id})
+
+        with _during_write_window(delete), pytest.raises(tpa.TopicPromptNotFound):
+            tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, _version(ai_link), uid=1)
         assert db.topic_links.find_one({"_id": ai_link._id}) is None
 
 
 class TestUpdatePromptFailureSafety:
-
     def test_audit_insert_failure_leaves_content_unchanged(self, ai_link):
         version = _version(ai_link)
-        with patch.object(tpa.db[tpa.AUDIT_COLLECTION].__class__, "insert_one", side_effect=RuntimeError("audit down")):
-            with pytest.raises(RuntimeError):
-                tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, version, uid=1)
+        with (
+            patch.object(tpa.db[tpa.AUDIT_COLLECTION].__class__, "insert_one", side_effect=RuntimeError("audit down")),
+            pytest.raises(RuntimeError),
+        ):
+            tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, version, uid=1)
         assert _stored(ai_link)["en"]["prompt"] == "AI prompt"
 
     def test_write_failure_marks_audit_failed(self, ai_link):
         version = _version(ai_link)
-        with patch.object(tpa.db[RefTopicLink.collection].__class__, "update_one",
-                          autospec=True, side_effect=_fail_only_for(RefTopicLink.collection)):
-            with pytest.raises(RuntimeError):
-                tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, version, uid=1)
+        with (
+            patch.object(
+                tpa.db[RefTopicLink.collection].__class__,
+                "update_one",
+                autospec=True,
+                side_effect=_fail_only_for(RefTopicLink.collection),
+            ),
+            pytest.raises(RuntimeError),
+        ):
+            tpa.update_prompt(str(ai_link._id), "en", {"prompt": "x"}, version, uid=1)
         assert _stored(ai_link)["en"]["prompt"] == "AI prompt"
         assert db[tpa.AUDIT_COLLECTION].find_one({"link_id": ai_link._id})["status"] == "failed"
 
     def test_post_write_failures_still_succeed_with_warnings(self, ai_link):
         version = _version(ai_link)
-        with patch.object(tpa, "notify", side_effect=RuntimeError("callback boom")), \
-                patch.object(tpa.db[tpa.AUDIT_COLLECTION].__class__, "update_one",
-                             autospec=True, side_effect=_fail_only_for(tpa.AUDIT_COLLECTION)):
+        with (
+            patch.object(tpa, "notify", side_effect=RuntimeError("callback boom")),
+            patch.object(
+                tpa.db[tpa.AUDIT_COLLECTION].__class__,
+                "update_one",
+                autospec=True,
+                side_effect=_fail_only_for(tpa.AUDIT_COLLECTION),
+            ),
+        ):
             out = tpa.update_prompt(str(ai_link._id), "en", {"prompt": "Saved anyway"}, version, uid=1)
 
         assert out["result"]["prompt"] == "Saved anyway"
@@ -272,10 +319,12 @@ class TestUpdatePromptFailureSafety:
 
 
 class TestDryRunMatchesSave:
-
     def test_html_input_preview_equals_saved_result(self, ai_link):
         version = _version(ai_link)
-        fields = {"title": "Bold <b>title</b><script>alert(1)</script>", "prompt": "<img src=x onerror=y>Text <i>it</i>"}
+        fields = {
+            "title": "Bold <b>title</b><script>alert(1)</script>",
+            "prompt": "<img src=x onerror=y>Text <i>it</i>",
+        }
         preview = tpa.update_prompt(str(ai_link._id), "en", fields, version, uid=1, dry_run=True)["result"]
         assert _stored(ai_link)["en"]["prompt"] == "AI prompt"
         # sanitized like a real save: disallowed tags are escaped, allowed ones kept
@@ -295,6 +344,7 @@ def _fail_only_for(collection_name):
         if self.name == collection_name:
             raise RuntimeError(f"{collection_name} write failed")
         return original(self, *args, **kwargs)
+
     return side_effect
 
 
@@ -302,7 +352,6 @@ _ORIGINAL_UPDATE_ONE = tpa.db[tpa.AUDIT_COLLECTION].__class__.update_one
 
 
 class TestAdminMCPEndpoints:
-
     @pytest.fixture(autouse=True)
     def _settings(self, settings):
         settings.MCP_TOKEN_SECRET = MCP_SECRET
@@ -323,17 +372,23 @@ class TestAdminMCPEndpoints:
         assert listed.status_code == 200
         version = listed.json()["results"][0]["version"]
 
-        response = client.patch(f"/api/admin/topic-prompts/{ai_link._id}",
-                                json.dumps({"lang": "en", "base_version": version, "prompt": "Via MCP"}),
-                                content_type="application/json", **headers)
+        response = client.patch(
+            f"/api/admin/topic-prompts/{ai_link._id}",
+            json.dumps({"lang": "en", "base_version": version, "prompt": "Via MCP"}),
+            content_type="application/json",
+            **headers,
+        )
         assert response.status_code == 200, response.content
         assert response.json()["result"]["prompt"] == "Via MCP"
         audit = db[tpa.AUDIT_COLLECTION].find_one({"link_id": ai_link._id}, sort=[("date", -1)])
         assert audit["via"] == MCP_TOKEN_AUDIENCE and audit["uid"] == staff.id
 
-        stale = client.patch(f"/api/admin/topic-prompts/{ai_link._id}",
-                             json.dumps({"lang": "en", "base_version": version, "prompt": "Again"}),
-                             content_type="application/json", **headers)
+        stale = client.patch(
+            f"/api/admin/topic-prompts/{ai_link._id}",
+            json.dumps({"lang": "en", "base_version": version, "prompt": "Again"}),
+            content_type="application/json",
+            **headers,
+        )
         assert stale.status_code == 409 and stale.json()["current"]["prompt"] == "Via MCP"
 
     def test_no_token_is_401_and_non_staff_is_403(self, django_user_model):

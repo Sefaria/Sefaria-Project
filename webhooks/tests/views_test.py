@@ -10,7 +10,7 @@ Redis. Without them these tests fail on connection errors, not on assertions.
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import pytest
 from django.test import Client
@@ -57,9 +57,7 @@ CLASSY_PAYLOAD = {
 @pytest.fixture(autouse=True)
 def configured_secrets(monkeypatch):
     monkeypatch.setattr(classy_webhook, "CLASSY_WEBHOOK_SECRET", CLASSY_SECRET)
-    monkeypatch.setattr(
-        salesforce_webhook, "SALESFORCE_WEBHOOK_SECRET", SALESFORCE_SECRET
-    )
+    monkeypatch.setattr(salesforce_webhook, "SALESFORCE_WEBHOOK_SECRET", SALESFORCE_SECRET)
 
 
 @pytest.fixture
@@ -76,9 +74,7 @@ def enqueued(monkeypatch):
 
 # enforce_csrf_checks=True on every POST: the Django test Client skips CSRF by default, which
 # would hide a removed @csrf_exempt. Real senders never send a CSRF token.
-def post_salesforce(
-    payload=SALESFORCE_PAYLOAD, secret=SALESFORCE_SECRET, raw_body=None
-):
+def post_salesforce(payload=SALESFORCE_PAYLOAD, secret=SALESFORCE_SECRET, raw_body=None):
     body = raw_body if raw_body is not None else json.dumps(payload).encode()
     headers = {"X-Sefaria-Webhook-Secret": secret} if secret is not None else {}
     return Client(enforce_csrf_checks=True).post(
@@ -101,7 +97,7 @@ CLASSY_PAYLOAD_WITH_CARD_DETAILS = {
 
 def post_classy(payload=CLASSY_PAYLOAD, secret=CLASSY_SECRET):
     body = json.dumps(payload).encode()
-    timestamp = int(datetime.now(tz=timezone.utc).timestamp())
+    timestamp = int(datetime.now(tz=UTC).timestamp())
     headers = {
         "svix-id": "msg_1",
         "svix-timestamp": str(timestamp),
@@ -121,7 +117,6 @@ def post_classy(payload=CLASSY_PAYLOAD, secret=CLASSY_SECRET):
 
 
 class TestResponses:
-
     def test_accepted_events_answer_202_with_processing_mode(self, enqueued):
         """The body tells the sender (and the e2e test) whether processing was queued or inline."""
         response = post_salesforce()
@@ -137,9 +132,7 @@ class TestResponses:
 
     def test_ignored_events_answer_200_with_the_reason(self, enqueued):
         """Whoever debugs a Flow sees why an event wasn't applied, without server logs."""
-        response = post_salesforce(
-            {**SALESFORCE_PAYLOAD, "eventType": "UserBecameNonDonor"}
-        )
+        response = post_salesforce({**SALESFORCE_PAYLOAD, "eventType": "UserBecameNonDonor"})
         assert response.status_code == 200
         assert response.json() == {
             "status": "ignored",
@@ -173,9 +166,7 @@ class TestResponses:
             ("classy", post_classy, classy_webhook, "CLASSY_WEBHOOK_SECRET"),
         ],
     )
-    def test_unset_secret_answers_503_naming_the_source(
-        self, monkeypatch, enqueued, source, post, module, setting
-    ):
+    def test_unset_secret_answers_503_naming_the_source(self, monkeypatch, enqueued, source, post, module, setting):
         """Fail closed, and let the sender retry until ops sets the secret."""
         monkeypatch.setattr(module, setting, None)
         response = post()
@@ -187,7 +178,7 @@ class TestResponses:
         """Redis down → 503 → sender retries, so nothing is lost."""
 
         def failing_enqueue(event):
-            raise EventCouldNotBeEnqueued()
+            raise EventCouldNotBeEnqueued
 
         monkeypatch.setattr(views, "enqueue_event_for_processing", failing_enqueue)
         response = post_salesforce()
@@ -215,7 +206,6 @@ class TestResponses:
 
 
 class TestNoSecretsOrEmailsInLogs:
-
     @pytest.mark.parametrize(
         "post_with_secret, valid_secret, sensitive_values",
         [
@@ -226,9 +216,7 @@ class TestNoSecretsOrEmailsInLogs:
                 id="salesforce",
             ),
             pytest.param(
-                lambda secret: post_classy(
-                    CLASSY_PAYLOAD_WITH_CARD_DETAILS, secret=secret
-                ),
+                lambda secret: post_classy(CLASSY_PAYLOAD_WITH_CARD_DETAILS, secret=secret),
                 CLASSY_SECRET,
                 [DONOR_EMAIL, CARD_NUMBER],
                 id="classy",
@@ -248,9 +236,7 @@ class TestNoSecretsOrEmailsInLogs:
         """Every log line from a request, accepted or rejected, is free of the secrets, the card value and the donor's address."""
         caplog.set_level(logging.DEBUG)
         with capture_logs() as structured_logs:
-            post_with_secret(
-                valid_secret if presented_secret_is_valid else WRONG_SECRET
-            )
+            post_with_secret(valid_secret if presented_secret_is_valid else WRONG_SECRET)
         everything_logged = repr(structured_logs) + caplog.text
         for sensitive_value in [
             *sensitive_values,

@@ -1,3 +1,4 @@
+/* global require */
 import VersionPreferences from './VersionPreferences';
 
 var extend = require('extend'),
@@ -338,9 +339,6 @@ Sefaria = extend(Sefaria, {
   splitRangingRef: function (ref) {
     // Returns an array of segment level refs which correspond to the ranging `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
-    if (!ref || typeof ref === 'object' || typeof ref === 'undefined') {
-      debugger;
-    }
 
     if (ref.indexOf('-') == -1) {
       return [ref];
@@ -949,9 +947,6 @@ Sefaria = extend(Sefaria, {
   },
   text: function (ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
-    if (!ref || typeof ref === 'object' || typeof ref === 'undefined') {
-      debugger;
-    }
     settings = this._complete_text_settings(settings);
     const key = this._textKey(ref, settings);
     if (!cb) {
@@ -1362,9 +1357,6 @@ Sefaria = extend(Sefaria, {
   },
   _textKey: function (ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
-    if (!ref) {
-      debugger;
-    }
     var key = ref.toLowerCase();
     if (settings) {
       if (settings.enVersion) {
@@ -1385,9 +1377,6 @@ Sefaria = extend(Sefaria, {
   },
   _refKey: function (ref, settings) {
     // Returns the key for this ref without any version/language elements
-    if (!ref) {
-      debugger;
-    }
     var key = ref.toLowerCase();
     if (settings) {
       key = settings.context ? key + '|CONTEXT' : key;
@@ -1914,7 +1903,7 @@ Sefaria = extend(Sefaria, {
       }
     }
     for (var ref in splitItems) {
-      if (splitItems.hasOwnProperty(ref)) {
+      if (Object.prototype.hasOwnProperty.call(splitItems, ref)) {
         if (!(ref in store) || store[ref].length <= splitItems[ref].length) {
           // Don't overwrite the cache if it already contains more items than the new list.
           // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yeild
@@ -2081,8 +2070,8 @@ Sefaria = extend(Sefaria, {
 
     const oref = typeof ref == 'string' ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
     const categoryOverridesForRef =
-      oref && oref.hasOwnProperty('primary_category')
-        ? categoryOrderOverrides.hasOwnProperty(oref.primary_category)
+      oref && Object.prototype.hasOwnProperty.call(oref, 'primary_category')
+        ? Object.prototype.hasOwnProperty.call(categoryOrderOverrides, oref.primary_category)
           ? categoryOrderOverrides[oref.primary_category]
           : null
         : null;
@@ -2663,7 +2652,7 @@ Sefaria = extend(Sefaria, {
       // Build split related data from individual split data arrays
       ['links', 'notes', 'sheets', 'media', 'guides'].forEach((obj_type) => {
         for (var ref in split_data[obj_type]) {
-          if (split_data[obj_type].hasOwnProperty(ref)) {
+          if (Object.prototype.hasOwnProperty.call(split_data[obj_type], ref)) {
             if (!(ref in this._related)) {
               this._related[ref] = {
                 links: [],
@@ -2728,7 +2717,7 @@ Sefaria = extend(Sefaria, {
           // Build split related data from individual split data arrays
           ['notes', 'sheets'].forEach(function (obj_type) {
             for (var ref in split_data[obj_type]) {
-              if (split_data[obj_type].hasOwnProperty(ref)) {
+              if (Object.prototype.hasOwnProperty.call(split_data[obj_type], ref)) {
                 if (!(ref in this._relatedPrivate)) {
                   this._relatedPrivate[ref] = { notes: [], sheets: [] };
                 }

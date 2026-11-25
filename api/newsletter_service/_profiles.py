@@ -20,9 +20,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 # below is built from it, because a type isn't checked while the code runs and the
 # function also has to refuse a name that only exists at runtime.
 NewsletterWritableProfileField = Literal["learning_level", "wants_marketing_emails"]
-NEWSLETTER_WRITABLE_PROFILE_FIELDS: frozenset[str] = frozenset(
-    get_args(NewsletterWritableProfileField)
-)
+NEWSLETTER_WRITABLE_PROFILE_FIELDS: frozenset[str] = frozenset(get_args(NewsletterWritableProfileField))
 
 
 def load_existing_profile_by_email(email: str) -> UserProfile | None:
@@ -56,9 +54,7 @@ def load_existing_profile_by_email(email: str) -> UserProfile | None:
         return None
 
 
-def save_single_profile_field(
-    profile: UserProfile, field_name: NewsletterWritableProfileField, value: Any
-) -> bool:
+def save_single_profile_field(profile: UserProfile, field_name: NewsletterWritableProfileField, value: Any) -> bool:
     """
     Write one field of a UserProfile to MongoDB, and nothing else.
 
@@ -95,9 +91,7 @@ def save_single_profile_field(
     return True
 
 
-def save_wants_marketing_emails(
-    profile: UserProfile | None, wants_marketing: bool
-) -> bool:
+def save_wants_marketing_emails(profile: UserProfile | None, wants_marketing: bool) -> bool:
     """
     Write wants_marketing_emails (that field only, see save_single_profile_field) to
     an already-loaded UserProfile.
@@ -121,16 +115,10 @@ def save_wants_marketing_emails(
         return True
     try:
         if not save_single_profile_field(profile, "wants_marketing_emails", wants_marketing):
-            logger.warning(
-                f"No profile document to update wants_marketing_emails for user {profile.id}"
-            )
+            logger.warning(f"No profile document to update wants_marketing_emails for user {profile.id}")
             return False
-        logger.info(
-            f"Updated wants_marketing_emails={wants_marketing} for user {profile.id}"
-        )
+        logger.info(f"Updated wants_marketing_emails={wants_marketing} for user {profile.id}")
         return True
     except Exception as e:
-        logger.warning(
-            f"Failed to update wants_marketing_emails for user {profile.id}: {e}"
-        )
+        logger.warning(f"Failed to update wants_marketing_emails for user {profile.id}: {e}")
         return False

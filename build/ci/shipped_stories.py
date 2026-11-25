@@ -40,17 +40,17 @@ LONG_LIVED_ENV_BRANCHES = shortcut_pr_guards.LONG_LIVED_ENV_BRANCHES
 # contexts; patterns 2-4 catch shapes it doesn't (no trailing boundary, or a
 # literal space after "sc").
 SC_PATTERNS = [
-    re.compile(r'\bsc[-_](\d+)\b', re.IGNORECASE),
-    re.compile(r'feature/sc[-_ ](\d+)', re.IGNORECASE),
-    re.compile(r'chore[:/\(].*?sc[-_](\d+)', re.IGNORECASE),
-    re.compile(r'feat[:/\(].*?sc[-_](\d+)', re.IGNORECASE),
+    re.compile(r"\bsc[-_](\d+)\b", re.IGNORECASE),
+    re.compile(r"feature/sc[-_ ](\d+)", re.IGNORECASE),
+    re.compile(r"chore[:/\(].*?sc[-_](\d+)", re.IGNORECASE),
+    re.compile(r"feat[:/\(].*?sc[-_](\d+)", re.IGNORECASE),
 ]
 
-PR_PATTERN = re.compile(r'\(#(\d+)\)')
+PR_PATTERN = re.compile(r"\(#(\d+)\)")
 
 # A real (non-squash) merge commit's subject uses the bare "Merge pull
 # request #N from <owner>/<branch>" form instead of "(#N)".
-MERGE_PR_PATTERN = re.compile(r'^Merge pull request #(\d+)\s+from\s+\S+', re.IGNORECASE)
+MERGE_PR_PATTERN = re.compile(r"^Merge pull request #(\d+)\s+from\s+\S+", re.IGNORECASE)
 
 # Captures the quoted original subject inside a `Revert "..."` commit; not
 # applicable to the `Revert: ...` / `revert(...)` forms.
@@ -58,7 +58,7 @@ REVERT_QUOTE_PATTERN = re.compile(r'^revert\s+"(.+?)"', re.IGNORECASE)
 
 # Auto-generated noise excluded from commits_without_story.
 NOISE_PATTERN = re.compile(
-    r'^(deploy\(\w+\)|Merge (pull request|branch|remote-tracking branch))|\[skip ci\]',
+    r"^(deploy\(\w+\)|Merge (pull request|branch|remote-tracking branch))|\[skip ci\]",
     re.IGNORECASE,
 )
 
@@ -114,7 +114,7 @@ def split_range_spec(spec):
     if ".." not in spec:
         die(f"--range must be of the form PREV..CUR, got: {spec!r}")
     idx = spec.index("..")
-    prev, cur = spec[:idx], spec[idx + 2:]
+    prev, cur = spec[:idx], spec[idx + 2 :]
     if not prev or not cur:
         die(f"--range must be of the form PREV..CUR, got: {spec!r}")
     return prev, cur
@@ -213,9 +213,11 @@ def fetch_branches(pr_numbers, repo, max_workers=8):
             except FileNotFoundError:
                 # gh not on PATH; every other in-flight lookup would fail
                 # identically, so fail fast with one clear message.
-                die("`gh` was not found on PATH. Install the GitHub CLI "
+                die(
+                    "`gh` was not found on PATH. Install the GitHub CLI "
                     "(https://cli.github.com/) or ensure it's available in "
-                    "this environment; PR branch name lookups cannot proceed without it.")
+                    "this environment; PR branch name lookups cannot proceed without it."
+                )
             if branch:
                 branch_by_pr[pr_number] = branch
     return branch_by_pr
@@ -341,8 +343,8 @@ def build_arg_parser():
     parser.add_argument(
         "--chart-version",
         help="Chart version to disambiguate a chart-only rollout of the same --version "
-             "(e.g. 0.87.5-prod.1). Ignored with --range. If it doesn't match any tag, "
-             "falls back to the newest 'prod/<version>+*' tag instead of failing.",
+        "(e.g. 0.87.5-prod.1). Ignored with --range. If it doesn't match any tag, "
+        "falls back to the newest 'prod/<version>+*' tag instead of failing.",
     )
     parser.add_argument("--out", help="Output file path (default: stdout)")
     parser.add_argument("--repo", default=DEFAULT_REPO, help=f"GitHub repo, default {DEFAULT_REPO}")
@@ -358,6 +360,7 @@ def chart_version_from_tag(tag):
         return None
     m = CHART_IN_TAG.search(tag)
     return m.group("chart") if m else None
+
 
 def main():
     args = build_arg_parser().parse_args()
@@ -377,12 +380,14 @@ def main():
     for subject in subjects:
         pr_number = extract_pr_number(subject)
         subject_story_ids = extract_story_ids(subject)
-        parsed_commits.append({
-            "subject": subject,
-            "pr_number": pr_number,
-            "subject_story_ids": subject_story_ids,
-            "is_revert": bool(REVERT_PATTERN.match(subject)),
-        })
+        parsed_commits.append(
+            {
+                "subject": subject,
+                "pr_number": pr_number,
+                "subject_story_ids": subject_story_ids,
+                "is_revert": bool(REVERT_PATTERN.match(subject)),
+            }
+        )
         if pr_number:
             pr_numbers.add(pr_number)
 
@@ -447,10 +452,12 @@ def main():
 
         # A revert's own story ids are never attributed as shipped, but are surfaced separately.
         if c["story_ids"]:
-            reverted_commits.append({
-                "subject": c["subject"],
-                "suppressed_story_ids": sorted(c["story_ids"], key=int),
-            })
+            reverted_commits.append(
+                {
+                    "subject": c["subject"],
+                    "suppressed_story_ids": sorted(c["story_ids"], key=int),
+                }
+            )
 
         # If the reverted commit is also in this range, stop its ids from
         # shipping too, unless another commit still carries them.
@@ -469,12 +476,14 @@ def main():
     commits = []
     commits_without_story = []
     for c in parsed_commits:
-        commits.append({
-            "subject": c["subject"],
-            "pr_number": c["pr_number"],
-            "branch": c["branch"],
-            "story_ids": sorted(c["story_ids"], key=int),
-        })
+        commits.append(
+            {
+                "subject": c["subject"],
+                "pr_number": c["pr_number"],
+                "branch": c["branch"],
+                "story_ids": sorted(c["story_ids"], key=int),
+            }
+        )
 
         if not c["is_revert"] and not c["story_ids"] and not NOISE_PATTERN.search(c["subject"]):
             commits_without_story.append(c["subject"])

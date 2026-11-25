@@ -99,19 +99,23 @@ def _skipped_detail(skipped_other_state, skipped_different_workflow):
     """Build the detail list for every skipped (non-already-done) story: id, workflow_id, workflow_state_id, and reason."""
     detail = []
     for story in skipped_different_workflow:
-        detail.append({
-            "id": story.get("id"),
-            "workflow_id": story.get("workflow_id"),
-            "workflow_state_id": story.get("workflow_state_id"),
-            "reason": "different_workflow",
-        })
+        detail.append(
+            {
+                "id": story.get("id"),
+                "workflow_id": story.get("workflow_id"),
+                "workflow_state_id": story.get("workflow_state_id"),
+                "reason": "different_workflow",
+            }
+        )
     for story in skipped_other_state:
-        detail.append({
-            "id": story.get("id"),
-            "workflow_id": story.get("workflow_id"),
-            "workflow_state_id": story.get("workflow_state_id"),
-            "reason": "other_state",
-        })
+        detail.append(
+            {
+                "id": story.get("id"),
+                "workflow_id": story.get("workflow_id"),
+                "workflow_state_id": story.get("workflow_state_id"),
+                "reason": "other_state",
+            }
+        )
     detail.sort(key=lambda d: (d["id"] is None, d["id"]))
     return detail
 
@@ -150,11 +154,16 @@ def main():
 
     token = os.environ.get("SHORTCUT_API_TOKEN")
     if not args.dry_run and not token:
-        die("SHORTCUT_API_TOKEN is not set. Refusing to mutate Shortcut stories without it. "
-            "Use --dry-run to preview without a token.")
+        die(
+            "SHORTCUT_API_TOKEN is not set. Refusing to mutate Shortcut stories without it. "
+            "Use --dry-run to preview without a token."
+        )
 
     to_transition, already_done, skipped_other_state, skipped_different_workflow = classify_stories(
-        stories, args.workflow_id, args.from_state_id, args.done_state_id,
+        stories,
+        args.workflow_id,
+        args.from_state_id,
+        args.done_state_id,
     )
 
     if args.dry_run:

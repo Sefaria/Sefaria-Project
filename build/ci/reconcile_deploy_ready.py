@@ -119,9 +119,11 @@ def fetch_merge_oids(pr_numbers, repo, max_workers=8):
             try:
                 pr_number, oid = future.result()
             except FileNotFoundError:
-                die("`gh` was not found on PATH. Install the GitHub CLI "
+                die(
+                    "`gh` was not found on PATH. Install the GitHub CLI "
                     "(https://cli.github.com/) or ensure it's available in "
-                    "this environment; PR merge-commit lookups cannot proceed without it.")
+                    "this environment; PR merge-commit lookups cannot proceed without it."
+                )
             if oid:
                 oid_by_pr[pr_number] = oid
     return oid_by_pr
@@ -246,9 +248,7 @@ def classify_stories(stories, repo_id, target_branch):
         if not qualifying:
             entry = _story_summary(story)
             entry["reason"] = "no_qualifying_pr"
-            entry["linked_pr_numbers"] = sorted(
-                pr.get("number") for pr in linked if pr.get("number") is not None
-            )
+            entry["linked_pr_numbers"] = sorted(pr.get("number") for pr in linked if pr.get("number") is not None)
             entry["linked_prs"] = [
                 {"number": pr.get("number"), "failed_guards": _diagnose_linked_pr(pr, repo_id, target_branch)}
                 for pr in sorted(linked, key=lambda p: (p.get("number") is None, p.get("number")))
@@ -327,14 +327,13 @@ def print_summary(report):
         else:
             status = f"FAILED: {s.get('transition_error')}"
         release_note = (
-            "belongs in THIS release's notes" if s.get("hydrated_story")
-            else f"shipped in {s.get('shipping_release_tag')}" if s.get("shipping_release_tag")
+            "belongs in THIS release's notes"
+            if s.get("hydrated_story")
+            else f"shipped in {s.get('shipping_release_tag')}"
+            if s.get("shipping_release_tag")
             else "shipping release could not be determined"
         )
-        print(
-            f"  {s['id']}  {s.get('name', '')!r}  via PR(s) {s.get('shipped_via_prs')}  "
-            f"[{status}]  ({release_note})"
-        )
+        print(f"  {s['id']}  {s.get('name', '')!r}  via PR(s) {s.get('shipped_via_prs')}  [{status}]  ({release_note})")
 
     print(f"--- pending ({len(report['pending'])}) ---")
     for s in report["pending"]:
@@ -359,25 +358,30 @@ def build_arg_parser():
         description="Reconcile Deploy Ready Shortcut stories against what has actually reached prod.",
     )
     parser.add_argument(
-        "--apply", action="store_true",
+        "--apply",
+        action="store_true",
         help="Actually transition qualifying stories Deploy Ready -> Done. Without this, "
-             "the sweep only classifies and reports; nothing is mutated.",
+        "the sweep only classifies and reports; nothing is mutated.",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="Explicit no-op flag for symmetry with mark_stories_deployed.py: classify and "
-             "report, mutate nothing. This is already the default without --apply, and "
-             "always wins if both are passed.",
+        "report, mutate nothing. This is already the default without --apply, and "
+        "always wins if both are passed.",
     )
     parser.add_argument(
         "--prod-tag",
         help="Prod tag to check ancestry against (default: newest 'prod/*' tag by creation date).",
     )
-    parser.add_argument("--repo", default=DEFAULT_REPO, help=f"GitHub repo for `gh pr view` lookups, default {DEFAULT_REPO}")
     parser.add_argument(
-        "--target-branch", default=DEFAULT_TARGET_BRANCH,
+        "--repo", default=DEFAULT_REPO, help=f"GitHub repo for `gh pr view` lookups, default {DEFAULT_REPO}"
+    )
+    parser.add_argument(
+        "--target-branch",
+        default=DEFAULT_TARGET_BRANCH,
         help=f"Required PR target branch for a linked PR to count as shipping evidence (guard #2), "
-             f"default {DEFAULT_TARGET_BRANCH!r}",
+        f"default {DEFAULT_TARGET_BRANCH!r}",
     )
     parser.add_argument("--out", help="Write the machine-readable JSON report to this path")
     parser.add_argument("--max-workers", type=int, default=8)

@@ -1,14 +1,13 @@
 from django.views import View
 
 from sefaria.client.util import jsonResponse
+from sefaria.helper import linker_editor, linker_resource_panel_admin
 from sefaria.system.exceptions import InputError
-from sefaria.helper import linker_editor
-from sefaria.helper import linker_resource_panel_admin
-from .views import _load_json_body, StaffRequiredMixin
+
+from .views import StaffRequiredMixin, _load_json_body
 
 
 class LinkerAdminAPIView(StaffRequiredMixin, View):
-
     def _handle(self, request, handler, status=200):
         body, err = _load_json_body(request, empty_as_object=True)
         if err:
@@ -20,31 +19,25 @@ class LinkerAdminAPIView(StaffRequiredMixin, View):
 
 
 class LinkerAdminDeleteCitationView(LinkerAdminAPIView):
-
     def post(self, request):
         return self._handle(
-            request,
-            lambda body: linker_resource_panel_admin.set_linker_citation_deleted(body, request.user.id, True)
+            request, lambda body: linker_resource_panel_admin.set_linker_citation_deleted(body, request.user.id, True)
         )
 
 
 class LinkerAdminRecreateCitationView(LinkerAdminAPIView):
-
     def post(self, request):
         return self._handle(
-            request,
-            lambda body: linker_resource_panel_admin.set_linker_citation_deleted(body, request.user.id, False)
+            request, lambda body: linker_resource_panel_admin.set_linker_citation_deleted(body, request.user.id, False)
         )
 
 
 class LinkerAdminParseCitationView(LinkerAdminAPIView):
-
     def post(self, request):
         return self._handle(request, linker_resource_panel_admin.parse_linker_citation_sync)
 
 
 class LinkerAdminRerunSegmentView(LinkerAdminAPIView):
-
     def post(self, request):
         return self._handle(
             request,
@@ -54,7 +47,6 @@ class LinkerAdminRerunSegmentView(LinkerAdminAPIView):
 
 
 class LinkerAdminAddRefDatasetView(LinkerAdminAPIView):
-
     def post(self, request):
         return self._handle(
             request,
@@ -64,7 +56,6 @@ class LinkerAdminAddRefDatasetView(LinkerAdminAPIView):
 
 
 class LinkerAdminAddRefPartDatasetView(LinkerAdminAPIView):
-
     def post(self, request):
         return self._handle(
             request,
@@ -82,7 +73,8 @@ class LinkerEditorMatchTemplateView(StaffRequiredMixin, View):
             return err
         try:
             serialized = linker_editor.add_match_template(
-                title, node_key_path, body.get("term_slugs", []), body.get("scope", "combined"), request.user.id)
+                title, node_key_path, body.get("term_slugs", []), body.get("scope", "combined"), request.user.id
+            )
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"status": "ok", "match_template": serialized})

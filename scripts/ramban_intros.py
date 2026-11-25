@@ -1,11 +1,10 @@
-#encoding=utf-8
-from sefaria.model import *
 from sefaria.helper.schema import *
+from sefaria.model import *
 
 if __name__ == "__main__":
     parents = []
     torah_books = library.get_indexes_in_category("Torah")
-    ramban_books = ["Ramban on {}".format(torah_book) for torah_book in torah_books]
+    ramban_books = [f"Ramban on {torah_book}" for torah_book in torah_books]
     for title in ramban_books:
         print(title)
         index = library.get_index(title)

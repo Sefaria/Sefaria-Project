@@ -15,7 +15,7 @@ dropped afterwards, so no real profile is ever read or written. Requires a runni
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import pytest
 
@@ -29,13 +29,13 @@ from sefaria.system import database
 REAL_APPLY_UPDATE_TO_USER_PROFILE = apply_update_to_user_profile
 
 USER_ID = 7
-EVENT = datetime(2026, 9, 15, 16, 0, tzinfo=timezone.utc)
-LATER = datetime(2026, 12, 1, tzinfo=timezone.utc)
+EVENT = datetime(2026, 9, 15, 16, 0, tzinfo=UTC)
+LATER = datetime(2026, 12, 1, tzinfo=UTC)
 
 
 def as_stored(moment):
     # pymongo here is not tz_aware, so dates come back as naive datetimes in UTC.
-    return moment.astimezone(timezone.utc).replace(tzinfo=None)
+    return moment.astimezone(UTC).replace(tzinfo=None)
 
 
 @pytest.fixture
@@ -43,10 +43,7 @@ def scratch_profiles(monkeypatch):
     """A profiles collection in a throwaway database, with the real write seam pointed at it."""
     scratch_database_name = f"scratch_donor_recording_{uuid.uuid4().hex}"
     # Never drop anything that could be a real database.
-    assert (
-        scratch_database_name.startswith("scratch_")
-        and scratch_database_name != database.SEFARIA_DB
-    )
+    assert scratch_database_name.startswith("scratch_") and scratch_database_name != database.SEFARIA_DB
     scratch_database = database.client[scratch_database_name]
     # apply_update_to_user_profile imports `db` from sefaria.system.database when called, so
     # replacing the module attribute redirects its writes to the scratch database.
@@ -71,12 +68,9 @@ def stored_profile(profiles):
 
 
 class TestFirstDonation:
-
     def test_replaces_the_stored_null(self, scratch_profiles):
         """The case the pipeline exists for: to_mongo_dict stores null, and the plain $min operator would keep it."""
-        scratch_profiles.insert_one(
-            {"id": USER_ID, "donor_status": "unknown", "became_donor_at": None}
-        )
+        scratch_profiles.insert_one({"id": USER_ID, "donor_status": "unknown", "became_donor_at": None})
 
         assert record_donation(EVENT) is True
 
@@ -100,19 +94,14 @@ class TestFirstDonation:
 
 
 class TestLaterDeliveries:
-
     @pytest.mark.parametrize(
         "arrival_order",
         [(EVENT, LATER), (LATER, EVENT)],
         ids=["in order", "out of order"],
     )
-    def test_any_arrival_order_converges_on_the_earliest_date(
-        self, scratch_profiles, arrival_order
-    ):
+    def test_any_arrival_order_converges_on_the_earliest_date(self, scratch_profiles, arrival_order):
         """The order Svix or Streamscript happen to deliver in makes no difference to the result."""
-        scratch_profiles.insert_one(
-            {"id": USER_ID, "donor_status": "unknown", "became_donor_at": None}
-        )
+        scratch_profiles.insert_one({"id": USER_ID, "donor_status": "unknown", "became_donor_at": None})
 
         for occurred_at in arrival_order:
             record_donation(occurred_at)
@@ -121,9 +110,7 @@ class TestLaterDeliveries:
 
     def test_a_repeated_delivery_changes_nothing(self, scratch_profiles):
         """Retries and duplicates are expected, and there is no processed-events table, so the update must be idempotent."""
-        scratch_profiles.insert_one(
-            {"id": USER_ID, "donor_status": "unknown", "became_donor_at": None}
-        )
+        scratch_profiles.insert_one({"id": USER_ID, "donor_status": "unknown", "became_donor_at": None})
         record_donation(EVENT)
         after_first_delivery = stored_profile(scratch_profiles)
 
@@ -133,7 +120,6 @@ class TestLaterDeliveries:
 
 
 class TestWhatTheUpdateTouches:
-
     def test_leaves_every_other_field_alone(self, scratch_profiles):
         """Why update_one and not profile.save(): a setting the user saves at the same moment must survive."""
         scratch_profiles.insert_one(
@@ -152,9 +138,7 @@ class TestWhatTheUpdateTouches:
         assert profile["settings"] == {"email_notifications": "daily"}
         assert profile["slug"] == "someone"
 
-    def test_reports_a_missing_profile_document_without_creating_one(
-        self, scratch_profiles
-    ):
+    def test_reports_a_missing_profile_document_without_creating_one(self, scratch_profiles):
         """False lets the caller log donor_profile_document_missing; inserting a partial profile would hide the problem."""
         assert record_donation(EVENT) is False
 

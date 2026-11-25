@@ -1,10 +1,12 @@
+from urllib.parse import urlsplit
+
+import sentry_sdk
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.http import Http404
-import sentry_sdk
-from urllib.parse import urlsplit
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.types import Event, Hint
 from sentry_sdk.utils import iter_event_frames
+
 from remote_config import remoteConfigCache
 from remote_config.keys import SENTRY_CONFIG_JSON
 
@@ -41,9 +43,9 @@ def remove_webhook_secrets_and_payloads(event: Event) -> Event:
         request.pop("headers")
 
     celery_job = (event.get("extra") or {}).get("celery-job")
-    is_donor_task = (
-        isinstance(celery_job, dict) and celery_job.get("task_name") == DONOR_TASK_NAME
-    ) or event.get("transaction") == DONOR_TASK_NAME
+    is_donor_task = (isinstance(celery_job, dict) and celery_job.get("task_name") == DONOR_TASK_NAME) or event.get(
+        "transaction"
+    ) == DONOR_TASK_NAME
     if is_donor_task and isinstance(celery_job, dict):
         celery_job.pop("args", None)
         celery_job.pop("kwargs", None)
@@ -53,7 +55,9 @@ def remove_webhook_secrets_and_payloads(event: Event) -> Event:
     # the same rule as unfilterable headers above. Passing it to urlsplit would raise instead,
     # and Sentry silently drops an event whose before_send raises. No url at all (a Celery
     # event) is not a webhook request.
-    is_webhook_request = urlsplit(url).path.startswith(WEBHOOK_URL_PATH_PREFIX) if isinstance(url, str) else url is not None
+    is_webhook_request = (
+        urlsplit(url).path.startswith(WEBHOOK_URL_PATH_PREFIX) if isinstance(url, str) else url is not None
+    )
     if is_webhook_request or is_donor_task:
         # The Sentry Django integration can attach the parsed request body to an error event. A
         # Classy payload carries card, account, billing-address and phone fields that must never

@@ -14,6 +14,7 @@ Reads a shipped-stories JSON file (produced upstream by `build/ci/shipped_storie
 - **Output directory** — defaults to the project root
 
 The JSON has this shape:
+
 ```json
 {
   "version": "6.111.0-prod.2",
@@ -36,11 +37,13 @@ The JSON has this shape:
 ## Phase 1 — Read and summarise
 
 Read the JSON file. Before generating any output, summarise what you found so the user (or the CI log) can catch issues early:
+
 - Version: `app X.X.X / chart X.X.X` (from `version` and `chart_version`, stripping any `-prod.N` suffix)
 - N commits, N with a resolved story, N in `commits_without_story`
 - N stories in `stories`, N `unresolved_story_ids` (note these — they had a story ID but the Shortcut lookup failed; mention them in the tech file as unresolved rather than silently dropping them)
 
 Categorise each story (and, for commits with no story, each commit) into one of four buckets:
+
 1. **User-facing** — visible feature, UI change, or user-impacting bug fix
 2. **Backend / performance** — API changes, query optimisation, data or matching fixes
 3. **Infrastructure / DevOps** — Helm, CI/CD, Kubernetes, observability
@@ -57,6 +60,7 @@ Read `references/slack-format.md` before writing any output. It contains Slack m
 Write two files to the output directory:
 
 ### `release-notes-tech-slack.txt`
+
 The release notes. Audience: engineers in a Slack channel. Include story links, PR refs, and technical detail.
 
 - One bullet per item, using the section structure in `references/slack-format.md`
@@ -65,6 +69,7 @@ The release notes. Audience: engineers in a Slack channel. Include story links, 
 - Flag high-risk items with `:warning:` (major framework upgrades, DB migrations, iOS SDK changes)
 
 ### `release-announcement-product-slack.txt`
+
 The release announcement. Audience: non-engineers. Plain language, no PR numbers, no stack names (Django → "our web framework", Postgres → "the database", etc.).
 
 - Group by impact: what users see, bug fixes, partner/API changes, stability
@@ -74,19 +79,20 @@ The release announcement. Audience: non-engineers. Plain language, no PR numbers
 
 ## Edge Cases
 
-| Situation | Handling |
-|-----------|----------|
-| `commits_without_story` is non-empty | List briefly under backend/infra in the tech file if there's any signal in the subject line; otherwise omit |
-| `hydrated` is `false` | Shortcut was never queried (no API token), so `stories` is empty by design — this is NOT a lookup failure. Title items from their commit subjects, still link each `story_ids` entry, and say the details were unavailable rather than reporting them as missing |
-| `unresolved_story_ids` is non-empty | Note in the tech file's summary line so a human can look them up manually; do not guess at their content |
-| `reverted_commits` is non-empty | Do not list any of these story ids as shipped in either file, even if they also appear in `story_ids`/`stories` for an unrelated reason (see the JSON shape note above) |
-| `release_date` is `null` | Omit the date line in both files' headers rather than guessing |
-| Version not found | Use `unknown` and flag it |
-| JSON file missing or unreadable | Stop and report the problem — do not fabricate a release |
+| Situation                            | Handling                                                                                                                                                                                                                                                         |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `commits_without_story` is non-empty | List briefly under backend/infra in the tech file if there's any signal in the subject line; otherwise omit                                                                                                                                                      |
+| `hydrated` is `false`                | Shortcut was never queried (no API token), so `stories` is empty by design — this is NOT a lookup failure. Title items from their commit subjects, still link each `story_ids` entry, and say the details were unavailable rather than reporting them as missing |
+| `unresolved_story_ids` is non-empty  | Note in the tech file's summary line so a human can look them up manually; do not guess at their content                                                                                                                                                         |
+| `reverted_commits` is non-empty      | Do not list any of these story ids as shipped in either file, even if they also appear in `story_ids`/`stories` for an unrelated reason (see the JSON shape note above)                                                                                          |
+| `release_date` is `null`             | Omit the date line in both files' headers rather than guessing                                                                                                                                                                                                   |
+| Version not found                    | Use `unknown` and flag it                                                                                                                                                                                                                                        |
+| JSON file missing or unreadable      | Stop and report the problem — do not fabricate a release                                                                                                                                                                                                         |
 
 ## Output Confirmation
 
 After writing both files, report:
+
 - File paths written
 - Item counts by section (e.g. "7 user-facing, 5 backend, 4 infra")
 - Any `:warning:` high-risk items by name so the user knows what to watch post-deploy

@@ -110,7 +110,6 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
 
 
 class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
-
     def pre_social_login(self, request, sociallogin):
         """
         Called after sociallogin.lookup() has run (so is_existing already

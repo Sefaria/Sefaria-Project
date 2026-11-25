@@ -1,8 +1,11 @@
 import django
+
 django.setup()
+import csv
+
 from sefaria.model import *
 from sefaria.system.database import db
-import csv
+
 if __name__ == "__main__":
     f = open("./data/yad_ramah.csv")
     actual_sources = {}

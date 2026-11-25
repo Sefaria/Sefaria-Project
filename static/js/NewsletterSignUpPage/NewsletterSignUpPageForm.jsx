@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef, useReducer } from "react";
-import Sefaria from "../sefaria/sefaria";
-import { FORM_STATUS, STAGE, FORM_STATUS_ACTION } from "./stateSymbols";
-import { TEXT_KEYS, LEARNING_LEVELS } from "./textKeys";
-import { InterfaceText, LoadingMessage, LoadingRing } from "../Misc";
-import NewsletterFormView from "./NewsletterFormView";
-import NewsletterConfirmationView from "./NewsletterConfirmationView";
-import SuccessView from "./SuccessView";
-import { useNewsletterFormInit } from "./useNewsletterFormInit";
-import { subscribeNewsletter, updatePreferences, updateLearningLevel, SERVER_ERROR_CODE } from "./newsletterApi";
+import React, { useState, useEffect, useRef, useReducer } from 'react';
+import Sefaria from '../sefaria/sefaria';
+import { FORM_STATUS, STAGE, FORM_STATUS_ACTION } from './stateSymbols';
+import { TEXT_KEYS, LEARNING_LEVELS } from './textKeys';
+import { InterfaceText, LoadingMessage, LoadingRing } from '../Misc';
+import NewsletterFormView from './NewsletterFormView';
+import NewsletterConfirmationView from './NewsletterConfirmationView';
+import SuccessView from './SuccessView';
+import { useNewsletterFormInit } from './useNewsletterFormInit';
+import { subscribeNewsletter, updatePreferences, updateLearningLevel, SERVER_ERROR_CODE } from './newsletterApi';
 
 /**
  * NewsletterSignUpPageForm - Main container component
@@ -36,8 +36,7 @@ function buildFieldValidators(formData, formStatus) {
       if (!Sefaria.util.isValidEmailAddress(email)) return TEXT_KEYS.VALID_EMAIL;
       return null;
     },
-    confirmEmail: () =>
-      isLoggedOut && email !== confirmEmail ? TEXT_KEYS.EMAILS_MISMATCH : null,
+    confirmEmail: () => (isLoggedOut && email !== confirmEmail ? TEXT_KEYS.EMAILS_MISMATCH : null),
     newsletters: () => (isLoggedOut && !hasSelectedNewsletter ? TEXT_KEYS.SELECT_NEWSLETTER : null),
   };
 }
@@ -132,10 +131,10 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== FORM DATA STATE ==========
   // Lazy initializer captures the logged-in user's email at first render.
   const [formData, setFormData] = useState(() => ({
-    firstName: "",
-    lastName: "",
-    email: authState.userEmail ?? "",
-    confirmEmail: "",
+    firstName: '',
+    lastName: '',
+    email: authState.userEmail ?? '',
+    confirmEmail: '',
     selectedNewsletters: {},
     learningLevel: null,
     wantsMarketingEmails: true, // Default to opted-in for marketing emails
@@ -206,8 +205,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   useEffect(() => {
     if (formStatus.currentStage !== STAGE.NEWSLETTER_SELECTION) {
       containerRef.current?.scrollIntoView?.({
-        behavior: "instant",
-        block: "start",
+        behavior: 'instant',
+        block: 'start',
       });
     }
   }, [formStatus.currentStage]);
@@ -222,8 +221,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // (MarketingEmailToggle, learning-level select).
   const makeFieldSetter = (field) => (value) => handleFieldChange(field, value);
 
-  const handleMarketingEmailToggle = makeFieldSetter("wantsMarketingEmails");
-  const handleLearningLevelSelect = makeFieldSetter("learningLevel");
+  const handleMarketingEmailToggle = makeFieldSetter('wantsMarketingEmails');
+  const handleLearningLevelSelect = makeFieldSetter('learningLevel');
 
   const handleNewsletterToggle = (key) => {
     setFormData((prev) => ({
@@ -261,7 +260,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       }
       // Re-evaluate confirmEmail when email changes, but only if confirmEmail has been
       // touched (has a value) or already has an error that may need clearing.
-      if (fieldName === "email" && (formData.confirmEmail !== "" || newErrors.confirmEmail)) {
+      if (fieldName === 'email' && (formData.confirmEmail !== '' || newErrors.confirmEmail)) {
         const confirmError = fieldValidators.confirmEmail();
         if (confirmError) {
           newErrors.confirmEmail = confirmError;
@@ -312,8 +311,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       // Defer until validation errors render; the title is a cleaner scroll target than the summary.
       setTimeout(() => {
         formTitleRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
+          behavior: 'smooth',
+          block: 'start',
         });
       }, 0);
       return;
@@ -359,7 +358,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   const handleSkipLearningLevel = () => {
     // User clicked "No thanks" — go straight to the home page.
-    window.location.href = "/";
+    window.location.href = '/';
   };
 
   // ========== VALIDATION ==========
@@ -374,7 +373,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     return Object.fromEntries(
       Object.entries(validators)
         .map(([field, validate]) => [field, validate()])
-        .filter(([, error]) => error !== null),
+        .filter(([, error]) => error !== null)
     );
   };
 

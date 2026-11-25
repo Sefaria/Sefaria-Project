@@ -1,12 +1,15 @@
 # text.py
+
 > Source: `sefaria/model/text.py` (~6500 lines)
 
 ## Purpose
+
 The gravitational center of the Sefaria model layer. Defines how texts are structured (Index), stored (Version), read (TextChunk/TextFamily), referenced (Ref), and discovered (Library). Every text operation in Sefaria flows through this module.
 
 ## Key Classes
 
 ### Index
+
 - **Inherits**: `AbstractMongoRecord`, `AbstractIndex`
 - **Collection**: `index`
 - **Role**: Defines a text/book -- its name, categories, schema tree, and metadata. One Index per text in the system.
@@ -36,6 +39,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - `_update_alt_structs_on_title_change()` does string replacement of the old title inside all `wholeRef`/`refs` in alt struct nodes -- fragile if titles are substrings of each other.
 
 ### Version
+
 - **Inherits**: `AbstractTextRecord`, `AbstractMongoRecord`, `AbstractSchemaContent`
 - **Collection**: `texts`
 - **Role**: A single translation or edition of a text. Contains the actual text content in a jagged array structure.
@@ -63,6 +67,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - The `chapter` field name is a historical artifact. The codebase has comments about renaming it to `content` but this has not been done.
 
 ### AbstractTextRecord
+
 - **Inherits**: `object` (mixin)
 - **Collection**: N/A
 - **Role**: Mixin providing text-content methods for both Version and TextChunk. Defines how text is accessed, sanitized, and transformed.
@@ -81,6 +86,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - `remove_html()` replaces `<br>` tags with spaces, not empty strings.
 
 ### TextChunk
+
 - **Inherits**: `AbstractTextRecord`, metaclass=`TextFamilyDelegator`
 - **Collection**: N/A (operates on Version records)
 - **Role**: Read-write access to text at a specific Ref, language, and optional version. The primary interface for reading and writing text content.
@@ -109,6 +115,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - `actual_lang` parameter finds versions by ISO language code within the he/en binary. E.g., `actual_lang="ar"` finds Arabic versions within the `he` language bucket. Patterns filter out bracket-notation versions when actual_lang is `en` or `he`.
 
 ### TextFamily
+
 - **Inherits**: `object`
 - **Collection**: N/A
 - **Role**: Bilingual text wrapper for the v1/v2 text API. Loads en + he TextChunks, optionally fetches commentary links, and serializes everything into an API-friendly dict.
@@ -129,6 +136,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - `fallbackOnDefaultVersion` is passed through to TextChunk but TextChunk only uses it in the `lang+vtitle` branch (to allow fallback when the requested version doesn't exist).
 
 ### Ref
+
 - **Inherits**: `object`, metaclass=`RefCacheType`
 - **Collection**: N/A (references Index/Version records)
 - **Role**: A parsed citation pointing to a location in the text corpus. Immutable after creation. The most instantiated object in the system.
@@ -172,6 +180,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - **`instantiate_ref_with_legacy_parse_fallback(tref)`**: Tries normal parsing, then legacy ref parser, then falls back to partial match. Sets `legacy_tref` attribute on successful legacy parse.
 
 ### Library
+
 - **Inherits**: `object`
 - **Collection**: N/A (singleton)
 - **Role**: The singleton `library` instance. Stewards all in-memory indexes, title maps, TOC trees, autocompleters, and term mappings. The bridge between the database and the rest of the application.
@@ -279,16 +288,18 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
 ## Common Tasks
 
 ### Load text at a reference
+
 ```python
 ref = Ref("Genesis 1:1")
-chunk = ref.text(lang="en")               # TextChunk
-text_content = chunk.text                  # string or list
+chunk = ref.text(lang="en")  # TextChunk
+text_content = chunk.text  # string or list
 # or for bilingual:
 tf = TextFamily(ref)
-d = tf.contents()                          # full API dict
+d = tf.contents()  # full API dict
 ```
 
 ### Save text at a reference
+
 ```python
 chunk = TextChunk(Ref("Genesis 1:1"), lang="en", vtitle="My Version")
 chunk.text = "In the beginning..."
@@ -298,6 +309,7 @@ chunk.save()
 ```
 
 ### Look up an Index
+
 ```python
 index = library.get_index("Genesis")
 # or:
@@ -305,6 +317,7 @@ index = Index().load({"title": "Genesis"})
 ```
 
 ### Find all versions of a text
+
 ```python
 vs = VersionSet({"title": "Genesis"})
 for v in vs:
@@ -312,41 +325,50 @@ for v in vs:
 ```
 
 ### Get next/prev section
+
 ```python
 ref = Ref("Genesis 1")
-next_ref = ref.next_section_ref()   # Ref("Genesis 2")
-prev_ref = ref.prev_section_ref()   # None (first chapter)
+next_ref = ref.next_section_ref()  # Ref("Genesis 2")
+prev_ref = ref.prev_section_ref()  # None (first chapter)
 ```
 
 ### Check if a ref is empty
+
 ```python
 ref = Ref("Genesis 1:1")
-ref.is_empty()           # checks DB for any version with content
+ref.is_empty()  # checks DB for any version with content
 ref.is_empty(lang="en")  # checks only English versions
 ```
 
 ### Find refs in a string
+
 ```python
 refs = library.get_refs_in_string("See Genesis 1:1 and Exodus 2:3", lang="en")
 ```
 
 ### Get the full title regex
+
 ```python
 reg = library.all_titles_regex(lang="en", citing_only=True)
 matches = reg.finditer(some_text)
 ```
 
 ### Iterate all segments of a Version
+
 ```python
 results = []
+
+
 def collect(segment_str, tref, he_tref, version):
     results.append((tref, segment_str))
+
 
 v = Version().load({"title": "Genesis", "versionTitle": "Tanakh: The Holy Scriptures, JPS 1985"})
 v.walk_thru_contents(collect)
 ```
 
 ### Force a library rebuild
+
 ```python
 library.rebuild(include_toc=True)
 # Warning: clears Ref cache and all in-memory caches. Expensive.

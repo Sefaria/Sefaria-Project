@@ -1,12 +1,11 @@
-# encoding=utf-8
-
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 from sefaria.helper.schema import *
+
 torah_titles = library.get_indexes_in_category("Torah")
 he_torah_titles = [library.get_index(x).get_title("he") for x in torah_titles]
-haamek_titles = ["Haamek Davar on {}".format(x) for x in torah_titles]
-he_haamek_intros = ["פתיחה לספר {}".format(x) for x in he_torah_titles]
-en_haamek_intros = ["Introduction to {}".format(x) for x in torah_titles]
+haamek_titles = [f"Haamek Davar on {x}" for x in torah_titles]
+he_haamek_intros = [f"פתיחה לספר {x}" for x in he_torah_titles]
+en_haamek_intros = [f"Introduction to {x}" for x in torah_titles]
 
 for title in haamek_titles:
     print(title)

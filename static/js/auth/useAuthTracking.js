@@ -1,8 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { makeUuid } from './utils.js';
 import {
-  persistActiveFlow, clearActiveFlow, clearPendingAttempt,
-  fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
+  persistActiveFlow,
+  clearActiveFlow,
+  clearPendingAttempt,
+  fireFlowStarted,
+  fireMethodChosen,
+  fireProcessStarted,
+  fireProcessEnded,
+  fireFlowEnded,
 } from './authAnalytics.js';
 
 // login/register both get a tracked flow; reset (password reset) never does.
@@ -131,7 +137,6 @@ export function useAuthTracking({ flow, source, lazy = false }) {
     if (prevFlow === flow) return;
     if (isTrackedFlow(prevFlow)) endFlow();
     if (isTrackedFlow(flow)) startFlowOnArrival();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flow, source]);
 
   // beforeunload can be suppressed (mobile SSO redirect may be in flight — resolved
@@ -168,7 +173,6 @@ export function useAuthTracking({ flow, source, lazy = false }) {
       window.removeEventListener('popstate', onPopState);
       window.removeEventListener('pageshow', onPageShow);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flow, source]);
 
   // Unmount-cleanup: ReaderApp.openURL can unmount AuthPage via a pure SPA
@@ -176,6 +180,10 @@ export function useAuthTracking({ flow, source, lazy = false }) {
   useEffect(() => endFlow, []);
 
   return {
-    chooseMethod, startProcess, endProcess, getIds, suppressFlowEndRef,
+    chooseMethod,
+    startProcess,
+    endProcess,
+    getIds,
+    suppressFlowEndRef,
   };
 }

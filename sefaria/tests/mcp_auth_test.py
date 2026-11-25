@@ -69,13 +69,16 @@ def test_anonymous_user_is_sent_to_login_and_back(mcp_settings):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("params", [
-    {"state": STATE, "redirect_uri": "https://evil.example/callback"},
-    {"state": STATE, "redirect_uri": CALLBACK + "/extra"},
-    {"state": "short", "redirect_uri": CALLBACK},
-    {"state": STATE + "<script>", "redirect_uri": CALLBACK},
-    {"redirect_uri": CALLBACK},
-])
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"state": STATE, "redirect_uri": "https://evil.example/callback"},
+        {"state": STATE, "redirect_uri": CALLBACK + "/extra"},
+        {"state": "short", "redirect_uri": CALLBACK},
+        {"state": STATE + "<script>", "redirect_uri": CALLBACK},
+        {"redirect_uri": CALLBACK},
+    ],
+)
 def test_rejects_bad_requests_before_anything_else(mcp_settings, django_user_model, params):
     user = django_user_model.objects.create_user(username=f"mcp-bad-{abs(hash(str(params)))}", password="pass")
     client = Client()
@@ -90,9 +93,12 @@ def test_header_auth_is_not_enough(django_user_model):
     from sefaria.utils.chatbot import build_chatbot_user_token
 
     user = django_user_model.objects.create_user(username="mcp-header-only", password="pass")
-    with override_settings(MCP_TOKEN_SECRET=SECRET, MCP_AUTH_CALLBACK_URLS=[CALLBACK], CHATBOT_USER_ID_SECRET="chatbot"):
+    with override_settings(
+        MCP_TOKEN_SECRET=SECRET, MCP_AUTH_CALLBACK_URLS=[CALLBACK], CHATBOT_USER_ID_SECRET="chatbot"
+    ):
         response = Client().get(
-            URL, {"state": STATE, "redirect_uri": CALLBACK},
+            URL,
+            {"state": STATE, "redirect_uri": CALLBACK},
             HTTP_X_SESSION_ID=build_chatbot_user_token(user.id, "chatbot"),
         )
 
@@ -126,24 +132,38 @@ class TestMCPSheetSaves:
         request.user = user
         request.auth_via = auth_via
         stored = existing if existing is not None else {"error": "Sheet not found."}
-        with patch("sourcesheets.views.save_sheet", side_effect=lambda s, uid, **kw: {"id": 7, **s}) as save, \
-                patch("sourcesheets.views.get_sheet", return_value=stored):
+        with (
+            patch("sourcesheets.views.save_sheet", side_effect=lambda s, uid, **kw: {"id": 7, **s}) as save,
+            patch("sourcesheets.views.get_sheet", return_value=stored),
+        ):
             response = save_sheet_api(request)
         return response, save
 
     @staticmethod
     def _existing(owner, **fields):
-        return {"id": 123, "owner": owner, "status": "public", "dateModified": "2026-10-22T10:00:00",
-                "sources": [{"node": 1, "outsideText": "<p>Intro</p>"}], **fields}
+        return {
+            "id": 123,
+            "owner": owner,
+            "status": "public",
+            "dateModified": "2026-10-22T10:00:00",
+            "sources": [{"node": 1, "outsideText": "<p>Intro</p>"}],
+            **fields,
+        }
 
     def _update(self, **fields):
-        return {"id": 123, "title": "Mine", "lastModified": "2026-10-22T10:00:00",
-                "sources": [{"node": 1, "outsideText": "<p>Intro, edited</p>"}], **fields}
+        return {
+            "id": 123,
+            "title": "Mine",
+            "lastModified": "2026-10-22T10:00:00",
+            "sources": [{"node": 1, "outsideText": "<p>Intro, edited</p>"}],
+            **fields,
+        }
 
     def test_owner_can_update_and_status_stays_as_it_was(self, django_user_model):
         user = django_user_model.objects.create_user(username="mcp-update-own", password="pass")
-        response, save = self._post(user, self._update(status="unlisted", displayedCollection="x"),
-                                    existing=self._existing(user.id))
+        response, save = self._post(
+            user, self._update(status="unlisted", displayedCollection="x"), existing=self._existing(user.id)
+        )
         assert response.status_code == 200
         saved = save.call_args.args[0]
         assert saved["status"] == "public"
@@ -166,10 +186,13 @@ class TestMCPSheetSaves:
 
     def test_media_sources_cannot_be_removed(self, django_user_model):
         user = django_user_model.objects.create_user(username="mcp-update-media", password="pass")
-        existing = self._existing(user.id, sources=[
-            {"node": 1, "outsideText": "<p>Intro</p>"},
-            {"node": 2, "media": "https://storage.googleapis.com/sheet-user-uploaded-media/a.png"},
-        ])
+        existing = self._existing(
+            user.id,
+            sources=[
+                {"node": 1, "outsideText": "<p>Intro</p>"},
+                {"node": 2, "media": "https://storage.googleapis.com/sheet-user-uploaded-media/a.png"},
+            ],
+        )
         response, save = self._post(user, self._update(), existing=existing)
         assert response.status_code == 403
         save.assert_not_called()

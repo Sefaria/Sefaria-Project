@@ -1,12 +1,12 @@
-import React from "react";
-import classNames from "classnames";
-import Sefaria from "../sefaria/sefaria";
-import { InterfaceText, LoadingMessage } from "../Misc";
-import SelectableOption from "./SelectableOption";
-import MarketingEmailToggle from "./MarketingEmailToggle";
-import { TEXT_KEYS } from "./textKeys";
-import { InterfaceTextWithSlots } from "./InterfaceTextWithSlots";
-import { FORM_STATUS } from "./stateSymbols";
+import React from 'react';
+import classNames from 'classnames';
+import Sefaria from '../sefaria/sefaria';
+import { InterfaceText, LoadingMessage } from '../Misc';
+import SelectableOption from './SelectableOption';
+import MarketingEmailToggle from './MarketingEmailToggle';
+import { TEXT_KEYS } from './textKeys';
+import { InterfaceTextWithSlots } from './InterfaceTextWithSlots';
+import { FORM_STATUS } from './stateSymbols';
 
 /**
  * NewsletterFormView - Stage 1: Newsletter Selection Form
@@ -29,7 +29,7 @@ function InlineError({ fieldName, errors }) {
   );
 }
 
-function FormInput({ id, type = "text", label, value, onChange, onBlur, disabled, fieldErrors }) {
+function FormInput({ id, type = 'text', label, value, onChange, onBlur, disabled, fieldErrors }) {
   const error = fieldErrors[id];
   return (
     <div className="formField">
@@ -44,7 +44,7 @@ function FormInput({ id, type = "text", label, value, onChange, onBlur, disabled
         aria-label={Sefaria._(label)}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={error ? "hasError" : ""}
+        className={error ? 'hasError' : ''}
         data-anl-event="form_interaction:inputStart"
         data-anl-item_id={id}
         data-anl-form_name="newsletter_signup"
@@ -108,7 +108,7 @@ function SubmitButton({ isSubmitting, isLoggedIn }) {
       className="submitButton primary"
       disabled={isSubmitting}
       data-anl-event="newsletter_action:click"
-      data-anl-action={isLoggedIn ? "update_preferences" : "submit"}
+      data-anl-action={isLoggedIn ? 'update_preferences' : 'submit'}
       data-anl-form_name="newsletter_signup"
     >
       {isSubmitting ? (
@@ -141,8 +141,8 @@ export default function NewsletterFormView({
     <div
       className="newsletterFormView"
       data-anl-batch={JSON.stringify({
-        form_name: "newsletter_signup",
-        form_destination: isLoggedIn ? "manage_preferences" : "new_subscription",
+        form_name: 'newsletter_signup',
+        form_destination: isLoggedIn ? 'manage_preferences' : 'new_subscription',
       })}
     >
       {/* HEADER SECTION */}
@@ -163,7 +163,10 @@ export default function NewsletterFormView({
       {isLoggedIn && (
         <>
           <div className="newsletterEmailInfo">
-            <InterfaceTextWithSlots id={TEXT_KEYS.MANAGING_SUBSCRIPTIONS_FOR} slots={{ email: <strong>{userEmail}</strong> }} />
+            <InterfaceTextWithSlots
+              id={TEXT_KEYS.MANAGING_SUBSCRIPTIONS_FOR}
+              slots={{ email: <strong>{userEmail}</strong> }}
+            />
           </div>
           <MarketingEmailToggle
             wantsMarketingEmails={formData.wantsMarketingEmails}
@@ -256,14 +259,14 @@ export default function NewsletterFormView({
 
           {/* CHECKBOXES */}
           <div
-            className={classNames("newsletterCheckboxes", {
+            className={classNames('newsletterCheckboxes', {
               disabled: isLoggedIn && !formData.wantsMarketingEmails,
               hasError: !!fieldErrors.newsletters,
             })}
             role="group"
             aria-label={Sefaria._(TEXT_KEYS.NEWSLETTER_OPTIONS)}
             aria-invalid={!!fieldErrors.newsletters}
-            aria-describedby={fieldErrors.newsletters ? "newsletters-error" : undefined}
+            aria-describedby={fieldErrors.newsletters ? 'newsletters-error' : undefined}
           >
             {newsletters.map((newsletter) => (
               <SelectableOption
@@ -275,9 +278,9 @@ export default function NewsletterFormView({
                 onChange={() => onNewsletterToggle(newsletter.key)}
                 disabled={isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)}
                 analyticsAttributes={{
-                  "data-anl-event": "newsletter_selected:input",
-                  "data-anl-text": newsletter.key,
-                  "data-anl-form_name": "newsletter_signup",
+                  'data-anl-event': 'newsletter_selected:input',
+                  'data-anl-text': newsletter.key,
+                  'data-anl-form_name': 'newsletter_signup',
                 }}
               />
             ))}
@@ -291,8 +294,12 @@ export default function NewsletterFormView({
 
       {/* PRIVACY NOTE */}
       <div className="privacyNote">
-        <p className="small"><InterfaceText>{TEXT_KEYS.PRIVACY_NOTE_1}</InterfaceText></p>
-        <p className="small"><InterfaceText>{TEXT_KEYS.PRIVACY_NOTE_2}</InterfaceText></p>
+        <p className="small">
+          <InterfaceText>{TEXT_KEYS.PRIVACY_NOTE_1}</InterfaceText>
+        </p>
+        <p className="small">
+          <InterfaceText>{TEXT_KEYS.PRIVACY_NOTE_2}</InterfaceText>
+        </p>
       </div>
     </div>
   );

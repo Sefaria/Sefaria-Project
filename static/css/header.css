@@ -85,10 +85,12 @@
   .home {
     height: 25px;
     width: 19px;
+    /* stylelint-disable property-no-vendor-prefix -- keep -webkit- fallbacks for older Safari */
     -webkit-mask: url("/static/img/samech-logo.svg") no-repeat;
     mask: url("/static/img/samech-logo.svg") no-repeat;
     -webkit-mask-size: cover;
     mask-size: cover;
+    /* stylelint-enable property-no-vendor-prefix */
     background-color: var(--theme-primary);
   }
 }

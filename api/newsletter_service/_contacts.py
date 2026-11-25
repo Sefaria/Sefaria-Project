@@ -6,7 +6,6 @@ import logging
 from typing import Any
 from urllib.parse import quote
 
-from sefaria.system.exceptions import InputError
 from api.newsletter_service._ac_client import (
     get_ac_client,
     raise_if_ac_page_is_truncated,
@@ -21,6 +20,7 @@ from api.newsletter_service._validation import (
     is_valid_learning_level,
     normalize_and_validate_email,
 )
+from sefaria.system.exceptions import InputError
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -64,9 +64,7 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
     _field_id_cache.update({f["perstag"]: f["id"] for f in fields if f.get("perstag")})
 
     if perstag not in _field_id_cache:
-        raise NewsletterServiceError(
-            f"Custom field with perstag '{perstag}' not found in ActiveCampaign"
-        )
+        raise NewsletterServiceError(f"Custom field with perstag '{perstag}' not found in ActiveCampaign")
 
     return _field_id_cache[perstag]
 
@@ -77,9 +75,7 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
 
 
 @reraise_as_newsletter_service_error
-def find_or_create_ac_contact(
-    email: str, first_name: str = "", last_name: str = ""
-) -> dict[str, Any]:
+def find_or_create_ac_contact(email: str, first_name: str = "", last_name: str = "") -> dict[str, Any]:
     """
     Find an existing contact by email or create a new one.
 
@@ -108,17 +104,13 @@ def find_or_create_ac_contact(
     # AC's query parser otherwise decodes `+` in tagged addresses (e.g.
     # `foo+bar@gmail.com`) as a space, which would always miss and cause
     # us to create duplicate contacts.
-    search_response: dict[str, Any] = get_ac_client().make_request(
-        f"contacts?filters[email]={quote(email)}"
-    )
+    search_response: dict[str, Any] = get_ac_client().make_request(f"contacts?filters[email]={quote(email)}")
     contacts: list[dict[str, Any]] = search_response.get("contacts", [])
 
     if contacts:
         # Contact exists, return the first one
         contact: dict[str, Any] = contacts[0]
-        logger.info(
-            f"Found existing contact with email {email}: ID {contact.get('id')}"
-        )
+        logger.info(f"Found existing contact with email {email}: ID {contact.get('id')}")
         return contact
 
     # Contact doesn't exist, create new one
@@ -131,18 +123,14 @@ def find_or_create_ac_contact(
         }
     }
 
-    result: dict[str, Any] = get_ac_client().make_request(
-        "contacts", method="POST", data=contact_data
-    )
+    result: dict[str, Any] = get_ac_client().make_request("contacts", method="POST", data=contact_data)
     contact = result.get("contact", {})
     logger.info(f"Created new contact with email {email}: ID {contact.get('id')}")
     return contact
 
 
 @reraise_as_newsletter_service_error
-def fetch_ac_contact_list_ids(
-    contact_id: str | int, active_only: bool = False
-) -> list[str]:
+def fetch_ac_contact_list_ids(contact_id: str | int, active_only: bool = False) -> list[str]:
     """
     Fetch the IDs of the lists a contact belongs to.
 
@@ -160,9 +148,7 @@ def fetch_ac_contact_list_ids(
     Raises:
         NewsletterServiceError: If API request fails
     """
-    response: dict[str, Any] = get_ac_client().make_request(
-        f"contacts/{contact_id}/contactLists"
-    )
+    response: dict[str, Any] = get_ac_client().make_request(f"contacts/{contact_id}/contactLists")
     contact_lists: list[dict[str, Any]] = response.get("contactLists", [])
 
     if active_only:
@@ -170,15 +156,9 @@ def fetch_ac_contact_list_ids(
         contact_lists = [cl for cl in contact_lists if str(cl.get("status", "")) == "1"]
 
     # Extract list IDs from contact list objects, dropping empty strings in one pass
-    list_ids = [
-        lid
-        for cl in contact_lists
-        if (lid := str(cl.get("list", cl.get("listid", ""))))
-    ]
+    list_ids = [lid for cl in contact_lists if (lid := str(cl.get("list", cl.get("listid", ""))))]
 
-    logger.info(
-        f"Contact {contact_id} memberships (active_only={active_only}): {len(list_ids)} lists: {list_ids}"
-    )
+    logger.info(f"Contact {contact_id} memberships (active_only={active_only}): {len(list_ids)} lists: {list_ids}")
     return list_ids
 
 
@@ -203,17 +183,13 @@ def find_ac_contact_id_by_email(email: str, timeout: float | None = None) -> str
     Raises:
         NewsletterServiceError: If API request fails
     """
-    response: dict[str, Any] = get_ac_client().make_request(
-        f"contacts?filters[email]={quote(email)}", timeout=timeout
-    )
+    response: dict[str, Any] = get_ac_client().make_request(f"contacts?filters[email]={quote(email)}", timeout=timeout)
     contacts: list[dict[str, Any]] = response.get("contacts", [])
     return contacts[0]["id"] if contacts else None
 
 
 @reraise_as_newsletter_service_error
-def fetch_ac_learning_level_by_contact_id(
-    contact_id: str | int, timeout: float | None = None
-) -> int | None:
+def fetch_ac_learning_level_by_contact_id(contact_id: str | int, timeout: float | None = None) -> int | None:
     """
     Fetch a contact's learning level from its ActiveCampaign custom field.
 
@@ -233,9 +209,7 @@ def fetch_ac_learning_level_by_contact_id(
         NewsletterServiceError: If API request fails
     """
     field_id: str = get_ac_field_id_by_perstag("LEARNING_LEVEL")
-    response: dict[str, Any] = get_ac_client().make_request(
-        f"contacts/{contact_id}/fieldValues", timeout=timeout
-    )
+    response: dict[str, Any] = get_ac_client().make_request(f"contacts/{contact_id}/fieldValues", timeout=timeout)
     field_values: list[dict[str, Any]] = response.get("fieldValues", [])
 
     for fv in field_values:
@@ -245,9 +219,7 @@ def fetch_ac_learning_level_by_contact_id(
                 try:
                     return int(raw_value)
                 except (ValueError, TypeError):
-                    logger.warning(
-                        f"Non-numeric LEARNING_LEVEL value for contact {contact_id}: {raw_value}"
-                    )
+                    logger.warning(f"Non-numeric LEARNING_LEVEL value for contact {contact_id}: {raw_value}")
                     return None
             return None
 
@@ -279,9 +251,7 @@ def add_ac_contact_to_list(contact_id: str | int, list_id: str | int) -> dict[st
         }
     }
 
-    result: dict[str, Any] = get_ac_client().make_request(
-        "contactLists", method="POST", data=contact_list_data
-    )
+    result: dict[str, Any] = get_ac_client().make_request("contactLists", method="POST", data=contact_list_data)
     contact_list: dict[str, Any] = result.get("contactList", {})
 
     logger.info(f"Added contact {contact_id} to list {list_id}")
@@ -313,15 +283,11 @@ def add_ac_contact_to_lists(contact_id: str | int, list_ids: list[str]) -> None:
     for list_id in list_ids:
         add_ac_contact_to_list(contact_id, list_id)
 
-    logger.info(
-        f"Successfully subscribed contact {contact_id} to {len(list_ids)} lists"
-    )
+    logger.info(f"Successfully subscribed contact {contact_id} to {len(list_ids)} lists")
 
 
 @reraise_as_newsletter_service_error
-def unsubscribe_ac_contact_from_list(
-    contact_id: str | int, list_id: str | int
-) -> dict[str, Any]:
+def unsubscribe_ac_contact_from_list(contact_id: str | int, list_id: str | int) -> dict[str, Any]:
     """
     Unsubscribe a contact from a newsletter list.
 
@@ -346,9 +312,7 @@ def unsubscribe_ac_contact_from_list(
         }
     }
 
-    result: dict[str, Any] = get_ac_client().make_request(
-        "contactLists", method="POST", data=contact_list_data
-    )
+    result: dict[str, Any] = get_ac_client().make_request("contactLists", method="POST", data=contact_list_data)
     contact_list: dict[str, Any] = result.get("contactList", {})
 
     logger.info(f"Removed contact {contact_id} from list {list_id}")
@@ -356,9 +320,7 @@ def unsubscribe_ac_contact_from_list(
 
 
 @reraise_as_newsletter_service_error
-def update_ac_list_memberships(
-    contact_id: str | int, add_list_ids: list[str], remove_list_ids: list[str]
-) -> None:
+def update_ac_list_memberships(contact_id: str | int, add_list_ids: list[str], remove_list_ids: list[str]) -> None:
     """
     Add and remove a contact from multiple lists, one AC request per list.
 
@@ -408,9 +370,7 @@ def update_ac_list_memberships(
 
 
 @reraise_as_newsletter_service_error
-def set_ac_learning_level(
-    email: str, learning_level: int | None
-) -> ACLearningLevelResult:
+def set_ac_learning_level(email: str, learning_level: int | None) -> ACLearningLevelResult:
     """
     Set a contact's learning level in ActiveCampaign.
 
@@ -441,9 +401,7 @@ def set_ac_learning_level(
     # @reraise_as_newsletter_service_error decorator so callers can distinguish bad input from AC failures.
     if learning_level is not None and not is_valid_learning_level(learning_level):
         logger.warning(f"Invalid learning level {learning_level} for email {email}")
-        raise InputError(
-            "Learning level must be an integer between 1 and 5, or null/None"
-        )
+        raise InputError("Learning level must be an integer between 1 and 5, or null/None")
 
     logger.info(f"Updating learning level in AC for {email}: {learning_level}")
 
@@ -469,9 +427,7 @@ def set_ac_learning_level(
     return {"contact_id": contact_id, "email": email, "learning_level": learning_level}
 
 
-def fetch_ac_learning_level_by_email(
-    email: str, timeout: float | None = None
-) -> int | None:
+def fetch_ac_learning_level_by_email(email: str, timeout: float | None = None) -> int | None:
     """
     Read the learning level AC has stored for an email.
 

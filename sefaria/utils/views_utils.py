@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 Utility functions for views and request/response handling.
 """
+
 from fnmatch import fnmatch
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 

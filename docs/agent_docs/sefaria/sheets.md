@@ -1,4 +1,5 @@
 # Sheets
+
 > Source: `sefaria/sheets.py`
 
 ## Purpose
@@ -100,18 +101,22 @@ Backend for Sefaria Source Sheets -- user-created documents that combine referen
 ## Common Tasks
 
 ### Add a new field to sheets
+
 1. Add to `Sheet.optional_attrs` (or `required_attrs` if mandatory).
 2. Handle in `save_sheet()` -- decide if it's a protected field (can't be set from outside) or user-settable.
 3. If it should be in listings, add to the projection in `sheet_list()`.
 
 ### Debug why a sheet isn't appearing in search
+
 1. Check `sheet["status"]` is `"public"`.
 2. Check `SEARCH_INDEX_ON_SAVE` is `True`.
 3. Look at the `try/except` around `search.index_sheet()` in `save_sheet()` -- errors are logged but swallowed.
 4. Check `search.index_sheet()` in `search.py` for validation failures (missing title, summary, owner data, dates).
 
 ### Understand how sheets appear in the text sidebar
+
 Follow `get_sheets_for_ref(tref)` -- it queries `expandedRefs`, calculates combined scores from LLM data, and returns annotated sheet data. The `expandedRefs` field is populated by `save_sheet()` on every save.
 
 ### Change how sheet-topic linking works
+
 Look at `update_sheet_topic_links()` which creates/deletes `RefTopicLink` records. The ref format for sheets is `"Sheet {id}"`. Links are only created for public sheets.

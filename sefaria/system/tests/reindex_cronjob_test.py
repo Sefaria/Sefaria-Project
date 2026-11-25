@@ -1,4 +1,5 @@
 """Unit tests for reindex_elasticsearch_cronjob dispatch behavior."""
+
 import importlib.util
 import pathlib
 import sys

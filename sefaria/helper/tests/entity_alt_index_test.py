@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
 """
 build_entity_alt_tables() runs against stand-ins for IndexSet/TopicSet/AuthorTopicSet, not Mongo.
 """
+
 from sefaria.helper.entity_alt_index import (
     MIN_TOPIC_SOURCES,
     NAMED_ENTITY_BONUS,
+    _add_titles,
     _entity_tie_break_score,
     _normalize_phrase,
-    _add_titles,
     build_entity_alt_tables,
 )
 
@@ -19,6 +19,7 @@ def _entity_index(**kwargs):
 # --------------------------------------------------------------------------- #
 #  _entity_tie_break_score                                                    #
 # --------------------------------------------------------------------------- #
+
 
 def test_entity_tie_break_score_damps_like_the_top_n_grams_scale():
     assert _entity_tie_break_score(0) == 0
@@ -40,6 +41,7 @@ def test_entity_tie_break_score_bonus_applies_even_at_zero_weight():
 # --------------------------------------------------------------------------- #
 #  _normalize_phrase / _add_titles                                            #
 # --------------------------------------------------------------------------- #
+
 
 def test_normalize_phrase_matches_word_by_word_normalization():
     assert _normalize_phrase("Mishneh Torah", "en") == "mishneh torah"
@@ -78,6 +80,7 @@ def test_add_titles_ignores_empty_phrase():
 #  build_entity_alt_index (stubbed IndexSet / TopicSet / AuthorTopicSet)      #
 # --------------------------------------------------------------------------- #
 
+
 class _FakeTitleGroup:
     def __init__(self, titles_by_lang):
         self._titles_by_lang = titles_by_lang
@@ -98,6 +101,7 @@ class _FakeIndex:
 
 class _FakeIndexNoNodes:
     """A stub/malformed Index with no schema tree -- the build must skip it, not crash."""
+
     nodes = None
 
 
@@ -117,6 +121,7 @@ def test_build_entity_alt_index_indexes_books_authors_and_topics(monkeypatch):
 
     import sefaria.model as sefaria_model
     import sefaria.model.topic as sefaria_topic
+
     monkeypatch.setattr(sefaria_model, "IndexSet", lambda *a, **k: books, raising=False)
     monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: topics)
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
@@ -138,6 +143,7 @@ def test_build_entity_alt_index_author_outscores_equally_sourced_topic(monkeypat
 
     import sefaria.model as sefaria_model
     import sefaria.model.topic as sefaria_topic
+
     monkeypatch.setattr(sefaria_model, "IndexSet", lambda *a, **k: [], raising=False)
     monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: topics)
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
@@ -154,7 +160,7 @@ def test_build_entity_alt_index_author_outscores_equally_sourced_topic(monkeypat
 
 def test_build_entity_alt_index_min_topic_sources_excludes_low_signal_topics(monkeypatch):
     topics = []  # TopicSet's own query does the >= filtering in real Mongo; here we assert
-                 # the parameter is actually threaded through to the query, not hard-coded.
+    # the parameter is actually threaded through to the query, not hard-coded.
     captured = {}
 
     def fake_topic_set(query):
@@ -163,6 +169,7 @@ def test_build_entity_alt_index_min_topic_sources_excludes_low_signal_topics(mon
 
     import sefaria.model as sefaria_model
     import sefaria.model.topic as sefaria_topic
+
     monkeypatch.setattr(sefaria_model, "IndexSet", lambda *a, **k: [], raising=False)
     monkeypatch.setattr(sefaria_topic, "TopicSet", fake_topic_set)
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: [])
@@ -177,6 +184,7 @@ def test_build_entity_alt_index_books_get_the_same_bonus_as_a_zero_sourced_autho
 
     import sefaria.model as sefaria_model
     import sefaria.model.topic as sefaria_topic
+
     monkeypatch.setattr(sefaria_model, "IndexSet", lambda *a, **k: books, raising=False)
     monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: [])
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
@@ -202,6 +210,7 @@ def test_build_entity_alt_tables_records_every_entity_carrying_a_title(monkeypat
 
     import sefaria.model as sefaria_model
     import sefaria.model.topic as sefaria_topic
+
     monkeypatch.setattr(sefaria_model, "IndexSet", lambda *a, **k: [], raising=False)
     monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: topics)
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: [])

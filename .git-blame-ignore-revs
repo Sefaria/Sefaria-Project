@@ -1,0 +1,12 @@
+# Bulk linting cleanup commits. This prevents git blame from attributing every line to them.
+# Usage: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# Or set globally: git config --global blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# NOTE: these SHAs only exist on master if the PR is merged with a merge commit or
+# rebase-and-merge. If it is squash-merged, add the resulting single SHA here in a follow-up commit.
+
+# chore(linter): linting the codebase
+594d5ca3536970361bf6df8804dcc6f0589d2bdf
+
+# fix(linter): fix ruff cid/cd issue (re-sorted imports in 16 scripts/tests after adding isort known-first-party)
+f33d9322ce2afb24c4a12c1082ca8849404bed7b

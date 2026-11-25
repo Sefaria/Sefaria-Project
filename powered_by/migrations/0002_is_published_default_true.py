@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('powered_by', '0001_initial'),
+        ("powered_by", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='is_published',
-            field=models.BooleanField(default=True, help_text='Editorial publish gate, controls visibility on the public site.'),
+            model_name="project",
+            name="is_published",
+            field=models.BooleanField(
+                default=True, help_text="Editorial publish gate, controls visibility on the public site."
+            ),
         ),
     ]

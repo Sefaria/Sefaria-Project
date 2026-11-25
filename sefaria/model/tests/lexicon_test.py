@@ -1,18 +1,27 @@
-# -*- coding: utf-8 -*-
 import types
 import unicodedata
 from unittest.mock import patch
+
 import pytest
-from sefaria.model import *
-from sefaria.model.schema import DictionaryNode
-from sefaria.model.lexicon import LexiconEntrySet, LexiconEntry, BDBEntry, KrupnikEntry, KovetzYesodotEntry, WordForm, LexiconEntrySubClassMapping
+
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
-from sefaria.system.exceptions import InputError
+from sefaria.model import *
+from sefaria.model.lexicon import (
+    BDBEntry,
+    KovetzYesodotEntry,
+    KrupnikEntry,
+    LexiconEntry,
+    LexiconEntrySet,
+    LexiconEntrySubClassMapping,
+    WordForm,
+)
+from sefaria.model.schema import DictionaryNode
 from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 from sefaria.utils.util import deep_map, deep_prune
 
 
-@pytest.fixture()
+@pytest.fixture
 def make_lexicon_entry():
     """Saves a LexiconEntry (or subclass) and deletes it (by _id, so this still cleans up
     correctly even if the entry was later renamed in place, e.g. by change_lexicon_headword)
@@ -30,15 +39,14 @@ def make_lexicon_entry():
         entry.delete()
 
 
-class Test_Lexicon_Lookup(object):
-
+class Test_Lexicon_Lookup:
     def test_bible_lookup(self):
         word = "תִּשְׁמֹ֑רוּ"
         lookup_ref = "Leviticus 19.3"
-        #["lookup_ref", "never_split", "always_split"]
+        # ["lookup_ref", "never_split", "always_split"]
         results = LexiconLookupAggregator.lexicon_lookup(word)
-        results2 = LexiconLookupAggregator.lexicon_lookup(word, **{"lookup_ref": lookup_ref})
-        results3 = LexiconLookupAggregator.lexicon_lookup(word, **{"always_split": 1})
+        results2 = LexiconLookupAggregator.lexicon_lookup(word, lookup_ref=lookup_ref)
+        results3 = LexiconLookupAggregator.lexicon_lookup(word, always_split=1)
         # "BDB Dictionary" and "BDB Augmented Strong" both cover this word, so it is a
         # legitimate match in each -- not a duplicate-headword data bug.
         assert results.count() == 2
@@ -57,8 +65,8 @@ class Test_Lexicon_Lookup(object):
         lookup_ref = "Mishnah Maaser Sheni 3"
         # ["lookup_ref", "never_split", "always_split"]
         results = LexiconLookupAggregator.lexicon_lookup(word)
-        results2 = LexiconLookupAggregator.lexicon_lookup(word, **{"lookup_ref": lookup_ref})
-        results3 = LexiconLookupAggregator.lexicon_lookup(word, **{"always_split": 1})
+        results2 = LexiconLookupAggregator.lexicon_lookup(word, lookup_ref=lookup_ref)
+        results3 = LexiconLookupAggregator.lexicon_lookup(word, always_split=1)
         assert results.count() == 1
         assert results[0].headword == "מעשר שני"
         assert results2.count() == 1
@@ -71,25 +79,33 @@ class Test_Lexicon_Lookup(object):
         assert results.count() == 1
 
 
-class Test_Lexicon_Save(object):
-
+class Test_Lexicon_Save:
     def test_sanitize(self, make_lexicon_entry):
         content = {
             "senses": [
                 {
-                    "definition": " as numeral letter, <i>one</i>, as <span dir=\"rtl\">אות א׳</span> = <span dir=\"rtl\">אות אחת</span> one letter. <a class=\"refLink\" href=\"/Shabbat.104a\" data-ref=\"Shabbat 104a\">Sabb. 104ᵃ</a>; a. fr. [Editions and Mss. vary, according to space, between the full numeral and the numeral letter, <a dir=\"rtl\" class=\"refLink\" href=\"/Jastrow,_א׳.1\" data-ref=\"Jastrow, א׳ 1\">א׳</a> for <span dir=\"rtl\">אחד</span>, <span dir=\"rtl\">אחת</span>; <a dir=\"rtl\" class=\"refLink\" href=\"/Jastrow,_ב׳.1\" data-ref=\"Jastrow, ב׳ 1\">ב׳</a> for <a dir=\"rtl\" class=\"refLink\" href=\"/Jastrow,_שְׁנַיִם.1\" data-ref=\"Jastrow, שְׁנַיִם 1\">שנים</a>, <span dir=\"rtl\">שתים</span>, <a dir=\"rtl\" class=\"refLink\" href=\"/Jastrow,_שתי.1\" data-ref=\"Jastrow, שתי 1\">שתי</a> &c.]"
+                    "definition": ' as numeral letter, <i>one</i>, as <span dir="rtl">אות א׳</span> = <span dir="rtl">אות אחת</span> one letter. <a class="refLink" href="/Shabbat.104a" data-ref="Shabbat 104a">Sabb. 104ᵃ</a>; a. fr. [Editions and Mss. vary, according to space, between the full numeral and the numeral letter, <a dir="rtl" class="refLink" href="/Jastrow,_א׳.1" data-ref="Jastrow, א׳ 1">א׳</a> for <span dir="rtl">אחד</span>, <span dir="rtl">אחת</span>; <a dir="rtl" class="refLink" href="/Jastrow,_ב׳.1" data-ref="Jastrow, ב׳ 1">ב׳</a> for <a dir="rtl" class="refLink" href="/Jastrow,_שְׁנַיִם.1" data-ref="Jastrow, שְׁנַיִם 1">שנים</a>, <span dir="rtl">שתים</span>, <a dir="rtl" class="refLink" href="/Jastrow,_שתי.1" data-ref="Jastrow, שתי 1">שתי</a> &c.]'
                 },
-                {
-                    "definition": 'Seemingly ok definition... <a href="javascript:alert(8007)">Click me</a>'
-                }
+                {"definition": 'Seemingly ok definition... <a href="javascript:alert(8007)">Click me</a>'},
             ]
         }
-        l = make_lexicon_entry("א׳ (sanitize test fixture)", "Jastrow Dictionary", cls=JastrowDictionaryEntry,
-                                rid="A00006", refs=["Shabbat 104a"], prev_hw="א ⁶", next_hw="אִ־", content=content)
+        l = make_lexicon_entry(
+            "א׳ (sanitize test fixture)",
+            "Jastrow Dictionary",
+            cls=JastrowDictionaryEntry,
+            rid="A00006",
+            refs=["Shabbat 104a"],
+            prev_hw="א ⁶",
+            next_hw="אִ־",
+            content=content,
+        )
         # bleach preserves each tag's original attribute order rather than alphabetizing --
         # only the "&" -> "&amp;" escape differs from the input.
-        assert l.content["senses"][0]["definition"] == """ as numeral letter, <i>one</i>, as <span dir="rtl">אות א׳</span> = <span dir="rtl">אות אחת</span> one letter. <a class="refLink" href="/Shabbat.104a" data-ref="Shabbat 104a">Sabb. 104ᵃ</a>; a. fr. [Editions and Mss. vary, according to space, between the full numeral and the numeral letter, <a dir="rtl" class="refLink" href="/Jastrow,_א׳.1" data-ref="Jastrow, א׳ 1">א׳</a> for <span dir="rtl">אחד</span>, <span dir="rtl">אחת</span>; <a dir="rtl" class="refLink" href="/Jastrow,_ב׳.1" data-ref="Jastrow, ב׳ 1">ב׳</a> for <a dir="rtl" class="refLink" href="/Jastrow,_שְׁנַיִם.1" data-ref="Jastrow, שְׁנַיִם 1">שנים</a>, <span dir="rtl">שתים</span>, <a dir="rtl" class="refLink" href="/Jastrow,_שתי.1" data-ref="Jastrow, שתי 1">שתי</a> &amp;c.]"""
-        assert l.content["senses"][1]["definition"] == 'Seemingly ok definition... <a>Click me</a>'
+        assert (
+            l.content["senses"][0]["definition"]
+            == """ as numeral letter, <i>one</i>, as <span dir="rtl">אות א׳</span> = <span dir="rtl">אות אחת</span> one letter. <a class="refLink" href="/Shabbat.104a" data-ref="Shabbat 104a">Sabb. 104ᵃ</a>; a. fr. [Editions and Mss. vary, according to space, between the full numeral and the numeral letter, <a dir="rtl" class="refLink" href="/Jastrow,_א׳.1" data-ref="Jastrow, א׳ 1">א׳</a> for <span dir="rtl">אחד</span>, <span dir="rtl">אחת</span>; <a dir="rtl" class="refLink" href="/Jastrow,_ב׳.1" data-ref="Jastrow, ב׳ 1">ב׳</a> for <a dir="rtl" class="refLink" href="/Jastrow,_שְׁנַיִם.1" data-ref="Jastrow, שְׁנַיִם 1">שנים</a>, <span dir="rtl">שתים</span>, <a dir="rtl" class="refLink" href="/Jastrow,_שתי.1" data-ref="Jastrow, שתי 1">שתי</a> &amp;c.]"""
+        )
+        assert l.content["senses"][1]["definition"] == "Seemingly ok definition... <a>Click me</a>"
 
     def test_headword_with_unsafe_characters_is_rejected_not_rewritten(self):
         # headword_string() (BDBEntry, KovetzYesodotEntry) interpolates self.headword raw
@@ -104,14 +120,15 @@ class Test_Lexicon_Save(object):
         # prev_hw/next_hw are exact-match lookups against another entry's headword, not
         # rendered content -- bleaching them (e.g. rewriting "&" to "&amp;") would silently
         # break that lookup. rid is an opaque external xref id with the same concern.
-        entry = make_lexicon_entry("sanitize-identity-fields", "Test Lexicon Sanitize",
-                                    prev_hw="a & b", next_hw="c & d", rid="R & 1")
+        entry = make_lexicon_entry(
+            "sanitize-identity-fields", "Test Lexicon Sanitize", prev_hw="a & b", next_hw="c & d", rid="R & 1"
+        )
         assert entry.prev_hw == "a & b"
         assert entry.next_hw == "c & d"
         assert entry.rid == "R & 1"
 
 
-class Test_DictionaryNode_AllChildren(object):
+class Test_DictionaryNode_AllChildren:
     """
     Tests for DictionaryNode.all_children(), which is memoized on self._all_children_cache
     to avoid re-querying Mongo (LexiconEntrySet + per-entry entry_class construction) on
@@ -198,7 +215,7 @@ class Test_DictionaryNode_AllChildren(object):
 
         call_count = 0
 
-        class FakeLexiconEntrySet(object):
+        class FakeLexiconEntrySet:
             def __init__(self, query=None):
                 nonlocal call_count
                 call_count += 1
@@ -207,11 +224,11 @@ class Test_DictionaryNode_AllChildren(object):
             def __iter__(self):
                 return iter(fake_entries)
 
-        class FakeEntryNode(object):
+        class FakeEntryNode:
             def __init__(self, parent, lexicon_entry=None):
                 self.word = lexicon_entry.headword
 
-        class FakeDictionaryNode(object):
+        class FakeDictionaryNode:
             lexiconName = "Fake Lexicon"
             entry_class = FakeEntryNode
 
@@ -235,7 +252,7 @@ class Test_DictionaryNode_AllChildren(object):
             assert call_count == 1
 
 
-class Test_LexiconEntry_Load(object):
+class Test_LexiconEntry_Load:
     """LexiconEntry.load() resolves to the correct dictionary subclass before delegating to
     the base class, so that AbstractMongoRecord.load()'s known-keys assertion checks against
     the subclass's (possibly wider) optional_attrs rather than the generic base class's."""
@@ -250,7 +267,9 @@ class Test_LexiconEntry_Load(object):
 
     def test_resolves_correct_subclass_when_query_omits_parent_lexicon(self, make_lexicon_entry):
         with patch.dict(LexiconEntrySubClassMapping.lexicon_class_map, {self.FAKE_LEXICON: KrupnikEntry}):
-            entry = make_lexicon_entry("subclass-test-by-id", self.FAKE_LEXICON, rid="R1", content={"senses": [{"definition": "d"}]})
+            entry = make_lexicon_entry(
+                "subclass-test-by-id", self.FAKE_LEXICON, rid="R1", content={"senses": [{"definition": "d"}]}
+            )
             loaded = LexiconEntry().load({"_id": entry._id})
             assert isinstance(loaded, KrupnikEntry)
 
@@ -258,7 +277,7 @@ class Test_LexiconEntry_Load(object):
         assert LexiconEntry().load({"parent_lexicon": self.FAKE_LEXICON, "headword": "does-not-exist"}) is None
 
 
-class Test_LexiconEntry_Normalize(object):
+class Test_LexiconEntry_Normalize:
     PARENT_LEXICON = "Test Lexicon Normalize"
 
     # bet, dagesh, patach -- dagesh before patach is not canonical NFC order (NFC reorders
@@ -279,8 +298,14 @@ class Test_LexiconEntry_Normalize(object):
 
     def test_unrelated_save_does_not_touch_an_unnormalized_existing_prev_hw_next_hw(self):
         # Simulates data a backfill hasn't reached yet, same as the headword case below.
-        db.lexicon_entry.insert_one({"headword": "existing-ptr-test", "parent_lexicon": self.PARENT_LEXICON,
-                                      "prev_hw": self.NON_NFC, "next_hw": self.NON_NFC})
+        db.lexicon_entry.insert_one(
+            {
+                "headword": "existing-ptr-test",
+                "parent_lexicon": self.PARENT_LEXICON,
+                "prev_hw": self.NON_NFC,
+                "next_hw": self.NON_NFC,
+            }
+        )
         try:
             entry = LexiconEntry().load({"parent_lexicon": self.PARENT_LEXICON, "headword": "existing-ptr-test"})
             entry.notes = "edited"
@@ -318,7 +343,7 @@ class Test_LexiconEntry_Normalize(object):
         assert entry.headword == nfc
 
 
-class Test_LexiconEntry_PruneEmptyAttrs(object):
+class Test_LexiconEntry_PruneEmptyAttrs:
     PARENT_LEXICON = "Test Lexicon Prune"
 
     def test_optional_attr_emptied_is_removed(self, make_lexicon_entry):
@@ -338,8 +363,9 @@ class Test_LexiconEntry_PruneEmptyAttrs(object):
         assert not hasattr(entry, "content")
 
     def test_required_attr_emptied_is_kept_present_but_pruned(self, make_lexicon_entry):
-        entry = make_lexicon_entry("prune-3", self.PARENT_LEXICON, cls=BDBEntry,
-                                    rid="T1", content={"senses": [{"definition": ""}]})
+        entry = make_lexicon_entry(
+            "prune-3", self.PARENT_LEXICON, cls=BDBEntry, rid="T1", content={"senses": [{"definition": ""}]}
+        )
         assert hasattr(entry, "content")
         assert entry.content == {}
 
@@ -352,13 +378,12 @@ class Test_LexiconEntry_PruneEmptyAttrs(object):
         optional_attrs = LexiconEntry.optional_attrs + ["dual_attr"]
 
     def test_required_attr_also_listed_as_optional_is_kept_not_deleted(self, make_lexicon_entry):
-        entry = make_lexicon_entry("prune-4", self.PARENT_LEXICON, cls=self._DualListedAttrEntry,
-                                    dual_attr={"a": ""})
+        entry = make_lexicon_entry("prune-4", self.PARENT_LEXICON, cls=self._DualListedAttrEntry, dual_attr={"a": ""})
         assert hasattr(entry, "dual_attr")
         assert entry.dual_attr == {}
 
 
-class Test_DictionaryEntry_AsStrings_EmptySenses(object):
+class Test_DictionaryEntry_AsStrings_EmptySenses:
     # A present-but-empty (or entirely absent) senses list is legitimate data, not a bug --
     # e.g. a real Klein Dictionary entry whose actual content lives in notes/morphology
     # instead (etymology-only loanwords). as_strings() must render that gracefully rather
@@ -366,10 +391,15 @@ class Test_DictionaryEntry_AsStrings_EmptySenses(object):
     PARENT_LEXICON = "Test Lexicon AsStrings"
 
     def test_dictionary_entry_empty_senses_with_notes_renders_without_crash(self):
-        entry = KleinDictionaryEntry({
-            "headword": "acoustics", "parent_lexicon": self.PARENT_LEXICON, "rid": "T1",
-            "content": {"morphology": "f.n.", "senses": []}, "notes": "etymology text",
-        })
+        entry = KleinDictionaryEntry(
+            {
+                "headword": "acoustics",
+                "parent_lexicon": self.PARENT_LEXICON,
+                "rid": "T1",
+                "content": {"morphology": "f.n.", "senses": []},
+                "notes": "etymology text",
+            }
+        )
         assert entry.as_strings() == ['<strong dir="rtl">acoustics</strong> f.n. etymology text']
 
     def test_dictionary_entry_absent_content_renders_without_crash(self):
@@ -377,17 +407,17 @@ class Test_DictionaryEntry_AsStrings_EmptySenses(object):
         assert entry.as_strings() == ['<strong dir="rtl">bare</strong>']
 
     def test_bdb_entry_empty_senses_renders_headword_only_without_crash(self):
-        entry = BDBEntry({"headword": "bare-bdb", "parent_lexicon": self.PARENT_LEXICON,
-                           "rid": "T3", "content": {"senses": []}})
+        entry = BDBEntry(
+            {"headword": "bare-bdb", "parent_lexicon": self.PARENT_LEXICON, "rid": "T3", "content": {"senses": []}}
+        )
         assert entry.as_strings() == ['<big><span dir="rtl">bare-bdb</span></big> ']
 
     def test_bdb_entry_missing_senses_key_renders_headword_only_without_crash(self):
-        entry = BDBEntry({"headword": "bare-bdb-2", "parent_lexicon": self.PARENT_LEXICON,
-                           "rid": "T4", "content": {}})
+        entry = BDBEntry({"headword": "bare-bdb-2", "parent_lexicon": self.PARENT_LEXICON, "rid": "T4", "content": {}})
         assert entry.as_strings() == ['<big><span dir="rtl">bare-bdb-2</span></big> ']
 
 
-class Test_LexiconEntry_ReplaceContentAttrs(object):
+class Test_LexiconEntry_ReplaceContentAttrs:
     def test_rejects_excluded_attr(self):
         entry = LexiconEntry({"headword": "x", "parent_lexicon": "y"})
         with pytest.raises(InputError):
@@ -399,10 +429,18 @@ class Test_LexiconEntry_ReplaceContentAttrs(object):
             entry.replace_content_attrs({"not_a_real_attr": 1})
 
     def test_replaces_only_content_attrs_leaving_identity_and_pointers_untouched(self):
-        entry = LexiconEntry({
-            "headword": "x", "parent_lexicon": "y", "prev_hw": "p", "next_hw": "n",
-            "rid": "R1", "quotes": ["q"], "content": {"a": 1}, "notes": "old notes",
-        })
+        entry = LexiconEntry(
+            {
+                "headword": "x",
+                "parent_lexicon": "y",
+                "prev_hw": "p",
+                "next_hw": "n",
+                "rid": "R1",
+                "quotes": ["q"],
+                "content": {"a": 1},
+                "notes": "old notes",
+            }
+        )
         entry.replace_content_attrs({"content": {"a": 2}})
         assert entry.content == {"a": 2}
         assert not hasattr(entry, "notes")
@@ -413,32 +451,43 @@ class Test_LexiconEntry_ReplaceContentAttrs(object):
         assert entry.quotes == ["q"]
 
 
-class Test_DictionaryEntry_ContentShapeValidation(object):
+class Test_DictionaryEntry_ContentShapeValidation:
     def test_non_dict_content_rejected(self, make_lexicon_entry):
         with pytest.raises(InputError):
             make_lexicon_entry("shape-test-1", "Test Lexicon Sanitize", cls=BDBEntry, rid="S1", content="not a dict")
 
     def test_non_list_senses_rejected(self, make_lexicon_entry):
         with pytest.raises(InputError):
-            make_lexicon_entry("shape-test-2", "Test Lexicon Sanitize", cls=BDBEntry, rid="S2", content={"senses": {"a": 1}})
+            make_lexicon_entry(
+                "shape-test-2", "Test Lexicon Sanitize", cls=BDBEntry, rid="S2", content={"senses": {"a": 1}}
+            )
 
     def test_non_dict_sense_item_rejected(self, make_lexicon_entry):
         with pytest.raises(InputError):
-            make_lexicon_entry("shape-test-3", "Test Lexicon Sanitize", cls=BDBEntry, rid="S3", content={"senses": ["not a dict"]})
+            make_lexicon_entry(
+                "shape-test-3", "Test Lexicon Sanitize", cls=BDBEntry, rid="S3", content={"senses": ["not a dict"]}
+            )
 
     def test_dict_content_with_other_keys_accepted(self, make_lexicon_entry):
-        entry = make_lexicon_entry("shape-test-4", "Test Lexicon Sanitize", cls=BDBEntry, rid="S4",
-                                    content={"morphology": "n.", "senses": [{"definition": "d"}]})
+        entry = make_lexicon_entry(
+            "shape-test-4",
+            "Test Lexicon Sanitize",
+            cls=BDBEntry,
+            rid="S4",
+            content={"morphology": "n.", "senses": [{"definition": "d"}]},
+        )
         assert entry.content["morphology"] == "n."
 
     def test_krupnik_string_content_still_accepted(self, make_lexicon_entry):
         # KrupnikEntry overrides attr_schemas entirely with its own, which permits string
         # content -- confirming DictionaryEntry's dict-only rule doesn't leak into it.
-        entry = make_lexicon_entry("shape-test-5", "Test Lexicon Sanitize", cls=KrupnikEntry, rid="S5", content="plain string")
+        entry = make_lexicon_entry(
+            "shape-test-5", "Test Lexicon Sanitize", cls=KrupnikEntry, rid="S5", content="plain string"
+        )
         assert entry.content == "plain string"
 
 
-class Test_GetAvailableLexiconHeadword(object):
+class Test_GetAvailableLexiconHeadword:
     PARENT_LEXICON = "Test Lexicon Available Headword"
 
     def test_no_collision_passthrough(self):
@@ -493,7 +542,9 @@ class Test_GetAvailableLexiconHeadword(object):
         # headword isn't a real collision -- it finds it via the DB query and bumps to a
         # superscript as if some other entry had already claimed the word.
         assert self._ORDER_SHEVA_THEN_DAGESH != self._ORDER_DAGESH_THEN_SHEVA
-        assert unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH) == unicodedata.normalize("NFC", self._ORDER_DAGESH_THEN_SHEVA)
+        assert unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH) == unicodedata.normalize(
+            "NFC", self._ORDER_DAGESH_THEN_SHEVA
+        )
         current = unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH)
         make_lexicon_entry(current, self.PARENT_LEXICON)
         assert get_available_lexicon_headword(self.PARENT_LEXICON, self._ORDER_DAGESH_THEN_SHEVA) == current + "\u00b2"
@@ -501,10 +552,13 @@ class Test_GetAvailableLexiconHeadword(object):
     def test_exclude_headword_resolves_own_word_differently_encoded_back_to_itself(self, make_lexicon_entry):
         current = unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH)
         make_lexicon_entry(current, self.PARENT_LEXICON)
-        assert get_available_lexicon_headword(self.PARENT_LEXICON, self._ORDER_DAGESH_THEN_SHEVA, exclude_headword=current) == current
+        assert (
+            get_available_lexicon_headword(self.PARENT_LEXICON, self._ORDER_DAGESH_THEN_SHEVA, exclude_headword=current)
+            == current
+        )
 
 
-class Test_ChangeLexiconHeadword(object):
+class Test_ChangeLexiconHeadword:
     PARENT_LEXICON = "Test Lexicon Change Headword"
 
     def test_rebuild_library_flag_false_skips_rebuild(self, make_lexicon_entry):
@@ -542,9 +596,12 @@ class Test_ChangeLexiconHeadword(object):
         assert order_dagesh_then_sheva != nfc
 
         make_lexicon_entry("word-form-target", self.PARENT_LEXICON)
-        word_form = WordForm({"form": "wf-test-form", "lookups": [
-            {"parent_lexicon": self.PARENT_LEXICON, "headword": "word-form-target"}
-        ]})
+        word_form = WordForm(
+            {
+                "form": "wf-test-form",
+                "lookups": [{"parent_lexicon": self.PARENT_LEXICON, "headword": "word-form-target"}],
+            }
+        )
         word_form.save()
         try:
             with patch("sefaria.helper.schema.library"):
@@ -556,15 +613,16 @@ class Test_ChangeLexiconHeadword(object):
             word_form.delete()
 
 
-class Test_LexiconEntry_ValidateUniqueness(object):
+class Test_LexiconEntry_ValidateUniqueness:
     """headword uniqueness is enforced only for lexicons rendered as text (an Index record
     exists), and only when headword is actually changing -- see LexiconEntry._validate()."""
 
     PARENT_LEXICON = "Test Lexicon Uniqueness"
 
     def _with_index(self):
-        return patch("sefaria.model.lexicon.Lexicon.load",
-                     return_value=types.SimpleNamespace(index_title="Some Index Title"))
+        return patch(
+            "sefaria.model.lexicon.Lexicon.load", return_value=types.SimpleNamespace(index_title="Some Index Title")
+        )
 
     def _without_index(self):
         return patch("sefaria.model.lexicon.Lexicon.load", return_value=None)
@@ -606,7 +664,7 @@ class Test_LexiconEntry_ValidateUniqueness(object):
             loaded.save()
 
 
-class Test_DeepMapAndPrune(object):
+class Test_DeepMapAndPrune:
     def test_deep_map_leaf_transform(self):
         data = {"a": [1, 2, {"b": 3}]}
         result = deep_map(data, leaf_fn=lambda v: v * 10 if isinstance(v, int) else v)
@@ -634,7 +692,8 @@ class Test_DeepMapAndPrune(object):
         data = {"a": 1, "b": [1, 2, 3]}
         assert deep_prune(data) == data
 
-class Test_LexiconEntry_ContentKeysStoredRawEscapedAtRender(object):
+
+class Test_LexiconEntry_ContentKeysStoredRawEscapedAtRender:
     # A content dict's keys are a plain label a moderator types (e.g. "reference"), not a
     # rich-HTML data type -- unlike values (bleach.clean at save time, matching abstract.py's
     # own default _sanitize() and AbstractTextRecord.sanitize_text used for actual Torah/
@@ -645,14 +704,23 @@ class Test_LexiconEntry_ContentKeysStoredRawEscapedAtRender(object):
     PARENT_LEXICON = "Test Lexicon Content Keys"
 
     def test_content_dict_keys_are_stored_exactly_as_submitted(self, make_lexicon_entry):
-        entry = make_lexicon_entry("contentkeys1", self.PARENT_LEXICON, cls=KovetzYesodotEntry,
-                                    rid="S1", content={"<script>alert(1)</script>": ["value"]})
+        entry = make_lexicon_entry(
+            "contentkeys1",
+            self.PARENT_LEXICON,
+            cls=KovetzYesodotEntry,
+            rid="S1",
+            content={"<script>alert(1)</script>": ["value"]},
+        )
         assert list(entry.content.keys()) == ["<script>alert(1)</script>"]
 
     def test_as_strings_escapes_the_key_at_render_time(self, make_lexicon_entry):
-        entry = make_lexicon_entry("contentkeys2", self.PARENT_LEXICON, cls=KovetzYesodotEntry,
-                                    rid="S2", content={"<script>alert(1)</script>": ["value"]})
+        entry = make_lexicon_entry(
+            "contentkeys2",
+            self.PARENT_LEXICON,
+            cls=KovetzYesodotEntry,
+            rid="S2",
+            content={"<script>alert(1)</script>": ["value"]},
+        )
         rendered = entry.as_strings()[0]
         assert "<script>" not in rendered
         assert "&lt;script&gt;alert(1)&lt;/script&gt;" in rendered
-

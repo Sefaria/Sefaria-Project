@@ -2,7 +2,9 @@
 """The global MongoClient must set finite socket/selection timeouts so a dead
 Mongo TCP connection fails in minutes (and AutoReconnect retry recovers)
 instead of hanging ~2h on OS TCP keepalive."""
+
 import pytest
+
 from sefaria.system import database
 
 
@@ -18,6 +20,6 @@ def test_timeout_kwargs_are_finite_and_sane():
 def test_live_client_has_timeouts_applied():
     # pymongo exposes resolved options on the client
     opts = database.client.options
-    assert opts.pool_options.socket_timeout == 300.0          # seconds
+    assert opts.pool_options.socket_timeout == 300.0  # seconds
     assert opts.server_selection_timeout == 60.0
     assert opts.pool_options.connect_timeout == 20.0

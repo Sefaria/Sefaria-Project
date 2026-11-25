@@ -19,35 +19,35 @@
 // Documents are expected in the buildInterfaceTextDoc shape (strapiLocalization.js): localized
 // fields as {en, he} objects, shared fields flat, plus a `locales` array of published locales.
 
-import Sefaria from "./sefaria";
-import { matchesCountryTarget, CountryMode } from "./strapiTargeting";
-import { getViewerCountryCandidates } from "./countryCandidates";
-import { INTERFACE_LANG_TO_LOCALE } from "./strapiLocalization";
+import Sefaria from './sefaria';
+import { matchesCountryTarget, CountryMode } from './strapiTargeting';
+import { getViewerCountryCandidates } from './countryCandidates';
+import { INTERFACE_LANG_TO_LOCALE } from './strapiLocalization';
 
 // Enum for the two content types this module can judge. Symbols instead of the strings "modal"/
 // "banner" so a typo fails loudly: CONTENT_FIELDS[ContentType.MODAL] always works, while a
 // misspelled symbol name is a ReferenceError and a stray string key just returns undefined and
 // is caught by the isEligible guard below.
 const ContentType = Object.freeze({
-  MODAL: Symbol("modal"),
-  BANNER: Symbol("banner"),
+  MODAL: Symbol('modal'),
+  BANNER: Symbol('banner'),
 });
 
 // The values Strapi's `showTo` field can hold. These MUST stay strings (they compare against CMS
 // data), so they live in a frozen map — same pattern as CountryMode in strapiTargeting.js.
 const ShowTo = Object.freeze({
-  LOGGED_IN_ONLY: "logged_in_only",
-  LOGGED_OUT_ONLY: "logged_out_only",
-  EVERYONE: "both_logged_in_and_logged_out",
+  LOGGED_IN_ONLY: 'logged_in_only',
+  LOGGED_OUT_ONLY: 'logged_out_only',
+  EVERYONE: 'both_logged_in_and_logged_out',
 });
 
 // The values the server sends for Sefaria.donor_status. The authoritative definition is
 // DonorStatus in sefaria/donors/types.py; reader/views.py base_props puts it on the page. They
 // MUST stay strings — they are compared against server data — so a frozen map, like ShowTo.
 const DonorStatus = Object.freeze({
-  DONOR: "donor",
-  NON_DONOR: "non_donor",
-  UNKNOWN: "unknown",
+  DONOR: 'donor',
+  NON_DONOR: 'non_donor',
+  UNKNOWN: 'unknown',
 });
 
 // Modals and banners spell the same concepts with different field names. Everything downstream
@@ -55,16 +55,16 @@ const DonorStatus = Object.freeze({
 // `storagePrefix` keys the localStorage dismissal entries ("modal_<name>": "true").
 const CONTENT_FIELDS = Object.freeze({
   [ContentType.MODAL]: {
-    start: "modalStartDate",
-    end: "modalEndDate",
-    name: "internalModalName",
-    storagePrefix: "modal_",
+    start: 'modalStartDate',
+    end: 'modalEndDate',
+    name: 'internalModalName',
+    storagePrefix: 'modal_',
   },
   [ContentType.BANNER]: {
-    start: "bannerStartDate",
-    end: "bannerEndDate",
-    name: "internalBannerName",
-    storagePrefix: "banner_",
+    start: 'bannerStartDate',
+    end: 'bannerEndDate',
+    name: 'internalBannerName',
+    storagePrefix: 'banner_',
   },
 });
 
@@ -98,19 +98,14 @@ const isDonorOnly = (doc) => {
 
 // Is the document inside its scheduled date window right now?
 const isDateActive = (doc, ctx, fields) =>
-  ctx.now >= new Date(doc[fields.start]) &&
-  ctx.now <= new Date(doc[fields.end]);
+  ctx.now >= new Date(doc[fields.start]) && ctx.now <= new Date(doc[fields.end]);
 
 // Did the editor publish a version in the viewer's interface language?
 const isPublishedInLocale = (doc, ctx) => doc.locales.includes(ctx.locale);
 
 // Country targeting is localized (an editor can target each locale separately), so read the
 // active locale's entry. No targeting set means "everyone" — matchesCountryTarget handles null.
-const matchesCountry = (doc, ctx) =>
-  matchesCountryTarget(
-    doc.countriesToTarget?.[ctx.locale],
-    ctx.countryCandidates,
-  );
+const matchesCountry = (doc, ctx) => matchesCountryTarget(doc.countriesToTarget?.[ctx.locale], ctx.countryCandidates);
 
 // The editor's audience choice: logged-in only, logged-out only, or everyone — where "everyone"
 // can be narrowed further by the user-kind checkboxes (sustainer / new visitor / etc.).
@@ -124,12 +119,9 @@ const matchesAudience = (doc, ctx) => {
       // No boxes ticked means the editor put no restriction on user kind — show to all.
       if (!userKindFlags(doc).some(Boolean)) return true;
       const matchesAccountKind =
-        ctx.isLoggedIn &&
-        ((ctx.isSustainer && doc.showToSustainers) ||
-          (!ctx.isSustainer && doc.showToNonSustainers));
+        ctx.isLoggedIn && ((ctx.isSustainer && doc.showToSustainers) || (!ctx.isSustainer && doc.showToNonSustainers));
       const matchesVisitKind =
-        (ctx.isReturningVisitor && doc.showToReturningVisitors) ||
-        (ctx.isNewVisitor && doc.showToNewVisitors);
+        (ctx.isReturningVisitor && doc.showToReturningVisitors) || (ctx.isNewVisitor && doc.showToNewVisitors);
       return matchesAccountKind || matchesVisitKind;
     }
     default:
@@ -151,8 +143,7 @@ const matchesDonorAudience = (doc, ctx) => {
 
 // A dismissed document stays ineligible while it is live, so selection falls through to the
 // runner-up on the next page load instead of leaving the surface empty.
-const isNotDismissed = (doc, ctx, fields) =>
-  !ctx.hasDismissed(dismissalKey(doc, fields));
+const isNotDismissed = (doc, ctx, fields) => !ctx.hasDismissed(dismissalKey(doc, fields));
 
 const ELIGIBILITY_PREDICATES = [
   isDateActive,
@@ -168,13 +159,9 @@ const ELIGIBILITY_PREDICATES = [
 const isEligible = (doc, ctx, contentType) => {
   const fields = CONTENT_FIELDS[contentType];
   if (!fields) {
-    throw new Error(
-      "Unknown content type - pass ContentType.MODAL or ContentType.BANNER",
-    );
+    throw new Error('Unknown content type - pass ContentType.MODAL or ContentType.BANNER');
   }
-  return ELIGIBILITY_PREDICATES.every((predicate) =>
-    predicate(doc, ctx, fields),
-  );
+  return ELIGIBILITY_PREDICATES.every((predicate) => predicate(doc, ctx, fields));
 };
 
 // ── Ranking ─────────────────────────────────────────────────────────────────
@@ -198,9 +185,7 @@ const isEligible = (doc, ctx, contentType) => {
 // 1 when the document names the viewer's country on an include list, 0 otherwise. Only ranked
 // among ELIGIBLE documents, so include-mode here always means "and the viewer is on the list".
 const countrySpecificity = (doc, ctx) =>
-  doc.countriesToTarget?.[ctx.locale]?.countryMode === CountryMode.INCLUDE
-    ? 1
-    : 0;
+  doc.countriesToTarget?.[ctx.locale]?.countryMode === CountryMode.INCLUDE ? 1 : 0;
 
 // 1 when the editor restricted the audience: a logged-in/out-only choice, SOME user-kind
 // boxes ticked but not all (ticking every box is the same as no restriction), or donor-only.
@@ -216,8 +201,7 @@ const localeSpecificity = (doc) => (doc.locales.length === 1 ? 1 : 0);
 
 // How long the document runs for, in milliseconds. A one-day special is more deliberately
 // scheduled than a month-long campaign, so SHORTER ranks higher.
-const windowLengthMillis = (doc, fields) =>
-  new Date(doc[fields.end]) - new Date(doc[fields.start]);
+const windowLengthMillis = (doc, fields) => new Date(doc[fields.end]) - new Date(doc[fields.start]);
 
 // When the document's window opened, in milliseconds since the epoch. Tie-break for
 // SAME-LENGTH overlapping windows: they expire in start order, so the earlier one leaves the
@@ -276,7 +260,7 @@ const selectContent = (docs, ctx, contentType) => {
 // Selection stays page-independent — if the best-fit document is excluded on the current page,
 // nothing shows there, rather than promoting a rival campaign on the page this one links to.
 
-const ALWAYS_EXCLUDED_PATHS = ["/donate", "/mobile", "/ways-to-give"];
+const ALWAYS_EXCLUDED_PATHS = ['/donate', '/mobile', '/ways-to-give'];
 
 // The pathname of a URL, or null when it cannot be parsed. new URL() THROWS on anything
 // relative or malformed — a realistic editor mistake (a buttonURL of "give/451346") — and this
@@ -319,7 +303,7 @@ const buildViewerContext = () => ({
   // comparison also survives a corrupted value: localStorage is shared, writable ground, and
   // the JSON.parse this used to do would THROW on a non-JSON value under our key — killing
   // selection for every surface. An unreadable value now just reads as "not dismissed".
-  hasDismissed: (storageKey) => localStorage.getItem(storageKey) === "true",
+  hasDismissed: (storageKey) => localStorage.getItem(storageKey) === 'true',
 });
 
 export {

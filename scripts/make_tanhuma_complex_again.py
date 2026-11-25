@@ -1,17 +1,19 @@
-# -*- coding: utf-8 -*-
 import csv
-import sys
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = "sefaria.settings"
+import sys
+
+os.environ["DJANGO_SETTINGS_MODULE"] = "sefaria.settings"
 from sefaria.system.database import db
 
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 from sefaria.helper.schema import *
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
+
 def map_(x, map_array):
-    return map_array[x.sections[1]-1]
+    return map_array[x.sections[1] - 1]
+
 
 def get_parshiot():
     en_he_parshiot = []
@@ -23,7 +25,7 @@ def get_parshiot():
             (en, he, ref) = row
             if en == "Lech-Lecha":
                 en = "Lech Lecha"
-            he = he.decode('utf-8')
+            he = he.decode("utf-8")
             en_he_parshiot.append((en, he))
     return en_he_parshiot
 
@@ -65,10 +67,8 @@ def create_schema(en_he_parshiot):
         book.append(parsha)
         en_parshiot.append(parsha_tuple[0])
 
-
     book.validate()
     return book, en_parshiot
-
 
 
 def set_up_map(en_parshiot):
@@ -77,8 +77,8 @@ def set_up_map(en_parshiot):
     counter = 0
     for torah_index, sefer in enumerate(torah):
         for sefer_index in range(sefer):
-            orig = "Midrash Tanchuma {}:{}".format(torah_index+1, sefer_index+1)
-            new = "Midrash Tanchuma, {}".format(en_parshiot[counter])
+            orig = f"Midrash Tanchuma {torah_index + 1}:{sefer_index + 1}"
+            new = f"Midrash Tanchuma, {en_parshiot[counter]}"
             mappings[orig] = new
             counter += 1
     return mappings
@@ -92,10 +92,9 @@ def remove_sets():
     HistorySet({"old.ref": {"$regex": "^Complex Midrash Tanchuma"}}).delete()
     HistorySet({"ref": {"$regex": "^Complex Midrash Tanchuma"}}).delete()
     GardenStopSet({"ref": {"$regex": "^Complex Midrash Tanchuma"}}).delete()
-    #db.sheets.find({"sources.ref": {"$regex": "Complex Midrash Tanchuma"}})
+    # db.sheets.find({"sources.ref": {"$regex": "Complex Midrash Tanchuma"}})
     NoteSet({"ref": {"$regex": "^Complex Midrash Tanchuma"}}).delete()
     TranslationRequestSet({"ref": {"$regex": "^Complex Midrash Tanchuma"}}).delete()
-
 
 
 def rewriter(ref_str):
@@ -103,15 +102,14 @@ def rewriter(ref_str):
     ref = Ref(ref_str)
     new_sec_of_ref = map_(ref, map_array)
     if len(ref.sections) == 3:
-        ref = "Midrash Tanchuma "+new_sec_of_ref + ":" + str(ref.sections[2])
+        ref = "Midrash Tanchuma " + new_sec_of_ref + ":" + str(ref.sections[2])
         assert Ref(ref)
         return ref
-    elif len(ref.sections) == 2:
-        ref = "Midrash Tanchuma "+new_sec_of_ref
+    if len(ref.sections) == 2:
+        ref = "Midrash Tanchuma " + new_sec_of_ref
         assert Ref(ref)
         return ref
     return ref_str
-
 
 
 def needs_rewrite(ref_str, *args):
@@ -119,17 +117,21 @@ def needs_rewrite(ref_str, *args):
     try:
         ref = Ref(ref_str).section_ref()
         if len(ref.sections) > 1:
-            return ref.book == "Midrash Tanchuma" and ref.sections[0] == 1 and ref.sections[1] > 12 and ref.sections[1] <= 54
-        else:
-            return False
+            return (
+                ref.book == "Midrash Tanchuma"
+                and ref.sections[0] == 1
+                and ref.sections[1] > 12
+                and ref.sections[1] <= 54
+            )
+        return False
     except:
         return False
 
 
 def swap_text(ref, vtitle):
-    orig_ref = Ref("Midrash Tanchuma {}".format(ref))
+    orig_ref = Ref(f"Midrash Tanchuma {ref}")
     tc = TextChunk(orig_ref, vtitle=vtitle)
-    new_ref = Ref("Midrash Tanchuma {}".format(map_(orig_ref, map_array)))
+    new_ref = Ref(f"Midrash Tanchuma {map_(orig_ref, map_array)}")
     new_tc = TextChunk(new_ref, vtitle=vtitle)
     assert False not in tc.text and False not in new_tc.text
     old_text = tc.text
@@ -140,15 +142,16 @@ def swap_text(ref, vtitle):
     new_tc.save()
     tc.save()
 
+
 if __name__ == "__main__":
-    #move english
+    # move english
     en_he_parshiot = get_parshiot()
     refs = ["1:15", "1:22", "1:23", "1:24", "1:25", "1:35", "1:48", "1:49", "1:50"]
     outer_info = [12, 11, 10, 10, 11]
     map_array = []
     for sindex, size in enumerate(outer_info):
         for i in range(size):
-            x = "{}:{}".format(sindex+1, i+1)
+            x = f"{sindex + 1}:{i + 1}"
             map_array.append(x)
     for ref in refs:
         swap_text(ref, "Rabbi Mike Feuer, Jerusalem Anthology")
@@ -156,7 +159,7 @@ if __name__ == "__main__":
         swap_text(ref, "Sefaria Community Translation")
     cascade("Midrash Tanchuma", rewriter, needs_rewrite)
 
-    #make it complex
+    # make it complex
     en_he_parshiot = get_parshiot()
     book, en_parshiot = create_schema(en_he_parshiot)
     mappings = set_up_map(en_parshiot)
@@ -167,12 +170,12 @@ if __name__ == "__main__":
         pass
     migrate_to_complex_structure("Midrash Tanchuma", book.serialize(), mappings)
 
-    #increase depth
+    # increase depth
     i = library.get_index("Midrash Tanchuma")
     nodes = i.nodes.children
     for count, node in enumerate(nodes):
         print(node)
-        if count < 2 or node._full_title['en'].find("Footnotes") >= 0:
+        if count < 2 or node._full_title["en"].find("Footnotes") >= 0:
             continue
         new_names = ["Siman", "Paragraph"]
         change_node_structure(node, new_names)

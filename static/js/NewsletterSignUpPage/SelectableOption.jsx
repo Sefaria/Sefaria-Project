@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 
-const DEFAULT_ICON = "news-and-resources.svg";
-const ICON_BASE_PATH = "/static/icons/newsletter-signup/";
+const DEFAULT_ICON = 'news-and-resources.svg';
+const ICON_BASE_PATH = '/static/icons/newsletter-signup/';
 
 /**
  * SelectableOption - Shared radio/checkbox button-style selectable item
@@ -14,7 +14,7 @@ const ICON_BASE_PATH = "/static/icons/newsletter-signup/";
  * - Supports both radio and checkbox input types
  */
 export default function SelectableOption({
-  type = "checkbox",
+  type = 'checkbox',
   name,
   value,
   label,
@@ -52,17 +52,17 @@ export default function SelectableOption({
 
   const inputProps = {
     type,
-    className: "selectableOptionInput",
+    className: 'selectableOptionInput',
     checked: isSelected,
     onChange,
     disabled,
-    ...(type === "radio" && { name, value }),
+    ...(type === 'radio' && { name, value }),
     ...analyticsAttributes,
   };
 
   return (
     <div className="selectableOptionWrapper">
-      <label className={`selectableOptionLabel ${isSelected ? "selected" : ""}`}>
+      <label className={`selectableOptionLabel ${isSelected ? 'selected' : ''}`}>
         <input {...inputProps} />
         {iconSrc && (
           <span
