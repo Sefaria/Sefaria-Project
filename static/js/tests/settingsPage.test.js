@@ -317,7 +317,7 @@ describe('About you', () => {
 
   it("keeps the form with the server's reason when saving fails", async () => {
     await startSso();
-    server.fail('POST', 'profile', 400, 'Accept the API terms to continue.');
+    server.fail('POST', 'profile', 400, 'Accept the Terms of Use to continue.');
     await choose('What best describes you?', 'Very technical');
     await click(button('Continue'));
     expect(screen.getByRole('alert').textContent).toContain(

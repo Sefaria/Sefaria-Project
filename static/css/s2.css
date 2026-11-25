@@ -18079,6 +18079,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-ico { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 0; background: none; color: var(--darker-grey); /* text-secondary */ border-radius: 4px; cursor: pointer; }
 .devPocPage .devE-ico:hover { background: #eeeeee; color: var(--near-black); /* surface-hover */ }
 .devPocPage .devE-tog { display: inline-flex; align-items: center; vertical-align: middle; }
+/* The switch is drawn 46x24px; on phones its label reaches 44px tall so the tap target meets the 44x44px minimum.
+   The label isn't positioned, so its overflow: hidden doesn't clip this; .toggle-switch is the containing block. */
+@media (max-width: 842px) {
+  .devPocPage .devE-tog .toggle-switch-label::after { content: ""; position: absolute; inset-inline: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+}
 @media (max-width: 842px) { /* the header's mobile breakpoint, $bp-mobile-max */
   .devPocPage .devE-title { font-size: 22px; }
 }
@@ -18242,7 +18247,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-projName .devE-org { font-weight: 400; color: var(--darker-grey); /* text-secondary */ }
 /* trial E: the delete-key modal, as the AI chatbot's "Delete chat?" modal (LCChatbot.svelte .delete-modal) */
 .devE-deleteStage { background: rgba(0, 0, 0, 0.4); animation: devEFadeIn .15s ease; }
-.devE-deleteModal { width: 300px; max-width: calc(100% - 32px); padding: 16px; border-radius: 8px; background: var(--white); /* surface-page */ box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); text-align: center; font-family: var(--english-sans-serif-font-family); animation: devESlideUp .2s ease; }
+.devE-deleteModal { width: 300px; max-width: 100%; /* the stage's 16px padding is the edge gap */ padding: 16px; border-radius: 8px; background: var(--white); /* surface-page */ box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); text-align: center; font-family: var(--english-sans-serif-font-family); animation: devESlideUp .2s ease; }
 .devE-deleteModal h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; line-height: 18px; color: var(--near-black); /* text-primary */ }
 .devE-deleteModal p { margin: 0 0 16px; font-size: 12px; line-height: 16px; color: var(--darker-grey); /* text-secondary */ }
 .devE-deleteActions { display: flex; flex-direction: row-reverse; justify-content: center; gap: 20px; }
@@ -18705,6 +18710,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPage .devE-siteLink:hover { color: var(--near-black); /* text-primary */ text-decoration-color: currentColor; }
 .devPocPage .devE-siteLink:focus-visible { outline: 2px solid #1976d2; /* functional-focus-blue */ outline-offset: 2px; border-radius: 2px; }
 .devPocPage .devE-siteLink svg { width: 12px; height: 12px; flex: none; }
+/* Open-in-new-tab icon in RTL: it follows the text in reading order (to its left) and its arrow points up-left. */
+.interface-hebrew .devPocPage .devPocExternalIcon { transform: scaleX(-1); }
 .devPocPage .devE-siteLink { padding: 0 8px; /* lines the text up with the name, like the text buttons' padding */ }
 
 /* Publish form's icon (2026-11-08): the confirmation screens' 48px circle, in the DevPortal's purple: purple-200

@@ -191,7 +191,9 @@ const HelpIcon = () => (
 
 /* icon: "info" (default) or "help". above: opens over the label instead of over the field.
    interactive: the tip holds a link, so it stays open while the pointer is on the icon or the tip (with a short
-   grace period to cross the gap), and the icon is a real button for keyboard users (Escape closes). */
+   grace period to cross the gap), and the icon is a real button for keyboard users.
+   Escape closes an open tip wherever focus is, including one opened by hovering (WCAG 1.4.13), and only the tip: focus
+   stays put and a dialog under it stays open. */
 const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = false, label, lead, children }) => {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef(null);
@@ -204,6 +206,21 @@ const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = fa
     closeTimer.current = setTimeout(() => setOpen(false), interactive ? 200 : 0);
   };
   useEffect(() => () => clearTimeout(closeTimer.current), []);
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        clearTimeout(closeTimer.current);
+        setOpen(false);
+      }
+    };
+    // Capture, so the tip closes before a dialog's own Escape handling sees the key.
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [open]);
   useEffect(() => {
     const field = document.getElementById(fieldId);
     if (!field) {
@@ -233,15 +250,6 @@ const InfoTip = ({ fieldId, wide, icon = 'info', above = false, interactive = fa
           ? (e) => {
               if (!e.currentTarget.contains(e.relatedTarget)) {
                 hideSoon();
-              }
-            }
-          : undefined
-      }
-      onKeyDown={
-        interactive
-          ? (e) => {
-              if (e.key === 'Escape') {
-                setOpen(false);
               }
             }
           : undefined
@@ -2268,23 +2276,60 @@ const E_PB_CATEGORIES = [
 ];
 /* The tools list (Sarah, 2026-11-08): no "Sefaria" in front of each one, since the question already says so, and each
    tool links to its repo or its page on the developer portal. `value` keeps the live form's wording for the intake.
-   MCP links to the portal page because there are two public MCP repos. */
+   MCP links to the portal page because there are two public MCP repos. `key` is the label's Weblate key; most product
+   names stay in English in Hebrew too. */
 const E_PB_TOOLS = [
-  { value: 'Sefaria API', label: 'API', url: 'https://developers.sefaria.org/reference' },
-  { value: 'Sefaria MCP', label: 'MCP', url: 'https://developers.sefaria.org/docs/the-sefaria-mcp' },
-  { value: 'Sefaria-Export', label: 'Export', url: 'https://github.com/Sefaria/Sefaria-Export' },
-  { value: 'Sefaria-Project code', label: 'Project code', url: 'https://github.com/Sefaria/Sefaria-Project' },
-  { value: 'Sefaria ai-chatbot code', label: 'ai-chatbot code', url: 'https://github.com/Sefaria/ai-chatbot' },
-  { value: 'Sefaria Embedded code', label: 'Embedded code', url: 'https://github.com/Sefaria/Sefaria-Embedded' },
+  {
+    value: 'Sefaria API',
+    key: 'developer.publish_form.sefaria_tools.option_01',
+    url: 'https://developers.sefaria.org/reference',
+  },
+  {
+    value: 'Sefaria MCP',
+    key: 'developer.publish_form.sefaria_tools.option_02',
+    url: 'https://developers.sefaria.org/docs/the-sefaria-mcp',
+  },
+  {
+    value: 'Sefaria-Export',
+    key: 'developer.publish_form.sefaria_tools.option_03',
+    url: 'https://github.com/Sefaria/Sefaria-Export',
+  },
+  {
+    value: 'Sefaria-Project code',
+    key: 'developer.publish_form.sefaria_tools.option_04',
+    url: 'https://github.com/Sefaria/Sefaria-Project',
+  },
+  {
+    value: 'Sefaria ai-chatbot code',
+    key: 'developer.publish_form.sefaria_tools.option_05',
+    url: 'https://github.com/Sefaria/ai-chatbot',
+  },
+  {
+    value: 'Sefaria Embedded code',
+    key: 'developer.publish_form.sefaria_tools.option_06',
+    url: 'https://github.com/Sefaria/Sefaria-Embedded',
+  },
   {
     value: 'Sefaria ML models on HuggingFace',
-    label: 'ML models on HuggingFace',
+    key: 'developer.publish_form.sefaria_tools.option_07',
     url: 'https://huggingface.co/Sefaria',
   },
-  { value: 'Tutorials', label: 'Tutorials', url: 'https://developers.sefaria.org/reference/tutorials' },
-  { value: 'Documentation', label: 'Documentation', url: 'https://developers.sefaria.org/docs/welcome' },
-  { value: 'Sefaria Patot', label: 'Patot', url: 'https://developers.sefaria.org/docs/patot' },
-  { value: 'Other', label: 'Other' },
+  {
+    value: 'Tutorials',
+    key: 'developer.publish_form.sefaria_tools.option_08',
+    url: 'https://developers.sefaria.org/reference/tutorials',
+  },
+  {
+    value: 'Documentation',
+    key: 'developer.publish_form.sefaria_tools.option_09',
+    url: 'https://developers.sefaria.org/docs/welcome',
+  },
+  {
+    value: 'Sefaria Patot',
+    key: 'developer.publish_form.sefaria_tools.option_10',
+    url: 'https://developers.sefaria.org/docs/patot',
+  },
+  { value: 'Other', key: 'developer.publish_form.sefaria_tools.option_11' },
 ];
 
 const E_PB_USERS = [
@@ -2825,8 +2870,10 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
                       checked={tools.includes(t.value)}
                       onChange={() => toggle(tools, setTools, t.value)}
                       label={
-                        <span dir="ltr">
-                          {t.label}
+                        /* Only the name is isolated, so an English name keeps its own order in Hebrew while the
+                           icon follows it in reading order (to its left in RTL). */
+                        <React.Fragment>
+                          <bdi>{tK(t.key)}</bdi>
                           {t.url ? (
                             <React.Fragment>
                               {' '}
@@ -2836,13 +2883,13 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={(e) => e.stopPropagation()}
-                                aria-label={t.label + ' (opens in a new tab)'}
+                                aria-label={vK(t.key) + ' ' + vK('developer.common.opens_in_new_tab.aria')}
                               >
                                 <ExternalIcon />
                               </a>
                             </React.Fragment>
                           ) : null}
-                        </span>
+                        </React.Fragment>
                       }
                     />
                   ))}

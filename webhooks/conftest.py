@@ -3,8 +3,8 @@ Shared pytest guards for the donor-status webhook tests.
 
 Two things these tests must never do, because a local run uses the developer's REAL
 services (sefaria/system/database.py only switches to a test database when
-sys._called_from_test is set, which sefaria/conftest.py does — and that conftest does not
-apply under webhooks/):
+sys._called_from_test is set, which sefaria/conftest.py does — and that conftest's
+fixtures do not apply under webhooks/):
 
   1. Call the real Classy API. For the duration of each test, the client's module-level
      requests.Session gets adapters that refuse every request. monkeypatch restores the

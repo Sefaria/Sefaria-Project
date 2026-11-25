@@ -13,7 +13,7 @@ from sefaria.helper.llm.sheet_scoring import make_sheet_scoring_input, save_shee
 from sefaria.settings import CELERY_QUEUES
 
 
-@app.task(name="web.save_sheets_score")
+@app.task(name="web.save_sheets_score", ignore_result=True)
 def save_sheet_scoring(raw_output: dict):
     output = SheetScoringOutput(**raw_output)
     save_sheet_scoring_output(output)
