@@ -2,7 +2,7 @@ import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { makeQueryClient } from "~/lib/cache/query-client";
 import { server } from "../../../test/msw/server";
-import { fetchFindings, findingsForRefs, findingsQueryOptions, findingsUrl, groupByMethod, parseFinding, parseFindings, type Finding } from "./findings";
+import { fetchFindings, findingsForRefs, findingsQueryOptions, findingsUrl, groupByMethod, otherRefs, parseFinding, parseFindings, type Finding } from "./findings";
 
 const API = "https://chat.example.org/api";
 
@@ -78,6 +78,13 @@ describe("findings: the selection and the grouping", () => {
     expect(findingsForRefs(all, ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"]).map((f) => f.id)).toEqual(["a", "b"]);
     expect(findingsForRefs(all, ["Genesis 1:4"])).toEqual([]);
     expect(findingsForRefs(undefined, ["Genesis 1:1"])).toEqual([]);
+  });
+
+  // @feature CON-074
+  it("the other passages cited: not the anchor, not a selected segment, each once", () => {
+    const f = finding({ refs: [{ ref: "Genesis 1:1-2", role: "anchor" }, { ref: "Genesis 1:3", role: "position" }, { ref: "Psalms 16:8", role: "support" }, { ref: "Psalms 16:8", role: "support" }] });
+    expect(otherRefs(f, ["Genesis 1:1"])).toEqual(["Genesis 1:3", "Psalms 16:8"]);
+    expect(otherRefs(f, ["Genesis 1:3"])).toEqual(["Psalms 16:8"]);
   });
 
   it("methods by number of findings, then by title; the newest finding first in each", () => {

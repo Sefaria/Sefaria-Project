@@ -134,6 +134,12 @@ export function findingsForRefs(findings: readonly Finding[] | undefined, refs: 
   return findings.filter((f) => f.anchorRefs.some((r) => wanted.has(r)));
 }
 
+/** The other passages a finding cites: its refs that are not its anchor and not a selected segment, each once, in the answer's order. */
+export function otherRefs(finding: Finding, selectedRefs: readonly string[]): string[] {
+  const skip = new Set(selectedRefs);
+  return [...new Set(finding.refs.filter((r) => r.role !== "anchor" && !skip.has(r.ref)).map((r) => r.ref))];
+}
+
 export interface FindingGroup {
   method: FindingMethod;
   findings: Finding[];
