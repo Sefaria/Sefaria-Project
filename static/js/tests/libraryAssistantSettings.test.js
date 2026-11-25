@@ -79,7 +79,9 @@ const check = (el, checked) =>
 
 beforeEach(() => {
   global.fetch = jest.fn(() => reply(state()));
+  // The component calls $.ajax({url, data, success, timeout}); tests drive it through the post mock.
   global.$ = { post: jest.fn(() => jqXHR()) };
+  global.$.ajax = jest.fn((opts) => global.$.post(opts.url, opts.data, opts.success));
 });
 afterEach(() => {
   jest.useRealTimers();
@@ -623,6 +625,12 @@ describe('LibraryAssistantSettings', () => {
     await act(async () => finish());
     await flush();
     expect(q('#laEdit').value).toBe('make it shorter, and warmer');
+  });
+
+  it('gives the assistant on/off request a timeout', async () => {
+    await render({ libraryAssistantEnabled: true });
+    await check(q('#laAssistant'), false);
+    expect(global.$.ajax).toHaveBeenCalledWith(expect.objectContaining({ url: '/api/profile', timeout: 20000 }));
   });
 
   it('does not send the edit on the Enter that confirms an IME composition', async () => {

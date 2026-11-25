@@ -921,10 +921,13 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
     // ended, for one) is a failure.
     const isJsonAnswer = (data) => typeof data === 'object' && data !== null;
     // jQuery, so the page's CSRF setup applies; the endpoint takes a form field named "json".
-    const request = $.post(
-      '/api/profile',
-      { json: JSON.stringify({ settings: { library_assistant: on } }) },
-      (data) => {
+    const request = $.ajax({
+      url: '/api/profile',
+      method: 'POST',
+      data: { json: JSON.stringify({ settings: { library_assistant: on } }) },
+      // A request that never settles would keep the switch locked and the header saving
+      timeout: MUTATION_TIMEOUT_MS,
+      success: (data) => {
         if (!isJsonAnswer(data) || data.error) {
           fail();
           return;
@@ -932,8 +935,8 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
         inFlight.current = false;
         onSaving(-1, 'ok', 'assistant');
         if (props.onAssistantChanged) props.onAssistantChanged(on);
-      }
-    );
+      },
+    });
     if (request && request.fail) request.fail(fail);
   };
 
