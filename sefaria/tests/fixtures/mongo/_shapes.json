@@ -1,0 +1,2153 @@
+{
+ "format": 1,
+ "schema": {
+  "category": {
+   "optional": [
+    "enDesc",
+    "enShortDesc",
+    "heDesc",
+    "heShortDesc",
+    "isPrimary",
+    "match_templates",
+    "order",
+    "searchRoot",
+    "sharedTitle",
+    "titles"
+   ],
+   "required": [
+    "depth",
+    "lastPath",
+    "path"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "dibur_hamatchils": {
+   "optional": [],
+   "required": [
+    "container_refs",
+    "dibur_hamatchil",
+    "ref"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "garden": {
+   "optional": [
+    "heSubtitle",
+    "subtitle"
+   ],
+   "required": [
+    "config",
+    "heTitle",
+    "key",
+    "title"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "garden_rel": {
+   "optional": [],
+   "required": [
+    "garden"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "garden_stop": {
+   "optional": [
+    "authors",
+    "authorsEn",
+    "authorsHe",
+    "enSubtitle",
+    "enText",
+    "enVersionTitle",
+    "end",
+    "endIsApprox",
+    "heRef",
+    "heSubtitle",
+    "heText",
+    "heTitle",
+    "heVersionTitle",
+    "indexTitle",
+    "placeGeo",
+    "placeKey",
+    "placeNameEn",
+    "placeNameHe",
+    "ref",
+    "start",
+    "startIsApprox",
+    "tags",
+    "timePeriodEn",
+    "timePeriodHe",
+    "title",
+    "weight"
+   ],
+   "required": [
+    "garden",
+    "type"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "global_notification": {
+   "optional": [],
+   "required": [
+    "content",
+    "date",
+    "type"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "groups": {
+   "optional": [
+    "coverUrl",
+    "description",
+    "headerUrl",
+    "imageUrl",
+    "invitations",
+    "listed",
+    "moderationStatus",
+    "pinnedTags",
+    "pinned_sheets",
+    "privateSlug",
+    "publishers",
+    "showTagsByDefault",
+    "toc",
+    "websiteUrl"
+   ],
+   "required": [
+    "admins",
+    "lastModified",
+    "members",
+    "name",
+    "sheets",
+    "slug"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "guide": {
+   "optional": [],
+   "required": [
+    "expanded_refs",
+    "questions",
+    "ref"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "history": {
+   "optional": [
+    "comment",
+    "diff_html",
+    "language",
+    "link_id",
+    "message",
+    "method",
+    "new",
+    "note_id",
+    "old",
+    "ref",
+    "revert_patch",
+    "revision",
+    "score",
+    "sheet",
+    "title",
+    "version"
+   ],
+   "required": [
+    "date",
+    "rev_type",
+    "user"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "index": {
+   "optional": [
+    "alt_structs",
+    "authors",
+    "base_text_mapping",
+    "base_text_titles",
+    "collective_title",
+    "compDate",
+    "compPlace",
+    "corpora",
+    "dedication",
+    "default_struct",
+    "dependence",
+    "enDesc",
+    "enShortDesc",
+    "era",
+    "exclude_structs",
+    "hasErrorMargin",
+    "heDesc",
+    "heShortDesc",
+    "hidden",
+    "is_cited",
+    "lexiconName",
+    "order",
+    "pubDate",
+    "pubPlace",
+    "schema"
+   ],
+   "required": [
+    "categories",
+    "title"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "index_queue": {
+   "optional": [
+    "generation",
+    "sheet_id"
+   ],
+   "required": [
+    "lang",
+    "ref",
+    "type",
+    "version"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "layers": {
+   "optional": [
+    "all_refs",
+    "first_ref",
+    "name"
+   ],
+   "required": [
+    "note_ids",
+    "owner",
+    "sources_list",
+    "urlkey"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "legacy_ref_data": {
+   "optional": [],
+   "required": [
+    "data",
+    "index_title"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "lexicon": {
+   "optional": [
+    "attribution",
+    "attribution_url",
+    "editor",
+    "index_title",
+    "needsRefsWrapping",
+    "pub_date",
+    "pub_location",
+    "should_autocomplete",
+    "source",
+    "source_url",
+    "text_categories",
+    "title",
+    "version_lang",
+    "version_title",
+    "year"
+   ],
+   "required": [
+    "language",
+    "name",
+    "text_categories",
+    "to_language"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "lexicon_entry": {
+   "optional": [
+    "GK",
+    "TWOT",
+    "all_cited",
+    "alt_headwords",
+    "alternative",
+    "binyan_form",
+    "brackets",
+    "catane_number",
+    "citations",
+    "content",
+    "derivatives",
+    "headword_suffix",
+    "language_code",
+    "language_reference",
+    "morphology",
+    "next_hw",
+    "notes",
+    "number",
+    "number",
+    "occurrences",
+    "ordinal",
+    "orig_ref",
+    "orig_word",
+    "peculiar",
+    "plural_form",
+    "prev_hw",
+    "pronunciation",
+    "quotes",
+    "refs",
+    "related_words",
+    "rid",
+    "root",
+    "strong_number",
+    "strong_numbers",
+    "transliteration"
+   ],
+   "required": [
+    "headword",
+    "parent_lexicon"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "linker_dataset_examples": {
+   "optional": [
+    "added_at",
+    "added_by",
+    "lang",
+    "versionTitle"
+   ],
+   "required": [
+    "labels",
+    "ref",
+    "text",
+    "type"
+   ],
+   "schema_sha": "86ae83d45412"
+  },
+  "linker_editor_history": {
+   "optional": [
+    "index_title",
+    "slug"
+   ],
+   "required": [
+    "action",
+    "created",
+    "params",
+    "uid"
+   ],
+   "schema_sha": "effa741a3f3e"
+  },
+  "linker_output": {
+   "optional": [],
+   "required": [
+    "language",
+    "ref",
+    "spans",
+    "versionTitle"
+   ],
+   "schema_sha": "050e43080135"
+  },
+  "links": {
+   "optional": [
+    "anchorText",
+    "auto",
+    "availableLangs",
+    "charLevelData",
+    "displayedText",
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "generated_by",
+    "highlightedWords",
+    "inline_citation",
+    "inline_reference",
+    "is_first_comment",
+    "score",
+    "source_text_oid",
+    "versions"
+   ],
+   "required": [
+    "refs",
+    "type"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "locks": {
+   "optional": [],
+   "required": [
+    "lang",
+    "ref",
+    "time",
+    "user",
+    "version"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "manuscript_pages": {
+   "optional": [],
+   "required": [
+    "contained_refs",
+    "expanded_refs",
+    "image_url",
+    "manuscript_slug",
+    "page_id",
+    "thumbnail_url"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "manuscripts": {
+   "optional": [
+    "license"
+   ],
+   "required": [
+    "description",
+    "he_description",
+    "he_title",
+    "slug",
+    "source",
+    "title"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "marked_up_text_chunks": {
+   "optional": [],
+   "required": [
+    "language",
+    "ref",
+    "spans",
+    "versionTitle"
+   ],
+   "schema_sha": "27251b2e2320"
+  },
+  "media": {
+   "optional": [],
+   "required": [
+    "description",
+    "description_he",
+    "license",
+    "media_type",
+    "media_url",
+    "ref",
+    "source",
+    "source_he",
+    "source_site"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "non_unique_terms": {
+   "optional": [],
+   "required": [
+    "slug",
+    "titles"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "notes": {
+   "optional": [
+    "anchorText",
+    "title"
+   ],
+   "required": [
+    "owner",
+    "public",
+    "ref",
+    "text",
+    "type"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "notifications": {
+   "optional": [
+    "global_id",
+    "read_via",
+    "suspected_spam"
+   ],
+   "required": [
+    "content",
+    "date",
+    "is_global",
+    "read",
+    "type",
+    "uid"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "passage": {
+   "optional": [
+    "match_templates",
+    "same_as",
+    "source"
+   ],
+   "required": [
+    "full_ref",
+    "ref_list",
+    "type"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "place": {
+   "optional": [
+    "area"
+   ],
+   "required": [
+    "key",
+    "names",
+    "point"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "portals": {
+   "optional": [
+    "mobile",
+    "newsletter",
+    "organization"
+   ],
+   "required": [
+    "about",
+    "name",
+    "slug"
+   ],
+   "schema_sha": "d7bfe92798a5"
+  },
+  "ref_data": {
+   "optional": [],
+   "required": [
+    "pagesheetrank",
+    "ref"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "sheets": {
+   "optional": [
+    "assigner_id",
+    "assignment_id",
+    "attribution",
+    "datePublished",
+    "displayedCollection",
+    "expandedRefs",
+    "generatedBy",
+    "group",
+    "highlighterTags",
+    "includedRefs",
+    "is_featured",
+    "lastModified",
+    "likes",
+    "nextNode",
+    "ownerImageUrl",
+    "ownerProfileUrl",
+    "promptedToPublish",
+    "reviewed",
+    "sheetLanguage",
+    "spam_sheet_quarantine",
+    "summary",
+    "tags",
+    "topics",
+    "via",
+    "viaOwner",
+    "views",
+    "visualNodes",
+    "zoom"
+   ],
+   "required": [
+    "dateCreated",
+    "dateModified",
+    "id",
+    "options",
+    "owner",
+    "sources",
+    "status",
+    "title"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "term": {
+   "optional": [
+    "category",
+    "description",
+    "good_to_promote",
+    "order",
+    "ref",
+    "scheme"
+   ],
+   "required": [
+    "name",
+    "titles"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "term_scheme": {
+   "optional": [],
+   "required": [
+    "name"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "texts": {
+   "optional": [
+    "digitizedBySefaria",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "required": [
+    "actualLanguage",
+    "chapter",
+    "direction",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "title",
+    "versionSource",
+    "versionTitle"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "time_period": {
+   "optional": [
+    "end",
+    "endIsApprox",
+    "order",
+    "range_string",
+    "start",
+    "startIsApprox"
+   ],
+   "required": [
+    "names",
+    "symbol",
+    "type"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "topic_data_sources": {
+   "optional": [
+    "description",
+    "url"
+   ],
+   "required": [
+    "displayName",
+    "slug"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "topic_link_types": {
+   "optional": [
+    "alt_ids",
+    "devDescription",
+    "groupRelated",
+    "inverseGroupRelated",
+    "inversePluralDisplayName",
+    "inverseShouldDisplay",
+    "inverse_alt_ids",
+    "pluralDisplayName",
+    "shouldDisplay",
+    "validFrom",
+    "validTo"
+   ],
+   "required": [
+    "displayName",
+    "inverseDisplayName",
+    "inverseSlug",
+    "slug"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "topic_links": {
+   "optional": [
+    "generatedBy",
+    "isJudgementCall",
+    "order"
+   ],
+   "required": [
+    "class",
+    "dataSource",
+    "fromTopic",
+    "linkType",
+    "toTopic"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "topics": {
+   "optional": [
+    "alt_ids",
+    "categoryDescription",
+    "data_source",
+    "description",
+    "description_published",
+    "displayOrder",
+    "good_to_promote",
+    "image",
+    "isAmbiguous",
+    "isTopLevelDisplay",
+    "numSourceSheets",
+    "numSources",
+    "parasha",
+    "portal_slug",
+    "properties",
+    "ref",
+    "secondary_image_uri",
+    "shouldDisplay",
+    "subclass"
+   ],
+   "required": [
+    "slug",
+    "titles"
+   ],
+   "schema_sha": "5b21a365c37c"
+  },
+  "trend": {
+   "optional": [
+    "uid"
+   ],
+   "required": [
+    "datatype",
+    "name",
+    "period",
+    "scope",
+    "timestamp",
+    "value"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "user_history": {
+   "optional": [
+    "authors",
+    "categories",
+    "context_refs",
+    "datetime",
+    "delete_saved",
+    "is_sheet",
+    "language",
+    "num_times_read",
+    "sheet_id",
+    "sheet_owner",
+    "sheet_title"
+   ],
+   "required": [
+    "book",
+    "he_ref",
+    "last_place",
+    "ref",
+    "saved",
+    "secondary",
+    "server_time_stamp",
+    "time_stamp",
+    "uid",
+    "versions"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "vstate": {
+   "optional": [
+    "first_section_ref",
+    "flags",
+    "linksCount"
+   ],
+   "required": [
+    "content",
+    "title"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "webpages": {
+   "optional": [
+    "articleSource",
+    "authors",
+    "body",
+    "description",
+    "expandedRefs",
+    "linkerHits",
+    "type",
+    "whitelisted"
+   ],
+   "required": [
+    "lastUpdated",
+    "refs",
+    "title",
+    "url"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "webpages_text": {
+   "optional": [],
+   "required": [
+    "body",
+    "title",
+    "url"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "websites": {
+   "optional": [
+    "bad_urls",
+    "exclude_from_tracking",
+    "initial_title_branding",
+    "lastUpdated",
+    "linker_installed",
+    "normalization_rules",
+    "num_webpages",
+    "title_branding",
+    "whitelist_selectors"
+   ],
+   "required": [
+    "domains",
+    "is_whitelisted",
+    "name"
+   ],
+   "schema_sha": "44136fa355b3"
+  },
+  "word_form": {
+   "optional": [
+    "c_form",
+    "generated_by",
+    "language_code",
+    "refs"
+   ],
+   "required": [
+    "form",
+    "lookups"
+   ],
+   "schema_sha": "44136fa355b3"
+  }
+ },
+ "shapes": {
+  "sefaria/tests/links_test.py::Test_get_links::test_get_links_excludes_parasha_refs": {
+   "category": [
+    "path"
+   ],
+   "global_notification": [
+    "content"
+   ],
+   "groups": [
+    "listed",
+    "slug",
+    "toc"
+   ],
+   "index": [
+    "title"
+   ],
+   "lexicon": [
+    "name"
+   ],
+   "linker_output": [
+    "ref"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "generated_by",
+    "is_first_comment",
+    "refs"
+   ],
+   "marked_up_text_chunks": [
+    "ref"
+   ],
+   "notes": [
+    "ref"
+   ],
+   "ref_data": [
+    "ref"
+   ],
+   "term": [],
+   "texts": [
+    "actualLanguage",
+    "chapter",
+    "digitizedBySefaria",
+    "direction",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "title",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionSource",
+    "versionTitle",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "topic_links": [
+    "class",
+    "ref"
+   ],
+   "topics": [
+    "isTopLevelDisplay",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "first_section_ref",
+    "flags",
+    "title"
+   ]
+  },
+  "sefaria/tests/links_test.py::Test_get_links::test_get_links_excludes_talmud_perek_refs": {
+   "category": [
+    "path"
+   ],
+   "global_notification": [
+    "content"
+   ],
+   "groups": [
+    "listed",
+    "slug",
+    "toc"
+   ],
+   "index": [
+    "title"
+   ],
+   "lexicon": [
+    "name"
+   ],
+   "linker_output": [
+    "ref"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "generated_by",
+    "is_first_comment",
+    "refs"
+   ],
+   "marked_up_text_chunks": [
+    "ref"
+   ],
+   "notes": [
+    "ref"
+   ],
+   "ref_data": [
+    "ref"
+   ],
+   "term": [],
+   "texts": [
+    "actualLanguage",
+    "chapter",
+    "digitizedBySefaria",
+    "direction",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "title",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionSource",
+    "versionTitle",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "topic_links": [
+    "class",
+    "ref"
+   ],
+   "topics": [
+    "isTopLevelDisplay",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "first_section_ref",
+    "flags",
+    "title"
+   ]
+  },
+  "sefaria/tests/links_test.py::Test_get_links::test_get_links_filtered_by_multiple_categories": {
+   "category": [
+    "path"
+   ],
+   "global_notification": [
+    "content"
+   ],
+   "groups": [
+    "listed",
+    "slug",
+    "toc"
+   ],
+   "index": [
+    "title"
+   ],
+   "lexicon": [
+    "name"
+   ],
+   "linker_output": [
+    "ref"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "generated_by",
+    "is_first_comment",
+    "refs"
+   ],
+   "marked_up_text_chunks": [
+    "ref"
+   ],
+   "notes": [
+    "ref"
+   ],
+   "ref_data": [
+    "ref"
+   ],
+   "term": [],
+   "texts": [
+    "actualLanguage",
+    "chapter",
+    "digitizedBySefaria",
+    "direction",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "title",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionSource",
+    "versionTitle",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "topic_links": [
+    "class",
+    "ref"
+   ],
+   "topics": [
+    "isTopLevelDisplay",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "first_section_ref",
+    "flags",
+    "title"
+   ]
+  },
+  "sefaria/tests/links_test.py::Test_get_links::test_get_links_filtered_by_single_category": {
+   "category": [
+    "path"
+   ],
+   "global_notification": [
+    "content"
+   ],
+   "groups": [
+    "listed",
+    "slug",
+    "toc"
+   ],
+   "index": [
+    "title"
+   ],
+   "lexicon": [
+    "name"
+   ],
+   "linker_output": [
+    "ref"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "generated_by",
+    "is_first_comment",
+    "refs"
+   ],
+   "marked_up_text_chunks": [
+    "ref"
+   ],
+   "notes": [
+    "ref"
+   ],
+   "ref_data": [
+    "ref"
+   ],
+   "term": [],
+   "texts": [
+    "actualLanguage",
+    "chapter",
+    "digitizedBySefaria",
+    "direction",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "title",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionSource",
+    "versionTitle",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "topic_links": [
+    "class",
+    "ref"
+   ],
+   "topics": [
+    "isTopLevelDisplay",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "first_section_ref",
+    "flags",
+    "title"
+   ]
+  },
+  "sefaria/tests/links_test.py::Test_get_links::test_get_links_on_range": {
+   "category": [
+    "path"
+   ],
+   "global_notification": [
+    "content"
+   ],
+   "groups": [
+    "listed",
+    "slug",
+    "toc"
+   ],
+   "index": [
+    "categories",
+    "dependence",
+    "title"
+   ],
+   "lexicon": [
+    "name"
+   ],
+   "linker_output": [
+    "ref"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "generated_by",
+    "is_first_comment",
+    "refs"
+   ],
+   "marked_up_text_chunks": [
+    "ref"
+   ],
+   "notes": [
+    "ref"
+   ],
+   "ref_data": [
+    "ref"
+   ],
+   "term": [
+    "scheme"
+   ],
+   "texts": [
+    "actualLanguage",
+    "chapter",
+    "digitizedBySefaria",
+    "direction",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "title",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionSource",
+    "versionTitle",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "topic_links": [
+    "class",
+    "ref"
+   ],
+   "topics": [
+    "isTopLevelDisplay",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "first_section_ref",
+    "flags",
+    "title"
+   ]
+  },
+  "sefaria/tests/links_test.py::Test_get_links::test_get_links_version_metadata_is_real_even_without_content_at_position": {
+   "category": [
+    "path"
+   ],
+   "global_notification": [
+    "content"
+   ],
+   "groups": [
+    "listed",
+    "slug",
+    "toc"
+   ],
+   "index": [
+    "title"
+   ],
+   "lexicon": [
+    "name"
+   ],
+   "linker_output": [
+    "ref"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "generated_by",
+    "is_first_comment",
+    "refs"
+   ],
+   "marked_up_text_chunks": [
+    "ref"
+   ],
+   "notes": [
+    "ref"
+   ],
+   "ref_data": [
+    "ref"
+   ],
+   "term": [],
+   "texts": [
+    "actualLanguage",
+    "chapter",
+    "digitizedBySefaria",
+    "direction",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "title",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionSource",
+    "versionTitle",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "topic_links": [
+    "class",
+    "ref"
+   ],
+   "topics": [
+    "isTopLevelDisplay",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "first_section_ref",
+    "flags",
+    "title"
+   ]
+  },
+  "sefaria/tests/links_test.py::Test_get_links::test_get_links_without_exclusion_would_include_perek_refs": {
+   "category": [
+    "path"
+   ],
+   "global_notification": [
+    "content"
+   ],
+   "groups": [
+    "listed",
+    "slug",
+    "toc"
+   ],
+   "index": [
+    "title"
+   ],
+   "lexicon": [
+    "name"
+   ],
+   "linker_output": [
+    "ref"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "generated_by",
+    "is_first_comment",
+    "refs"
+   ],
+   "marked_up_text_chunks": [
+    "ref"
+   ],
+   "notes": [
+    "ref"
+   ],
+   "ref_data": [
+    "ref"
+   ],
+   "term": [],
+   "texts": [
+    "actualLanguage",
+    "chapter",
+    "digitizedBySefaria",
+    "direction",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "title",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionSource",
+    "versionTitle",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "topic_links": [
+    "class",
+    "ref"
+   ],
+   "topics": [
+    "isTopLevelDisplay",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "first_section_ref",
+    "flags",
+    "title"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestBulkDownloadVersionsAPI::test_bulk_download_requires_staff": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestBulkDownloadVersionsAPI::test_bulk_download_requires_title": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestBulkDownloadVersionsAPI::test_bulk_download_returns_response": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestCheckIndexDependenciesAPI::test_check_dependencies_returns_info": {
+   "index": [
+    "base_text_titles",
+    "dependence"
+   ],
+   "links": [
+    "refs"
+   ],
+   "texts": [
+    "title"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestIndexLinksDownloadAPI::test_index_links_returns_csv": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "title"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestLinksDeleteAPI::test_links_delete_requires_staff": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestLinksDeleteAPI::test_links_delete_uses_delete_action": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "links": [
+    "refs"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestLinksDownloadAPI::test_links_download_handles_invalid_refs": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestLinksDownloadAPI::test_links_download_returns_csv": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestLinksUploadAPI::test_links_upload_requires_post": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestLinksUploadAPI::test_links_upload_requires_staff": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_empty_indices": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_hard_deletes_version_and_records_history": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [
+    "rev_type",
+    "title",
+    "version"
+   ],
+   "index": [
+    "title"
+   ],
+   "texts": [
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_missing_indices": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_missing_version_title": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_partial_success": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [
+    "rev_type",
+    "title",
+    "version"
+   ],
+   "index": [
+    "title"
+   ],
+   "texts": [
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_reports_failure_for_missing_version": {
+   "texts": [
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_requires_post": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_requires_staff": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_clear_nonexistent_field": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [],
+   "index": [
+    "title"
+   ],
+   "texts": [
+    "language",
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_mixed_updates_and_clears": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [],
+   "index": [
+    "title"
+   ],
+   "texts": [
+    "language",
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_null_clears_field": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [],
+   "index": [
+    "title"
+   ],
+   "texts": [
+    "language",
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_requires_indices": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_requires_post": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_requires_staff": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_returns_detailed_response": {
+   "texts": [
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_without_language_parameter": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [],
+   "index": [
+    "title"
+   ],
+   "texts": [
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionIndicesAPI::test_version_indices_empty_for_nonexistent": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionIndicesAPI::test_version_indices_returns_list": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_collision_different_language_family_allowed": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [
+    "language",
+    "ref",
+    "version"
+   ],
+   "index": [
+    "title"
+   ],
+   "linker_output": [
+    "language",
+    "ref",
+    "versionTitle"
+   ],
+   "marked_up_text_chunks": [
+    "language",
+    "ref",
+    "versionTitle"
+   ],
+   "texts": [
+    "actualLanguage",
+    "language",
+    "languageFamilyName",
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_collision_fails": {
+   "global_notification": [
+    "content"
+   ],
+   "index": [
+    "title"
+   ],
+   "texts": [
+    "languageFamilyName",
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_empty_new_title": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_enqueues_task_when_celery_enabled": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_missing_fields": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_missing_version_returns_404": {
+   "texts": [
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_multiple_matches_requires_language": {
+   "global_notification": [
+    "content"
+   ],
+   "index": [
+    "title"
+   ],
+   "texts": [
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_multiple_matches_resolved_by_language": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [
+    "language",
+    "ref",
+    "version"
+   ],
+   "index": [
+    "title"
+   ],
+   "linker_output": [
+    "language",
+    "ref",
+    "versionTitle"
+   ],
+   "marked_up_text_chunks": [
+    "language",
+    "ref",
+    "versionTitle"
+   ],
+   "texts": [
+    "language",
+    "languageFamilyName",
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_requires_post": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_requires_staff": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_same_title_rejected": {
+   "texts": [
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_success": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [
+    "language",
+    "ref",
+    "version"
+   ],
+   "index": [
+    "title"
+   ],
+   "linker_output": [
+    "language",
+    "ref",
+    "versionTitle"
+   ],
+   "marked_up_text_chunks": [
+    "language",
+    "ref",
+    "versionTitle"
+   ],
+   "texts": [
+    "languageFamilyName",
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_with_language_parameter": {
+   "global_notification": [
+    "content"
+   ],
+   "history": [
+    "language",
+    "ref",
+    "version"
+   ],
+   "index": [
+    "title"
+   ],
+   "linker_output": [
+    "language",
+    "ref",
+    "versionTitle"
+   ],
+   "marked_up_text_chunks": [
+    "language",
+    "ref",
+    "versionTitle"
+   ],
+   "texts": [
+    "language",
+    "languageFamilyName",
+    "title",
+    "versionTitle"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestWorkflowyUploadAPI::test_workflowy_requires_files": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestWorkflowyUploadAPI::test_workflowy_requires_post": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/modtools_test.py::TestWorkflowyUploadAPI::test_workflowy_requires_staff": {
+   "blocking": [
+    "blockee",
+    "blocker"
+   ],
+   "following": [
+    "followee",
+    "follower"
+   ],
+   "profiles": [
+    "id",
+    "slug"
+   ]
+  },
+  "sefaria/tests/recommendation_test.py::TestClustering::test_out_of_order": {
+   "vstate": [
+    "content",
+    "title"
+   ]
+  },
+  "sefaria/tests/recommendation_test.py::TestClustering::test_simple": {
+   "vstate": [
+    "content",
+    "title"
+   ]
+  },
+  "sefaria/tests/recommendation_test.py::TestClustering::test_two_clusters": {
+   "vstate": [
+    "content",
+    "title"
+   ]
+  },
+  "sefaria/tests/search_dependencies_test.py::TestBookHooks::test_book_save_and_delete": {
+   "category": [
+    "path"
+   ],
+   "global_notification": [
+    "content"
+   ],
+   "groups": [
+    "listed",
+    "slug",
+    "toc"
+   ],
+   "index": [
+    "title"
+   ],
+   "linker_output": [
+    "ref"
+   ],
+   "links": [
+    "expandedRefs0",
+    "expandedRefs1",
+    "first_comment_indexes",
+    "first_comment_section_ref",
+    "is_first_comment",
+    "refs"
+   ],
+   "marked_up_text_chunks": [
+    "ref"
+   ],
+   "notes": [
+    "ref"
+   ],
+   "ref_data": [
+    "ref"
+   ],
+   "sheets": [
+    "topics"
+   ],
+   "texts": [
+    "actualLanguage",
+    "chapter",
+    "digitizedBySefaria",
+    "direction",
+    "extendedNotes",
+    "extendedNotesHebrew",
+    "formatAsPoetry",
+    "hasManuallyWrappedRefs",
+    "heversionSource",
+    "isPrimary",
+    "isSource",
+    "language",
+    "languageFamilyName",
+    "license",
+    "method",
+    "priority",
+    "purchaseInformationImage",
+    "purchaseInformationURL",
+    "shortVersionTitle",
+    "shortVersionTitleInHebrew",
+    "status",
+    "title",
+    "versionNotes",
+    "versionNotesInHebrew",
+    "versionSource",
+    "versionTitle",
+    "versionTitleInHebrew",
+    "versionUrl"
+   ],
+   "topic_links": [
+    "class",
+    "fromTopic",
+    "linkType",
+    "ref",
+    "toTopic"
+   ],
+   "topics": [
+    "isTopLevelDisplay",
+    "slug"
+   ],
+   "vstate": [
+    "content",
+    "first_section_ref",
+    "flags",
+    "title"
+   ]
+  },
+  "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_pool_lookup_failure_leaves_the_doc_untouched": {
+   "sheets": [
+    "topics"
+   ],
+   "topic_links": [
+    "class",
+    "fromTopic",
+    "linkType",
+    "toTopic"
+   ],
+   "topics": [
+    "slug"
+   ]
+  },
+  "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_delete_with_no_es_doc_is_absorbed": {
+   "sheets": [
+    "topics"
+   ],
+   "topic_links": [
+    "class",
+    "fromTopic",
+    "linkType",
+    "toTopic"
+   ],
+   "topics": [
+    "slug"
+   ]
+  },
+  "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_dropped_from_library_pool_is_evicted_on_next_save": {
+   "sheets": [
+    "topics"
+   ],
+   "topic_links": [
+    "class",
+    "fromTopic",
+    "linkType",
+    "toTopic"
+   ],
+   "topics": [
+    "slug"
+   ]
+  },
+  "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_outside_library_pool_is_never_indexed": {
+   "sheets": [
+    "topics"
+   ],
+   "topic_links": [
+    "class",
+    "fromTopic",
+    "linkType",
+    "toTopic"
+   ],
+   "topics": [
+    "slug"
+   ]
+  },
+  "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[AuthorTopic-author]": {
+   "index": [
+    "authors"
+   ],
+   "sheets": [
+    "topics"
+   ],
+   "topic_links": [
+    "class",
+    "fromTopic",
+    "linkType",
+    "toTopic"
+   ],
+   "topics": [
+    "slug"
+   ]
+  },
+  "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[PersonTopic-topic]": {
+   "topic_links": [
+    "class",
+    "fromTopic",
+    "linkType"
+   ],
+   "topics": [
+    "slug"
+   ]
+  },
+  "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[Topic-topic]": {
+   "sheets": [
+    "topics"
+   ],
+   "topic_links": [
+    "class",
+    "fromTopic",
+    "linkType",
+    "toTopic"
+   ],
+   "topics": [
+    "slug"
+   ]
+  }
+ }
+}
