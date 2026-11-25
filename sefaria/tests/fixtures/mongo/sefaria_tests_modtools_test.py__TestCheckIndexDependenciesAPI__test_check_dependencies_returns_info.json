@@ -5,501 +5,851 @@
         "_id": {
           "$oid": "4e5034d1271a35ef7fdf983a"
         },
-        "expandedRefs0": ["Bereshit Rabbah 9:7"],
-        "expandedRefs1": ["Genesis 1:31"],
+        "expandedRefs0": [
+          "Bereshit Rabbah 9:7"
+        ],
+        "expandedRefs1": [
+          "Genesis 1:31"
+        ],
         "generated_by": null,
-        "refs": ["Bereshit Rabbah 9:7", "Genesis 1:31"],
+        "refs": [
+          "Bereshit Rabbah 9:7",
+          "Genesis 1:31"
+        ],
         "type": "midrash"
       },
       {
         "_id": {
           "$oid": "4e6bf8d3edbab46941000007"
         },
-        "expandedRefs0": ["Genesis 9:13"],
-        "expandedRefs1": ["Pirkei Avot 5:6"],
+        "expandedRefs0": [
+          "Genesis 9:13"
+        ],
+        "expandedRefs1": [
+          "Pirkei Avot 5:6"
+        ],
         "generated_by": "add_links_from_text",
         "inline_citation": true,
-        "refs": ["Genesis 9:13", "Pirkei Avot 5:6"],
+        "refs": [
+          "Genesis 9:13",
+          "Pirkei Avot 5:6"
+        ],
         "type": "reference"
       },
       {
         "_id": {
           "$oid": "4f1e0b791c81c4cf8a4149de"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Rashbam on Genesis 1:1:1"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:1:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Rashbam on Genesis 1:1:1"],
+        "refs": [
+          "Genesis 1:1",
+          "Rashbam on Genesis 1:1:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f1e0d7a1c81c4cf8a4149e6"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ramban on Genesis 1:1:1"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ramban on Genesis 1:1:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ramban on Genesis 1:1:1"],
+        "refs": [
+          "Genesis 1:1",
+          "Ramban on Genesis 1:1:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f1e0e091c81c4cf8a4149ec"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Sforno on Genesis 1:1:1"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:1:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Sforno on Genesis 1:1:1"],
+        "refs": [
+          "Genesis 1:1",
+          "Sforno on Genesis 1:1:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f1e0e091c81c4cf8a4149ed"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Sforno on Genesis 1:1:2"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:1:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Sforno on Genesis 1:1:2"],
+        "refs": [
+          "Genesis 1:1",
+          "Sforno on Genesis 1:1:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f1e0e091c81c4cf8a4149ee"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Sforno on Genesis 1:1:3"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:1:3"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Sforno on Genesis 1:1:3"],
+        "refs": [
+          "Genesis 1:1",
+          "Sforno on Genesis 1:1:3"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f1e0e091c81c4cf8a4149ef"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Sforno on Genesis 1:1:4"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:1:4"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Sforno on Genesis 1:1:4"],
+        "refs": [
+          "Genesis 1:1",
+          "Sforno on Genesis 1:1:4"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f1e0e091c81c4cf8a4149f0"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Sforno on Genesis 1:1:5"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:1:5"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Sforno on Genesis 1:1:5"],
+        "refs": [
+          "Genesis 1:1",
+          "Sforno on Genesis 1:1:5"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f20c0541c81c4cf8a4149f4"
         },
-        "expandedRefs0": ["Ba'al HaTurim on Genesis 1:1:1"],
-        "expandedRefs1": ["Genesis 1:1"],
+        "expandedRefs0": [
+          "Ba'al HaTurim on Genesis 1:1:1"
+        ],
+        "expandedRefs1": [
+          "Genesis 1:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Ba'al HaTurim on Genesis 1:1:1", "Genesis 1:1"],
+        "refs": [
+          "Ba'al HaTurim on Genesis 1:1:1",
+          "Genesis 1:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f20c0541c81c4cf8a4149f5"
         },
-        "expandedRefs0": ["Ba'al HaTurim on Genesis 1:1:2"],
-        "expandedRefs1": ["Genesis 1:1"],
+        "expandedRefs0": [
+          "Ba'al HaTurim on Genesis 1:1:2"
+        ],
+        "expandedRefs1": [
+          "Genesis 1:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Ba'al HaTurim on Genesis 1:1:2", "Genesis 1:1"],
+        "refs": [
+          "Ba'al HaTurim on Genesis 1:1:2",
+          "Genesis 1:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f20c0541c81c4cf8a4149f6"
         },
-        "expandedRefs0": ["Ba'al HaTurim on Genesis 1:1:3"],
-        "expandedRefs1": ["Genesis 1:1"],
+        "expandedRefs0": [
+          "Ba'al HaTurim on Genesis 1:1:3"
+        ],
+        "expandedRefs1": [
+          "Genesis 1:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Ba'al HaTurim on Genesis 1:1:3", "Genesis 1:1"],
+        "refs": [
+          "Ba'al HaTurim on Genesis 1:1:3",
+          "Genesis 1:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e02011c81c4cf8a414a26"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Kli Yakar on Genesis 1:1:1"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Kli Yakar on Genesis 1:1:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Kli Yakar on Genesis 1:1:1"],
+        "refs": [
+          "Genesis 1:1",
+          "Kli Yakar on Genesis 1:1:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e02011c81c4cf8a414a27"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Kli Yakar on Genesis 1:1:2"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Kli Yakar on Genesis 1:1:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Kli Yakar on Genesis 1:1:2"],
+        "refs": [
+          "Genesis 1:1",
+          "Kli Yakar on Genesis 1:1:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e02011c81c4cf8a414a28"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Kli Yakar on Genesis 1:1:3"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Kli Yakar on Genesis 1:1:3"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Kli Yakar on Genesis 1:1:3"],
+        "refs": [
+          "Genesis 1:1",
+          "Kli Yakar on Genesis 1:1:3"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e033f1c81c4cf8a414a29"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Rashbam on Genesis 1:2:1"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:2:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Rashbam on Genesis 1:2:1"],
+        "refs": [
+          "Genesis 1:2",
+          "Rashbam on Genesis 1:2:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e033f1c81c4cf8a414a2a"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Rashbam on Genesis 1:2:2"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:2:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Rashbam on Genesis 1:2:2"],
+        "refs": [
+          "Genesis 1:2",
+          "Rashbam on Genesis 1:2:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e033f1c81c4cf8a414a2b"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Rashbam on Genesis 1:2:3"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:2:3"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Rashbam on Genesis 1:2:3"],
+        "refs": [
+          "Genesis 1:2",
+          "Rashbam on Genesis 1:2:3"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e033f1c81c4cf8a414a2c"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Rashbam on Genesis 1:2:4"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:2:4"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Rashbam on Genesis 1:2:4"],
+        "refs": [
+          "Genesis 1:2",
+          "Rashbam on Genesis 1:2:4"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e04261c81c4cf8a414a2d"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:2:1"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:2:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Ibn Ezra on Genesis 1:2:1"],
+        "refs": [
+          "Genesis 1:2",
+          "Ibn Ezra on Genesis 1:2:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e04261c81c4cf8a414a2e"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:2:2"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:2:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Ibn Ezra on Genesis 1:2:2"],
+        "refs": [
+          "Genesis 1:2",
+          "Ibn Ezra on Genesis 1:2:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e04261c81c4cf8a414a2f"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:2:3"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:2:3"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Ibn Ezra on Genesis 1:2:3"],
+        "refs": [
+          "Genesis 1:2",
+          "Ibn Ezra on Genesis 1:2:3"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e04261c81c4cf8a414a30"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:2:4"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:2:4"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Ibn Ezra on Genesis 1:2:4"],
+        "refs": [
+          "Genesis 1:2",
+          "Ibn Ezra on Genesis 1:2:4"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e04981c81c4cf8a414a32"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Sforno on Genesis 1:2:1"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:2:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Sforno on Genesis 1:2:1"],
+        "refs": [
+          "Genesis 1:2",
+          "Sforno on Genesis 1:2:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e04981c81c4cf8a414a33"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Sforno on Genesis 1:2:2"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:2:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Sforno on Genesis 1:2:2"],
+        "refs": [
+          "Genesis 1:2",
+          "Sforno on Genesis 1:2:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e04981c81c4cf8a414a34"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Sforno on Genesis 1:2:3"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:2:3"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Sforno on Genesis 1:2:3"],
+        "refs": [
+          "Genesis 1:2",
+          "Sforno on Genesis 1:2:3"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e04981c81c4cf8a414a35"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Sforno on Genesis 1:2:4"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:2:4"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Sforno on Genesis 1:2:4"],
+        "refs": [
+          "Genesis 1:2",
+          "Sforno on Genesis 1:2:4"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e05081c81c4cf8a414a36"
         },
-        "expandedRefs0": ["Genesis 1:2"],
-        "expandedRefs1": ["Kli Yakar on Genesis 1:2:1"],
+        "expandedRefs0": [
+          "Genesis 1:2"
+        ],
+        "expandedRefs1": [
+          "Kli Yakar on Genesis 1:2:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:2", "Kli Yakar on Genesis 1:2:1"],
+        "refs": [
+          "Genesis 1:2",
+          "Kli Yakar on Genesis 1:2:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e05a81c81c4cf8a414a37"
         },
-        "expandedRefs0": ["Ba'al HaTurim on Genesis 1:2:1"],
-        "expandedRefs1": ["Genesis 1:2"],
+        "expandedRefs0": [
+          "Ba'al HaTurim on Genesis 1:2:1"
+        ],
+        "expandedRefs1": [
+          "Genesis 1:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Ba'al HaTurim on Genesis 1:2:1", "Genesis 1:2"],
+        "refs": [
+          "Ba'al HaTurim on Genesis 1:2:1",
+          "Genesis 1:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e05a81c81c4cf8a414a38"
         },
-        "expandedRefs0": ["Ba'al HaTurim on Genesis 1:2:2"],
-        "expandedRefs1": ["Genesis 1:2"],
+        "expandedRefs0": [
+          "Ba'al HaTurim on Genesis 1:2:2"
+        ],
+        "expandedRefs1": [
+          "Genesis 1:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Ba'al HaTurim on Genesis 1:2:2", "Genesis 1:2"],
+        "refs": [
+          "Ba'al HaTurim on Genesis 1:2:2",
+          "Genesis 1:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e05a81c81c4cf8a414a39"
         },
-        "expandedRefs0": ["Ba'al HaTurim on Genesis 1:2:3"],
-        "expandedRefs1": ["Genesis 1:2"],
+        "expandedRefs0": [
+          "Ba'al HaTurim on Genesis 1:2:3"
+        ],
+        "expandedRefs1": [
+          "Genesis 1:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Ba'al HaTurim on Genesis 1:2:3", "Genesis 1:2"],
+        "refs": [
+          "Ba'al HaTurim on Genesis 1:2:3",
+          "Genesis 1:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e05a81c81c4cf8a414a3a"
         },
-        "expandedRefs0": ["Ba'al HaTurim on Genesis 1:2:4"],
-        "expandedRefs1": ["Genesis 1:2"],
+        "expandedRefs0": [
+          "Ba'al HaTurim on Genesis 1:2:4"
+        ],
+        "expandedRefs1": [
+          "Genesis 1:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Ba'al HaTurim on Genesis 1:2:4", "Genesis 1:2"],
+        "refs": [
+          "Ba'al HaTurim on Genesis 1:2:4",
+          "Genesis 1:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e06011c81c4cf8a414a3b"
         },
-        "expandedRefs0": ["Genesis 1:3"],
-        "expandedRefs1": ["Rashbam on Genesis 1:3:1"],
+        "expandedRefs0": [
+          "Genesis 1:3"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:3:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:3", "Rashbam on Genesis 1:3:1"],
+        "refs": [
+          "Genesis 1:3",
+          "Rashbam on Genesis 1:3:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e06361c81c4cf8a414a3c"
         },
-        "expandedRefs0": ["Genesis 1:3"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:3:1"],
+        "expandedRefs0": [
+          "Genesis 1:3"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:3:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:3", "Ibn Ezra on Genesis 1:3:1"],
+        "refs": [
+          "Genesis 1:3",
+          "Ibn Ezra on Genesis 1:3:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e06871c81c4cf8a414a3d"
         },
-        "expandedRefs0": ["Genesis 1:3"],
-        "expandedRefs1": ["Ramban on Genesis 1:3:1"],
+        "expandedRefs0": [
+          "Genesis 1:3"
+        ],
+        "expandedRefs1": [
+          "Ramban on Genesis 1:3:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:3", "Ramban on Genesis 1:3:1"],
+        "refs": [
+          "Genesis 1:3",
+          "Ramban on Genesis 1:3:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e06e01c81c4cf8a414a40"
         },
-        "expandedRefs0": ["Genesis 1:3"],
-        "expandedRefs1": ["Sforno on Genesis 1:3:1"],
+        "expandedRefs0": [
+          "Genesis 1:3"
+        ],
+        "expandedRefs1": [
+          "Sforno on Genesis 1:3:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:3", "Sforno on Genesis 1:3:1"],
+        "refs": [
+          "Genesis 1:3",
+          "Sforno on Genesis 1:3:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4f8e07141c81c4cf8a414a41"
         },
-        "expandedRefs0": ["Genesis 1:3"],
-        "expandedRefs1": ["Kli Yakar on Genesis 1:3:1"],
+        "expandedRefs0": [
+          "Genesis 1:3"
+        ],
+        "expandedRefs1": [
+          "Kli Yakar on Genesis 1:3:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:3", "Kli Yakar on Genesis 1:3:1"],
+        "refs": [
+          "Genesis 1:3",
+          "Kli Yakar on Genesis 1:3:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fa976661c81c4cf8a414a5d"
         },
-        "expandedRefs0": ["Genesis 1:4"],
-        "expandedRefs1": ["Rashbam on Genesis 1:4:1"],
+        "expandedRefs0": [
+          "Genesis 1:4"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:4:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:4", "Rashbam on Genesis 1:4:1"],
+        "refs": [
+          "Genesis 1:4",
+          "Rashbam on Genesis 1:4:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fa976661c81c4cf8a414a5e"
         },
-        "expandedRefs0": ["Genesis 1:4"],
-        "expandedRefs1": ["Rashbam on Genesis 1:4:2"],
+        "expandedRefs0": [
+          "Genesis 1:4"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:4:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:4", "Rashbam on Genesis 1:4:2"],
+        "refs": [
+          "Genesis 1:4",
+          "Rashbam on Genesis 1:4:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fc5a128edbab4321000000e"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ramban on Genesis 1:1:2"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ramban on Genesis 1:1:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ramban on Genesis 1:1:2"],
+        "refs": [
+          "Genesis 1:1",
+          "Ramban on Genesis 1:1:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fc5a128edbab43210000010"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ramban on Genesis 1:1:3"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ramban on Genesis 1:1:3"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ramban on Genesis 1:1:3"],
+        "refs": [
+          "Genesis 1:1",
+          "Ramban on Genesis 1:1:3"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fc5a128edbab43210000012"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ramban on Genesis 1:1:4"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ramban on Genesis 1:1:4"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ramban on Genesis 1:1:4"],
+        "refs": [
+          "Genesis 1:1",
+          "Ramban on Genesis 1:1:4"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fc94a06edbab462e4000003"
         },
-        "expandedRefs0": ["Genesis 1:21"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:1:2"],
+        "expandedRefs0": [
+          "Genesis 1:21"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:1:2"
+        ],
         "generated_by": "add_links_from_text",
-        "refs": ["Genesis 1:21", "Ibn Ezra on Genesis 1:1:2"],
+        "refs": [
+          "Genesis 1:21",
+          "Ibn Ezra on Genesis 1:1:2"
+        ],
         "type": ""
       },
       {
         "_id": {
           "$oid": "4fc94a06edbab462e4000009"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:1:1"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:1:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ibn Ezra on Genesis 1:1:1"],
+        "refs": [
+          "Genesis 1:1",
+          "Ibn Ezra on Genesis 1:1:1"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fc94a06edbab462e400000b"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:1:2"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:1:2"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ibn Ezra on Genesis 1:1:2"],
+        "refs": [
+          "Genesis 1:1",
+          "Ibn Ezra on Genesis 1:1:2"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fc94a06edbab462e400000d"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:1:3"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:1:3"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ibn Ezra on Genesis 1:1:3"],
+        "refs": [
+          "Genesis 1:1",
+          "Ibn Ezra on Genesis 1:1:3"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fc94a06edbab462e400000f"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:1:4"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:1:4"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ibn Ezra on Genesis 1:1:4"],
+        "refs": [
+          "Genesis 1:1",
+          "Ibn Ezra on Genesis 1:1:4"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fc94a06edbab462e4000011"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Ibn Ezra on Genesis 1:1:5"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Ibn Ezra on Genesis 1:1:5"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:1", "Ibn Ezra on Genesis 1:1:5"],
+        "refs": [
+          "Genesis 1:1",
+          "Ibn Ezra on Genesis 1:1:5"
+        ],
         "type": "commentary"
       },
       {
         "_id": {
           "$oid": "4fcbcb18edbab47bbb000007"
         },
-        "expandedRefs0": ["Genesis 1:1"],
-        "expandedRefs1": ["Legends of the Jews 1:1:1"],
+        "expandedRefs0": [
+          "Genesis 1:1"
+        ],
+        "expandedRefs1": [
+          "Legends of the Jews 1:1:1"
+        ],
         "generated_by": null,
-        "refs": ["Genesis 1:1", "Legends of the Jews 1:1:1"],
+        "refs": [
+          "Genesis 1:1",
+          "Legends of the Jews 1:1:1"
+        ],
         "type": "summary"
       },
       {
         "_id": {
           "$oid": "4fdb45dfedbab41e82000000"
         },
-        "expandedRefs0": ["Genesis 1:5"],
-        "expandedRefs1": ["Rashbam on Genesis 1:5:1"],
+        "expandedRefs0": [
+          "Genesis 1:5"
+        ],
+        "expandedRefs1": [
+          "Rashbam on Genesis 1:5:1"
+        ],
         "generated_by": "add_commentary_links",
-        "refs": ["Genesis 1:5", "Rashbam on Genesis 1:5:1"],
+        "refs": [
+          "Genesis 1:5",
+          "Rashbam on Genesis 1:5:1"
+        ],
         "type": "commentary"
       }
     ],
