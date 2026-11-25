@@ -10,6 +10,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.utils.util import list_depth
 
 
+@pytest.mark.needs_corpus
 def test_text_index_map():
     r = Ref("Shabbat 8b")
     tc = LegacyTextChunk(r, "he")
@@ -55,6 +56,7 @@ def test_text_index_map():
     # r = Ref("Targum Jerusalem, Genesis")
 
 
+@pytest.mark.needs_corpus
 def test_verse_chunk():
     chunks = [
         LegacyTextChunk(Ref("Daniel 2:3"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
@@ -67,6 +69,7 @@ def test_verse_chunk():
         assert len(c.text)
 
 
+@pytest.mark.needs_corpus
 def test_chapter_chunk():
     chunks = [
         LegacyTextChunk(Ref("Daniel 2"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
@@ -79,6 +82,7 @@ def test_chapter_chunk():
         assert len(c.text)
 
 
+@pytest.mark.needs_corpus
 def test_depth_1_chunk():
     c = LegacyTextChunk(Ref("Hadran"), "he")
     assert isinstance(c.text, list)
@@ -95,6 +99,7 @@ def test_out_of_range_chunks():
         LegacyTextChunk(Ref("Shabbat 180"), "he")
 
 
+@pytest.mark.needs_corpus
 def test_range_chunk():
     chunks = [
         LegacyTextChunk(Ref("Daniel 2:3-5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
@@ -108,6 +113,7 @@ def test_range_chunk():
         assert len(c.text) == 3
 
 
+@pytest.mark.needs_corpus
 def test_spanning_chunk():
     chunks = [
         LegacyTextChunk(Ref("Daniel 2:3-4:5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
@@ -123,6 +129,7 @@ def test_spanning_chunk():
         assert len(c.text[2]) == 5
 
 
+@pytest.mark.needs_corpus
 def test_commentary_chunks():
     verse = LegacyTextChunk(Ref("Rashi on Exodus 3:1"), lang="he")
     rang = LegacyTextChunk(Ref("Rashi on Exodus 3:1-10"), lang="he")
@@ -136,6 +143,7 @@ def test_commentary_chunks():
     assert span.text[-1][-1] == verse.text
 
 
+@pytest.mark.needs_corpus
 def test_default_in_family():
     r = Ref("Shulchan Arukh, Even HaEzer")
     f = TextFamily(r)
@@ -145,6 +153,7 @@ def test_default_in_family():
     assert len(f.he) > 0
 
 
+@pytest.mark.needs_corpus
 def test_spanning_family():
     f = TextFamily(Ref("Daniel 2:3-4:5"), context=0)
 
@@ -166,6 +175,7 @@ def test_spanning_family():
     assert isinstance(f.commentary[0], list)
 
 
+@pytest.mark.needs_corpus
 def test_family_chapter_result_no_merge():
     families = [
         TextFamily(
@@ -602,12 +612,14 @@ def test_new_chunk_save_depth_3_commentary_style():
         idx.delete()
 
 
+@pytest.mark.needs_corpus
 def test_text_family_alts():
     tf = TextFamily(Ref("Exodus 6"), commentary=False, alts=True)
     c = tf.contents()
     assert c.get("alts")
 
 
+@pytest.mark.needs_corpus
 def test_text_family_version_with_underscores():
     with_spaces = TextFamily(
         Ref("Amos 1"),
@@ -625,10 +637,12 @@ def test_text_family_version_with_underscores():
         version="Miqra_according_to_the_Masorah",
         version2="Tanakh:_The_Holy_Scriptures,_published_by_JPS",
     )
+    assert with_spaces.he and with_spaces.text
     assert with_spaces.he == with_underscores.he
     assert with_spaces.text == with_underscores.text
 
 
+@pytest.mark.needs_corpus
 def test_validate():
     passing_refs = [
         Ref("Exodus"),
@@ -870,6 +884,7 @@ def test_save():
     # write
 
 
+@pytest.mark.needs_corpus
 def test_complex_with_depth_1():
     # There was a bug that chunks of complex texts always returned the first element of the array, even for deeper chunks
     r = Ref("Pesach Haggadah, Kadesh 1")
@@ -906,6 +921,7 @@ def test_strip_imgs():
     assert AbstractTextRecord.strip_imgs(text) == text
 
 
+@pytest.mark.needs_corpus
 def test_strip_itags():
     vs = ["Hadran Test"]
     for vt in vs:

@@ -22,6 +22,7 @@ jest.mock('../sefaria/sefaria', () => {
       activeModule: LIBRARY,
       _: (k) => k,
       _r: (r) => r,
+      _keyedString: (id) => id,
       _bilingual: (s) => ({ en: s, he: s }),
       _getShortInterfaceLang: () => 'en',
       interfaceLang: 'english',

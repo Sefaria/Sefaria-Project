@@ -4,9 +4,16 @@ from sefaria.helper.webpages import normalize_url
 from sefaria.model import *
 from sefaria.model.webpage import WebPage, WebSite, get_webpages_for_ref
 from sefaria.system.cache import gen_cache
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 title_good_url = "Dvar Torah"
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _webpages_index():
+    """get_webpages_for_ref hints expandedRefs_1; a restored corpus without webpages has no such index."""
+    db.webpages.create_index([("expandedRefs", 1)])
 
 
 @pytest.fixture(scope="module")
@@ -219,6 +226,7 @@ def test_page_wout_description(create_web_page_wout_desc):
     assert WebPage().add_or_update_from_linker(data)[0] == "excluded"
 
 
+@pytest.mark.needs_corpus
 def test_get_webpages_for_ref_filters_whitelisted(whitelisted_webpage, non_whitelisted_webpage):
     results = get_webpages_for_ref("Genesis 1:1")
     normalized_whitelisted_url = normalize_url(whitelisted_webpage["url"])
@@ -233,3 +241,13 @@ def test_get_webpages_for_ref_filters_whitelisted(whitelisted_webpage, non_white
 def test_get_webpages_for_ref_requires_segment_level():
     with pytest.raises(InputError):
         get_webpages_for_ref("Genesis 1")
+
+
+def test_site_data_looked_up_once_per_domain(monkeypatch):
+    calls = []
+    monkeypatch.setattr("sefaria.model.webpage.get_site_data_for_domain", lambda domain: calls.append(domain))
+    site_data_by_domain = {}
+    for path in ["a", "b"]:
+        WebPage({"url": f"https://example.com/{path}"}, site_data_by_domain=site_data_by_domain)
+    WebPage({"url": "https://example.org/a"}, site_data_by_domain=site_data_by_domain)
+    assert calls == ["example.com", "example.org"]

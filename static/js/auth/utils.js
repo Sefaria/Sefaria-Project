@@ -84,6 +84,13 @@ export function nextFromPath(path) {
   return safeNext(new URLSearchParams(path.split('?')[1] || '').get('next') || '/');
 }
 
+// Developer banner (PBS check-in, 2026-11-02): someone sent here from developer settings or the Powered by form
+// should read why they have to log in first. Both get the same message (D78). The return address already brings
+// them back afterwards.
+export function authNoticeFor(next) {
+  return next && /^\/settings\/developer(\/|\?|$)/.test(next) ? 'developer' : null;
+}
+
 export function checkPasswordsMatch(p1, p2) {
   return p2 && p1 !== p2 ? 'auth.passwords_dont_match' : null;
 }

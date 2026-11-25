@@ -3,6 +3,8 @@ import pytest
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.model.schema import NonUniqueTerm
 
+pytestmark = pytest.mark.needs_linker
+
 
 @pytest.fixture(scope="module")
 def duplicate_terms():

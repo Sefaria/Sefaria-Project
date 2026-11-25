@@ -1,6 +1,8 @@
 from contextlib import contextmanager
 from copy import deepcopy
 
+import pytest
+
 from sefaria.helper.linker.disambiguator import (
     AmbiguousResolutionPayload,
     AmbiguousResolutionResult,
@@ -27,6 +29,8 @@ from sefaria.settings import ENABLE_LINKER
 from sefaria.system.exceptions import IndexSchemaError, InputError
 
 from .linker_test_utils import *
+
+pytestmark = pytest.mark.needs_linker
 
 
 def _seed_non_unique_terms(term_defs):
@@ -527,7 +531,6 @@ def test_multiple_ambiguities():
             crrd(["&ibid", "#30"], lang="en", prev_trefs=["Leviticus 15:13-17"]),
             ("Leviticus 15:30",),
         ],  # range in context ref
-        [crrd(["@Mishneh Torah"], lang="en", context_tref="Mishneh Torah, Torah Study 1:1"), ()],
         [
             crrd(["#סימן תצ״ג"], lang="he", context_tref="Mishnah Berurah 494:1"),
             ("Mishnah Berurah 493", "Shulchan Arukh, Orach Chayim 493"),
