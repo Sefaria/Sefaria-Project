@@ -37,7 +37,7 @@ PROJECT = {
 PUBLISH_ANSWERS = {
     "showName": True,
     "currentRole": "Teacher",
-    "isDeveloper": True,
+    "technicalLevel": "very",
     "categories": ["learning", "ai"],
     "sourceCode": "https://github.com/example/daf-portal",
     "tools": ["Sefaria API", "Sefaria MCP"],
@@ -495,6 +495,38 @@ class ProfileTest(DeveloperApiTestCase):
 
         self.assertEqual(status, 400)
 
+    def test_each_technical_level_reads_back_as_picked(self):
+        self.set_up_developer()
+        for level in ("very", "somewhat", "not"):
+            with self.subTest(level=level):
+                status, state = self.call("post", "profile", {"profile": {**PROFILE, "technicalLevel": level}})
+
+                self.assertEqual(status, 200, state)
+                self.assertEqual(state["profile"]["technicalLevel"], level)
+                _, state = self.call("get", "state")
+                self.assertEqual(state["profile"]["technicalLevel"], level)
+
+    def test_a_technical_level_off_the_list_is_refused(self):
+        self.verify_email()
+
+        status, _ = self.call("post", "profile", {"profile": {**PROFILE, "technicalLevel": "expert"}})
+
+        self.assertEqual(status, 400)
+
+    def test_a_profile_stored_as_yes_or_no_reads_as_a_technical_level(self):
+        self.set_up_developer()
+        for not_a_developer, level in ((False, "very"), (True, "somewhat")):
+            with self.subTest(not_a_developer=not_a_developer):
+                profile = UserProfile(id=self.user.id)
+                stored = {**PROFILE, "notADeveloper": not_a_developer}
+                profile.settings[developer.PROFILE_SETTING] = stored
+                profile.save()
+
+                _, state = self.call("get", "state")
+
+                self.assertEqual(state["profile"]["technicalLevel"], level)
+                self.assertNotIn("notADeveloper", state["profile"])
+
 
 class ProjectTest(DeveloperApiTestCase):
     def setUp(self):
@@ -667,6 +699,22 @@ class PublishAnswersTest(DeveloperApiTestCase):
         self.assertTrue(row.has_pbs_logo)
         self.assertTrue(row.has_donate_link)
         self.assertTrue(row.vibe_coded)
+
+    def test_each_technical_level_is_stored_and_sets_is_developer_only_for_very(self):
+        for level, is_developer in (("very", True), ("somewhat", False), ("not", False)):
+            with self.subTest(level=level):
+                status, state = self.submit({**PUBLISH_ANSWERS, "technicalLevel": level})
+
+                self.assertEqual(status, 200, state)
+                row = self.row()
+                self.assertEqual(row.technical_level, level)
+                self.assertEqual(row.is_developer, is_developer)
+                self.assertEqual(state["projects"][0]["poweredBy"]["technicalLevel"], level)
+
+    def test_a_publish_technical_level_off_the_list_is_refused(self):
+        status, _ = self.submit({**PUBLISH_ANSWERS, "technicalLevel": "expert"})
+
+        self.assertEqual(status, 400)
 
     def test_the_answers_come_back_in_the_state(self):
         _, state = self.submit(PUBLISH_ANSWERS)
