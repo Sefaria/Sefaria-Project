@@ -16,6 +16,7 @@ import {
   cleanup,
   click,
   fakeServer,
+  inAct,
   field,
   heading,
   key,
@@ -40,6 +41,8 @@ jest.mock('../LibraryAssistantSettings', () => ({
   __esModule: true,
   default: (props) => {
     const React = require('react');
+    // The panel's save can finish after the panel is gone, so tests call the callback by hand.
+    global.laOnAssistantChanged = props.onAssistantChanged;
     return React.createElement(
       'div',
       {
@@ -115,6 +118,27 @@ describe('settings tabs', () => {
     renderSettings('library-assistant', null, { chatbotProps: { chatbot_user_token: 'tok' } });
     expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('false');
     await click(screen.getByTestId('library-assistant-turn-on'));
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('true');
+  });
+
+  it('a save that lands between pagehide and resume is kept when the page resumes', async () => {
+    fakeServer();
+    renderSettings('library-assistant', {}, { chatbotProps: { chatbot_user_token: 'tok' } });
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('false');
+    const pageEvent = (name) => {
+      const event = new Event(name);
+      event.persisted = true;
+      inAct(() => {
+        window.dispatchEvent(event);
+      });
+    };
+    pageEvent('pagehide');
+    expect(screen.queryByTestId('library-assistant-settings')).toBeNull();
+    inAct(() => {
+      global.laOnAssistantChanged(true);
+    });
+    pageEvent('pageshow');
+    await settle();
     expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('true');
   });
 

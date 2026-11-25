@@ -58,6 +58,7 @@ const render = async (props) => {
   await mount(props);
   await flush();
 };
+const pagehide = () => act(() => void window.dispatchEvent(new Event('pagehide')));
 const unmount = () => {
   ReactDOM.unmountComponentAtNode(container);
   container.remove();
@@ -98,20 +99,28 @@ describe('helpers', () => {
     expect(isPreviewBase('not a url')).toBe(false);
   });
 
-  it('never mocks on a production host, with or without a trailing DNS dot', () => {
+  it('mocks only on this machine, a cauldron or a preview host: denied for every other host', () => {
     for (const host of [
       'www.sefaria.org',
       'www.sefaria.org.',
       'sefaria.org.',
       'www.sefaria.org.il.',
       'a.sefaria.org.il',
+      'example.com',
+      'evil-localhost.com',
+      'localhost.evil.com',
+      'cauldron.sefaria.org.evil.com',
+      'xcauldron.sefaria.org',
+      'chat.sefaria.org',
     ]) {
       expect(shouldMock(host, '?la_mock=1')).toBe(false);
     }
-    expect(shouldMock('localhost', '?la_mock=1')).toBe(true);
-    expect(shouldMock('localhost', '')).toBe(false);
-    expect(shouldMock('cauldron-x.cauldron.sefaria.org', '?la_mock=1')).toBe(true);
+    for (const host of ['localhost', 'localhost.', '127.0.0.1', '[::1]', '::1', 'cauldron-x.cauldron.sefaria.org']) {
+      expect(shouldMock(host, '?la_mock=1')).toBe(true);
+    }
     expect(shouldMock('cauldron-x.cauldron.sefaria.org.', '?la_mock=1')).toBe(true);
+    expect(shouldMock('9298.ai-server.coolifydev.sefaria.org', '?la_mock=1')).toBe(true);
+    expect(shouldMock('localhost', '')).toBe(false);
   });
 
   it('parses Profile headings and paragraphs', () => {
@@ -440,7 +449,7 @@ describe('LibraryAssistantSettings', () => {
       global.fetch.mockImplementation((url, init) => {
         const body = JSON.parse(init.body);
         return new Promise((resolve) =>
-          calls.push({ body, answer: (st) => resolve({ ok: true, status: 200, json: () => st }) })
+          calls.push({ body, init, answer: (st) => resolve({ ok: true, status: 200, json: () => st }) })
         );
       });
       return calls;
@@ -491,11 +500,103 @@ describe('LibraryAssistantSettings', () => {
       expect(q('#laProfile').checked).toBe(false);
     });
 
+    const text = (t) => state({ instructions: { text: t, enabled: true, updatedAt: null } });
+    const startWrite = async (field, value) => {
+      await type(field, value);
+      await act(async () => Simulate.blur(field));
+      await settle();
+    };
+
+    it('unmount while a write is out: the flush is queued behind it, and goes when the write is answered', async () => {
+      await render();
+      const calls = deferred();
+      const field = q('#laInstructionsText');
+      await startWrite(field, 'A');
+      await type(field, 'AB');
+      unmount();
+      expect(calls.map((c) => c.body.text)).toEqual(['A']);
+      await act(async () => calls[0].answer(text('A')));
+      await settle();
+      expect(calls.map((c) => c.body.text)).toEqual(['A', 'AB']);
+      expect(calls[1].init.keepalive).toBeFalsy();
+      await act(async () => calls[1].answer(text('AB')));
+      await settle();
+      expect(calls).toHaveLength(2);
+    });
+
+    it('unmount after the write was answered: the flush is sent at once', async () => {
+      await render();
+      const calls = deferred();
+      const field = q('#laInstructionsText');
+      await startWrite(field, 'A');
+      await type(field, 'AB');
+      await act(async () => calls[0].answer(text('A')));
+      await settle();
+      unmount();
+      expect(calls.map((c) => c.body.text)).toEqual(['A', 'AB']);
+    });
+
+    it('unmount with the field reverted to the acknowledged text while a write is out: the revert is queued', async () => {
+      await render();
+      const calls = deferred();
+      const field = q('#laInstructionsText');
+      await startWrite(field, 'A');
+      await type(field, '');
+      unmount();
+      expect(calls).toHaveLength(1);
+      await act(async () => calls[0].answer(text('A')));
+      await settle();
+      expect(calls.map((c) => c.body.text)).toEqual(['A', '']);
+    });
+
+    it('pagehide while a write is out: queued with keepalive behind it, never sent twice', async () => {
+      await render();
+      const calls = deferred();
+      const field = q('#laInstructionsText');
+      await startWrite(field, 'A');
+      await type(field, 'AB');
+      pagehide();
+      pagehide();
+      unmount();
+      expect(calls).toHaveLength(1);
+      await act(async () => calls[0].answer(text('A')));
+      await settle();
+      expect(calls.map((c) => c.body.text)).toEqual(['A', 'AB']);
+      expect(calls[1].init.keepalive).toBe(true);
+      await act(async () => calls[1].answer(text('AB')));
+      await settle();
+      expect(calls).toHaveLength(2);
+    });
+
+    it('pagehide after the write was answered: sent directly with keepalive', async () => {
+      await render();
+      const calls = deferred();
+      const field = q('#laInstructionsText');
+      await startWrite(field, 'A');
+      await type(field, 'AB');
+      await act(async () => calls[0].answer(text('A')));
+      await settle();
+      pagehide();
+      expect(calls.map((c) => c.body.text)).toEqual(['A', 'AB']);
+      expect(calls[1].init.keepalive).toBe(true);
+    });
+
+    it('a write that fails after unmount does not throw, and a later pagehide does not resend the failed text', async () => {
+      await render();
+      const calls = deferred();
+      const field = q('#laInstructionsText');
+      await startWrite(field, 'A');
+      unmount();
+      await act(async () => calls[0].answer({ not: 'a state' }));
+      await settle();
+      expect(calls).toHaveLength(1);
+    });
+
     it('a best-effort flush that gets no usable reply does not count the text as saved', async () => {
       await render();
       global.fetch.mockImplementation(() => reply({}, 500));
       await type(q('#laInstructionsText'), 'Short answers.');
-      window.dispatchEvent(new Event('pagehide'));
+      pagehide();
       await settle();
       global.fetch.mockImplementation(() => reply(state()));
       await act(async () => Simulate.blur(q('#laInstructionsText')));
@@ -561,22 +662,24 @@ describe('LibraryAssistantSettings', () => {
     expect(actions()).not.toContain('clear_profile');
   });
 
-  it('sends Instructions still waiting to save when the tab unmounts', async () => {
+  it('sends Instructions still waiting to save when the tab unmounts, as a normal write', async () => {
     await render();
     await type(q('#laInstructionsText'), 'Short answers.');
     const before = global.fetch.mock.calls.length;
     unmount();
     expect(global.fetch.mock.calls.length).toBe(before + 1);
     expect(sent(before)).toEqual({ userId: 'tok', action: 'set_instructions', text: 'Short answers.' });
-    expect(global.fetch.mock.calls[before][1].keepalive).toBe(true);
+    expect(global.fetch.mock.calls[before][1].keepalive).toBeFalsy();
   });
 
-  it('sends Instructions still waiting to save on pagehide, once', async () => {
+  it('sends Instructions still waiting to save on pagehide, once, with keepalive', async () => {
     await render();
     await type(q('#laInstructionsText'), 'Short answers.');
     const before = global.fetch.mock.calls.length;
-    window.dispatchEvent(new Event('pagehide'));
+    pagehide();
+    pagehide();
     expect(actions().slice(before)).toEqual(['set_instructions']);
+    expect(global.fetch.mock.calls[before][1].keepalive).toBe(true);
     unmount();
     expect(actions().slice(before)).toEqual(['set_instructions']);
   });

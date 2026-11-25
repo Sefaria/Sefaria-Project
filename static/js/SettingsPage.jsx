@@ -4988,6 +4988,9 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, chatb
      remount of the tab) in step with it. */
   const assistantChanged = (on) => {
     if (latestSettings.account) rememberAccountSettings({ libraryAssistantEnabled: on });
+    // Between pagehide and resumeAccount the cache is held aside: a save that lands then must reach it too, or
+    // resuming would put the old value back.
+    if (pausedSettings.current) pausedSettings.current = { ...pausedSettings.current, libraryAssistantEnabled: on };
     if (pageMounted.current)
       setSettings((current) => (current ? { ...current, libraryAssistantEnabled: on } : current));
   };

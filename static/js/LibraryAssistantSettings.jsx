@@ -197,11 +197,13 @@ const acceptEdit = (res) => isState(res) || (!!res && !!res.edit && res.edit.sta
 
 /* ---------- ?la_mock=1: an in-memory server, for looking at the design ---------- */
 
-const PRODUCTION_HOSTS = /(^|\.)sefaria\.org(\.il)?$/;
-// The mock is for looks: never on a production host (a trailing DNS dot, www.sefaria.org., names the same host).
+// The mock is for looks, so it is denied unless the host is known to be a development one: this machine, a
+// cauldron (`*.cauldron.sefaria.org`) or a preview deployment. A trailing DNS dot (www.sefaria.org.) names the same host.
+const MOCK_HOSTS =
+  /^(localhost|127\.0\.0\.1|\[?::1\]?|([a-z0-9-]+\.)+cauldron\.sefaria\.org|\d+\.ai-server\.coolifydev\.sefaria\.org)$/;
 export const shouldMock = (hostname, search) => {
-  const host = String(hostname).replace(/\.$/, '');
-  if (PRODUCTION_HOSTS.test(host) && !/cauldron/.test(host)) return false;
+  const host = String(hostname).toLowerCase().replace(/\.$/, '');
+  if (!MOCK_HOSTS.test(host)) return false;
   return new URLSearchParams(search).get('la_mock') === '1';
 };
 // Read once, when the script loads (unlike the hash): the app rewrites the address bar (dropping the query) before the tab renders.
@@ -421,34 +423,29 @@ const Personalization = ({ base, token, off, onSaving }) => {
   // Every mutating action runs one after another through this chain, so replies land in the order the actions were
   // sent and an older State can never replace a newer one.
   const queue = useRef(Promise.resolve());
-  const saving = useRef(false);
-  const flushing = useRef(null);
-  // Sends the instructions text still waiting to be saved, if any, without waiting for the reply: used when the
-  // tab goes away (unmount, pagehide), where a timer would never fire. Kept in a ref so it sees the latest props.
-  const flushDraft = useRef(() => {});
-  flushDraft.current = () => {
+  // Writes still waiting in, or running through, the queue.
+  const outstanding = useRef(0);
+  // The last instructions text put on the queue (not the last one acknowledged): a save is queued whenever the
+  // field differs from it, which includes going back to the acknowledged text while a write is still out.
+  const queuedDraft = useRef('');
+  // Called when the tab goes away. Unmount queues a normal write behind any outstanding ones (the queue outlives
+  // the component). pagehide sends with keepalive: straight away if nothing is outstanding, otherwise queued behind
+  // the writes that are. Residual: on a full page unload with a write still outstanding, the last edit may be
+  // lost; doing better needs server-side revisions. Kept in a ref so it sees the latest props.
+  const teardownSave = useRef(() => {});
+  teardownSave.current = (keepalive) => {
     clearTimeout(saveTimer.current);
     const text = latestDraft.current;
-    if (mock || text === savedDraft.current || text.length > MAX_TEXT) return;
-    // Best effort: counted as saved only when the reply is a usable State. Not sent twice while it is out.
-    if (flushing.current === text) return;
-    flushing.current = text;
-    Promise.resolve(laSettings(base, token, 'set_instructions', { text }, { keepalive: true }))
-      .then((res) => {
-        if (isState(res)) savedDraft.current = text;
-      })
-      .catch(() => {})
-      .then(() => {
-        if (flushing.current === text) flushing.current = null;
-      });
+    if (mock || text === queuedDraft.current || text.length > MAX_TEXT) return;
+    enqueueDraft(text, keepalive ? { keepalive: true } : {});
   };
   useEffect(() => {
-    const onPageHide = () => flushDraft.current();
+    const onPageHide = () => teardownSave.current(true);
     window.addEventListener('pagehide', onPageHide);
     return () => {
       window.removeEventListener('pagehide', onPageHide);
       mounted.current = false;
-      flushDraft.current();
+      teardownSave.current(false);
     };
   }, []);
 
@@ -456,20 +453,25 @@ const Personalization = ({ base, token, off, onSaving }) => {
   // (a State by default). On failure, or a reply that is not usable, sets the message and returns null.
   // Every action but the reads counts as a save for the header's status.
   const call = useCallback(
-    async (action, body, accept = isState, onQuota) => {
+    async (action, body, accept = isState, onQuota, sendOpts = {}) => {
       const saves = action !== 'get' && action !== 'health';
-      setError(null);
-      setInFlight((n) => n + 1);
+      if (mounted.current) {
+        setError(null);
+        setInFlight((n) => n + 1);
+      }
       if (saves) onSaving(1);
       let ok = false;
       const send = () =>
         mock
           ? mockLaSettings(mockStore, action, body)
-          : laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : {});
+          : laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : sendOpts);
       try {
         let res;
         if (saves) {
-          const turn = queue.current.then(send);
+          // Nothing outstanding: send right now (a teardown cannot wait for a microtask hop).
+          const idle = outstanding.current === 0;
+          outstanding.current += 1;
+          const turn = idle ? Promise.resolve(send()) : queue.current.then(send);
           queue.current = turn.catch(() => {});
           res = await turn;
         } else {
@@ -485,6 +487,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
         } else if (mounted.current) setError(errorMessage(e, isPreviewBase(base)));
         return null;
       } finally {
+        if (saves) outstanding.current -= 1;
         if (mounted.current) setInFlight((n) => Math.max(0, n - 1));
         if (saves) onSaving(-1, ok ? 'ok' : 'fail');
       }
@@ -502,6 +505,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
       setDraft(res.instructions.text || '');
       savedDraft.current = res.instructions.text || '';
       latestDraft.current = res.instructions.text || '';
+      queuedDraft.current = res.instructions.text || '';
     })();
     return () => {
       cancelled = true;
@@ -518,29 +522,24 @@ const Personalization = ({ base, token, off, onSaving }) => {
     if (hash === '#about-personalization') scrollToId('about-personalization');
   }, [data]);
 
-  const act = async (action, body, accept, onQuota) => {
-    const res = await call(action, body, accept, onQuota);
+  const act = async (action, body, accept, onQuota, sendOpts) => {
+    const res = await call(action, body, accept, onQuota, sendOpts);
     if (mounted.current && isState(res)) setData(res);
     return res;
   };
 
-  // `desired` is the latest text in the field (latestDraft), `acked` the last text the server confirmed
-  // (savedDraft). One loop saves until they match, so erasing back to the saved value while a save is running is
-  // saved too, and two saves never overlap.
-  const saveDraft = async () => {
+  // Queues one write of `text`. `savedDraft` moves only when the reply is a usable State; a write that fails frees
+  // its text to be queued again.
+  const enqueueDraft = async (text, sendOpts) => {
+    queuedDraft.current = text;
+    const res = await act('set_instructions', { text }, isState, undefined, sendOpts);
+    if (res) savedDraft.current = text;
+    else if (queuedDraft.current === text) queuedDraft.current = savedDraft.current;
+  };
+  const saveDraft = () => {
     clearTimeout(saveTimer.current);
-    if (saving.current) return;
-    saving.current = true;
-    try {
-      while (mounted.current && latestDraft.current !== savedDraft.current && latestDraft.current.length <= MAX_TEXT) {
-        const text = latestDraft.current;
-        const res = await act('set_instructions', { text });
-        if (!res) break;
-        savedDraft.current = text;
-      }
-    } finally {
-      saving.current = false;
-    }
+    const text = latestDraft.current;
+    if (text !== queuedDraft.current && text.length <= MAX_TEXT) enqueueDraft(text);
   };
   const onDraft = (text) => {
     setDraft(text);
@@ -852,8 +851,17 @@ const LibraryAssistantSettings = (props) => {
   const [pending, setPending] = useState(0);
   const [saved, setSaved] = useState(false);
   const inFlight = useRef(false);
+  const tabMounted = useRef(true);
+  useEffect(
+    () => () => {
+      tabMounted.current = false;
+    },
+    []
+  );
   // `result`: 'ok' or 'fail' when a save ends. The header shows the last save's result.
   const onSaving = useCallback((delta, result) => {
+    // A write queued at unmount finishes after the tab is gone.
+    if (!tabMounted.current) return;
     setPending((n) => Math.max(0, n + delta));
     if (result) setSaved(result);
   }, []);
