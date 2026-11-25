@@ -877,16 +877,16 @@ Peak load is about ten builders and four verifiers. In calendar terms: M1 on wor
 
 ### 5.1 Layers and where they run
 
-| Layer                                                   | Tool                                            | Runs in                                                                     | Blocks a merge?                    |
-| ------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------- |
-| Portal unit and component tests                         | Vitest, Testing Library, `vitest-axe`           | `continuous.yaml` job `devportal-ui`                                        | Yes                                |
-| Pure Python tests, goldens, round trip, MCP conformance | pytest without Django, plus Node for the corpus | `continuous.yaml` job `devportal-pure`                                      | Yes                                |
-| Database-backed Python tests                            | pytest-django                                   | The existing sandbox pytest job, with `./devportal` added                   | Yes                                |
-| Product's behavior stories                              | `playwright-bdd` 9.2.1, `chrome-bdd` projects   | #4064's `e2e-job` on every PR sandbox                                       | Yes                                |
-| Core journeys tagged `@pr`                              | Playwright `chrome-pr`                          | #4064's `e2e-job`                                                           | Warns until `E2E_PR_BLOCKING=true` |
-| Full portal suites                                      | Playwright `*-developers` projects              | V-test locally; the merge-queue run when the host is reachable there (DC-3) | In the merge queue, once reachable |
-| Visual parity                                           | Playwright, its own config                      | V-pixel locally; `devportal-visual.yaml` on demand and nightly              | No                                 |
-| Existing Jest, pytest, lint                             | unchanged                                       | unchanged                                                                   | Yes                                |
+| Layer                                                   | Tool                                            | Runs in                                                                                                         | Blocks a merge?                    |
+| ------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Portal unit and component tests                         | Vitest, Testing Library, `vitest-axe`           | `continuous.yaml` job `devportal-ui`                                                                            | Yes                                |
+| Pure Python tests, goldens, round trip, MCP conformance | pytest without Django, plus Node for the corpus | `continuous.yaml` job `devportal-pure`                                                                          | Yes                                |
+| Database-backed Python tests                            | pytest-django                                   | `continuous.yaml` job `devportal-django` (standalone settings, SQLite; was the sandbox pytest job before #3709) | Yes                                |
+| Product's behavior stories                              | `playwright-bdd` 9.2.1, `chrome-bdd` projects   | #4064's `e2e-job` on every PR sandbox                                                                           | Yes                                |
+| Core journeys tagged `@pr`                              | Playwright `chrome-pr`                          | #4064's `e2e-job`                                                                                               | Warns until `E2E_PR_BLOCKING=true` |
+| Full portal suites                                      | Playwright `*-developers` projects              | V-test locally; the merge-queue run when the host is reachable there (DC-3)                                     | In the merge queue, once reachable |
+| Visual parity                                           | Playwright, its own config                      | V-pixel locally; `devportal-visual.yaml` on demand and nightly                                                  | No                                 |
+| Existing Jest, pytest, lint                             | unchanged                                       | unchanged                                                                                                       | Yes                                |
 
 ### 5.2 Playwright
 

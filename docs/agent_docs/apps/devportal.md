@@ -32,7 +32,7 @@ Serves developers.sefaria.org from Sefaria-Project instead of ReadMe.io: the hom
 
 ## Tests
 
-- `devportal/tests/pure/` run without Django (`-p no:django`); `devportal/tests/` run on `--ds=devportal.dev.settings_standalone` (SQLite, no Mongo) or with the main settings in the sandbox job.
+- `devportal/tests/pure/` run without Django (`-p no:django`); `devportal/tests/` run on `--ds=devportal.dev.settings_standalone` (SQLite, no Mongo), which is how CI runs them (the `devportal-django` job in `.github/workflows/continuous.yaml`). Both need `-p no:sefaria_conftest`: the root `conftest.py` otherwise loads `sefaria/conftest.py`, which needs Django and MongoDB.
 - `devportal-ui`: Vitest (`npm test`), type check, ESLint, Stylelint, Prettier.
 - Playwright: `e2e-tests/developers/` (DEV-* IDs, page objects in `e2e-tests/pages/developers/`), registered only when the developers host is known (`E2E_DEVELOPERS_URL`). Visual parity: `playwright.devportal-visual.config.ts` against baselines captured from live in `e2e-tests/developers-visual/baselines/`.
 - Local server: `python manage.py migrate --settings=devportal.dev.settings_standalone` (imports all content), `npm run build` in `devportal-ui`, copy `devportal-ui/dist` to `static/bundles/devportal`, then `runserver` with the same settings.

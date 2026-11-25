@@ -100,7 +100,11 @@ def test_pager_equals_live_on_every_docs_page(imported):  # noqa: ARG001
             continue
         payload = pages.resolve(path, ORIGIN)
         assert payload["kind"] == "doc", path
-        expected = [{"t": link["t"], "h": unquote(link["h"])} for link in entry["pagination"]]
+        # A link to a page sent elsewhere on the portal (pages.PAGE_ELSEWHERE) points straight there.
+        expected = [
+            {"t": link["t"], "h": pages.PAGE_ELSEWHERE.get(unquote(link["h"]), unquote(link["h"]))}
+            for link in entry["pagination"]
+        ]
         if _shown(payload["pager"]) != expected:
             mismatches[path] = (_shown(payload["pager"]), expected)
     assert mismatches == {}

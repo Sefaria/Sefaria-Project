@@ -19,6 +19,6 @@ python manage.py runserver --settings=devportal.dev.settings_standalone
 Tests:
 
 ```bash
-pytest devportal/tests --ds=devportal.dev.settings_standalone   # everything, on SQLite
-pytest devportal/tests/pure -p no:django                         # pure tests, no Django
+pytest devportal/tests --ds=devportal.dev.settings_standalone -p no:sefaria_conftest   # everything, on SQLite
+pytest devportal/tests/pure -p no:django -p no:sefaria_conftest   # pure tests, no Django
 ```

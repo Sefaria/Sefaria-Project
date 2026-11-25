@@ -971,5 +971,17 @@
     "developer.common.developers_email.address": "developers@sefaria.org",
     "developer.publish_form.source_code.invalid.error": "Invalid link",
     "developer.key_form.restrict.help": "Turn this {on} if your key is going in your web page's code. Leave this {off} if your key is going on a server or in an AI tool. You can change this setting at any time in Developer Settings.",
-    "developer.errors.<name>.error": "Keys can’t be limited to a shared hosting address like this one. Use your own domain, or leave the limit off."
+    "developer.errors.shared_host.error": "Keys can't be limited to a shared hosting address like this one. Use your own domain, or leave the limit off.",
+    "developer.publish_form.sefaria_tools.option_01": "API",
+    "developer.publish_form.sefaria_tools.option_02": "MCP",
+    "developer.publish_form.sefaria_tools.option_03": "Export",
+    "developer.publish_form.sefaria_tools.option_04": "Project code",
+    "developer.publish_form.sefaria_tools.option_05": "ai-chatbot code",
+    "developer.publish_form.sefaria_tools.option_06": "Embedded code",
+    "developer.publish_form.sefaria_tools.option_07": "ML models on HuggingFace",
+    "developer.publish_form.sefaria_tools.option_08": "Tutorials",
+    "developer.publish_form.sefaria_tools.option_09": "Documentation",
+    "developer.publish_form.sefaria_tools.option_10": "Patot",
+    "developer.publish_form.sefaria_tools.option_11": "Other",
+    "developer.errors.not_a_domain.error": "Keys can't be limited to an address that isn't a public domain. Leave keys you use for local development unlimited."
 }

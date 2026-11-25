@@ -1,0 +1,4 @@
+{
+  "collections": {},
+  "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_reports_failure_for_missing_version"
+}
