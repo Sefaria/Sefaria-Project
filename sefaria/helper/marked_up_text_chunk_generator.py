@@ -70,7 +70,7 @@ class MarkedUpTextChunkGenerator:
         linking_args = LinkingArgs(
             ref=segment_ref.normal(), text=text, lang=lang, vtitle=vtitle, user_id=self.user_id, kwargs=kwargs
         )
-        enqueue_linking_chain(linking_args)
+        enqueue_linking_chain(linking_args, store_result=False)
 
     def _generate_all_versions_for_segment(self, segment_ref: Ref) -> None:
         lang_title_pairs = [(version.language, version.versionTitle) for version in segment_ref.versionset().array()]

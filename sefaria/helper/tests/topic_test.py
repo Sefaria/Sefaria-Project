@@ -123,6 +123,7 @@ def actual_author(author_root):
     l.delete()
 
 
+@pytest.mark.needs_corpus
 def test_title_and_desc(
     author_root, actual_author, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link
 ):
@@ -151,6 +152,7 @@ def test_title_and_desc(
         assert t["topic"].get_titles("en") == [en_primary_title["text"], en_alt_title["text"]]
 
 
+@pytest.mark.needs_corpus
 def test_author_root(author_root, actual_author):
     new_values = {
         "category": "authors",
@@ -168,6 +170,7 @@ def test_author_root(author_root, actual_author):
     Place().load({"key": new_values["birthPlace"]}).delete()
 
 
+@pytest.mark.needs_corpus
 def test_change_categories_and_titles(author_root, root_with_self_link):
     # tests moving both root categories down the tree and back up and asserting that moving down the tree changes the tree
     # and assert that moving it back to the root position yields the original tree.
@@ -209,6 +212,7 @@ def test_change_categories_and_titles(author_root, root_with_self_link):
     assert final_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
 
 
+@pytest.mark.needs_corpus
 def test_change_categories(
     author_root, actual_author, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link
 ):
@@ -234,6 +238,7 @@ def test_change_categories(
     assert new_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
 
 
+@pytest.mark.needs_corpus
 @pytest.mark.parametrize(
     ("current", "requested", "was_ai_generated", "merged"),
     [
@@ -254,6 +259,7 @@ def test_calculate_approved_review_state(current, requested, was_ai_generated, m
     assert topic._calculate_approved_review_state(current, requested, was_ai_generated) == merged
 
 
+@pytest.mark.needs_corpus
 @pytest.mark.parametrize(
     ("current", "requested", "merged"),
     [
@@ -266,6 +272,7 @@ def test_get_merged_descriptions(current, requested, merged):
     assert topic._get_merged_descriptions(current, requested) == merged
 
 
+@pytest.mark.needs_corpus
 def test_update_topic(some_topic):
     topic.update_topic(
         some_topic,
@@ -318,6 +325,7 @@ def topics_with_varying_source_counts(django_db_setup, django_db_blocker):
             t.delete()
 
 
+@pytest.mark.needs_corpus
 def test_get_all_topics_min_sources(topics_with_varying_source_counts):
     # get_all_topics is cached for 24h in the default cache, which in CI is the dev cluster's
     # shared Redis (FLUSHDB disabled). Call the undecorated function so fixture topics are seen.
@@ -344,6 +352,7 @@ def test_get_all_topics_min_sources(topics_with_varying_source_counts):
     assert strict_result == {by_suffix["three"].slug, by_suffix["curated"].slug}
 
 
+@pytest.mark.needs_corpus
 def test_get_topic_omits_orphaned_ref_links():
     """A RefTopicLink whose text was deleted from the library (its ref no longer
     resolves) must be omitted from the get_topic response. Otherwise the orphaned source

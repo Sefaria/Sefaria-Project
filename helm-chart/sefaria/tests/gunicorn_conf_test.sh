@@ -23,7 +23,13 @@ env_values() {
   python3 - "$ROOT/envs/$1/helmrelease.yaml" "$2" <<'PY'
 import sys, yaml
 release = next(d for d in yaml.safe_load_all(open(sys.argv[1])) if d and d.get("kind") == "HelmRelease")
-yaml.safe_dump(release["spec"].get("values", {}), open(sys.argv[2], "w"))
+values = release["spec"].get("values", {})
+# On master the preprod and prod env files carry no auth image tag (a release writes it on that env's branch), and the
+# chart refuses to render the auth service on without one; use the same placeholder as auth_service_render_test.py.
+auth = values.get("authService") or {}
+if auth.get("enabled") and not (auth.get("image") or {}).get("tag"):
+    auth.setdefault("image", {})["tag"] = "render-test"
+yaml.safe_dump(values, open(sys.argv[2], "w"))
 PY
 }
 
