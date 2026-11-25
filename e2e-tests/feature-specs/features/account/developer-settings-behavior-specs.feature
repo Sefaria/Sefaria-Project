@@ -424,9 +424,12 @@ Feature: Developer Settings
         When the visitor clicks "Got it" [developer.publish_form.setup_first_dialog.confirm.button] and finishes About you and Your project
         Then setup ends on the publish form for that project, with no key step
 
+      # Amended 2026-11-25 (sc-48553): tool names and link names come from Weblate, approved by Penina Levy
       Scenario: DS-PUB-8 Each tool option links to its page
-        When the developer looks at "Which Sefaria data or tools did you use"
-        Then each option links to its own page in a new tab
+        When the developer looks at "Which Sefaria data or tools did you use for your project?" [developer.publish_form.sefaria_tools.label]
+        Then the options read [developer.publish_form.sefaria_tools.option_01] to [developer.publish_form.sefaria_tools.option_11], in that order
+        And each option except "Other" [developer.publish_form.sefaria_tools.option_11] links to its own page in a new tab
+        And each link is named after its option, followed by "(opens in a new tab)" [developer.common.opens_in_new_tab.aria]
 
       Scenario: DS-PUB-9 Link to source code
         When the developer types "my repo" in "Link to source code" [developer.publish_form.source_code.label] and submits
@@ -452,6 +455,15 @@ Feature: Developer Settings
         When the developer opens the publish form for Verse a Day again
         Then every answer shows as it was submitted, including "Anything else"
         And staff notes on the project are never shown to the developer
+
+      # Added 2026-11-25 (sc-48553): tool names in Hebrew, approved by Penina Levy
+      @he
+      Scenario: DS-PUB-13 Tool options in Hebrew
+        Given the interface language is Hebrew
+        When the developer looks at "Which Sefaria data or tools did you use for your project?" [developer.publish_form.sefaria_tools.label]
+        Then each option shows its Hebrew value [developer.publish_form.sefaria_tools.option_01 … option_11]
+        And each link is named after its option's Hebrew value, followed by the Hebrew "(opens in a new tab)" [developer.common.opens_in_new_tab.aria]
+        And an option ticked in Hebrew is saved the same as in English
 
   Rule: Email confirmation links and changing the account email
       # Amended 2026-11-19 (sc-48553): skipped (@manual) until the tests can open a confirmation email; Penina asked Daniel how. Approved by Penina Levy
@@ -573,6 +585,13 @@ Feature: Developer Settings
         And back arrows point right
         And in lists of key names, the bullets sit on the right
         And in the "Signed in as" box, the email reads left to right with one parenthesis on each side of it
+
+      # Added 2026-11-25 (sc-48553): the new-tab icon is mirrored in Hebrew, approved by Penina Levy
+      @he @manual
+      Scenario: DS-HE-2 The new-tab icon in Hebrew
+        Given the interface language is Hebrew
+        Then every open-in-new-tab icon in Developer Settings comes after its text in reading order, to its left
+        And it points up and to the left
 
       @mobile
       Scenario: DS-PHONE-1 Phones
