@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.contrib.auth.models import User
 
-import sefaria.conftest  # noqa: F401 (applies the Mongo isolation before any database import, whatever the CLI order)
 from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db

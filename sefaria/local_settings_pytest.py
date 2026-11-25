@@ -99,7 +99,7 @@ def _write_webpack_stats_stubs(dj_settings):
 
 def apply_session_overrides(dj_settings, sefaria_settings):
     """Apply every pytest-session override. Returns the cache aliases that were
-    swapped to LocMemCache, which conftest clears on every mock-Mongo reseed."""
+    swapped to LocMemCache, which conftest clears before every test."""
     dj_settings.ALLOWED_HOSTS = PYTEST_ALLOWED_HOSTS
     replaced = _replace_dummy_caches(dj_settings)
     _write_webpack_stats_stubs(dj_settings)

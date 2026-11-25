@@ -225,8 +225,21 @@ def pytest_collection_modifyitems(session, config, items):
         _recorder_index.setdefault(item.nodeid, {"commands": 0, "collections": set(), "total_docs": 0})
 
 
+def _clear_locmem_caches():
+    from django.core.cache import caches
+
+    for alias in _LOCMEM_CACHE_ALIASES:
+        caches[alias].clear()
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_setup(item):
+    # Every test starts with empty caches, as it did under DummyCache, so a value
+    # one test cached cannot be read by a later one -- in every job, against a
+    # real Mongo as much as the mock. A hook, not an autouse fixture: fixtures in
+    # this file only reach tests under sefaria/, hooks reach every test (see the
+    # root conftest.py).
+    _clear_locmem_caches()
     if not _recording_enabled():
         yield
         return
@@ -370,10 +383,7 @@ def reseed_mock_db(active_db, overlay_path=None, rebuild=True):
         _library_stale = False
     else:
         _library_stale = True
-    from django.core.cache import caches
-
-    for alias in _LOCMEM_CACHE_ALIASES:
-        caches[alias].clear()
+    _clear_locmem_caches()
 
 
 _loaded_shapes = None
@@ -442,9 +452,9 @@ def _seed_mock_mongo(request):
 
 
 # Aliases the session overrides swapped to LocMemCache (see
-# sefaria/local_settings_pytest.py); _seed_mock_mongo clears them on every reseed
-# so a value cached from one test's fixture data is not read by a test seeded
-# with different data.
+# sefaria/local_settings_pytest.py). They are cleared before every test
+# (pytest_runtest_setup) and on every mock-Mongo reseed, so a value cached by one
+# test, or from one test's fixture data, is never read by another.
 _LOCMEM_CACHE_ALIASES = []
 
 
