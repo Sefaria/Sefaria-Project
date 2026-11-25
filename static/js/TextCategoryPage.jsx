@@ -14,6 +14,20 @@ import {
   CategoryHeader,
 } from './Misc';
 import { ContentText } from './ContentText';
+import {
+  SiddurNusachPicker,
+  openSiddurAtTimeOfDay,
+  preferredNusach,
+  saveNusachChoice,
+  timeOfDayUrl,
+} from './SiddurNusachPicker';
+import {
+  NUSACH_BOOKS,
+  defaultNusach,
+  hasSeenNusachPicker,
+  markNusachPickerSeen,
+  trackSiddurEvent,
+} from './sefaria/siddurNusach';
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({
@@ -26,6 +40,7 @@ const TextCategoryPage = ({
   multiPanel,
   initialWidth,
   compare,
+  openURL,
 }) => {
   const contentLang = useContext(ReaderPanelContext).language;
   // Show Talmud with Toggles
@@ -118,6 +133,7 @@ const TextCategoryPage = ({
               openTextTOC={openTextTOC}
               initialWidth={initialWidth}
               nestLevel={nestLevel}
+              openURL={compare ? null : openURL}
             />
           </div>
           {!compare ? <NavSidebar sidebarModules={sidebarModules} /> : null}
@@ -133,6 +149,7 @@ TextCategoryPage.propTypes = {
   toggleLanguage: PropTypes.func.isRequired,
   initialWidth: PropTypes.number,
   compare: PropTypes.bool,
+  openURL: PropTypes.func,
 };
 
 // Recursive content of text category listing (including category title and lists of texts/subcategories)
@@ -144,6 +161,7 @@ const TextCategoryContents = ({
   openTextTOC,
   initialWidth,
   nestLevel,
+  openURL,
 }) => {
   const content = [];
   const cats = categories || [];
@@ -154,6 +172,15 @@ const TextCategoryContents = ({
     if (item.category) {
       // Category
       const newCats = cats.concat(item.category);
+
+      if (openURL && cats.length === 1 && cats[0] === 'Liturgy' && item.category === 'Siddur') {
+        // A div, so the boxing loop below treats it as a separator rather than a text
+        content.push(
+          <div className="siddurQuickLinkBox" key="siddurQuickLink">
+            <SiddurQuickLink openURL={openURL} />
+          </div>
+        );
+      }
 
       // Special Case categories which should nest but normally wouldn't given their depth   ["Mishneh Torah", "Shulchan Arukh", "Tur"]
       if (item.isPrimary || nestLevel > 0) {
@@ -286,6 +313,53 @@ TextCategoryContents.propTypes = {
 };
 TextCategoryContents.defaultProps = {
   contents: [],
+};
+
+const SiddurQuickLink = ({ openURL }) => {
+  // Opens the reader's siddur at the current service; first-timers choose a nusach first.
+  // The href uses only server-known values so SSR matches; the click re-resolves with localStorage.
+  const ssrNusach =
+    Sefaria.nusach || defaultNusach({ countryCode: Sefaria.countryCode, interfaceLang: Sefaria.interfaceLang });
+  const [pickerDefault, setPickerDefault] = useState(null);
+  const onClick = (e) => {
+    e.preventDefault();
+    if (!Sefaria.nusach && !hasSeenNusachPicker()) {
+      setPickerDefault(preferredNusach());
+      return;
+    }
+    trackSiddurEvent('siddur_quick_link', { nusach: preferredNusach() });
+    openSiddurAtTimeOfDay(preferredNusach(), openURL);
+  };
+  const onConfirm = (choice) => {
+    saveNusachChoice(choice);
+    trackSiddurEvent('nusach_picker', {
+      origin: 'liturgy_link',
+      default: pickerDefault,
+      choice,
+      switched: choice !== pickerDefault,
+    });
+    setPickerDefault(null);
+    openSiddurAtTimeOfDay(choice, openURL);
+  };
+  const onClose = () => {
+    markNusachPickerSeen();
+    setPickerDefault(null);
+  };
+  return (
+    <>
+      <a className="siddurQuickLink" href={'/' + Sefaria.normRef(NUSACH_BOOKS[ssrNusach].title)} onClick={onClick}>
+        <InterfaceText>siddur_nusach.siddur</InterfaceText>
+      </a>
+      {pickerDefault ? (
+        <SiddurNusachPicker
+          initialNusach={pickerDefault}
+          onConfirm={onConfirm}
+          onClose={onClose}
+          nextPathFor={timeOfDayUrl}
+        />
+      ) : null}
+    </>
+  );
 };
 
 const MenuItem = ({ href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc, module }) => {

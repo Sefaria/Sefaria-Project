@@ -4439,6 +4439,7 @@ Sefaria.unpackBaseProps = function (props) {
     'full_name',
     'profile_pic_url',
     'is_history_enabled',
+    'nusach',
     'translation_language_preference_suggestion',
     'following',
     'blocking',

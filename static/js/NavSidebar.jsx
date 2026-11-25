@@ -9,6 +9,8 @@ import { Promotions } from './Promotions';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import Util from './sefaria/util';
 import Button from './common/Button';
+import { bookTitle, openSiddurAtTimeOfDay } from './SiddurNusachPicker';
+import { NUSACH_BOOKS, getStoredNusach, isNusach, trackSiddurEvent } from './sefaria/siddurNusach';
 
 const NavSidebar = ({ sidebarModules, includeFooter = true }) => {
   return (
@@ -77,6 +79,7 @@ const SidebarModules = ({ type, props }) => {
     PortalOrganization: PortalOrganization,
     PortalNewsletter: PortalNewsletter,
     RecentlyViewed: RecentlyViewed,
+    MySiddur: MySiddur,
     StudyCompanion: StudyCompanion,
   };
   if (!type) {
@@ -179,6 +182,34 @@ const RecentlyViewed = ({ toggleSignUpModal, mobile }) => {
           </a>
         </div>
         {mobile && recentlyViewedList}
+      </div>
+    </SidebarModule>
+  );
+};
+
+const MySiddur = ({ openURL }) => {
+  // Logged-in users with a saved nusach get a shortcut into their siddur at the current service.
+  const [nusach, setNusach] = useState(Sefaria._uid ? Sefaria.nusach : null);
+  useEffect(() => {
+    if (Sefaria._uid && !Sefaria.nusach) {
+      setNusach(getStoredNusach());
+    }
+  }, []);
+  if (!isNusach(nusach)) {
+    return null;
+  }
+  const handleClick = (e) => {
+    e.preventDefault();
+    trackSiddurEvent('my_siddur', { nusach, hour: new Date().getHours() });
+    openSiddurAtTimeOfDay(nusach, openURL);
+  };
+  return (
+    <SidebarModule>
+      <div className="mySiddur">
+        <SidebarModuleTitle>siddur_nusach.my_siddur</SidebarModuleTitle>
+        <a href={'/' + Sefaria.normRef(NUSACH_BOOKS[nusach].title)} className="mySiddurLink" onClick={handleClick}>
+          <InterfaceText text={bookTitle(nusach)} />
+        </a>
       </div>
     </SidebarModule>
   );
@@ -1258,4 +1289,4 @@ const PortalNewsletter = ({ title, description }) => {
   );
 };
 
-export { NavSidebar, SidebarFooter, SidebarModules, RecentlyViewed, ParashahLink };
+export { NavSidebar, SidebarFooter, SidebarModules, RecentlyViewed, MySiddur, ParashahLink };

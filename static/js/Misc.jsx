@@ -1413,16 +1413,13 @@ class DisplaySettingsButton extends Component {
     const classes = 'readerOptionsTooltip tooltip-toggle';
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
+      // A gear (rather than the A/Aleph glyph), since the menu now also holds the Siddur Mode / Learning Mode toggle.
       icon = (
-        <InterfaceText>
-          <EnglishText>
-            {' '}
-            <img src="/static/img/lang_icon_english.svg" alt={Sefaria._('misc.toggle_reader_menu_display_settings')} />
-          </EnglishText>
-          <HebrewText>
-            <img src="/static/img/lang_icon_hebrew.svg" alt={Sefaria._('misc.toggle_reader_menu_display_settings')} />
-          </HebrewText>
-        </InterfaceText>
+        <img
+          className="gearIcon"
+          src="/static/icons/settings.svg"
+          alt={Sefaria._('misc.toggle_reader_menu_display_settings')}
+        />
       );
     } else {
       icon = <span className="textIcon">Aa</span>;

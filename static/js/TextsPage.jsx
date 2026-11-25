@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
 import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
-import { NavSidebar, SidebarModules, RecentlyViewed } from './NavSidebar';
+import { NavSidebar, SidebarModules, RecentlyViewed, MySiddur } from './NavSidebar';
 import TextCategoryPage from './TextCategoryPage';
 import ComparePanelHeader from './ComparePanelHeader';
 import {
@@ -30,6 +30,7 @@ const TextsPage = ({
   initialWidth,
   compare,
   toggleSignUpModal,
+  openURL,
 }) => {
   // List of Texts in a Category
   if (categories.length) {
@@ -44,6 +45,7 @@ const TextsPage = ({
           compare={compare}
           multiPanel={multiPanel}
           initialWidth={initialWidth}
+          openURL={openURL}
         />
       </div>
     );
@@ -110,6 +112,7 @@ const TextsPage = ({
   const sidebarModules = [
     multiPanel ? { type: 'AboutSefaria' } : { type: null },
     { type: 'Promo' },
+    multiPanel ? { type: 'MySiddur', props: { openURL } } : { type: null },
     multiPanel ? { type: 'RecentlyViewed', props: { toggleSignUpModal } } : { type: null },
     { type: 'Translations' },
     { type: 'LearningSchedules' },
@@ -127,6 +130,7 @@ const TextsPage = ({
             {about}
             {dedication}
             {libraryMessage}
+            {!multiPanel && <MySiddur openURL={openURL} />}
             {!multiPanel && <RecentlyViewed toggleSignUpModal={toggleSignUpModal} mobile={true} />}
             {categoryListings}
           </div>
@@ -144,6 +148,7 @@ TextsPage.propTypes = {
   toggleLanguage: PropTypes.func,
   multiPanel: PropTypes.bool,
   compare: PropTypes.bool,
+  openURL: PropTypes.func,
 };
 
 const Dedication = () => {

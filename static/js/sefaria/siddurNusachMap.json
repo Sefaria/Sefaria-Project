@@ -1,0 +1,3505 @@
+{
+ "source": "Generated from the Siddur Nusach POC research map (siddur-nusach-map.json, 2026-09-27); client fields only.",
+ "books": {
+  "ashkenaz": {
+   "title": "The Koren Shalem Siddur; Ashkenaz",
+   "heTitle": "סידור קורן השלם; אשכנז",
+   "hasEnglish": true,
+   "services": {
+    "shacharit": "The Koren Shalem Siddur; Ashkenaz, Weekdays, On Waking",
+    "mincha": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Minha for Weekdays",
+    "arvit": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Ma'ariv for Weekdays"
+   }
+  },
+  "sfard": {
+   "title": "Siddur Sefard",
+   "heTitle": "סידור ספרד",
+   "hasEnglish": true,
+   "services": {
+    "shacharit": "Siddur Sefard, Upon Arising, Modeh Ani",
+    "mincha": "Siddur Sefard, Weekday Mincha, Korbanot",
+    "arvit": "Siddur Sefard, Weekday Maariv, The Shema"
+   }
+  },
+  "edot": {
+   "title": "Siddur Edot HaMizrach",
+   "heTitle": "סידור נוסח עדות המזרח",
+   "hasEnglish": true,
+   "services": {
+    "shacharit": "Siddur Edot HaMizrach, Preparatory Prayers, Modeh Ani",
+    "mincha": "Siddur Edot HaMizrach, Weekday Mincha, Offerings",
+    "arvit": "Siddur Edot HaMizrach, Weekday Arvit, Barchu"
+   }
+  }
+ },
+ "sections": [
+  {
+   "key": "shacharit/modeh-ani",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, On Waking",
+    "sfard": "Siddur Sefard, Upon Arising, Modeh Ani",
+    "edot": "Siddur Edot HaMizrach, Preparatory Prayers, Modeh Ani"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/tallit",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Tallit",
+    "sfard": "Siddur Sefard, Upon Arising, Tallit",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Order of Talit"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/tefillin",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Tefillin",
+    "sfard": "Siddur Sefard, Upon Arising, Tefilin",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Order of Tefillin"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/netilat-asher-yatzar",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, On Waking",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Morning Blessings",
+    "edot": "Siddur Edot HaMizrach, Preparatory Prayers, Morning Blessings"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shacharit/birkot-hatorah",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Blessings Over the Torah",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Blessings on Torah",
+    "edot": "Siddur Edot HaMizrach, Preparatory Prayers, Torah Blessings"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/birkot-hashachar",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Morning Blessings",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Blessings on Torah 8",
+    "edot": "Siddur Edot HaMizrach, Preparatory Prayers, Morning Blessings 8"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/akedah",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Binding of Isaac",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Morning Prayer",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Morning Prayer 4"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/korbanot",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Offerings",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Korbanot",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Morning Prayer 13"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shacharit/rabbi-yishmael",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Interpretive Principles of Rabbi Yishmael",
+    "sfard": "Siddur Sefard, Weekday Shacharit, B'raita d'Rabi Yishmael",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Incense Offering 29"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/mizmor-shir-chanukat",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, A Psalm Before Verses of Praise",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Hodu 7",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Hodu 6"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/hodu",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Pesukei DeZimra 6",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Hodu",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Hodu"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/pesukei-dezimra",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Pesukei DeZimra",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Hodu 12",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Pesukei D'Zimra"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/ashrei-pdz",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Pesukei DeZimra 15",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Hodu 19",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Pesukei D'Zimra 6"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/az-yashir",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Pesukei DeZimra 27",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Hodu 39",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Pesukei D'Zimra 17"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/yishtabach",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Pesukei DeZimra 32",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Yishtabach",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Pesukei D'Zimra 19"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/shema-blessings",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Blessings of the Shema",
+    "sfard": "Siddur Sefard, Weekday Shacharit, The Shema",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Pesukei D'Zimra 24"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/amidah",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Amida",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Amidah",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Amida"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/viduy",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Viduy",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Tachanun 4",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Vidui 2"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/avinu-malkeinu",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Avinu Malkenu",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Avinu Malkeinu",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Vidui 9"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shacharit/tachanun",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Tahanun",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Tachanun 12",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Vidui 7"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/torah-reading",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Reading of the Torah",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Torah Reading",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Torah Reading"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/ashrei",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Conclusion of the Service 2",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Ashrei",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Ashrei"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/lamenatzeach",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Conclusion of the Service 6",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Ashrei 4",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Ashrei 6"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/uva-letzion",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Conclusion of the Service 8",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Ashrei 6",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Uva LeSion"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/aleinu",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Conclusion of the Service 31",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Aleinu",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Alenu"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shacharit/song-of-the-day",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Daily Psalm",
+    "sfard": "Siddur Sefard, Weekday Shacharit, Song of the Day",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Song of the Day"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "mincha/start",
+   "service": "mincha",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Minha for Weekdays",
+    "sfard": "Siddur Sefard, Weekday Mincha, Korbanot",
+    "edot": "Siddur Edot HaMizrach, Weekday Mincha, Offerings"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "mincha/ashrei",
+   "service": "mincha",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Minha for Weekdays 1",
+    "sfard": "Siddur Sefard, Weekday Mincha, Korbanot 23",
+    "edot": "Siddur Edot HaMizrach, Weekday Mincha, Offerings 12"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "mincha/amidah",
+   "service": "mincha",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Minha for Weekdays 9",
+    "sfard": "Siddur Sefard, Weekday Mincha, Amidah",
+    "edot": "Siddur Edot HaMizrach, Weekday Mincha, Amida"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "mincha/tachanun",
+   "service": "mincha",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Minha for Weekdays 96",
+    "sfard": "Siddur Sefard, Weekday Mincha, Tachanun",
+    "edot": "Siddur Edot HaMizrach, Weekday Mincha, Vidui"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "mincha/aleinu",
+   "service": "mincha",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Minha for Weekdays 120",
+    "sfard": "Siddur Sefard, Weekday Mincha, Tachanun 25",
+    "edot": "Siddur Edot HaMizrach, Weekday Mincha, Alenu"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "arvit/start",
+   "service": "arvit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Ma'ariv for Weekdays",
+    "sfard": "Siddur Sefard, Weekday Maariv, The Shema",
+    "edot": "Siddur Edot HaMizrach, Weekday Arvit, Barchu"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "arvit/vehu-rachum",
+   "service": "arvit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Ma'ariv for Weekdays 2",
+    "sfard": "Siddur Sefard, Weekday Maariv, The Shema 2",
+    "edot": "Siddur Edot HaMizrach, Weekday Arvit, Barchu 8"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "arvit/barchu",
+   "service": "arvit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Ma'ariv for Weekdays 3",
+    "sfard": "Siddur Sefard, Weekday Maariv, The Shema 3",
+    "edot": "Siddur Edot HaMizrach, Weekday Arvit, Barchu 9"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "arvit/shema",
+   "service": "arvit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Ma'ariv for Weekdays 13",
+    "sfard": "Siddur Sefard, Weekday Maariv, The Shema 11",
+    "edot": "Siddur Edot HaMizrach, Weekday Arvit, The Shema 5"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "arvit/amidah",
+   "service": "arvit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Ma'ariv for Weekdays 36",
+    "sfard": "Siddur Sefard, Weekday Maariv, Amidah",
+    "edot": "Siddur Edot HaMizrach, Weekday Arvit, Amidah"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "arvit/aleinu",
+   "service": "arvit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Ma'ariv for Weekdays 119",
+    "sfard": "Siddur Sefard, Weekday Maariv, Amidah 114",
+    "edot": "Siddur Edot HaMizrach, Weekday Arvit, Alenu"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "arvit/omer",
+   "service": "arvit",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Counting of the Omer",
+    "sfard": "Siddur Sefard, Weekday Maariv, Sefirat HaOmer",
+    "edot": "Siddur Edot HaMizrach, Counting of the Omer"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "night/bedtime-shema",
+   "service": "night",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Shema before Sleep at Night",
+    "sfard": "Siddur Sefard, Bedtime Shema",
+    "edot": "Siddur Edot HaMizrach, Bedtime Shema"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "misc/kiddush-levanah",
+   "service": "misc",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Blessing of the New Moon",
+    "sfard": "Siddur Sefard, Kiddush Levanah",
+    "edot": "Siddur Edot HaMizrach, Blessing of the Moon"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/candle-lighting",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Candle Lighting",
+    "sfard": "Siddur Sefard, Shabbat Candle Lighting",
+    "edot": "Siddur Edot HaMizrach, Shabbat Candle Lighting"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/kabbalat-shabbat",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kabbalat Shabbat",
+    "sfard": "Siddur Sefard, Kabbalat Shabbat",
+    "edot": "Siddur Edot HaMizrach, Kabbalat Shabbat"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/lecha-dodi",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kabbalat Shabbat 12",
+    "sfard": "Siddur Sefard, Kabbalat Shabbat 17",
+    "edot": "Siddur Edot HaMizrach, Kabbalat Shabbat 9"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/mizmor-shir-leyom-hashabbat",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kabbalat Shabbat 36",
+    "sfard": "Siddur Sefard, Kabbalat Shabbat 39",
+    "edot": "Siddur Edot HaMizrach, Kabbalat Shabbat 25"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/maariv",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ma'ariv for Shabbat and Yom Tov",
+    "sfard": "Siddur Sefard, Shabbat Eve Maariv, Shabbat Eve Maariv",
+    "edot": "Siddur Edot HaMizrach, Shabbat Arvit, Barchu"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/maariv-amidah",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ma'ariv for Shabbat and Yom Tov 33",
+    "sfard": "Siddur Sefard, Shabbat Eve Maariv, Amidah",
+    "edot": "Siddur Edot HaMizrach, Shabbat Arvit, Magen Avot"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/vayechulu",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ma'ariv for Shabbat and Yom Tov 85",
+    "sfard": "Siddur Sefard, Shabbat Eve Maariv, Vayechulu",
+    "edot": "Siddur Edot HaMizrach, Shabbat Arvit, Magen Avot 35"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/maariv-aleinu",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ma'ariv for Shabbat and Yom Tov 110",
+    "sfard": "Siddur Sefard, Shabbat Eve Maariv, Vayechulu 17",
+    "edot": "Siddur Edot HaMizrach, Shabbat Arvit, Alenu"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/evening-meal",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kiddush and Zemirot for Shabbat Evening",
+    "sfard": "Siddur Sefard, Shabbat Evening Meal, Blessing the Children",
+    "edot": "Siddur Edot HaMizrach, Shabbat Evening, Shalom Alekhem"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/shalom-aleichem",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kiddush and Zemirot for Shabbat Evening 9",
+    "sfard": "Siddur Sefard, Shabbat Evening Meal, Shalom Aleichem",
+    "edot": "Siddur Edot HaMizrach, Shabbat Evening, Shalom Alekhem"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/eishet-chayil",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kiddush and Zemirot for Shabbat Evening 16",
+    "sfard": "Siddur Sefard, Shabbat Evening Meal, Eishet Chayil",
+    "edot": "Siddur Edot HaMizrach, Shabbat Evening, Eshet Hayil"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/evening-kiddush",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kiddush and Zemirot for Shabbat Evening 21",
+    "sfard": "Siddur Sefard, Shabbat Evening Meal, Shabbat Eve Kiddush",
+    "edot": "Siddur Edot HaMizrach, Shabbat Evening, Kiddush"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/evening-zemirot",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kiddush and Zemirot for Shabbat Evening 31",
+    "sfard": "Siddur Sefard, Shabbat Evening Meal, Zemirot",
+    "edot": "Siddur Edot HaMizrach, Shabbat Evening, Songs for Shabbat"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/shacharit",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Shaharit for Shabbat and Yom Tov",
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Pesukei D'Zimrah",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, Psalms for Shabbat"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/pesukei-dezimra",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Pesukei DeZimra",
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Pesukei D'Zimrah 72",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, Pesukei D'Zimra"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/nishmat",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Nishmat",
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Pesukei D'Zimrah 90",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, Pesukei D'Zimra 20"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/shema-blessings",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Blessings of the Shema",
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Shema & Blessings",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, The Shema"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/amidah",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, The Amida for Shabbat",
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Amidah",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, Amidah"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/torah-reading",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Reading of the Torah",
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Shabbat Torah Reading",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, Torah Reading"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/birkat-hachodesh",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Blessing the New Month",
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Blessing of New Month",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, Birkat HaChodesh"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/musaf",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Musaf for Shabbat",
+    "sfard": "Siddur Sefard, Musaf",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mussaf, Amida"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/musaf-amidah",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Musaf for Shabbat 23",
+    "sfard": "Siddur Sefard, Musaf 2",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mussaf, Amida"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/ein-keloheinu",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Musaf for Shabbat 100",
+    "sfard": "Siddur Sefard, Musaf 66",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mussaf, Amida 64"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/musaf-aleinu",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Musaf for Shabbat 124",
+    "sfard": "Siddur Sefard, Musaf 76",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mussaf, Alenu"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/day-kiddush",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kiddush and Zemirot for Shabbat Morning",
+    "sfard": "Siddur Sefard, Shabbat Day Meal, Shabbat Day Kiddush",
+    "edot": "Siddur Edot HaMizrach, Daytime Meal, Kiddush"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/mincha",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Minha for Shabbat and Yom Tov",
+    "sfard": "Siddur Sefard, Shabbat Mincha, Korbanot",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mincha, Offerings"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/mincha-ashrei",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Minha for Shabbat and Yom Tov 1",
+    "sfard": "Siddur Sefard, Shabbat Mincha, Korbanot 13",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mincha, Offerings 12"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/mincha-uva-letzion",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Minha for Shabbat and Yom Tov 2",
+    "sfard": "Siddur Sefard, Shabbat Mincha, Korbanot 14",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mincha, Uva LeSion"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/mincha-amidah",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Minha for Shabbat and Yom Tov 60",
+    "sfard": "Siddur Sefard, Shabbat Mincha, Amidah",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mincha, Amida"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/mincha-aleinu",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Minha for Shabbat and Yom Tov 129",
+    "sfard": "Siddur Sefard, Shabbat Mincha, Amidah 59",
+    "edot": "Siddur Edot HaMizrach, Shabbat Mincha, Alenu"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/pirkei-avot",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ethics of the Fathers",
+    "sfard": "Siddur Sefard, Shabbat Mincha, Pirkei Avot",
+    "edot": "Siddur Edot HaMizrach, Mishna Study for Shabbat, Pirkei Avot"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "shabbat/seudah-shlishit",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Se'uda Shelishit for Shabbat",
+    "sfard": "Siddur Sefard, Third Meal, Zemirot",
+    "edot": "Siddur Edot HaMizrach, Third Meal"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "shabbat/havdalah",
+   "service": "motzaei-shabbat",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Havdala at Home",
+    "sfard": "Siddur Sefard, Motzaei Shabbat, Havdala",
+    "edot": "Siddur Edot HaMizrach, Havdalah, Havdala"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "blessings/birkat-hamazon",
+   "service": "blessings",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, Birkat HaMazon; Grace after Meals",
+    "sfard": "Siddur Sefard, Birchat HaMazon, Birchat HaMazon",
+    "edot": "Siddur Edot HaMizrach, Post Meal Blessing"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "blessings/meein-shalosh",
+   "service": "blessings",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, Blessings on Pleasures, Sights and Sounds",
+    "sfard": "Siddur Sefard, Blessings, Me'ein Shalosh",
+    "edot": "Siddur Edot HaMizrach, Al Hamihya"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "blessings/birchot-hanehenin",
+   "service": "blessings",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, Blessings on Pleasures, Sights and Sounds",
+    "sfard": "Siddur Sefard, Birchat HaMazon, Blessing on Foods",
+    "edot": "Siddur Edot HaMizrach, Blessings on Enjoyments"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "blessings/mitzvot",
+   "service": "blessings",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, Blessings on Mitzvot",
+    "sfard": "Siddur Sefard, Blessings, Mezuzah",
+    "edot": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Mezuza"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "blessings/travelers-prayer",
+   "service": "blessings",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, The Traveler's Prayer",
+    "sfard": "Siddur Sefard, Blessings, Traveler's Prayer",
+    "edot": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Traveler's Prayer"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "rosh-chodesh/hallel",
+   "service": "rosh-chodesh",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Hallel",
+    "sfard": "Siddur Sefard, Rosh Chodesh, Hallel",
+    "edot": "Siddur Edot HaMizrach, Rosh Hodesh, Hallel"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "rosh-chodesh/barchi-nafshi",
+   "service": "rosh-chodesh",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Barekhi Nafshi",
+    "sfard": "Siddur Sefard, Rosh Chodesh, Barchi Nafshi",
+    "edot": "Siddur Edot HaMizrach, Rosh Hodesh, Barchi Nafshi"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "rosh-chodesh/musaf",
+   "service": "rosh-chodesh",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Musaf for Rosh Hodesh",
+    "sfard": "Siddur Sefard, Rosh Chodesh, Mussaf",
+    "edot": "Siddur Edot HaMizrach, Rosh Hodesh, Mussaf"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "festivals/amidah",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Amida for Yom Tov",
+    "sfard": "Siddur Sefard, Holidays, Maariv, Shacharit & Mincha Amidah",
+    "edot": "Siddur Edot HaMizrach, Prayers for Three Festivals, Amidah"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "festivals/musaf",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Musaf for Festivals",
+    "sfard": "Siddur Sefard, Holidays, Yom Tov Musaf Amidah",
+    "edot": "Siddur Edot HaMizrach, Prayers for Three Festivals, Mussaf"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "chanukah/candle-lighting",
+   "service": "chanukah",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Candle Lighting for Hanukka",
+    "sfard": "Siddur Sefard, Chanukah, Menorah Lighting",
+    "edot": "Siddur Edot HaMizrach, Hanukkah, Menorah Lighting"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "purim/megillah",
+   "service": "purim",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Service for Purim",
+    "sfard": "Siddur Sefard, Purim, Megillah Reading",
+    "edot": "Siddur Edot HaMizrach, Purim, Megillah Reading"
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "fast/selichot-10-tevet",
+   "service": "fasts",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Selihot for the Tenth of Tevet",
+    "sfard": "Siddur Sefard, Fast Days, Selichot for Asara B'Tevet",
+    "edot": "Siddur Edot HaMizrach, Fast Days and Mourning, Tenth of Tevet"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "fast/selichot-esther",
+   "service": "fasts",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Selihot for the Fast of Esther",
+    "sfard": "Siddur Sefard, Fast Days, Selichot for Taanit Esther",
+    "edot": "Siddur Edot HaMizrach, Fast Days and Mourning, Fast of Esther"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "fast/selichot-17-tammuz",
+   "service": "fasts",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Selihot for the Seventeenth of Tammuz",
+    "sfard": "Siddur Sefard, Fast Days, Selichot for 17 Tamuz",
+    "edot": "Siddur Edot HaMizrach, Fast Days and Mourning, Seventeenth of Tammuz"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "lifecycle/brit-milah",
+   "service": "lifecycle",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Brit Mila",
+    "sfard": "Siddur Sefard, Various Blessings, Circumcision",
+    "edot": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Brit Mila"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "lifecycle/pidyon-haben",
+   "service": "lifecycle",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Pidyon HaBen",
+    "sfard": "Siddur Sefard, Various Blessings, Redeeming Firstborn",
+    "edot": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Redeeming the First Born"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "lifecycle/marriage",
+   "service": "lifecycle",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Marriage Service",
+    "sfard": "Siddur Sefard, Various Blessings, Marriage Blessings",
+    "edot": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Marriage"
+   },
+   "confidence": "exact"
+  },
+  {
+   "key": "lifecycle/sheva-berachot",
+   "service": "lifecycle",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Sheva Berakhot",
+    "sfard": "Siddur Sefard, Various Blessings, Sheva Berachot",
+    "edot": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Sheva Berachot"
+   },
+   "confidence": "exact"
+  }
+ ],
+ "partialSections": [
+  {
+   "key": "shacharit/beit-yaakov",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Weekday Shacharit, Beit Yaakov",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Beit Yaakov"
+   },
+   "confidence": "exact",
+   "fallback": "shacharit/song-of-the-day"
+  },
+  {
+   "key": "shacharit/kaveh",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Weekday Shacharit, Kaveh",
+    "edot": "Siddur Edot HaMizrach, Weekday Shacharit, Kaveh"
+   },
+   "confidence": "exact",
+   "fallback": "shacharit/aleinu"
+  },
+  {
+   "key": "shacharit/ledavid",
+   "service": "shacharit",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Weekday Shacharit, L'David Hashem",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "shacharit/song-of-the-day"
+  },
+  {
+   "key": "mincha/korbanot",
+   "service": "mincha",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Weekday Mincha, Korbanot",
+    "edot": "Siddur Edot HaMizrach, Weekday Mincha, Offerings"
+   },
+   "confidence": "exact",
+   "fallback": "mincha/start"
+  },
+  {
+   "key": "shabbat/song-of-songs",
+   "service": "shabbat-eve",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Shabbat Eve Mincha, Song of Songs",
+    "edot": "Siddur Edot HaMizrach, Song of Songs"
+   },
+   "confidence": "exact",
+   "fallback": "shabbat/kabbalat-shabbat"
+  },
+  {
+   "key": "shabbat/haftarah",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Haftarah Blessings",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, Haftarah"
+   },
+   "confidence": "exact",
+   "fallback": "shabbat/torah-reading"
+  },
+  {
+   "key": "shabbat/gomel",
+   "service": "shabbat-day",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Shabbat Morning Services, Thanksgiving Blessing",
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, HaGomel"
+   },
+   "confidence": "exact",
+   "fallback": "shabbat/torah-reading"
+  },
+  {
+   "key": "shabbat/motzaei-maariv",
+   "service": "motzaei-shabbat",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ma'ariv for Motza'ei Shabbat",
+    "sfard": "Siddur Sefard, Weekday Maariv, Motzaei Shabbat",
+    "edot": null
+   },
+   "confidence": "section",
+   "fallback": "arvit/start"
+  },
+  {
+   "key": "festivals/lulav",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Blessing on Taking the Lulav",
+    "sfard": "Siddur Sefard, Shaking Lulav",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "rosh-chodesh/hallel"
+  },
+  {
+   "key": "festivals/hoshanot",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Hoshanot",
+    "sfard": "Siddur Sefard, Sukkot, Order of Hoshanot",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "festivals/musaf"
+  },
+  {
+   "key": "festivals/yizkor",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Yizkor",
+    "sfard": "Siddur Sefard, Holidays, Yizkor",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "festivals/musaf"
+  },
+  {
+   "key": "festivals/prayer-for-dew",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Prayer for Dew",
+    "sfard": "Siddur Sefard, Holidays, Prayer for Dew",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "festivals/musaf"
+  },
+  {
+   "key": "festivals/prayer-for-rain",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Prayer for Rain",
+    "sfard": "Siddur Sefard, Holidays, Prayer for Rain",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "festivals/musaf"
+  },
+  {
+   "key": "festivals/eruv-tavshilin",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Eiruv Tavshilin",
+    "sfard": "Siddur Sefard, Eruv Tavshilin",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "shabbat/candle-lighting"
+  },
+  {
+   "key": "festivals/sukkah",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, On Entering the Sukka",
+    "sfard": "Siddur Sefard, Holidays, Prayer Upon Entering Sukkah",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "festivals/amidah"
+  },
+  {
+   "key": "festivals/hakafot",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Hakafot for Simhat Torah",
+    "sfard": "Siddur Sefard, Simchat Torah, Hakafot",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "festivals/amidah"
+  },
+  {
+   "key": "festivals/birkat-kohanim",
+   "service": "festivals",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Birkat Kohanim",
+    "sfard": "Siddur Sefard, Priestly Blessing",
+    "edot": null
+   },
+   "confidence": "exact",
+   "fallback": "festivals/musaf"
+  },
+  {
+   "key": "pesach/chametz",
+   "service": "pesach",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, Festivals, Removal of Hametz",
+    "sfard": "Siddur Sefard, Nissan, Search for Hametz",
+    "edot": null
+   },
+   "confidence": "section"
+  },
+  {
+   "key": "lifecycle/zeved-habat",
+   "service": "lifecycle",
+   "refs": {
+    "ashkenaz": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Zeved HaBat",
+    "sfard": null,
+    "edot": "Siddur Edot HaMizrach, Shabbat Shacharit, Zeved HaBat"
+   },
+   "confidence": "exact",
+   "fallback": "shabbat/torah-reading"
+  },
+  {
+   "key": "blessings/challah",
+   "service": "blessings",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Blessings, Separating Challah",
+    "edot": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Separating Hallah"
+   },
+   "confidence": "exact",
+   "fallback": "blessings/mitzvot"
+  },
+  {
+   "key": "blessings/tevilat-kelim",
+   "service": "blessings",
+   "refs": {
+    "ashkenaz": null,
+    "sfard": "Siddur Sefard, Blessings, Immersing Utensils",
+    "edot": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Tevillat Kelim"
+   },
+   "confidence": "exact",
+   "fallback": "blessings/mitzvot"
+  }
+ ],
+ "positions": {
+  "ashkenaz": [
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Preface",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Foreword",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Understanding Jewish Prayer",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Guide to the Reader",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, On Waking",
+    "anchor": "shacharit/modeh-ani"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Blessings Over the Torah",
+    "anchor": "shacharit/birkot-hatorah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Tallit",
+    "anchor": "shacharit/tallit"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Tefillin",
+    "anchor": "shacharit/tefillin"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Preparation for Prayer",
+    "anchor": "shacharit/tefillin"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Morning Blessings",
+    "anchor": "shacharit/birkot-hashachar"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Binding of Isaac",
+    "anchor": "shacharit/akedah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Accepting the Sovereignty of Heaven",
+    "anchor": "shacharit/akedah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Offerings",
+    "anchor": "shacharit/korbanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Interpretive Principles of Rabbi Yishmael",
+    "anchor": "shacharit/rabbi-yishmael"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Rabbis' Kaddish",
+    "anchor": "shacharit/rabbi-yishmael"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, A Psalm Before Verses of Praise",
+    "anchor": "shacharit/mizmor-shir-chanukat"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Pesukei DeZimra",
+    "anchor": "shacharit/pesukei-dezimra",
+    "segAnchors": [
+     [
+      6,
+      "shacharit/hodu"
+     ],
+     [
+      15,
+      "shacharit/ashrei-pdz"
+     ],
+     [
+      27,
+      "shacharit/az-yashir"
+     ],
+     [
+      32,
+      "shacharit/yishtabach"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Blessings of the Shema",
+    "anchor": "shacharit/shema-blessings"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Amida",
+    "anchor": "shacharit/amidah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Viduy",
+    "anchor": "shacharit/viduy"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Avinu Malkenu",
+    "anchor": "shacharit/avinu-malkeinu"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Tahanun",
+    "anchor": "shacharit/tachanun"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Reading of the Torah",
+    "anchor": "shacharit/torah-reading"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Conclusion of the Service",
+    "anchor": "shacharit/torah-reading",
+    "segAnchors": [
+     [
+      2,
+      "shacharit/ashrei"
+     ],
+     [
+      6,
+      "shacharit/lamenatzeach"
+     ],
+     [
+      8,
+      "shacharit/uva-letzion"
+     ],
+     [
+      31,
+      "shacharit/aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, The Daily Psalm",
+    "anchor": "shacharit/song-of-the-day"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Readings after the Service",
+    "anchor": "shacharit/song-of-the-day"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Personal Supplications",
+    "anchor": "shacharit/song-of-the-day"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Minha for Weekdays",
+    "anchor": "mincha/ashrei",
+    "segAnchors": [
+     [
+      9,
+      "mincha/amidah"
+     ],
+     [
+      96,
+      "mincha/tachanun"
+     ],
+     [
+      120,
+      "mincha/aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Ma'ariv for Weekdays",
+    "anchor": "arvit/start",
+    "segAnchors": [
+     [
+      2,
+      "arvit/vehu-rachum"
+     ],
+     [
+      3,
+      "arvit/barchu"
+     ],
+     [
+      13,
+      "arvit/shema"
+     ],
+     [
+      36,
+      "arvit/amidah"
+     ],
+     [
+      119,
+      "arvit/aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Counting of the Omer",
+    "anchor": "arvit/omer"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Weekdays, Shema before Sleep at Night",
+    "anchor": "night/bedtime-shema"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Eiruvin",
+    "anchor": "shabbat/candle-lighting"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Candle Lighting",
+    "anchor": "shabbat/candle-lighting"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kabbalat Shabbat",
+    "anchor": "shabbat/kabbalat-shabbat",
+    "segAnchors": [
+     [
+      12,
+      "shabbat/lecha-dodi"
+     ],
+     [
+      36,
+      "shabbat/mizmor-shir-leyom-hashabbat"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ma'ariv for Shabbat and Yom Tov",
+    "anchor": "shabbat/maariv",
+    "segAnchors": [
+     [
+      33,
+      "shabbat/maariv-amidah"
+     ],
+     [
+      85,
+      "shabbat/vayechulu"
+     ],
+     [
+      110,
+      "shabbat/maariv-aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kiddush and Zemirot for Shabbat Evening",
+    "anchor": "shabbat/evening-meal",
+    "segAnchors": [
+     [
+      9,
+      "shabbat/shalom-aleichem"
+     ],
+     [
+      16,
+      "shabbat/eishet-chayil"
+     ],
+     [
+      21,
+      "shabbat/evening-kiddush"
+     ],
+     [
+      31,
+      "shabbat/evening-zemirot"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Shaharit for Shabbat and Yom Tov",
+    "anchor": "shabbat/shacharit"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Pesukei DeZimra",
+    "anchor": "shabbat/pesukei-dezimra"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Nishmat",
+    "anchor": "shabbat/nishmat"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Blessings of the Shema",
+    "anchor": "shabbat/shema-blessings"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, The Amida for Shabbat",
+    "anchor": "shabbat/amidah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Reading of the Torah",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Prayer for the Welfare of the Government",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Prayer for the State of Israel",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Prayer for Israel's Defense Forces",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Blessing the New Month",
+    "anchor": "shabbat/birkat-hachodesh"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Musaf for Shabbat",
+    "anchor": "shabbat/musaf",
+    "segAnchors": [
+     [
+      23,
+      "shabbat/musaf-amidah"
+     ],
+     [
+      100,
+      "shabbat/ein-keloheinu"
+     ],
+     [
+      124,
+      "shabbat/musaf-aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Kiddush and Zemirot for Shabbat Morning",
+    "anchor": "shabbat/day-kiddush"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Minha for Shabbat and Yom Tov",
+    "anchor": "shabbat/mincha-ashrei",
+    "segAnchors": [
+     [
+      2,
+      "shabbat/mincha-uva-letzion"
+     ],
+     [
+      60,
+      "shabbat/mincha-amidah"
+     ],
+     [
+      129,
+      "shabbat/mincha-aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Barekhi Nafshi",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ethics of the Fathers",
+    "anchor": "shabbat/pirkei-avot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Se'uda Shelishit for Shabbat",
+    "anchor": "shabbat/seudah-shlishit"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Ma'ariv for Motza'ei Shabbat",
+    "anchor": "shabbat/motzaei-maariv"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Blessing of the New Moon",
+    "anchor": "misc/kiddush-levanah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Shabbat, Havdala at Home",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Blessing on Taking the Lulav",
+    "anchor": "festivals/lulav"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Hallel",
+    "anchor": "rosh-chodesh/hallel"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Musaf for Rosh Hodesh",
+    "anchor": "rosh-chodesh/musaf"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Removal of Hametz",
+    "anchor": "pesach/chametz"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Eiruv Tavshilin",
+    "anchor": "festivals/eruv-tavshilin"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Kiddush for Yom Tov Evening",
+    "anchor": "festivals/eruv-tavshilin"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, On Entering the Sukka",
+    "anchor": "festivals/sukkah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Ushpizin",
+    "anchor": "festivals/sukkah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Kiddush for Yom Tov Morning",
+    "anchor": "festivals/sukkah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Amida for Yom Tov",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Hakafot for Simhat Torah",
+    "anchor": "festivals/hakafot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Akdamut",
+    "anchor": "festivals/hakafot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Yizkor",
+    "anchor": "festivals/yizkor"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Ka Keli",
+    "anchor": "festivals/yizkor"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Musaf for Festivals",
+    "anchor": "festivals/musaf"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Birkat Kohanim",
+    "anchor": "festivals/birkat-kohanim"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Prayer for Dew",
+    "anchor": "festivals/prayer-for-dew"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Prayer for Rain",
+    "anchor": "festivals/prayer-for-rain"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Hoshanot",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Hoshanot for Shabbat Hol HaMo'ed",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Hoshanot for Hoshana Raba",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Annulment of Vows before Rosh HaShana",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Kiddush for Rosh HaShana Evening",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Kiddush for Rosh HaShana Day",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Tashlikh",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Kaparot",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Viduy for Minha of Erev Yom Kippur",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Candle Lighting for Hanukka",
+    "anchor": "chanukah/candle-lighting"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Service for Purim",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Additions to Shaharit for Yom HaZikaron",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Additions to Ma'ariv for Yom HaAtzma'ut",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Additions to Shaharit for Yom HaAtzma'ut",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Yom Yerushalayim",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Selihot for the Tenth of Tevet",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Selihot for the Fast of Esther",
+    "anchor": "fast/selichot-esther"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Selihot for the Seventeenth of Tammuz",
+    "anchor": "fast/selichot-17-tammuz"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Festivals, Selihot; All Days",
+    "anchor": "fast/selichot-17-tammuz"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, Birkat HaMazon; Grace after Meals",
+    "anchor": "blessings/birkat-hamazon"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, Blessings on Mitzvot",
+    "anchor": "blessings/mitzvot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, Blessings on Pleasures, Sights and Sounds",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, Consecration of a House",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Giving Thanks, The Traveler's Prayer",
+    "anchor": "blessings/travelers-prayer"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Brit Mila",
+    "anchor": "lifecycle/brit-milah"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Pidyon HaBen",
+    "anchor": "lifecycle/pidyon-haben"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Prayer after Childbirth",
+    "anchor": "lifecycle/pidyon-haben"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Zeved HaBat",
+    "anchor": "lifecycle/zeved-habat"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Marriage Service",
+    "anchor": "lifecycle/marriage"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Sheva Berakhot",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Prayer for Recovery from Illness",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Prayer after Recovery from Illness",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Confession before Death",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Funeral Service",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Prayer in a House of Mourning",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, The Cycle of Life, Birkat HaMazon in a House of Mourning",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Weekly Portions for Mondays, Thursdays and Shabbat Minha",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Rosh Hodesh",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Fast Days",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Tisha B'Av",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Hanukka",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Purim",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Pesah",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Hol HaMo'ed Pesah",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Shabbat Hol HaMo'ed",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Seventh Day of Pesah",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Shavuot",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Sukkot",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Hol HaMo'ed Sukkot",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Shemini Atzeret",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Simhat Torah",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Hatan Torah and Hatan Bereshit",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Torah Readings, Piyutei Geula; Berah Dodi",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Guide to the Jewish Year",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Daily Prayer",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Shabbat Prayer",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Guide for Visitors to Israel",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Textual Variants",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Table of Permitted Responses",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Jewish Leap Years",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Rabbis' Kaddish Transliterated",
+    "anchor": null
+   },
+   {
+    "ref": "The Koren Shalem Siddur; Ashkenaz, Gates to Prayer, Mourner's Kaddish Transliterated",
+    "anchor": null
+   }
+  ],
+  "sfard": [
+   {
+    "ref": "Siddur Sefard, Upon Arising, Modeh Ani",
+    "anchor": "shacharit/modeh-ani"
+   },
+   {
+    "ref": "Siddur Sefard, Upon Arising, Tallit",
+    "anchor": "shacharit/tallit"
+   },
+   {
+    "ref": "Siddur Sefard, Upon Arising, Tefilin",
+    "anchor": "shacharit/tefillin"
+   },
+   {
+    "ref": "Siddur Sefard, Upon Arising, Introductory Prayers",
+    "anchor": "shacharit/tefillin"
+   },
+   {
+    "ref": "Siddur Sefard, Upon Arising, Upon Entering Synagogue",
+    "anchor": "shacharit/tefillin"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Morning Blessings",
+    "anchor": "shacharit/netilat-asher-yatzar"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Blessings on Torah",
+    "anchor": "shacharit/birkot-hatorah",
+    "segAnchors": [
+     [
+      8,
+      "shacharit/birkot-hashachar"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Morning Prayer",
+    "anchor": "shacharit/akedah"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Korbanot",
+    "anchor": "shacharit/korbanot"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, B'raita d'Rabi Yishmael",
+    "anchor": "shacharit/rabbi-yishmael"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Hodu",
+    "anchor": "shacharit/hodu",
+    "segAnchors": [
+     [
+      7,
+      "shacharit/mizmor-shir-chanukat"
+     ],
+     [
+      12,
+      "shacharit/pesukei-dezimra"
+     ],
+     [
+      19,
+      "shacharit/ashrei-pdz"
+     ],
+     [
+      39,
+      "shacharit/az-yashir"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Yishtabach",
+    "anchor": "shacharit/yishtabach"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, The Shema",
+    "anchor": "shacharit/shema-blessings"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Amidah",
+    "anchor": "shacharit/amidah"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Tachanun",
+    "anchor": "shacharit/amidah",
+    "segAnchors": [
+     [
+      4,
+      "shacharit/viduy"
+     ],
+     [
+      12,
+      "shacharit/tachanun"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Avinu Malkeinu",
+    "anchor": "shacharit/avinu-malkeinu"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, For Monday & Thursday",
+    "anchor": "shacharit/avinu-malkeinu"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Torah Reading",
+    "anchor": "shacharit/torah-reading"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Ashrei",
+    "anchor": "shacharit/ashrei",
+    "segAnchors": [
+     [
+      4,
+      "shacharit/lamenatzeach"
+     ],
+     [
+      6,
+      "shacharit/uva-letzion"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Beit Yaakov",
+    "anchor": "shacharit/beit-yaakov"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Song of the Day",
+    "anchor": "shacharit/song-of-the-day"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Barchi Nafshi",
+    "anchor": "shacharit/song-of-the-day"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, L'David Hashem",
+    "anchor": "shacharit/ledavid"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Kaveh",
+    "anchor": "shacharit/kaveh"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Shacharit, Aleinu",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Additional Prayers, Six Rememberances",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Additional Prayers, Thirteen Principles",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Additional Prayers, Chapter of Fear of God",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Additional Prayers, Chapter of Repentance",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Additional Prayers, Chapter of Manna",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Additional Prayers, Supplications After Prayers",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Additional Prayers, Chapter of Song",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Mincha, Korbanot",
+    "anchor": "mincha/korbanot",
+    "segAnchors": [
+     [
+      23,
+      "mincha/ashrei"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Mincha, Torah Reading for Fast Day",
+    "anchor": "mincha/ashrei"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Mincha, Amidah",
+    "anchor": "mincha/amidah"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Mincha, Tachanun",
+    "anchor": "mincha/tachanun",
+    "segAnchors": [
+     [
+      25,
+      "mincha/aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Mincha, Avinu Malkeinu",
+    "anchor": "mincha/aleinu"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Maariv, The Shema",
+    "anchor": "arvit/start",
+    "segAnchors": [
+     [
+      2,
+      "arvit/vehu-rachum"
+     ],
+     [
+      3,
+      "arvit/barchu"
+     ],
+     [
+      11,
+      "arvit/shema"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Maariv, Amidah",
+    "anchor": "arvit/amidah",
+    "segAnchors": [
+     [
+      114,
+      "arvit/aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Maariv, Motzaei Shabbat",
+    "anchor": "shabbat/motzaei-maariv"
+   },
+   {
+    "ref": "Siddur Sefard, Weekday Maariv, Sefirat HaOmer",
+    "anchor": "arvit/omer"
+   },
+   {
+    "ref": "Siddur Sefard, Kiddush Levanah",
+    "anchor": "misc/kiddush-levanah"
+   },
+   {
+    "ref": "Siddur Sefard, Bedtime Shema",
+    "anchor": "night/bedtime-shema"
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Amar Rabbi Akiva",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Ashreinu Ma Tov",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Ashreinu Uma Naim",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Bar Yochai",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Bar Yochai Butzina Kadisha",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Bar Yochai Hashem Imcha",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Bar Yochai Yesod Olam",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Bar Yochai Tagel Yoladetecha",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Va'amartem Ko Lechai",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Lichvod HaTanna",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Lag BaOmer Songs, Naaleh V'Navo",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Various Blessings, Marriage Blessings",
+    "anchor": "lifecycle/marriage"
+   },
+   {
+    "ref": "Siddur Sefard, Various Blessings, Sheva Berachot",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "Siddur Sefard, Various Blessings, Circumcision",
+    "anchor": "lifecycle/brit-milah"
+   },
+   {
+    "ref": "Siddur Sefard, Various Blessings, Geula LeBrit Milah",
+    "anchor": "lifecycle/brit-milah"
+   },
+   {
+    "ref": "Siddur Sefard, Various Blessings, Redeeming Firstborn",
+    "anchor": "lifecycle/pidyon-haben"
+   },
+   {
+    "ref": "Siddur Sefard, Mealtime Blessings",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Birchat HaMazon, Birchat HaMazon",
+    "anchor": "blessings/birkat-hamazon"
+   },
+   {
+    "ref": "Siddur Sefard, Birchat HaMazon, Brit Milah",
+    "anchor": "blessings/birkat-hamazon"
+   },
+   {
+    "ref": "Siddur Sefard, Birchat HaMazon, Blessing on Foods",
+    "anchor": "blessings/birchot-hanehenin"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Me'ein Shalosh",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Ha'etz",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Ha'adamah",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Shehakol",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Borei Nefashot",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Shehecheyanu",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Fragrant Spices",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Fragrant Herbs",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Fragrant Shrubs",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Fragrant Fruit",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Fragrant Oils",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Lightning & Thunder",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Seeing Rainbow",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Seeing Ocean",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Blossoming Fruit Tree",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Various Blessings of Praise",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Immersing Utensils",
+    "anchor": "blessings/tevilat-kelim"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Mezuzah",
+    "anchor": "blessings/mitzvot"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Separating Challah",
+    "anchor": "blessings/challah"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Separating Terumot & Maasrot",
+    "anchor": "blessings/challah"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Traveler's Prayer",
+    "anchor": "blessings/travelers-prayer"
+   },
+   {
+    "ref": "Siddur Sefard, Blessings, Air Traveler's Prayer",
+    "anchor": "blessings/travelers-prayer"
+   },
+   {
+    "ref": "Siddur Sefard, Eruv Tavshilin",
+    "anchor": "festivals/eruv-tavshilin"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Candle Lighting",
+    "anchor": "shabbat/candle-lighting"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Eve Mincha, Song of Songs",
+    "anchor": "shabbat/song-of-songs"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Eve Mincha, Mincha",
+    "anchor": "shabbat/song-of-songs"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Eve Mincha, Amidah",
+    "anchor": "shabbat/song-of-songs"
+   },
+   {
+    "ref": "Siddur Sefard, Kabbalat Shabbat",
+    "anchor": "shabbat/kabbalat-shabbat",
+    "segAnchors": [
+     [
+      17,
+      "shabbat/lecha-dodi"
+     ],
+     [
+      39,
+      "shabbat/mizmor-shir-leyom-hashabbat"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Eve Maariv, Shabbat Eve Maariv",
+    "anchor": "shabbat/maariv"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Eve Maariv, Shema & Blessings",
+    "anchor": "shabbat/maariv"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Eve Maariv, Amidah",
+    "anchor": "shabbat/maariv-amidah"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Eve Maariv, Vayechulu",
+    "anchor": "shabbat/vayechulu",
+    "segAnchors": [
+     [
+      17,
+      "shabbat/maariv-aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Evening Meal, Blessing the Children",
+    "anchor": "shabbat/evening-meal"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Evening Meal, Shalom Aleichem",
+    "anchor": "shabbat/shalom-aleichem"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Evening Meal, Eishet Chayil",
+    "anchor": "shabbat/eishet-chayil"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Evening Meal, Atkinu Seudata",
+    "anchor": "shabbat/eishet-chayil"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Evening Meal, Shabbat Eve Kiddush",
+    "anchor": "shabbat/evening-kiddush"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Evening Meal, Zemirot",
+    "anchor": "shabbat/evening-zemirot"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Pesukei D'Zimrah",
+    "anchor": "shabbat/shacharit",
+    "segAnchors": [
+     [
+      72,
+      "shabbat/pesukei-dezimra"
+     ],
+     [
+      90,
+      "shabbat/nishmat"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Shema & Blessings",
+    "anchor": "shabbat/shema-blessings"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Amidah",
+    "anchor": "shabbat/amidah"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Shabbat Torah Reading",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Blessings on Torah Reading",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Prayer for Oleh",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Prayer for Mother after Chilbirth",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Prayer for Sick",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, BaHaB Blessing",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Thanksgiving Blessing",
+    "anchor": "shabbat/gomel"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Bar Mitzva",
+    "anchor": "shabbat/gomel"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Hagbahah",
+    "anchor": "shabbat/gomel"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Haftarah Blessings",
+    "anchor": "shabbat/haftarah"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Blessing of New Month",
+    "anchor": "shabbat/birkat-hachodesh"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Prayer for Deceased",
+    "anchor": "shabbat/birkat-hachodesh"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Morning Services, Av HaRachamim",
+    "anchor": "shabbat/birkat-hachodesh"
+   },
+   {
+    "ref": "Siddur Sefard, Musaf",
+    "anchor": "shabbat/musaf",
+    "segAnchors": [
+     [
+      2,
+      "shabbat/musaf-amidah"
+     ],
+     [
+      66,
+      "shabbat/ein-keloheinu"
+     ],
+     [
+      76,
+      "shabbat/musaf-aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Day Meal, Seder Tikunei Shabbat",
+    "anchor": "shabbat/day-kiddush"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Day Meal, Shabbat Day Kiddush",
+    "anchor": "shabbat/day-kiddush"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Day Meal, Zemirot",
+    "anchor": "shabbat/day-kiddush"
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Mincha, Korbanot",
+    "anchor": "shabbat/mincha",
+    "segAnchors": [
+     [
+      13,
+      "shabbat/mincha-ashrei"
+     ],
+     [
+      14,
+      "shabbat/mincha-uva-letzion"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Mincha, Amidah",
+    "anchor": "shabbat/mincha-amidah",
+    "segAnchors": [
+     [
+      59,
+      "shabbat/mincha-aleinu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Sefard, Shabbat Mincha, Pirkei Avot",
+    "anchor": "shabbat/pirkei-avot"
+   },
+   {
+    "ref": "Siddur Sefard, Third Meal, Zemirot",
+    "anchor": "shabbat/seudah-shlishit"
+   },
+   {
+    "ref": "Siddur Sefard, Third Meal, Motzaei Shabbat Prayers",
+    "anchor": "shabbat/seudah-shlishit"
+   },
+   {
+    "ref": "Siddur Sefard, Third Meal, Gott Fun Avraham",
+    "anchor": "shabbat/seudah-shlishit"
+   },
+   {
+    "ref": "Siddur Sefard, Motzaei Shabbat, Havdala",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "Siddur Sefard, Motzaei Shabbat, Hamavdil",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "Siddur Sefard, Motzaei Shabbat, Melava Malka Zemirot",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "Siddur Sefard, Shaking Lulav",
+    "anchor": "festivals/lulav"
+   },
+   {
+    "ref": "Siddur Sefard, Rosh Chodesh, Hallel",
+    "anchor": "rosh-chodesh/hallel"
+   },
+   {
+    "ref": "Siddur Sefard, Rosh Chodesh, Song of the Day",
+    "anchor": "rosh-chodesh/hallel"
+   },
+   {
+    "ref": "Siddur Sefard, Rosh Chodesh, Barchi Nafshi",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "Siddur Sefard, Rosh Chodesh, Torah Reading",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "Siddur Sefard, Rosh Chodesh, Ashrei Uva L'Tziyon",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "Siddur Sefard, Rosh Chodesh, Returning Sefer Torah",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "Siddur Sefard, Rosh Chodesh, Mussaf",
+    "anchor": "rosh-chodesh/musaf"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Yom Tov Eve Kiddush",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Kaddish Before Maariv Amidah",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Maariv, Shacharit & Mincha Amidah",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Yizkor",
+    "anchor": "festivals/yizkor"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Prayer for Dew",
+    "anchor": "festivals/prayer-for-dew"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Prayer for Rain",
+    "anchor": "festivals/prayer-for-rain"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Yom Tov Musaf Amidah",
+    "anchor": "festivals/musaf"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Yom Tov Daytime Kiddush",
+    "anchor": "festivals/musaf"
+   },
+   {
+    "ref": "Siddur Sefard, Holidays, Prayer Upon Entering Sukkah",
+    "anchor": "festivals/sukkah"
+   },
+   {
+    "ref": "Siddur Sefard, Nissan, The'Nasi' Readings",
+    "anchor": "pesach/chametz"
+   },
+   {
+    "ref": "Siddur Sefard, Nissan, Search for Hametz",
+    "anchor": "pesach/chametz"
+   },
+   {
+    "ref": "Siddur Sefard, Nissan, Burning Hametz",
+    "anchor": "pesach/chametz"
+   },
+   {
+    "ref": "Siddur Sefard, Nissan, Pesach Offering",
+    "anchor": "pesach/chametz"
+   },
+   {
+    "ref": "Siddur Sefard, Nissan, Letter of Rav Shimshon of Ostropol",
+    "anchor": "pesach/chametz"
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Kadesh",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Urchatz",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Karpas",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Yachatz",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Maggid",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Rochtzoh",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Motzi, Matzah",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Maror",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Korech",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Shulchan Orech",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Tzafun",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Barech",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Hallel",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Nirtzah",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Pesach Haggadah, Shir HaShirim",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Sukkot, Order of Hoshanot",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "Siddur Sefard, Sukkot, First Day & Chol HaMoed",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "Siddur Sefard, Sukkot, Sabbath",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "Siddur Sefard, Sukkot, Hoshana Rabba",
+    "anchor": "festivals/hoshanot"
+   },
+   {
+    "ref": "Siddur Sefard, Simchat Torah, Hakafot",
+    "anchor": "festivals/hakafot"
+   },
+   {
+    "ref": "Siddur Sefard, Simchat Torah, Evening Torah Reading",
+    "anchor": "festivals/hakafot"
+   },
+   {
+    "ref": "Siddur Sefard, Shavuot",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Yotzerot, Parashat Sekalim",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Yotzerot, Musaf for Shekalim",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Yotzerot, Parashat Zachor",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Yotzerot, Parashat Parah",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Yotzerot, Parashat HaChodesh",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Yotzerot, Musaf for Hachodesh",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Yotzerot, Shabbat HaGadol",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Yotzerot, Haggadah for Shabbat Hagadol",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Chanukah, Menorah Lighting",
+    "anchor": "chanukah/candle-lighting"
+   },
+   {
+    "ref": "Siddur Sefard, Chanukah, Torah Reading",
+    "anchor": "chanukah/candle-lighting"
+   },
+   {
+    "ref": "Siddur Sefard, Chanukah, Song for Shabbat Chanuka",
+    "anchor": "chanukah/candle-lighting"
+   },
+   {
+    "ref": "Siddur Sefard, Purim, Parashat Zachor",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "Siddur Sefard, Purim, Megillah Reading",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "Siddur Sefard, Purim, Order of Purim Day",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "Siddur Sefard, Purim, Krovetz L'Purim",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "Siddur Sefard, Purim, Torah Reading",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Yom Kippur Katan",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for BaHaB",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for First Monday",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for Thursday",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for Concluding Monday",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for Asara B'Tevet",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for Taanit Esther",
+    "anchor": "fast/selichot-esther"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for 20 Sivan",
+    "anchor": "fast/selichot-esther"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, El Maleh Prayer",
+    "anchor": "fast/selichot-esther"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for 17 Tamuz",
+    "anchor": "fast/selichot-17-tammuz"
+   },
+   {
+    "ref": "Siddur Sefard, Fast Days, Selichot for Childrens' Illness",
+    "anchor": "fast/selichot-17-tammuz"
+   },
+   {
+    "ref": "Siddur Sefard, Torah Readings, Torah Reading for Shabbat Mincha & Monday, Thursday",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Torah Readings, Fast Day Torah Reading",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Torah Readings, Fast Day Mincha Haftara",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Torah Readings, Torah Reading for Rosh Chodesh",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Torah Readings, Torah Reading for Chol Hamoed Pesach",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Torah Readings, Torah Reading for Chol Hamoed Sukkot",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Priestly Blessing",
+    "anchor": "festivals/birkat-kohanim"
+   },
+   {
+    "ref": "Siddur Sefard, Various Prayers & Segulot, Formula Against Evil Eye",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Various Prayers & Segulot, Letter of Ramban",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Various Prayers & Segulot, Prayer of the Shelah",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Various Prayers & Segulot, Parashat Haman Reading for Tuesday Beshalach",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Various Prayers & Segulot, Prayer for Livelihood",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Sefard, Various Prayers & Segulot, Awesome Prayer of Rabbeinu Tam",
+    "anchor": null
+   }
+  ],
+  "edot": [
+   {
+    "ref": "Siddur Edot HaMizrach, Preparatory Prayers, Modeh Ani",
+    "anchor": "shacharit/modeh-ani"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Preparatory Prayers, Morning Blessings",
+    "anchor": "shacharit/netilat-asher-yatzar",
+    "segAnchors": [
+     [
+      8,
+      "shacharit/birkot-hashachar"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Preparatory Prayers, Torah Blessings",
+    "anchor": "shacharit/birkot-hatorah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, The Midnight Rite, LeShem Yichud",
+    "anchor": "shacharit/birkot-hatorah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, The Midnight Rite, Tikkun Rachel",
+    "anchor": "shacharit/birkot-hatorah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, The Midnight Rite, Tikkun Leah",
+    "anchor": "shacharit/birkot-hatorah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Petichat Eliyahu",
+    "anchor": "shacharit/tallit"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Order of Talit",
+    "anchor": "shacharit/tallit"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Order of Tefillin",
+    "anchor": "shacharit/tefillin"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Hanna's Prayer",
+    "anchor": "shacharit/tefillin"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Morning Prayer",
+    "anchor": "shacharit/tefillin",
+    "segAnchors": [
+     [
+      4,
+      "shacharit/akedah"
+     ],
+     [
+      13,
+      "shacharit/korbanot"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Incense Offering",
+    "anchor": "shacharit/korbanot",
+    "segAnchors": [
+     [
+      29,
+      "shacharit/rabbi-yishmael"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Hodu",
+    "anchor": "shacharit/hodu",
+    "segAnchors": [
+     [
+      6,
+      "shacharit/mizmor-shir-chanukat"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Pesukei D'Zimra",
+    "anchor": "shacharit/pesukei-dezimra",
+    "segAnchors": [
+     [
+      6,
+      "shacharit/ashrei-pdz"
+     ],
+     [
+      17,
+      "shacharit/az-yashir"
+     ],
+     [
+      19,
+      "shacharit/yishtabach"
+     ],
+     [
+      24,
+      "shacharit/shema-blessings"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, The Shema",
+    "anchor": "shacharit/shema-blessings"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Amida",
+    "anchor": "shacharit/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Vidui",
+    "anchor": "shacharit/amidah",
+    "segAnchors": [
+     [
+      2,
+      "shacharit/viduy"
+     ],
+     [
+      7,
+      "shacharit/tachanun"
+     ],
+     [
+      9,
+      "shacharit/avinu-malkeinu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Torah Reading",
+    "anchor": "shacharit/torah-reading"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Ashrei",
+    "anchor": "shacharit/ashrei",
+    "segAnchors": [
+     [
+      6,
+      "shacharit/lamenatzeach"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Uva LeSion",
+    "anchor": "shacharit/uva-letzion"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Beit Yaakov",
+    "anchor": "shacharit/beit-yaakov"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Song of the Day",
+    "anchor": "shacharit/song-of-the-day"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Kaveh",
+    "anchor": "shacharit/kaveh"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Alenu",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Additions for Shacharit, Thirteen Principles of Faith",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Additions for Shacharit, Ten Remembrances",
+    "anchor": "shacharit/aleinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Mincha, Offerings",
+    "anchor": "mincha/korbanot",
+    "segAnchors": [
+     [
+      12,
+      "mincha/ashrei"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Mincha, Amida",
+    "anchor": "mincha/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Mincha, Vidui",
+    "anchor": "mincha/tachanun"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Mincha, Alenu",
+    "anchor": "mincha/aleinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Arvit, Barchu",
+    "anchor": "arvit/start",
+    "segAnchors": [
+     [
+      8,
+      "arvit/vehu-rachum"
+     ],
+     [
+      9,
+      "arvit/barchu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Arvit, The Shema",
+    "anchor": "arvit/barchu",
+    "segAnchors": [
+     [
+      5,
+      "arvit/shema"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Arvit, Amidah",
+    "anchor": "arvit/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Weekday Arvit, Alenu",
+    "anchor": "arvit/aleinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Counting of the Omer",
+    "anchor": "arvit/omer"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Blessing of the Moon",
+    "anchor": "misc/kiddush-levanah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Bedtime Shema",
+    "anchor": "night/bedtime-shema"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Candle Lighting",
+    "anchor": "shabbat/candle-lighting"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Song of Songs",
+    "anchor": "shabbat/song-of-songs"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Kabbalat Shabbat",
+    "anchor": "shabbat/kabbalat-shabbat",
+    "segAnchors": [
+     [
+      9,
+      "shabbat/lecha-dodi"
+     ],
+     [
+      25,
+      "shabbat/mizmor-shir-leyom-hashabbat"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Arvit, Barchu",
+    "anchor": "shabbat/maariv"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Arvit, The Shema",
+    "anchor": "shabbat/maariv"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Arvit, Magen Avot",
+    "anchor": "shabbat/maariv-amidah",
+    "segAnchors": [
+     [
+      35,
+      "shabbat/vayechulu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Arvit, Alenu",
+    "anchor": "shabbat/maariv-aleinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Evening, Shalom Alekhem",
+    "anchor": "shabbat/shalom-aleichem"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Evening, Eshet Hayil",
+    "anchor": "shabbat/eishet-chayil"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Evening, Atkenu Seudata",
+    "anchor": "shabbat/eishet-chayil"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Evening, Kiddush",
+    "anchor": "shabbat/evening-kiddush"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Evening, Blessing of Children",
+    "anchor": "shabbat/evening-kiddush"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Evening, First Meal",
+    "anchor": "shabbat/evening-kiddush"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Evening, Zohar",
+    "anchor": "shabbat/evening-kiddush"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Evening, Songs for Shabbat",
+    "anchor": "shabbat/evening-zemirot"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Post Meal Blessing",
+    "anchor": "blessings/birkat-hamazon"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Al Hamihya",
+    "anchor": "blessings/meein-shalosh"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Blessings on Enjoyments",
+    "anchor": "blessings/birchot-hanehenin"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Psalms for Shabbat",
+    "anchor": "shabbat/shacharit"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Pesukei D'Zimra",
+    "anchor": "shabbat/pesukei-dezimra",
+    "segAnchors": [
+     [
+      20,
+      "shabbat/nishmat"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, The Shema",
+    "anchor": "shabbat/shema-blessings"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Amidah",
+    "anchor": "shabbat/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Torah Reading",
+    "anchor": "shabbat/torah-reading"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, HaGomel",
+    "anchor": "shabbat/gomel"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Zeved HaBat",
+    "anchor": "lifecycle/zeved-habat"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Shabbat Chatan",
+    "anchor": "lifecycle/zeved-habat"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Haftarah",
+    "anchor": "shabbat/haftarah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Birkat HaChodesh",
+    "anchor": "shabbat/birkat-hachodesh"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Announcement of Fast",
+    "anchor": "shabbat/birkat-hachodesh"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Mi Sheberach",
+    "anchor": "shabbat/birkat-hachodesh"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Ashrei",
+    "anchor": "shabbat/birkat-hachodesh"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Mussaf, Amida",
+    "anchor": "shabbat/musaf-amidah",
+    "segAnchors": [
+     [
+      64,
+      "shabbat/ein-keloheinu"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Mussaf, Incense Offering",
+    "anchor": "shabbat/ein-keloheinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Mussaf, Alenu",
+    "anchor": "shabbat/musaf-aleinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Daytime Meal, Daytime Meal",
+    "anchor": "shabbat/day-kiddush"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Daytime Meal, Kiddush",
+    "anchor": "shabbat/day-kiddush"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Mincha, Offerings",
+    "anchor": "shabbat/mincha",
+    "segAnchors": [
+     [
+      12,
+      "shabbat/mincha-ashrei"
+     ]
+    ]
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Mincha, Uva LeSion",
+    "anchor": "shabbat/mincha-uva-letzion"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Mincha, Amida",
+    "anchor": "shabbat/mincha-amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Shabbat Mincha, Alenu",
+    "anchor": "shabbat/mincha-aleinu"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Third Meal",
+    "anchor": "shabbat/seudah-shlishit"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Havdalah, Before Havdalah",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Havdalah, Havdala",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Havdalah, Motzei Shabbat Songs",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Havdalah, Veyiten Lecha",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Havdalah, Fourth Meal",
+    "anchor": "shabbat/havdalah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Rosh Hodesh",
+    "anchor": "rosh-chodesh/hallel"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Hallel",
+    "anchor": "rosh-chodesh/hallel"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Uva LeSion",
+    "anchor": "rosh-chodesh/hallel"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Song of the Day",
+    "anchor": "rosh-chodesh/hallel"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Mussaf",
+    "anchor": "rosh-chodesh/musaf"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Barchi Nafshi",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Kaveh",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Incense Offering",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Alenu",
+    "anchor": "rosh-chodesh/barchi-nafshi"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Prayers for Three Festivals",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Song for Passover",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Song for Shavuot",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Song for Sukkot",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Song for Shemini Atzeret",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Amidah",
+    "anchor": "festivals/amidah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Mussaf",
+    "anchor": "festivals/musaf"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Hanukkah, Menorah Lighting",
+    "anchor": "chanukah/candle-lighting"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Hanukkah, Shacharit",
+    "anchor": "chanukah/candle-lighting"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Purim, Shabbat Zachor",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Purim, Megillah Reading",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Purim, Purim Day",
+    "anchor": "purim/megillah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Nissan, Blessing of the Trees",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Nissan, Learning of the Day",
+    "anchor": null
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Marriage",
+    "anchor": "lifecycle/marriage"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Sheva Berachot",
+    "anchor": "lifecycle/sheva-berachot"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Brit Mila",
+    "anchor": "lifecycle/brit-milah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Redeeming the First Born",
+    "anchor": "lifecycle/pidyon-haben"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Mezuza",
+    "anchor": "blessings/mitzvot"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Building a Fence",
+    "anchor": "blessings/mitzvot"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Separating Hallah",
+    "anchor": "blessings/challah"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Tevillat Kelim",
+    "anchor": "blessings/tevilat-kelim"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Separating Tithes",
+    "anchor": "blessings/tevilat-kelim"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Rainbow",
+    "anchor": "blessings/tevilat-kelim"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Blessings on Lighting and Thunder",
+    "anchor": "blessings/tevilat-kelim"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Prayer for Taking Medicine",
+    "anchor": "blessings/tevilat-kelim"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Traveler's Prayer",
+    "anchor": "blessings/travelers-prayer"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Fast of Gedalya",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Tenth of Tevet",
+    "anchor": "fast/selichot-10-tevet"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Fast of Esther",
+    "anchor": "fast/selichot-esther"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Seventeenth of Tammuz",
+    "anchor": "fast/selichot-17-tammuz"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Mourning",
+    "anchor": "fast/selichot-17-tammuz"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Torah Reading for Fast Days",
+    "anchor": "fast/selichot-17-tammuz"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Mishna Study for Shabbat, First Meal",
+    "anchor": "shabbat/pirkei-avot"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Mishna Study for Shabbat, Second Meal",
+    "anchor": "shabbat/pirkei-avot"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Mishna Study for Shabbat, Third Meal",
+    "anchor": "shabbat/pirkei-avot"
+   },
+   {
+    "ref": "Siddur Edot HaMizrach, Mishna Study for Shabbat, Pirkei Avot",
+    "anchor": "shabbat/pirkei-avot"
+   }
+  ]
+ }
+}

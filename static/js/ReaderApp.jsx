@@ -50,6 +50,7 @@ import AuthPage from './auth/AuthPage';
 import SignupOptions from './auth/SignupOptions';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
+import { adoptStoredNusach } from './SiddurNusachPicker';
 
 // The signup source of the Library Assistant's sign-up options (its login prompt, once a
 // logged-out visitor's free answers are used up).
@@ -292,6 +293,7 @@ class ReaderApp extends Component {
     }
 
     resumePendingAuthAttempt();
+    adoptStoredNusach();
     if (sessionStorage.getItem('sa.reader_app_mounted') === null) {
       sessionStorage.setItem('sa.reader_app_mounted', 'true');
       sa_event('reader_app_mounted');

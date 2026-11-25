@@ -65,6 +65,8 @@ from sefaria.client.wrapper import format_note_object_for_client, format_object_
 from sefaria.constants.model import (
     LIBRARY_MODULE,
     MIN_SOURCES_FOR_TOPIC_DISPLAY,
+    NUSACH_OPTIONS,
+    NUSACH_SETTING_KEY,
     VOICES_MODULE,
     get_direction_from_legacy_lang,
     get_legacy_lang_from_direction,
@@ -419,6 +421,7 @@ def base_props(request):
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
+            "nusach": profile.settings.get(NUSACH_SETTING_KEY),
             "translationLanguagePreference": request.translation_language_preference,
             "versionPrefsByCorpus": request.version_preferences_by_corpus,
             "following": profile.followees.uids,
@@ -446,6 +449,7 @@ def base_props(request):
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
+            "nusach": None,
             "translationLanguagePreference": request.translation_language_preference,
             "versionPrefsByCorpus": request.version_preferences_by_corpus,
             "following": [],
@@ -4831,6 +4835,9 @@ def profile_api(request, slug=None):
             if la_key in profileUpdate.get("settings", {}):
                 # Public endpoint — coerce so a posted "false" can't read as truthy.
                 profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
+        if profileUpdate.get("settings", {}).get(NUSACH_SETTING_KEY, NUSACH_OPTIONS[0]) not in NUSACH_OPTIONS:
+            # Siddur Nusach POC: drop anything but a known nusach.
+            profileUpdate["settings"].pop(NUSACH_SETTING_KEY)
 
         profile = UserProfile(id=request.user.id)
         la_was_enabled = library_assistant.is_enabled(profile)
