@@ -1,7 +1,8 @@
 /* Testing done using Jest */
 // With the assistant on, a no-results tab has no button of its own: its body points to the
 // Library Assistant, and the floating Ask button becomes "✦ Search with Library Assistant",
-// asking about the search. With it off, each tab shows its browse button, as before.
+// asking about the search. With it off, each tab shows its browse button, as before, and the
+// Sources tab adds "✦ Try Library Assistant", which opens ReaderApp's Library Assistant promo modal.
 const mockStrings = {
   'header.library_assistant': 'Library Assistant',
   'search.no_results.sources.h1': 'No sources found for “{query}”',
@@ -23,6 +24,7 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import NoSearchResults from '../NoSearchResults';
 import { LibraryAssistantContext } from '../context';
+import { OPEN_LIBRARY_ASSISTANT_EVENT } from '../LibraryAssistantModal';
 
 // The real widget defines <lc-chatbot> when its script loads (this jsdom has no customElements)
 const widgetLoaded = () => {
@@ -53,6 +55,8 @@ describe('NoSearchResults', function () {
       );
     });
   const ctas = () => container.querySelectorAll('.noSearchResults-cta');
+  const browseButtons = () => container.querySelectorAll('a.noSearchResults-cta');
+  const assistantButton = () => container.querySelector('.noSearchResults-cta--assistant');
   const bodyElement = () => container.querySelector('.noSearchResults-body');
   const body = () => bodyElement().textContent;
   const isPending = () => container.querySelector('.noSearchResults').classList.contains('noSearchResults--pending');
@@ -146,6 +150,15 @@ describe('NoSearchResults', function () {
       });
       expect(jest.getTimerCount()).toBe(0);
     });
+
+    it("doesn't offer the promo on Sources, since the assistant is on the page", async function () {
+      render('sources');
+      await act(async () => {
+        jest.advanceTimersByTime(3000);
+      });
+      expect(browseButtons()).toHaveLength(1);
+      expect(assistantButton()).toBeNull();
+    });
   });
 
   describe('with the assistant off', () => {
@@ -156,8 +169,8 @@ describe('NoSearchResults', function () {
       ['topics', '/topics'],
     ])("shows the %s browse button and the tab's own body", function (mode, href) {
       render(mode, { onPage: false });
-      expect(ctas()).toHaveLength(1);
-      expect(ctas()[0].getAttribute('href')).toBe(href);
+      expect(browseButtons()).toHaveLength(1);
+      expect(browseButtons()[0].getAttribute('href')).toBe(href);
       expect(body()).toBe(`search.no_results.${mode}.body`);
     });
 
@@ -171,10 +184,35 @@ describe('NoSearchResults', function () {
 
     it('offers the assistant once ReaderApp puts it on the page (e.g. after logging in)', function () {
       render('sources', { onPage: false });
-      expect(ctas()).toHaveLength(1);
+      expect(ctas()).toHaveLength(2);
       render('sources', { onPage: true });
       expect(ctas()).toHaveLength(0);
       expect(bodyElement().querySelector('a.noSearchResults-assistantLink')).not.toBeNull();
+    });
+
+    it('shows "✦ Try Library Assistant" after Browse Library on Sources', function () {
+      render('sources', { onPage: false });
+      const sourcesCtas = container.querySelectorAll('.noSearchResults-ctas .noSearchResults-cta');
+      expect(sourcesCtas).toHaveLength(2);
+      expect(sourcesCtas[0].getAttribute('href')).toBe('/texts');
+      expect(sourcesCtas[1]).toBe(assistantButton());
+      expect(assistantButton().textContent).toBe('✦ search.no_results.sources.assistant_button');
+    });
+
+    it('asks ReaderApp to open the Library Assistant modal when it is clicked', function () {
+      render('sources', { onPage: false });
+      const listener = jest.fn();
+      document.addEventListener(OPEN_LIBRARY_ASSISTANT_EVENT, listener);
+      act(() => {
+        assistantButton().click();
+      });
+      document.removeEventListener(OPEN_LIBRARY_ASSISTANT_EVENT, listener);
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['books', 'authors', 'topics'])('does not offer the promo on %s', function (mode) {
+      render(mode, { onPage: false });
+      expect(assistantButton()).toBeNull();
     });
   });
 });

@@ -46,6 +46,7 @@ import { io } from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { shouldUseEditor } from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
+import { LibraryAssistantModal, OPEN_LIBRARY_ASSISTANT_EVENT } from './LibraryAssistantModal';
 import AuthPage from './auth/AuthPage';
 import SignupOptions from './auth/SignupOptions';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
@@ -148,6 +149,7 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      showLibraryAssistantModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
@@ -278,6 +280,7 @@ class ReaderApp extends Component {
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
     document.addEventListener('chatbot:launcher_visibility', this.handleChatbotLauncherVisibility);
+    document.addEventListener(OPEN_LIBRARY_ASSISTANT_EVENT, this.openLibraryAssistantModal);
 
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
@@ -314,6 +317,7 @@ class ReaderApp extends Component {
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
     document.removeEventListener('chatbot:launcher_visibility', this.handleChatbotLauncherVisibility);
+    document.removeEventListener(OPEN_LIBRARY_ASSISTANT_EVENT, this.openLibraryAssistantModal);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -1214,6 +1218,14 @@ class ReaderApp extends Component {
         modalContentKind: modalContentKind,
       });
     }
+  }
+
+  toggleLibraryAssistantModal() {
+    this.setState({ showLibraryAssistantModal: !this.state.showLibraryAssistantModal });
+  }
+
+  openLibraryAssistantModal() {
+    this.setState({ showLibraryAssistantModal: true });
   }
 
   handleNavigationClick(ref, currVersions, options) {
@@ -2699,6 +2711,9 @@ class ReaderApp extends Component {
     // it comes back once they leave them.
     const displayChatbot =
       this.props.chatbot_enabled && isLibraryModule && !this.state.showAuth && !chatbotHiddenByRemoteConfig;
+    // The Library Assistant promo modal's entry points stand in only where the assistant itself isn't
+    // on the page; where it is, the header and mobile-menu items open the assistant instead.
+    const offerAssistantPromo = isLibraryModule && !displayChatbot && !this.state.showAuth;
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -2716,6 +2731,7 @@ class ReaderApp extends Component {
         module={Sefaria.activeModule}
         notificationCount={this.state.notificationCount}
         libraryAssistant={displayChatbot}
+        onAssistantClick={offerAssistantPromo ? this.toggleLibraryAssistantModal : undefined}
       />
     );
 
@@ -2929,6 +2945,12 @@ class ReaderApp extends Component {
                   )}
                 </main>
                 {signUpModal}
+                {this.state.showLibraryAssistantModal && (
+                  <LibraryAssistantModal
+                    onClose={this.toggleLibraryAssistantModal}
+                    promoSessionLengthSeconds={this.props.chatbot_promo_session_length_seconds}
+                  />
+                )}
                 <CookiesNotification />
               </div>
               <BannerImpressionProbe />

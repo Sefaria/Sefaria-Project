@@ -111,6 +111,7 @@ const TextsPage = ({
     multiPanel ? { type: 'AboutSefaria' } : { type: null },
     { type: 'Promo' },
     multiPanel ? { type: 'RecentlyViewed', props: { toggleSignUpModal } } : { type: null },
+    { type: 'LibraryAssistantPromo' },
     { type: 'Translations' },
     { type: 'LearningSchedules' },
     { type: 'Resources' },

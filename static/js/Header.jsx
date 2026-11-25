@@ -343,6 +343,11 @@ const Header = (props) => {
       <DonateLink classes={'textLink donate'} source={'Header'}>
         <InterfaceText>header.donate</InterfaceText>
       </DonateLink>
+      {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && props.onAssistantClick && (
+        <button type="button" className="textLink assistant" onClick={props.onAssistantClick}>
+          ✦ <InterfaceText>header.assistant</InterfaceText>
+        </button>
+      )}
     </div>
   );
 
@@ -439,6 +444,7 @@ const Header = (props) => {
           module={props.module}
           hasUnreadNotifications={hasUnreadNotifications}
           libraryAssistant={props.libraryAssistant}
+          onAssistantClick={props.onAssistantClick}
         />
       )}
       <GlobalWarningMessage />
@@ -468,6 +474,7 @@ Header.propTypes = {
   setTranslationLanguagePreference: PropTypes.func,
   notificationCount: PropTypes.number,
   libraryAssistant: PropTypes.bool,
+  onAssistantClick: PropTypes.func,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
@@ -506,11 +513,19 @@ const MobileNavMenu = ({
   module,
   hasUnreadNotifications,
   libraryAssistant,
+  onAssistantClick,
 }) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
+  // Mobile twin of the desktop "✦ Assistant" nav item: same gating, same modal.
+  const showAssistant = !Sefaria._uid && module === Sefaria.LIBRARY_MODULE && onAssistantClick;
+  const handleAssistantClick = (e) => {
+    e.preventDefault(); // also tells ReaderApp.handleInAppLinkClick to leave it alone
+    close();
+    onAssistantClick();
+  };
   const openLibraryAssistant = (e) => {
     e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
     close();
@@ -529,6 +544,14 @@ const MobileNavMenu = ({
           hideHebrewKeyboard={true}
         />
       </div>
+      {showAssistant && (
+        <a href="#" role="button" onClick={handleAssistantClick} className="assistant">
+          <span className="assistantStar" aria-hidden="true">
+            ✦
+          </span>
+          <InterfaceText>header.try_assistant</InterfaceText>
+        </a>
+      )}
       {module === Sefaria.LIBRARY_MODULE && (
         <>
           <a href="/texts" onClick={close} className="textsPageLink">

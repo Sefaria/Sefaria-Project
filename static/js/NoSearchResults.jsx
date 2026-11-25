@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
 import { LibraryAssistantContext } from './context';
+import { openLibraryAssistant } from './LibraryAssistantModal';
 
 const CTA_HREFS = {
   sources: '/texts',
@@ -113,7 +114,8 @@ function NoSearchResults({ mode, query }) {
   const heading = fillInQuery(Sefaria._(key('h1')), query);
   // Don't show either version until we know whether the assistant is there, so switching tabs
   // never flashes the browse button
-  const availability = useAssistantAvailability(useContext(LibraryAssistantContext));
+  const assistantOnPage = useContext(LibraryAssistantContext);
+  const availability = useAssistantAvailability(assistantOnPage);
   const hasAssistant = availability === AssistantAvailability.AVAILABLE;
 
   // Turn the Library Assistant's "Ask" button into "Search with Library Assistant", which asks
@@ -158,9 +160,21 @@ function NoSearchResults({ mode, query }) {
         </div>
         {/* With the assistant on, its "Search with Library Assistant" button takes this one's place */}
         {availability === AssistantAvailability.UNAVAILABLE && (
-          <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
-            <InterfaceText>{key('button')}</InterfaceText>
-          </a>
+          <div className="noSearchResults-ctas">
+            <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
+              <InterfaceText>{key('button')}</InterfaceText>
+            </a>
+            {/* Where the assistant isn't on the page, Sources offers its promo (ReaderApp's modal) */}
+            {mode === 'sources' && !assistantOnPage && (
+              <button
+                type="button"
+                className="noSearchResults-cta noSearchResults-cta--assistant"
+                onClick={openLibraryAssistant}
+              >
+                ✦ <InterfaceText>{key('assistant_button')}</InterfaceText>
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

@@ -9,6 +9,7 @@ import { Promotions } from './Promotions';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import Util from './sefaria/util';
 import Button from './common/Button';
+import { LibraryAssistantPromo } from './LibraryAssistantPromo';
 
 const NavSidebar = ({ sidebarModules, includeFooter = true }) => {
   return (
@@ -78,6 +79,7 @@ const SidebarModules = ({ type, props }) => {
     PortalNewsletter: PortalNewsletter,
     RecentlyViewed: RecentlyViewed,
     StudyCompanion: StudyCompanion,
+    LibraryAssistantPromo: LibraryAssistantPromo,
   };
   if (!type) {
     return null;

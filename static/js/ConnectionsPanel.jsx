@@ -18,7 +18,7 @@ import { MediaList } from './Media';
 
 import { CategoryFilter, TextFilter } from './ConnectionFilters';
 import React, { useContext, useState } from 'react';
-import { ReaderPanelContext } from './context';
+import { ReaderPanelContext, LibraryAssistantContext } from './context';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
@@ -41,6 +41,7 @@ import { TextTableOfContents } from './BookPage';
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
 import Util from './sefaria/util';
+import { openLibraryAssistant } from './LibraryAssistantModal';
 import TopicSearch from './TopicSearch';
 import WebPage from './WebPage';
 import { SignUpModalKind } from './sefaria/signupModalContent';
@@ -328,6 +329,7 @@ class ConnectionsPanel extends Component {
         <div>
           {this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null}
           <div className="topToolsButtons">
+            <LibraryAssistantToolsButton />
             <ToolsButton
               en="About this Text"
               he="אודות הטקסט"
@@ -1384,6 +1386,7 @@ const ToolsButton = ({
   urlConnectionsMode = null,
   icon,
   image,
+  glyph,
   count,
   control = 'interface',
   typeface = 'system',
@@ -1406,6 +1409,12 @@ const ToolsButton = ({
     iconElem = <i className={classNames(classes)} />;
   } else if (image) {
     iconElem = <img src={'/static/img/' + image} className="toolsButtonIcon" alt={en} />;
+  } else if (glyph) {
+    iconElem = (
+      <span className="toolsButtonIcon toolsButtonGlyph" aria-hidden="true">
+        {glyph}
+      </span>
+    );
   }
   //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam('with', urlConnectionsMode) : null;
@@ -1446,6 +1455,15 @@ const ToolsButton = ({
   ) : null;
 };
 
+// Resources-panel twin of the header's "✦ Assistant": same gating (logged out, library, and the
+// assistant itself not on the page), and it opens ReaderApp's Library Assistant modal via its document event.
+const LibraryAssistantToolsButton = () => {
+  const assistantOnPage = useContext(LibraryAssistantContext);
+  return !Sefaria._uid && Sefaria.activeModule === Sefaria.LIBRARY_MODULE && !assistantOnPage ? (
+    <ToolsButton en="Try Assistant" he="נסו את העוזר" glyph="✦" onClick={openLibraryAssistant} />
+  ) : null;
+};
+
 ToolsButton.SecondaryIcon = ({ icon, alt }) => (
   <img src={`/static/icons/${icon}`} className="toolsButtonSecondaryIcon" alt={alt} />
 );
@@ -1460,6 +1478,7 @@ ToolsButton.propTypes = {
   he: PropTypes.string.isRequired,
   icon: PropTypes.string,
   image: PropTypes.string,
+  glyph: PropTypes.string,
   count: PropTypes.number,
   onClick: PropTypes.func,
   greyColor: PropTypes.bool,
@@ -2030,4 +2049,4 @@ const ConnectionsPanelSection = ({ title, children }) => {
   );
 };
 
-export { ConnectionsPanel, ConnectionsPanelHeader, ToolsButton, ShareBox };
+export { ConnectionsPanel, ConnectionsPanelHeader, ToolsButton, LibraryAssistantToolsButton, ShareBox };
