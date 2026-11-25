@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { InterfaceLangProvider } from "~/lib/i18n/interface-lang";
@@ -119,6 +119,27 @@ describe("ResourcesView", () => {
       expect(res.getByRole("link", { name: /Topics/ })).toHaveTextContent("(7)");
       expect(res.queryByRole("link", { name: /Manuscripts/ })).toBeNull();
       expect(res.getByRole("link", { name: /Torah Readings/ })).toHaveTextContent("(1)");
+    });
+
+    // @feature CON-073
+    it("findings: no row with the lab off; hidden at 0; with a count, after Web Pages, and it alone shows the section", () => {
+      const zero = { ...counts, sheets: 0, webpages: 0, audio: 0, topics: 0, translations: 0 };
+      const view = (findingsCount?: number, c: ResourceCounts = counts) =>
+        render(<ResourcesView summary={topLevelSummary([cat("Commentary", 1)])} catalog={STORY_CATALOG} basePath="/Genesis.1.1" counts={c} findingsCount={findingsCount} sheetsHref="https://voices.sefaria.org/sheets-with-ref/Genesis.1.1" />);
+      const { unmount } = view(undefined);
+      expect(screen.queryByRole("link", { name: /Findings/ })).toBeNull();
+      unmount();
+      view(0).unmount();
+      expect(screen.queryByRole("link", { name: /Findings/ })).toBeNull();
+      view(3);
+      const res = within(screen.getByRole("region", { name: "Resources" }));
+      const row = res.getByRole("link", { name: /Findings/ });
+      expect(row).toHaveTextContent("(3)");
+      expect(row).toHaveAttribute("href", "/Genesis.1.1?with=Findings");
+      expect(res.getAllByRole("link").map((l) => l.textContent?.replace(/\s*\(.*$/, ""))).toEqual(["Sheets", "Web Pages", "Findings", "Topics", "Torah Readings"]);
+      cleanup();
+      view(2, zero);
+      expect(within(screen.getByRole("region", { name: "Resources" })).getAllByRole("link")).toHaveLength(1);
     });
 
     it("no resources section until counts arrive, or when everything is zero", () => {

@@ -42,6 +42,8 @@ export interface ResourcesViewProps {
   signedIn?: boolean;
   /** A moderator (is_staff): the Resources section and its Topics row always show, so topics can be added anywhere. */
   moderator?: boolean;
+  /** The Library Assistant's findings on the selection (CON-073): undefined leaves the row out (the findings lab is off); 0 hides it. */
+  findingsCount?: number;
 }
 
 interface ToolRow {
@@ -72,8 +74,9 @@ const visible = (r: ToolRow) => r.count === undefined || r.count === null || r.c
  * @feature CON-019 Connection categories summary
  * @feature CON-023 Top-level summary: Quoting Commentary merged, collapse to 4
  * @feature CON-024 Essay links in summary
+ * @feature CON-073 Findings anchored to this text
  */
-export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false, lang }: ResourcesViewProps) {
+export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false, lang, findingsCount }: ResourcesViewProps) {
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   const [expanded, setExpanded] = useState(false);
   // section names in the interface's language, the old client's words
@@ -93,6 +96,8 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
     ? [
         { key: "sheets", label: { en: "Sheets", he: "דפי מקורות" }, icon: "file", external: sheetsHref, count: counts.sheets },
         { key: "webpages", label: { en: "Web Pages", he: "דפי אינטרנט" }, icon: "globe", view: mode("WebPages"), count: counts.webpages },
+        // new in this reader, behind the findings lab: shown only once the chat service has answered with some (never as a guess)
+        ...(findingsCount !== undefined ? [{ key: "findings", label: { en: "Findings", he: "ממצאים" }, icon: "bookmark" as const, view: mode("Findings"), count: findingsCount }] : []),
         { key: "topics", label: { en: "Topics", he: "נושאים" }, icon: "hash", view: mode("Topics"), count: counts.topics, alwaysShow: moderator },
         { key: "manuscripts", label: { en: "Manuscripts", he: "כתבי יד" }, icon: "scroll", view: mode("manuscripts"), count: counts.manuscripts },
         { key: "readings", label: { en: "Torah Readings", he: "קריאה בתורה" }, icon: "audio", view: mode("Torah Readings"), count: counts.audio },

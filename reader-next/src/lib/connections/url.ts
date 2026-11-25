@@ -7,6 +7,7 @@
  *   with=Rashi|Quoting              quoting commentary named Rashi     (suffixes |Quoting, |Essay)
  *   with=WebPages / WebPage:<site>  the web pages citing the passage, all sites or one
  *   with=Translations / About / …   other sidebar modes (named)
+ *   with=Findings                   the Library Assistant's findings on the passage (behind the findings lab; new in this reader)
  *
  * @feature RTE-044 Sidebar mode param (with)
  * @feature CON-006 Sidebar mode switching
@@ -17,6 +18,7 @@ export const SIDEBAR_MODES = [
   "Sheets", "Notes", "Translations", "Translation Open", "Version Open", "About", "AboutSheet", "Navigation", "WebPages",
   "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin",
   "Advanced Tools", "Share", "Feedback", "Add To Sheet", "Add Connection", "LexiconHeadwordEdit", "LexiconContentEdit",
+  "Findings",
 ] as const;
 export type SidebarModeName = (typeof SIDEBAR_MODES)[number];
 
