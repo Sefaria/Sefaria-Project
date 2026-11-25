@@ -49,6 +49,7 @@ jest.mock('../LibraryAssistantSettings', () => ({
         'data-testid': 'library-assistant-settings',
         'data-enabled': String(props.libraryAssistantEnabled),
         'data-token': props.chatbot_user_token || '',
+        'data-active': String(props.active),
       },
       React.createElement('button', {
         type: 'button',
@@ -110,6 +111,7 @@ describe('settings tabs', () => {
     const panel = screen.getByTestId('library-assistant-settings');
     expect(panel.getAttribute('data-token')).toBe('tok');
     expect(panel.getAttribute('data-enabled')).toBe('false');
+    expect(panel.getAttribute('data-active')).toBe('true');
     expect(page.props.tab).toBe('library-assistant');
   });
 
@@ -140,6 +142,12 @@ describe('settings tabs', () => {
     pageEvent('pageshow');
     await settle();
     expect(screen.getByTestId('library-assistant-settings').getAttribute('data-enabled')).toBe('true');
+  });
+
+  it('tells the Library Assistant panel it is not the active tab while on Account', () => {
+    fakeServer();
+    renderSettings('account', null, { chatbotProps: { chatbot_user_token: 'tok' } });
+    expect(screen.getByTestId('library-assistant-settings').getAttribute('data-active')).toBe('false');
   });
 
   it('switches to the Library Assistant tab in place', async () => {

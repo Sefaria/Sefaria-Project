@@ -5284,6 +5284,7 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, chatb
       <LibraryAssistantSettings
         {...(chatbotProps || {})}
         libraryAssistantEnabled={!!settings.libraryAssistantEnabled}
+        active={tab === 'library-assistant'}
         onAssistantChanged={assistantChanged}
       />
     ),

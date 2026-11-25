@@ -96,6 +96,8 @@ const MAX_RUNS = 10;
 export const LOAD_TIMEOUT_MS = 15000;
 // Instructions save themselves this long after typing stops (and on leaving the field).
 export const INSTRUCTIONS_SAVE_MS = 800;
+// A write that gets no answer in this time fails, so the serial queue moves on.
+export const MUTATION_TIMEOUT_MS = 20000;
 
 // A Run now / Dream now result in plain words, then the codes testers can quote.
 const RUN_STATUS = {
@@ -216,7 +218,7 @@ const MOCK = (() => {
 })();
 const isMock = () => MOCK;
 // The chat's "Configure here" links to #personalization, "Learn more" to #about-personalization. Read when the
-// tab mounts, so in-app navigation to the tab with a hash works too.
+// tab becomes active (and its data is loaded), so in-app navigation to the tab with a hash works too.
 const currentHash = () => {
   try {
     return window.location.hash;
@@ -400,7 +402,7 @@ const ClearDialog = ({ onClear, onCancel }) => {
 
 /* ---------- Personalization: Profile, Instructions, Testing tools ---------- */
 
-const Personalization = ({ base, token, off, onSaving }) => {
+const Personalization = ({ base, token, off, onSaving, active }) => {
   const mock = isMock();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -410,7 +412,6 @@ const Personalization = ({ base, token, off, onSaving }) => {
   const savedDraft = useRef('');
   const latestDraft = useRef('');
   const mockStore = useRef(null);
-  const initialHash = useRef(currentHash());
   const [confirmClear, setConfirmClear] = useState(false);
   const [editRequest, setEditRequest] = useState('');
   const [editing, setEditing] = useState(false);
@@ -464,7 +465,13 @@ const Personalization = ({ base, token, off, onSaving }) => {
       const send = () =>
         mock
           ? mockLaSettings(mockStore, action, body)
-          : laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : sendOpts);
+          : laSettings(
+              base,
+              token,
+              action,
+              body,
+              action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : { timeoutMs: MUTATION_TIMEOUT_MS, ...sendOpts }
+            );
       try {
         let res;
         if (saves) {
@@ -513,14 +520,24 @@ const Personalization = ({ base, token, off, onSaving }) => {
   }, [call, loadAttempt]);
 
   // Arriving from the chat's "Configure here" (#personalization) lands on the Profile (Penina, 2026-11-19).
+  // The hash is read when the tab becomes active and its data is there, once per activation (the panel is mounted
+  // hidden, so nothing could scroll before that).
   const scrolled = useRef(false);
   useEffect(() => {
+    if (!active) {
+      scrolled.current = false;
+      return;
+    }
     if (!data || scrolled.current) return;
     scrolled.current = true;
-    const hash = initialHash.current;
+    const hash = currentHash();
     if (hash === '#personalization' || hash === '#profile') scrollToId('profile');
     if (hash === '#about-personalization') scrollToId('about-personalization');
-  }, [data]);
+  }, [data, active]);
+  // A dialog left open on a tab that was switched away from would keep taking the Tab key.
+  useEffect(() => {
+    if (!active) setConfirmClear(false);
+  }, [active]);
 
   const act = async (action, body, accept, onQuota, sendOpts) => {
     const res = await call(action, body, accept, onQuota, sendOpts);
@@ -842,7 +859,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
 
 /* ---------- The tab ---------- */
 
-const LibraryAssistantSettings = (props) => {
+const LibraryAssistantSettings = ({ active = true, ...props }) => {
   const base = chatbotApiBaseUrl(props);
   const token = props.chatbot_user_token;
   const hasAccess = isMock() || !!(token && base);
@@ -858,6 +875,11 @@ const LibraryAssistantSettings = (props) => {
     },
     []
   );
+  // Follow the acknowledged setting (a save that finished after this panel was remounted updates the page, not
+  // this panel's own request), except while this panel's own optimistic change is in flight.
+  useEffect(() => {
+    if (!inFlight.current) setAssistantOn(!!props.libraryAssistantEnabled);
+  }, [props.libraryAssistantEnabled]);
   // `result`: 'ok' or 'fail' when a save ends. The header shows the last save's result.
   const onSaving = useCallback((delta, result) => {
     // A write queued at unmount finishes after the tab is gone.
@@ -883,6 +905,7 @@ const LibraryAssistantSettings = (props) => {
     const fail = () => {
       inFlight.current = false;
       onSaving(-1, 'fail');
+      if (!tabMounted.current) return;
       setAssistantOn(!on);
       setSettingError(STRINGS.settingFailed);
     };
@@ -952,7 +975,7 @@ const LibraryAssistantSettings = (props) => {
             </p>
           </div>
           {hasAccess ? (
-            <Personalization base={base} token={token} off={off} onSaving={onSaving} />
+            <Personalization base={base} token={token} off={off} onSaving={onSaving} active={active} />
           ) : (
             <section className="laCard">
               <p className="laHint">

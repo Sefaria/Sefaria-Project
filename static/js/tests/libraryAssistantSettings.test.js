@@ -11,6 +11,7 @@ import LibraryAssistantSettings, {
   INSTRUCTIONS_SAVE_MS,
   isPreviewBase,
   LOAD_TIMEOUT_MS,
+  MUTATION_TIMEOUT_MS,
   parseSections,
   shouldMock,
 } from '../LibraryAssistantSettings';
@@ -767,6 +768,124 @@ describe('LibraryAssistantSettings', () => {
       window.location.hash = '';
       await render();
       expect(scrolled).toEqual([]);
+    });
+  });
+
+  describe('round 4 fixes', () => {
+    const props = (over = {}) => ({
+      chatbot_user_token: 'tok',
+      chatbot_api_base_url: BASE,
+      libraryAssistantEnabled: true,
+      ...over,
+    });
+    const rerender = (over) =>
+      act(async () => void ReactDOM.render(<LibraryAssistantSettings {...props(over)} />, container));
+
+    it('follows the page setting when an assistant save finishes after the panel was remounted', async () => {
+      await render();
+      await check(q('#laAssistant'), false);
+      const finish = global.$.post.mock.calls[0][2];
+      unmount();
+      await render(); // pageshow: a new panel, the page's setting is still the old one
+      expect(q('#laAssistant').checked).toBe(true);
+      await act(async () => finish({}));
+      await rerender({ libraryAssistantEnabled: false });
+      expect(q('#laAssistant').checked).toBe(false);
+    });
+
+    it('keeps its own optimistic value while its save is in flight', async () => {
+      await render();
+      await check(q('#laAssistant'), false);
+      await rerender({ libraryAssistantEnabled: true });
+      expect(q('#laAssistant').checked).toBe(false);
+    });
+
+    it('does not touch state when the assistant save fails after unmount', async () => {
+      const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const onAssistantChanged = jest.fn();
+      await render({ onAssistantChanged });
+      await check(q('#laAssistant'), false);
+      const req = global.$.post.mock.results[0].value;
+      unmount();
+      await act(async () => req.failFn());
+      expect(spy).not.toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it('fails a write that gets no answer within the timeout, and the queue moves on', async () => {
+      const calls = [];
+      global.fetch.mockImplementation((url, init) => {
+        const body = JSON.parse(init.body);
+        if (body.action === 'get') return reply(state());
+        return new Promise((resolve, reject) => {
+          calls.push(body);
+          init.signal.addEventListener('abort', () => reject(new Error('aborted')));
+        });
+      });
+      await render();
+      jest.useFakeTimers();
+      await type(q('#laInstructionsText'), 'A');
+      await act(async () => Simulate.blur(q('#laInstructionsText')));
+      await check(q('#laProfile'), false);
+      expect(calls).toHaveLength(1);
+      await act(async () => {
+        jest.advanceTimersByTime(MUTATION_TIMEOUT_MS);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      // the next queued write was sent once the first failed
+      expect(calls).toHaveLength(2);
+      expect(calls[1].action).not.toBe('set_instructions');
+      await act(async () => {
+        jest.advanceTimersByTime(MUTATION_TIMEOUT_MS);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+    });
+
+    describe('hash and tab activation', () => {
+      let scrolled;
+      beforeEach(() => {
+        scrolled = [];
+        Element.prototype.scrollIntoView = function () {
+          scrolled.push(this.id);
+        };
+      });
+      afterEach(() => {
+        delete Element.prototype.scrollIntoView;
+        window.location.hash = '';
+      });
+
+      it('scrolls when the tab becomes active, not when it mounts hidden', async () => {
+        await render({ active: false });
+        window.location.hash = '#personalization';
+        await rerender({ active: false });
+        expect(scrolled).toEqual([]);
+        await rerender({ active: true });
+        expect(scrolled).toEqual(['profile']);
+        await rerender({ active: true });
+        expect(scrolled).toEqual(['profile']);
+      });
+
+      it('processes the hash again on a later activation', async () => {
+        await render({ active: true });
+        window.location.hash = '#about-personalization';
+        await rerender({ active: false });
+        await rerender({ active: true });
+        expect(scrolled).toEqual(['about-personalization']);
+      });
+    });
+
+    it('closes the Clear profile dialog when the tab becomes inactive', async () => {
+      global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: '# A\nB' } })));
+      await render({ active: true });
+      await act(async () => Simulate.click(byText('#profile button', 'Clear profile')));
+      expect(q('[role="alertdialog"]')).not.toBeNull();
+      await rerender({ active: false });
+      expect(q('[role="alertdialog"]')).toBeNull();
     });
   });
 
