@@ -418,6 +418,24 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
   const [refusal, setRefusal] = useState(null);
   const [changed, setChanged] = useState(null);
   const [runResult, setRunResult] = useState(null);
+  // A switch stays clickable while something saves and shows what the reader chose until its own save, queued
+  // behind the others, is answered; then the server's value (Penina, 2026-11-25).
+  const [wanted, setWanted] = useState({});
+  const wantedSeq = useRef({});
+  const flip = (key, value, action, body) => {
+    const seq = (wantedSeq.current[key] || 0) + 1;
+    wantedSeq.current[key] = seq;
+    setWanted((w) => ({ ...w, [key]: value }));
+    Promise.resolve(act(action, body)).finally(() => {
+      if (!mounted.current || wantedSeq.current[key] !== seq) return;
+      setWanted((w) => {
+        const rest = { ...w };
+        delete rest[key];
+        return rest;
+      });
+    });
+  };
+  const chosen = (key, serverValue) => (key in wanted ? wanted[key] : serverValue);
   const [health, setHealth] = useState(null);
   const mounted = useRef(true);
   const saveTimer = useRef(null);
@@ -621,8 +639,8 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
   const { instructions, profile, testing } = data;
   const sections = parseSections(profile.text);
   const over = draft.length > MAX_TEXT;
-  const profileOn = profile.enabled && !off;
-  const instructionsOn = instructions.enabled && !off;
+  const profileOn = !!chosen('profile', profile.enabled) && !off;
+  const instructionsOn = !!chosen('instructions', instructions.enabled) && !off;
   return (
     <>
       {error ? (
@@ -639,8 +657,8 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
           title={STRINGS.profile}
           hint={STRINGS.profileAbout}
           on={profileOn}
-          disabled={off || busy}
-          onChange={(enabled) => act('toggle', { target: 'profile', enabled })}
+          disabled={off}
+          onChange={(enabled) => flip('profile', enabled, 'toggle', { target: 'profile', enabled })}
         />
         {/* Off: what's under the switch is grayed, so it's clear it isn't in effect. */}
         <div className={'laBody' + (profileOn ? '' : ' laBodyOff')}>
@@ -718,8 +736,8 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
           title={STRINGS.instructions}
           hint={STRINGS.instructionsAbout}
           on={instructionsOn}
-          disabled={off || busy}
-          onChange={(enabled) => act('toggle', { target: 'instructions', enabled })}
+          disabled={off}
+          onChange={(enabled) => flip('instructions', enabled, 'toggle', { target: 'instructions', enabled })}
         />
         <div className={'laBody' + (instructionsOn ? '' : ' laBodyOff')}>
           <Input
@@ -781,17 +799,21 @@ const Personalization = ({ base, token, off, onSaving, active }) => {
             name="laEvery"
             label={STRINGS.updateEvery}
             hint={STRINGS.updateEveryHelp}
-            on={!!testing.updateEveryMessage && !off}
-            disabled={off || busy}
-            onChange={(updateEveryMessage) => act('set_testing', { updateEveryMessage })}
+            on={!!chosen('updateEveryMessage', testing.updateEveryMessage) && !off}
+            disabled={off}
+            onChange={(updateEveryMessage) =>
+              flip('updateEveryMessage', updateEveryMessage, 'set_testing', { updateEveryMessage })
+            }
           />
           <SwitchRow
             name="laPlain"
             label={STRINGS.plainResponse}
             hint={STRINGS.plainResponseHelp}
-            on={!!testing.showPlainResponse && !off}
-            disabled={off || busy}
-            onChange={(showPlainResponse) => act('set_testing', { showPlainResponse })}
+            on={!!chosen('showPlainResponse', testing.showPlainResponse) && !off}
+            disabled={off}
+            onChange={(showPlainResponse) =>
+              flip('showPlainResponse', showPlainResponse, 'set_testing', { showPlainResponse })
+            }
           />
           <ToolRow name="laHealth" label={STRINGS.health} hint={STRINGS.checkHealthHelp}>
             <button
@@ -871,6 +893,9 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
   const [pending, setPending] = useState(0);
   const [saved, setSaved] = useState(false);
   const inFlight = useRef(false);
+  // The server's value as last confirmed, and a value chosen while a save was running (sent when it ends).
+  const acked = useRef(!!props.libraryAssistantEnabled);
+  const wantedAssistant = useRef(null);
   const tabMounted = useRef(true);
   useEffect(
     () => () => {
@@ -881,6 +906,7 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
   // Follow the acknowledged setting (a save that finished after this panel was remounted updates the page, not
   // this panel's own request), except while this panel's own optimistic change is in flight.
   useEffect(() => {
+    acked.current = !!props.libraryAssistantEnabled;
     if (!inFlight.current) setAssistantOn(!!props.libraryAssistantEnabled);
   }, [props.libraryAssistantEnabled]);
   // `result`: 'ok' or 'fail' when a save of `kind` (the action) ends. The header says "Changes saved" only when no
@@ -899,23 +925,38 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
   // The assistant's on/off is a Sefaria profile setting. It saves at once, with no page reload (Penina, 2026-11-19).
   // ⚠ For engineering: the widget on the page, and the user token personalization needs, follow the setting only
   // from the next page load. Turned on from off, this page has no token yet (see `onWithoutToken`).
+  // The switch stays clickable while it saves (Penina, 2026-11-25): a click during a save shows at once and is
+  // sent when the running save ends, unless it puts back the value the server already has.
   const setAssistant = (on) => {
-    if (inFlight.current) return;
     if (isMock()) {
       setAssistantOn(on);
       setSaved('ok');
       return;
     }
-    inFlight.current = true;
     setAssistantOn(on);
     setSettingError(null);
+    if (inFlight.current) {
+      wantedAssistant.current = on;
+      return;
+    }
+    sendAssistant(on);
+  };
+  const sendNextAssistant = () => {
+    const next = wantedAssistant.current;
+    wantedAssistant.current = null;
+    if (next !== null && next !== acked.current) sendAssistant(next);
+  };
+  const sendAssistant = (on) => {
+    inFlight.current = true;
     onSaving(1);
     const fail = () => {
       inFlight.current = false;
       onSaving(-1, 'fail', 'assistant');
+      const waiting = wantedAssistant.current !== null;
+      sendNextAssistant();
       if (!tabMounted.current) return;
-      setAssistantOn(!on);
       setSettingError(STRINGS.settingFailed);
+      if (!waiting) setAssistantOn(acked.current);
     };
     // Anything but a JSON object without an error (a login page handed back with status 200 when the session
     // ended, for one) is a failure.
@@ -925,7 +966,7 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
       url: '/api/profile',
       method: 'POST',
       data: { json: JSON.stringify({ settings: { library_assistant: on } }) },
-      // A request that never settles would keep the switch locked and the header saving
+      // A request that never settles would keep the switch saving and the header saving
       timeout: MUTATION_TIMEOUT_MS,
       success: (data) => {
         if (!isJsonAnswer(data) || data.error) {
@@ -933,8 +974,10 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
           return;
         }
         inFlight.current = false;
+        acked.current = on;
         onSaving(-1, 'ok', 'assistant');
         if (props.onAssistantChanged) props.onAssistantChanged(on);
+        sendNextAssistant();
       },
     });
     if (request && request.fail) request.fail(fail);
@@ -952,13 +995,7 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
         </header>
 
         <section className="laCard" id="libraryAssistantSetting" aria-labelledby="laAssistant-label">
-          <SwitchRow
-            name="laAssistant"
-            label={STRINGS.assistant}
-            on={assistantOn}
-            disabled={inFlight.current}
-            onChange={setAssistant}
-          />
+          <SwitchRow name="laAssistant" label={STRINGS.assistant} on={assistantOn} onChange={setAssistant} />
           {settingError ? (
             <p className="laMessage laError" role="alert">
               {settingError}

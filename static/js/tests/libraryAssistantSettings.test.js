@@ -751,16 +751,58 @@ describe('LibraryAssistantSettings', () => {
       jest.advanceTimersByTime(INSTRUCTIONS_SAVE_MS);
     });
     jest.useRealTimers();
-    // Saves run one at a time: the second is sent only once the first has been answered.
+    // Saves run one at a time: the second is sent only once the first has been answered. The switch stays
+    // clickable and shows the reader's choice meanwhile (Penina, 2026-11-25).
     expect(finishers).toHaveLength(1);
-    expect(q('#laProfile').disabled).toBe(true);
+    expect(q('#laProfile').disabled).toBe(false);
+    expect(q('#laProfile').checked).toBe(false);
+    expect(q('.laSaveStatus').textContent).toBe('Saving changes…');
     await act(async () => finishers[0]());
     await flush();
     expect(finishers).toHaveLength(2);
-    expect(q('#laProfile').disabled).toBe(true);
+    expect(q('.laSaveStatus').textContent).toBe('Saving changes…');
     await act(async () => finishers[1]());
     await flush();
-    expect(q('#laProfile').disabled).toBe(false);
+    expect(q('.laSaveStatus').textContent).toBe('Changes saved');
+  });
+
+  it('shows a switch flipped during a save as chosen, and the server value if its own save fails', async () => {
+    await render();
+    let finish;
+    global.fetch.mockImplementation(() => new Promise((resolve) => (finish = resolve)));
+    await check(q('#laProfile'), false);
+    expect(q('#laProfile').checked).toBe(false);
+    await act(async () => finish({ ok: false, status: 500, json: () => Promise.resolve({}) }));
+    await flush();
+    expect(q('#laProfile').checked).toBe(true);
+  });
+
+  it('keeps the assistant switch clickable while it saves, and sends a click made meanwhile afterwards', async () => {
+    await render({ libraryAssistantEnabled: true });
+    await check(q('#laAssistant'), false);
+    expect(q('#laAssistant').disabled).toBe(false);
+    await check(q('#laAssistant'), true);
+    await check(q('#laAssistant'), false);
+    expect(q('#laAssistant').checked).toBe(false);
+    expect(global.$.post).toHaveBeenCalledTimes(1);
+    await act(async () => global.$.post.mock.calls[0][2]({}));
+    // The last choice (off) is what the server now has: nothing more to send.
+    expect(global.$.post).toHaveBeenCalledTimes(1);
+    // On is sent at once; off then on again while it saves: the last choice equals what is being saved.
+    await check(q('#laAssistant'), true);
+    await check(q('#laAssistant'), false);
+    await check(q('#laAssistant'), true);
+    expect(global.$.post).toHaveBeenCalledTimes(2);
+    await act(async () => global.$.post.mock.calls[1][2]({}));
+    expect(global.$.post).toHaveBeenCalledTimes(2);
+    // Off chosen while on saves is sent once on is answered.
+    await check(q('#laAssistant'), false);
+    await check(q('#laAssistant'), true);
+    await check(q('#laAssistant'), false);
+    expect(global.$.post).toHaveBeenCalledTimes(3);
+    await act(async () => global.$.post.mock.calls[2][2]({}));
+    expect(global.$.post).toHaveBeenCalledTimes(3);
+    expect(q('#laAssistant').checked).toBe(false);
   });
 
   it('tells the page the assistant was switched, once the server took it', async () => {
