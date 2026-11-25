@@ -1222,7 +1222,8 @@
       "topics": ["slug"]
     },
     "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[PersonTopic-topic]": {
-      "topic_links": ["class", "fromTopic", "linkType"],
+      "sheets": ["topics"],
+      "topic_links": ["class", "fromTopic", "linkType", "toTopic"],
       "topics": ["slug"]
     },
     "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[Topic-topic]": {
