@@ -11,6 +11,9 @@ import {
     LoadingRing,
 } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
+import NewsletterSignUpPageForm from "./NewsletterSignUpPage/NewsletterSignUpPageForm";
+import { STAGE } from "./NewsletterSignUpPage/stateSymbols";
+import { TEXT_KEYS } from "./NewsletterSignUpPage/textKeys";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import { getCsrfToken } from './sefaria/csrf';
@@ -547,8 +550,8 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://chiburim.sefaria.org.il/sheets/361600?lang=he"],
-          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators"],
+          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "/newsletter", "/newsletter"],
+          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets", "/collections/educator-newsletters?tab=sheets"],
           ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", Sefaria._siteSettings.HELP_CENTER_URLS.HE]
       ].map(i =>
           <SimpleButton
@@ -1970,6 +1973,8 @@ const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " s
 
 const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>
 
+const WhiteBox = ({children}) => <div style={{backgroundColor: 'white'}}>{children}</div>;
+
 const H1Block = ({en, he}) =>
   <div className="staticPageBlockInner">
     <h1 className="staticPageH1 serif">
@@ -1978,12 +1983,16 @@ const H1Block = ({en, he}) =>
   </div>;
 
 
-const H2Block = ({en, he, classes, serif}) =>
+const H2Block = ({en, he, text, classes, serif}) => {
+  const resolvedText = text || { en, he };
+  return (
   <div className="staticPageBlockInner">
     <h2 className={serif ? "staticPageH2 serif" : "staticPageH2"}>
-        <SimpleInterfaceBlock en={en} he={he} />
+        <SimpleInterfaceBlock en={resolvedText.en} he={resolvedText.he} />
     </h2>
-  </div>;
+  </div>
+  );
+};
 
 const HeaderWithColorAccentBlockAndText = ({enTitle, heTitle, enText, heText, colorBar}) => (
     <div className="HeaderWithColorAccentBlockAndText">
@@ -2178,11 +2187,11 @@ const CallToActionFooter = ({enText, heText}) => (
     </div>
 );
 
-const CallToActionFooterWithNewsletter = ({enText, heText, includeEducatorOption}) => (
+const CallToActionFooterWithNewsletter = ({enText, heText, includeEducatorOption, contextName="Distance Learning Static Page"}) => (
     <div className="staticPageCallToActionFooter">
         <div className="staticPageBlockInner flexContainer">
             <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
-            <NewsletterSignUpForm contextName="Distance Learning Static Page" includeEducatorOption={includeEducatorOption} />
+            <NewsletterSignUpForm contextName={contextName} includeEducatorOption={includeEducatorOption} />
         </div>
     </div>
 );
@@ -2238,9 +2247,9 @@ const FeatureBox = ({enTitle, heTitle, enText, heText, enButtonText, heButtonTex
     </div>
 )
 
-const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor, link}) => (
+const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor, link, reverse}) => (
     <div className="feature">
-        <div className="staticPageBlockInner flexContainer">
+        <div className={classNames("staticPageBlockInner", "flexContainer", {"flexReverse": reverse})}>
             <div className="featureText" style={{borderColor: borderColor}}>
                 <div className="featureHeader">
                     <ConditionalLink link={link}>
@@ -2263,13 +2272,13 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
     </div>
 );
 
-const ButtonRow = ({children, light, white, enTitle, heTitle}) => (
+const ButtonRow = ({children, light, white, enTitle, heTitle, optionalClass=""}) => (
     <div className={classNames({
         "buttonRow": 1,
         "blockVerticalPadding": 1,
         "lightgreyBackground": light,
         "greyBackground": !white && !light
-    })}>
+    }, optionalClass)}>
         {enTitle && heTitle ?  <H2Block en={enTitle} he={heTitle}/> : null }
         <div className="staticPageBlockInner flexContainer">{children}</div>
     </div>
@@ -3065,36 +3074,364 @@ const ProductsPage = memo(() => {
     );
 });
 
-const NewsletterPage = () => (
-  <StaticPage>
-    <Spacer height={100} />
-    <div className="staticPageBlockInner" style={{ textAlign: 'center' }}>
-      <h2 style={{
-        fontSize: '30px',
-        fontWeight: 'normal',
-        marginBottom: '30px',
-        letterSpacing: '1px'
-      }}>
-        <InterfaceText text={{en: "Stay Connected", he: "הישארו מחוברים"}} />
-      </h2>
-      <div className="sans" style={{
-        fontSize: '14px',
-        color: 'var(--medium-grey)',
-        marginBottom: '40px'
-      }}>
-        <InterfaceText text={{en: "Sign up for Sefaria emails", he: "הצטרפו לרשימת הדיוור שלנו"}} />
+
+const HeaderForNewsletterPage = () => (
+  <div className="staticPageHeader newsletter">
+    <div className="staticPageBlockInner flexContainer">
+      <div className="staticPageHeaderTextBox newsletter">
+        <h1>
+          <span className="int-en">{Sefaria._keyedString(TEXT_KEYS.HERO_TITLE, "en")}</span>
+          <span className="int-he">{Sefaria._keyedString(TEXT_KEYS.HERO_TITLE, "he")}</span>
+        </h1>
+        <SimpleInterfaceBlock
+          classes="staticPageHeaderText"
+          en={Sefaria._keyedString(TEXT_KEYS.HERO_DESCRIPTION, "en")}
+          he={Sefaria._keyedString(TEXT_KEYS.HERO_DESCRIPTION, "he")}
+        />
       </div>
     </div>
-    <div className="staticPageBlockInner" style={{ width: '200px', margin: '0 auto' }}>
-      <NewsletterSignUpForm
-        contextName="Newsletter Page"
-        includeEducatorOption={true}
-      />
-    </div>
-    <Spacer height={100} />
-  </StaticPage>
+  </div>
 );
 
+const EnhancedFeature = ({ enTitle, enText, enImg, enImgAlt, borderColor, link, iframeSrc }) => (
+  <div className="feature">
+    <div className="staticPageBlockInner flexContainer">
+      <div className="featureText" style={{ borderColor: borderColor }}>
+        <div className="featureHeader">
+          <ConditionalLink link={link}>
+            <h3>
+              <span className="int-en">{enTitle}</span>
+            </h3>
+          </ConditionalLink>
+        </div>
+        <div className="int-en" dangerouslySetInnerHTML={{ __html: enText }} />
+      </div>
+      {iframeSrc ? (
+        <div className="featureIframe">
+          <iframe className="featureIframeEmbed" src={iframeSrc} title={enTitle} />
+        </div>
+      ) : (
+        <ConditionalLink link={link}>
+          <div className="featureImage">
+            <img className="int-en" src={enImg} alt={enImgAlt} />
+          </div>
+        </ConditionalLink>
+      )}
+    </div>
+  </div>
+);
+
+const EnhancedUserQuote = ({ enText, heText, enImage, heImage }) => (
+  <div className="enhancedUserQuote">
+    <img className="int-en" src={enImage} alt="" />
+    <img className="int-he" src={heImage} alt="" />
+    <div className="enhancedUserQuoteContent">
+      <div className="int-en" dangerouslySetInnerHTML={{ __html: enText }} />
+      <div className="int-he" dangerouslySetInnerHTML={{ __html: heText }} />
+    </div>
+  </div>
+);
+
+const NewsletterPage = () => {
+  const [currentStage, setCurrentStage] = useState(STAGE.NEWSLETTER_SELECTION);
+  const showSupplementalContent = currentStage === STAGE.NEWSLETTER_SELECTION;
+  const showEmailExamples = Sefaria.interfaceLang !== "hebrew";
+
+  return (
+    <StaticPage>
+      <HeaderForNewsletterPage />
+      <NewsletterSignUpPageForm onStageChange={setCurrentStage} />
+      {showSupplementalContent ? (
+        <>
+          {showEmailExamples ? (
+            <>
+              <GreyBox light={true}>
+                <H2Block en={Sefaria._keyedString(TEXT_KEYS.EMAIL_EXAMPLES_HEADER, "en")} he={Sefaria._keyedString(TEXT_KEYS.EMAIL_EXAMPLES_HEADER, "he")} />
+              </GreyBox>
+              <EnhancedFeature
+                enTitle="Weekly Parashah Study Companion"
+                enText="<p>Plug into the rhythm of Torah with our free study guide to the weekly reading. Each guide includes an overview of the Torah portion’s key themes, curated commentaries, and ideas for deeper independent learning.</p><p>Over 25,000 learners of all levels use this guide to explore new perspectives, inspire discussion, or prepare sermons and Torah study classes.</p>"
+                borderColor="var(--sefaria-blue)"
+                iframeSrc="/static/files/email-examples/weekly-parashah-bereshit-email-example.html"
+              />
+              <EnhancedFeature
+                enTitle="Timeless Topics"
+                enText="<p>Discover the connections between ancient wisdom and contemporary life with this weekly series. Each issue explores Jewish sources on a different everyday theme, drawing from various periods and perspectives in Jewish thought.</p><p>Whether you're interested in ethics, philosophy, or practical life guidance, these emails help you explore how Jewish texts speak to timeless questions.</p>"
+                borderColor="var(--talmud-gold)"
+                iframeSrc="/static/files/email-examples/topics-silence-email-example.html"
+              />
+            </>
+          ) : null}
+          <WhiteBox>
+            <H2Block en={Sefaria._keyedString(TEXT_KEYS.TESTIMONIALS_HEADER, "en")} he={Sefaria._keyedString(TEXT_KEYS.TESTIMONIALS_HEADER, "he")} />
+            <Section>
+              <ResponsiveNBox
+                threshold2={Number.POSITIVE_INFINITY}
+                threshold3={Number.POSITIVE_INFINITY}
+                content={[
+                  <EnhancedUserQuote
+                    enText="I want to thank you for the great new resource! While I am excited to utilize Sefaria for all my teaching, this new newsletter helped me directly create my latest d’var Torah blog entry, focused on the need for silence. Deeply appreciate all the work y’all do."
+                    heText="תודה על כל השפע, החידושים וההתחדשות!"
+                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                  />,
+                  <EnhancedUserQuote
+                    enText="The Sefaria Parashah weekly series has been an invaluable resource to ground me in the weekly rhythm of the Torah cycle and to prepare me for the weekly Torah study at my synagogue. I look forward to receiving the email every Monday, so that I know I am on track in the Torah cycle. The summary, the commentaries, and the reflection questions are super helpful for letting me deepen my thoughts for the group study."
+                    heText="הדף מהקישור המצורף הוא יפה וודאי שניתן לקחת משם גם לימינו שלנו. אשמח להשתמש בחומרים אילו בכיתה שלי."
+                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                  />,
+                  <EnhancedUserQuote
+                    enText="Finding time to study and learn can be very difficult when time is limited and direction difficult. I have found the material sent out each week very helpful in both getting me to study/learn and giving my learning direction by sending topics and useful links to materials and sources"
+                    heText="ממש מרגש ונוגע, הבאתם עם הרבה מגוון ונגיעות, תודה רבה."
+                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                  />,
+                  <EnhancedUserQuote
+                    enText="I look forward to receiving these emails each week to kick off my Torah study and explore new and refreshing topics"
+                    heText="תודה על המייל המתומצת, והעיון בתוב"
+                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                  />,
+                ]}
+              />
+            </Section>
+          </WhiteBox>
+        </>
+      ) : null}
+    </StaticPage>
+  );
+};
+
+const MobileTestimonial = ({icon, enTitle, heTitle, enText, heText, enAttrib, heAttrib}) => (
+    <div className="mobileTestimonialItem">
+        <div className="mobileTestimonialIconHolder">
+            <img src={icon} className="mobileTestimonialIcon" alt="" />
+        </div>
+        <h3 className="mobileTestimonialHeader">
+            <span className="int-en">{enTitle}</span>
+            <span className="int-he">{heTitle}</span>
+        </h3>
+        <div className="mobileTestimonialContent">
+            <p className="mobileTestimonialText">
+                <span className="int-en">{enText}</span>
+                <span className="int-he">{heText}</span>
+            </p>
+            <span className="mobileTestimonialAttribution">
+                <span className="int-en">{enAttrib}</span>
+                <span className="int-he">{heAttrib}</span>
+            </span>
+        </div>
+    </div>
+);
+
+const DEFAULT_MOBILE_APP_STORE_URLS = {
+    ios: "https://apps.apple.com/app/apple-store/id1163273965?mt=8",
+    android: "https://play.google.com/store/apps/details?id=org.sefaria.sefaria",
+};
+
+const mobileAppStoreUrls = (search) => {
+    const params = new URLSearchParams(search);
+    const source = params.get("utm_source");
+    const medium = params.get("utm_medium");
+    const campaign = params.get("utm_campaign");
+    if (!source || !medium || !campaign) {
+        return DEFAULT_MOBILE_APP_STORE_URLS;
+    }
+
+    const referrer = new URLSearchParams({utm_source: source, utm_medium: medium, utm_campaign: campaign});
+    const androidParams = new URLSearchParams({id: "org.sefaria.sefaria", referrer: referrer.toString()});
+    const iosParams = new URLSearchParams({pt: "118389482", ct: [source, medium, campaign].join("-"), mt: "8"});
+    return {
+        ios: `https://apps.apple.com/app/apple-store/id1163273965?${iosParams}`,
+        android: `https://play.google.com/store/apps/details?${androidParams}`,
+    };
+};
+
+const MobileDownloadButtons = ({storeUrls}) => (
+    <div className="mobileHeaderButtons">
+        <a href={storeUrls.ios}
+           className="button flexContainer mobileDownloadButton int-en" target="_blank">
+            <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
+            <span>Download for iOS</span>
+        </a>
+        <a href={storeUrls.android}
+           className="button flexContainer mobileDownloadButton int-en" target="_blank">
+            <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
+            <span>Download for Android</span>
+        </a>
+        <a href={storeUrls.ios}
+           className="button flexContainer mobileDownloadButton int-he" target="_blank">
+            <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
+            <span>הורדה ל iOS</span>
+        </a>
+        <a href={storeUrls.android}
+           className="button flexContainer mobileDownloadButton int-he" target="_blank">
+            <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
+            <span>הורדה לאנדרואיד</span>
+        </a>
+    </div>
+);
+
+const MobilePageHeader = ({storeUrls}) => (
+    <div className="staticPageHeader mobile">
+        <div className="staticPageBlockInner flexContainer">
+            <div className="staticPageHeaderTextBox">
+                <h1>
+                    <span className="int-en">The Sefaria Library App</span>
+                    <span className="int-he">יישומון ספריית ספריא</span>
+                </h1>
+                <SimpleInterfaceBlock classes="staticPageHeaderText mobile"
+                    en="The Jewish Library — Free, Anywhere, Anytime."
+                    he="ספרייה של כל מקורות היהדות זמינה בכל עת ובכל מקום." />
+                <MobileDownloadButtons storeUrls={storeUrls} />
+            </div>
+            <div className="staticPageHeaderImg">
+                <div className="mobileHeaderImages">
+                    <img className="mobileHeaderPhone int-en" src="/static/img/mobile-landing-page/headerphone.png" alt="Sefaria app on phone" />
+                    <img className="mobileHeaderPhone int-he" src="/static/img/mobile-landing-page/headerphoneHEB.png" alt="Sefaria app on phone" />
+                    <img className="mobileHeaderTablet int-en" src="/static/img/mobile-landing-page/tablet.png" alt="Sefaria app on tablet" />
+                    <img className="mobileHeaderTablet int-he" src="/static/img/mobile-landing-page/tabletHEB.png" alt="Sefaria app on tablet" />
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const MobileAppPage = () => {
+    const [storeUrls, setStoreUrls] = useState(DEFAULT_MOBILE_APP_STORE_URLS);
+    useEffect(() => {
+        setStoreUrls(mobileAppStoreUrls(window.location.search));
+    }, []);
+
+    return <StaticPage optionalClass="mobile">
+        <MobilePageHeader storeUrls={storeUrls} />
+        <EnBlock padded={true}>
+            <p className="staticPageAboutText" style={{fontSize: "18px", lineHeight: "1.7", margin: "50px 0"}}>
+                Explore Sefaria&#39;s free library of Jewish texts in original langauges and translation: Torah, Talmud, Mishnah, Kabbalah, siddur, and more. Discover 3,000 years of texts with links, interconnections, and commentaries. Download nearly the entire library to learn offline &#x2014;  anywhere, anytime.
+            </p>
+        </EnBlock>
+        <HeBlock padded={true}>
+            <p className="staticPageAboutText" style={{fontSize: "18px", lineHeight: "1.7", margin: "50px 0"}}>
+                היישומון מאפשר גישה חופשית למאגר נרחב של כותרים בשפות המקור ובמגוון תרגומים. ספריית ספריא כוללת מקורות בקטגוריות שונות: תנ"ך, תלמוד, משנה, קבלה, תפילה ועוד. יישומון ספריית ספריא מאפשר לכם להעמיק במקורות ללא  גבולות זמן ומקום. המקורות כולם מקושרים ביניהם ובכך הלמידה רחבה יותר ועשירה. בנוסף, ניתן להוריד את מרבית הכותרים למכשיר האישי על מנת ללמוד בכל מקום - גם ללא חיבור לאינטרנט.
+            </p>
+        </HeBlock>
+        <div className="colorLine" />
+        <GreyBox>
+            <div className="staticPageBlockInner mobileTestimonialsSection">
+                <MobileTestimonial
+                    icon="/static/img/mobile-landing-page/siddur.png"
+                    enTitle="Always have a siddur in your pocket"
+                    heTitle="עם סידור בכיס, אפשר להתפלל בכל מקום"
+                    enText={`"I can look up anything in an easy format. You never know when you might need to find a prayer or a passage, and it's all sitting there on my phone."`}
+                    heText={`״אני תמיד יכולה לחפש מקורות או תפילות, וכולם נגישים בפורמט נוח. אף פעם אני לא יכולה לדעת מתי אצטרך לחפש תפילה או כמה פסוקים על הדרך – ועכשיו הכל נמצא אצלי בטלפון״`}
+                    enAttrib="Jessica L, User"
+                    heAttrib="ג׳סיקה ל., משתמשת בספריא"
+                />
+                <MobileTestimonial
+                    icon="/static/img/mobile-landing-page/educate.png"
+                    enTitle="Look up education resources on the go"
+                    heTitle="חיפוש מהיר של מקורות, בכל זמן"
+                    enText={`"I use Sefaria all the time - prepping for class, learning on the go, in the middle of a conversation and want to find a source. It has been an amazing tool in my life."`}
+                    heText={`"אני משתמשת ביישומון של ספריא כל הזמן - בין אם אני מתכננת שיעור, לומדת על הדרך, או פתאום צריכה מקור באמצע שיחה. זה כלי מדהים שממש מעשיר את החיים שלי."`}
+                    enAttrib="Jaclyn S, Educator"
+                    heAttrib="ג׳קלין ס., מחנכת"
+                />
+                <MobileTestimonial
+                    icon="/static/img/mobile-landing-page/commute.png"
+                    enTitle="Learn on your commute"
+                    heTitle="ללמוד בדרך לעבודה או ללימודים? אין בעיה!"
+                    enText={`"I am constantly on the app during my NYC subway commute, whether I'm reviewing texts for class, reading the day's 929 chapter, or studying parshat hashavua."`}
+                    heText={`״אני כל הזמן פותחת את היישומון של ספריא בזמן שאני נוסעת ברכבת התחתית בניו יורק. לפעמים אני עוברת על מקורות לפני השיעור הבא, לפעמים אני קוראת את הפרק היומי ב-929 ולפעמים אני לומדת את פרשת השבוע.״`}
+                    enAttrib="Vanessa H, Rabbinical Student"
+                    heAttrib="וונסה ה, סטודנטית לרבנות"
+                />
+            </div>
+        </GreyBox>
+        <div class="mobileFeatures">
+            <Feature
+                enTitle="Calendar"
+                heTitle="לוח לימוד יומי"
+                enText="Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and a dozen other communal learning schedules."
+                heText="בעזרת לוח הלימוד היומי של ספריית ספריא תוכלו למצוא את הקריאות הרלוונטיות בתורה, את הדף היומי בתלמוד, את 929 ועוד."
+                enImg="/static/img/mobile-landing-page/calmock.png"
+                enImgAlt="Screenshot of calendar on app"
+                heImg="/static/img/mobile-landing-page/calmockHEB.png"
+                heImgAlt="Screenshot of calendar on app"
+                borderColor={palette.colors.yellow}
+            />
+            <Feature
+                reverse
+                enTitle="Commentaries"
+                heTitle="פרשנויות, מדרשים ועוד"
+                enText="Learn with a variety of commentaries and explore the interconnections between texts. Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more. Talmud commentaries include Rashi, Tosafot, Rashba, Rosh, and more."
+                heText={`בספריית ספריא תוכלו לעיין במקוון פרשנויות, מדרשים ועוד, וליהנות מקישוריות המחברת בין המקורות שמצטטים זה את זה או שיש ביניהם קשר תמטי. אלה כוללים את כתביהם של רש"י, אבן עזרא, רמב"ן, ספורנו, אברבנאל ועוד אודות התנ"ך, ואת פירושי רש"י , רשב"א ועוד רבים אחרים על התלמוד.`}
+                enImg="/static/img/mobile-landing-page/commmock.png"
+                enImgAlt="Screenshot of commentary panel on app"
+                heImg="/static/img/mobile-landing-page/commmockHEB.png"
+                heImgAlt="Screenshot of commentary panel on app"
+                borderColor={palette.colors.blue}
+            />
+            <Feature
+                enTitle="Search"
+                heTitle="חיפוש מקיף בכמה לחיצות מהירות"
+                enText="Use the search tool to find topics, words, and phrases in both Hebrew and English. Filter your search by book, category, or relevance."
+                heText="בעזרת שורת החיפוש, תוכלו לחפש נושאי, מילות מפתח ופיסקאות בעברית ובאנגלית. ניתן אף לצמצם את תוצאות החיפוש באמצעות סינון ומיון כגון כרונולוגיה של המקורות או השתייכות לכותר מסוים."
+                enImg="/static/img/mobile-landing-page/searchmock.png"
+                enImgAlt="Screenshot of search on app"
+                heImg="/static/img/mobile-landing-page/searchmockHEB.png"
+                heImgAlt="Screenshot of search on app"
+                borderColor={palette.colors.green}
+            />
+            <Feature
+                reverse
+                enTitle="Account Features"
+                heTitle="מאפיינים אישיים לבעלי חשבון אישי"
+                enText="Log in with a free Sefaria account to bookmark texts, sync your reading history across devices, and customize your settings."
+                heText="התחברו לחשבון האישי שלכם בספריא על מנת לשמור מקורות ברשימת המועדפים, לסנכרן את היסטוריית הקריאה שלכם במספר מכשירים במקביל ולעדכן את הגדרות הפרופיל שלכם."
+                enImg="/static/img/mobile-landing-page/accountfeaturesmock.png"
+                enImgAlt="Screenshot of settigns on app"
+                heImg="/static/img/mobile-landing-page/accountfeaturesmockHEB.png"
+                heImgAlt="Screenshot of settings on app"
+                borderColor={palette.colors.red}
+            />
+        </div>
+        <div className="mobileDownloadCTA staticPageBlockInner">
+            <h3>
+                <span className="int-en">Download the app and start exploring today</span>
+                <span className="int-he">למה אתם מחכים? הורידו היום את היישומון של ספריית ספריא והתחילו במסע למידה מעמיק ומעשיר.</span>
+            </h3>
+            <div className="mobileDownloadCtaButtons">
+                <a href={storeUrls.ios}
+                   className="mobileDownloadButton dark flexContainer int-en" target="_blank">
+                    <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
+                    <span>Download for iOS</span>
+                </a>
+                <a href={storeUrls.android}
+                   className="mobileDownloadButton dark flexContainer int-en" target="_blank">
+                    <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
+                    <span>Download for Android</span>
+                </a>
+                <a href={storeUrls.ios}
+                   className="mobileDownloadButton dark flexContainer int-he" target="_blank">
+                    <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
+                    <span>הורדה ל iOS</span>
+                </a>
+                <a href={storeUrls.android}
+                   className="mobileDownloadButton dark flexContainer int-he" target="_blank">
+                    <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
+                    <span>הורדה לאנדרואיד</span>
+                </a>
+            </div>
+        </div>
+        <CallToActionFooterWithNewsletter
+            enText="Receive the latest updates"
+            heText="הירשמו לקבלת עדכונים"
+            includeEducatorOption={false}
+            contextName="Mobile Landing Page"
+        />
+    </StaticPage>;
+};
 
 export {
     SheetsLandingPage,
@@ -3110,4 +3447,5 @@ export {
     TeamMembersPage,
     ProductsPage,
     NewsletterPage,
+    MobileAppPage,
 };

@@ -121,6 +121,9 @@ def _ensure_warm() -> None:
     enqueue a rebuild on every call -- and so that a cache backend that never actually
     persists (e.g. CI's DummyCache) doesn't queue one per read.
     """
+    from django.conf import settings
+    if not settings.CELERY_ENABLED:
+        return
     global _last_rebuild_attempt
     if _get_registry():
         return

@@ -104,7 +104,7 @@ describe('SearchPage entity-fetch failures', () => {
     // Drive fetchEntityResults on a real SearchPage instance with setState stubbed out.
     const makePage = (query = 'moses') => {
         const page = new SearchPage({ query, compare: false, searchInBook: false });
-        page.props = { query, compare: false, searchInBook: false };
+        page.props = { query, compare: false, searchInBook: false, autocorrectResolved: true };
         page.setState = jest.fn();
         page.selectedCategoryPaths = () => [];
         page.withCategoryCounts = (entityData) => ({ entityData });

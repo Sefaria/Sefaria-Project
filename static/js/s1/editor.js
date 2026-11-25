@@ -2518,7 +2518,7 @@ function aboutHtml(data) {
 			html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
 			for (i = 0; i < uniqueSources.length; i++ ) {
 				html += '<div class="mergeSource">' +
-					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + encodeURI(uniqueSources[i].replace(/ /g, "_")) + '">' + 
+					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + encodeURIComponent(uniqueSources[i].replace(/ /g, "_")) + '">' +
 					uniqueSources[i] + '</a></div>';
 			}
 			html += "</div>";
@@ -2539,7 +2539,7 @@ function aboutHtml(data) {
 						'<div class="aboutSource">Source: ' + sourceLink +'</div> ⋄ ') +
 						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div> ⋄ ') +
 						'<div class="credits"></div> ⋄ ' +
-						'<a class="historyLink" href="/activity/'+data.sectionRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						'<a class="historyLink" href="/activity/'+data.sectionRef.replace(/ /g, "_")+'/'+version.lang+'/'+encodeURIComponent(version.title.replace(/ /g, "_"))+'">Full history &raquo;</a>' +
 						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
 						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
 						(version.status === "locked" ? 
@@ -2578,7 +2578,7 @@ function aboutHtml(data) {
             versionsHtml[v.language] = '';
         }
 		versionsHtml[v.language] += '<div class="alternateVersion ' + v.language + '">' +
-							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURI(v.versionTitle.replace(/ /g, "_")) + '">' +
+							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURIComponent(v.versionTitle.replace(/ /g, "_")) + '">' +
 							v.versionTitle + '</a></div>';
 		//versionsLang[v.language] = true;
 	}
@@ -4335,4 +4335,3 @@ function hardRefresh(ref) {
 	$(".screen").hide();
 	actuallyGet(parseRef(ref));	
 }
-

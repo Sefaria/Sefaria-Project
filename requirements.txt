@@ -237,6 +237,8 @@ pox==0.3.5
     # via pathos
 ppft==1.7.6.9
     # via pathos
+preshed==3.0.13
+    # via spacy (from ne_span); 3.0.14 breaks spacy 3.7 tokenizer: OverflowError in Tokenizer._reset_cache
 prompt-toolkit==3.0.50
     # via
     #   click-repl

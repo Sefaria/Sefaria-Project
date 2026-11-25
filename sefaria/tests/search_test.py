@@ -1261,19 +1261,19 @@ def test_reindex_finalize_proceeds_for_shared_alias_with_opt_in(monkeypatch):
     assert len(update_alias_calls) == 1
 
 
-def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
+@pytest.mark.parametrize("doc_count", [0, 3400000, None])
+def test_reindex_init_recreates_existing_in_progress_index(monkeypatch, doc_count):
+    """An existing in-progress index is always recreated, never reused: a retry that reused a
+    3.4M-doc partial text-b in prod (2026-09-24) doubled it on disk and filled the node."""
     from sefaria import search
 
     monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
-    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    names = {"new": "text-b", "current": "text-a", "alias": "text"}
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
-    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-new")
-
+    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-b")
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: doc_count)
     create_calls = []
     bulk_setting_calls = []
-
-    monkeypatch.setattr(search, "_index_doc_count", lambda name: 500)
-    monkeypatch.setattr(search, "_index_has_managed_settings", lambda name: True)
     monkeypatch.setattr(search, "create_index",
                         lambda index_name, type, force=False: create_calls.append((index_name, force)))
     monkeypatch.setattr(search, "set_index_bulk_load_settings",
@@ -1281,38 +1281,8 @@ def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
 
     search.reindex_init("text", debug=False)
 
-    assert create_calls == []
-    assert bulk_setting_calls == ["text-new"]
-
-
-def test_reindex_init_recreates_auto_created_index_instead_of_reusing_it(monkeypatch):
-    """Prod 2026-09-11: text-a had 2957 docs but a dynamic mapping (auto-created by a stale
-    writer). Reusing it bulk-loaded the corpus into an unsearchable index until the disk filled."""
-    from sefaria import search
-
-    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
-    names = {"new": "text-a", "current": "text-b", "alias": "text"}
-    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
-    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-a")
-    monkeypatch.setattr(search, "_index_doc_count", lambda name: 2957)
-    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {})
-    create_calls = []
-    monkeypatch.setattr(search, "create_index",
-                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
-    monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
-
-    search.reindex_init("text", debug=False)
-
-    assert create_calls == [("text-a", True)]
-
-
-def test_index_has_managed_settings_detects_our_analysis_settings(monkeypatch):
-    from sefaria import search
-    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {
-        "text-b": {"settings": {"index": {"analysis": {"analyzer": {"exact_english": {}}}}}}})
-    assert search._index_has_managed_settings("text-b") is True
-    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {})
-    assert search._index_has_managed_settings("text-a") is False
+    assert create_calls == [("text-b", True)]
+    assert bulk_setting_calls == ["text-b"]
 
 
 def test_reindex_init_creates_fresh_index_when_missing(monkeypatch):

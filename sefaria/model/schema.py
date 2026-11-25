@@ -13,6 +13,7 @@ logger = structlog.get_logger(__name__)
 import regex
 from . import abstract as abst
 from sefaria.system.database import db
+from sefaria.system.cache import gen_cache
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.model.linker.has_match_template import MatchTemplateMixin
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
@@ -341,6 +342,22 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+
+    @staticmethod
+    def gen_cache_key(slug: str) -> str:
+        return f"non_unique_term:{slug}"
+
+    @classmethod
+    def init(cls, slug: str, slug_field_idx: int = None) -> 'AbstractMongoRecord':
+        """
+        Checks this slug's GenCache counter before the cached `.init()`, so a peer's edit
+        drops the stale cached term the next time this slug is looked up.
+        """
+        key = cls.gen_cache_key(slug)
+        if not gen_cache.is_registered(key):
+            gen_cache.register(key, lambda: cls._init_cache.pop(slug, None))
+        gen_cache.get(key)
+        return super().init(slug, slug_field_idx)
 
     def __repr__(self):
         return f'{self.__class__.__name__}.init("{self.slug}")'

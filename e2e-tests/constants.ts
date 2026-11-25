@@ -12,6 +12,10 @@ export const AUTH_LABELS = {
     [LANGUAGES.EN]: 'Continue with Email',
     [LANGUAGES.HE]: 'המשך עם דוא״ל',
   },
+  FIRST_NAME: {
+    [LANGUAGES.EN]: 'First Name',
+    [LANGUAGES.HE]: 'שם פרטי',
+  },
 } as const;
 
 // Interface for save state objects

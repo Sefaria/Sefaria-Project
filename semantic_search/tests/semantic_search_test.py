@@ -566,10 +566,10 @@ class TestEmbedQuery:
 # ---------------------------------------------------------------------------
 
 class TestSemanticSearch:
-    @override_settings(GEMINI_API_KEY="test-key")
+    @override_settings(GEMINI_API_KEY="test-key", SEMANTIC_SEARCH_TABLE_VERSION="legacy")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_calls_embed_query_then_legacy_search_by_default(self, mock_embed, mock_chunk_cls):
+    def test_calls_embed_query_then_legacy_search_when_selected(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.5] * 1536
         mock_chunk_cls.return_value.search_by_embedding.return_value = []
         semantic_search("what is shabbat")
@@ -579,10 +579,10 @@ class TestSemanticSearch:
             [0.5] * 1536, limit=10, filters=None
         )
 
-    @override_settings(GEMINI_API_KEY="test-key")
+    @override_settings(GEMINI_API_KEY="test-key", SEMANTIC_SEARCH_TABLE_VERSION="legacy")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_forwards_filters_and_limit_to_legacy_by_default(self, mock_embed, mock_chunk_cls):
+    def test_forwards_filters_and_limit_to_legacy_when_selected(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.1] * 1536
         mock_chunk_cls.return_value.search_by_embedding.return_value = []
         semantic_search("query", filters={"language": "en"}, limit=5)
@@ -590,17 +590,18 @@ class TestSemanticSearch:
             [0.1] * 1536, limit=5, filters={"language": "en"}
         )
 
-    @override_settings(GEMINI_API_KEY="test-key")
+    @override_settings(GEMINI_API_KEY="test-key", SEMANTIC_SEARCH_TABLE_VERSION="legacy")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_returns_legacy_search_results_by_default(self, mock_embed, mock_chunk_cls):
+    def test_returns_legacy_search_results_when_selected(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.0] * 1536
         expected = [MagicMock()]
         mock_chunk_cls.return_value.search_by_embedding.return_value = expected
         assert semantic_search("query") == expected
 
+    @override_settings(SEMANTIC_SEARCH_TABLE_VERSION="legacy")
     @patch("semantic_search.search.SemanticTextChunk")
-    def test_search_by_embedding_uses_legacy_table_by_default(self, mock_chunk_cls):
+    def test_search_by_embedding_uses_legacy_table_when_selected(self, mock_chunk_cls):
         embedding = [0.25] * 1536
         expected = [MagicMock()]
         mock_chunk_cls.return_value.search_by_embedding.return_value = expected
@@ -624,3 +625,14 @@ class TestSemanticSearch:
     def test_search_by_embedding_rejects_invalid_table_version(self):
         with pytest.raises(ValueError, match="Invalid SEMANTIC_SEARCH_TABLE_VERSION"):
             semantic_search_by_embedding([0.25] * 1536)
+
+
+class TestSemanticSearchCutover:
+    def test_missing_setting_defaults_to_new_backend(self):
+        with patch("semantic_search.search.settings", SimpleNamespace()), patch(
+            "semantic_search.search.Vector"
+        ) as vector, patch("semantic_search.search.SemanticTextChunk") as legacy:
+            vector.return_value.search_by_embedding.return_value = []
+            assert semantic_search_by_embedding([0.1] * 1536) == []
+            vector.return_value.search_by_embedding.assert_called_once()
+            legacy.assert_not_called()

@@ -61,12 +61,22 @@ class PagesTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
 
     def test_activity(self):
+        self.make_test_user()
         response = c.get('/activity')
         self.assertEqual(200, response.status_code)
 
     def test_text_history(self):
+        self.make_test_user()
         response = c.get('/activity/Genesis_12/en/The_Holy_Scriptures:_A_New_Translation_(JPS_1917)')
         self.assertEqual(200, response.status_code)
+
+    def test_activity_requires_login(self):
+        anonymous = Client()
+        for url in ['/activity', '/activity/2', '/activity/leaderboard',
+                    '/activity/Genesis_12/en/The_Holy_Scriptures:_A_New_Translation_(JPS_1917)/2']:
+            response = anonymous.get(url)
+            self.assertEqual(302, response.status_code, url)
+            self.assertTrue(response.url.startswith('/login?next='), url)
 
     def test_toc(self):
         response = c.get('/texts')

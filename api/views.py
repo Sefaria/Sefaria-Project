@@ -419,7 +419,7 @@ class KnnSearch(View):
             return jsonResponse({"error": "Semantic search is not configured"}, status=503)
 
         try:
-            from semantic_search.search import get_query_embedding, semantic_search_by_embedding
+            from semantic_search.search import get_query_embedding, get_search_table_version, semantic_search_by_embedding
 
             search_limit = max(result_limit, self.LINKED_REF_ENHANCEMENT_LIMIT) if include_linked_refs else result_limit
             query_embedding = get_query_embedding(query)
@@ -449,5 +449,10 @@ class KnnSearch(View):
                 "linked_refs": self._serialize_linked_refs(top_linked_refs, include_text, query_embedding, filters),
             })
 
-        return jsonResponse(response)
+        http_response = jsonResponse(response)
+        # This is the same selection helper used by semantic_search_by_embedding.
+        # Successful authenticated responses identify the backend on this worker.
+        http_response["X-Sefaria-Semantic-Backend"] = get_search_table_version()
+        http_response["Cache-Control"] = "no-store"
+        return http_response
 

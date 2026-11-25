@@ -41,6 +41,15 @@ const ShowTo = Object.freeze({
   EVERYONE: "both_logged_in_and_logged_out",
 });
 
+// The values the server sends for Sefaria.donor_status. The authoritative definition is
+// DonorStatus in sefaria/donors/types.py; reader/views.py base_props puts it on the page. They
+// MUST stay strings — they are compared against server data — so a frozen map, like ShowTo.
+const DonorStatus = Object.freeze({
+  DONOR: "donor",
+  NON_DONOR: "non_donor",
+  UNKNOWN: "unknown",
+});
+
 // Modals and banners spell the same concepts with different field names. Everything downstream
 // reads the names from here so no function needs to know which surface it is working on.
 // `storagePrefix` keys the localStorage dismissal entries ("modal_<name>": "true").
@@ -69,6 +78,19 @@ const userKindFlags = (doc) => [
   doc.showToSustainers,
   doc.showToNonSustainers,
 ];
+
+// The two donor checkboxes. Kept OUT of userKindFlags on purpose: they are an independent
+// AND-ed filter, so adding them cannot change how existing documents (both flags null or
+// false) match or rank. null reads as false.
+const donorAudienceFlags = (doc) => [Boolean(doc.showToDonor), Boolean(doc.showToNonDonor)];
+
+// A donor-only document is aimed at a small group, so it counts as audience-restricted for
+// ranking. A non-donor-only document is an exclusion — "everyone but donors", which includes
+// every logged-out viewer — so it is nearly everyone and gains no rank.
+const isDonorOnly = (doc) => {
+  const [toDonors, toNonDonors] = donorAudienceFlags(doc);
+  return toDonors && !toNonDonors;
+};
 
 // ── Eligibility predicates ──────────────────────────────────────────────────
 // Each answers one question with the same signature (doc, ctx, fields) => boolean, so
@@ -116,6 +138,17 @@ const matchesAudience = (doc, ctx) => {
   }
 };
 
+// Neither or both boxes ticked means no donor restriction. Otherwise the document goes only
+// to confirmed donors, or only to everyone else (unknown and logged-out viewers included —
+// see isConfirmedDonor in buildViewerContext). AND-ed with showTo, so donor-only plus
+// logged_out_only matches nobody: a confirmed donor is always logged in. Strapi does not prevent
+// that combination (see T8 in the tests).
+const matchesDonorAudience = (doc, ctx) => {
+  const [toDonors, toNonDonors] = donorAudienceFlags(doc);
+  if (toDonors === toNonDonors) return true;
+  return toDonors ? ctx.isConfirmedDonor : !ctx.isConfirmedDonor;
+};
+
 // A dismissed document stays ineligible while it is live, so selection falls through to the
 // runner-up on the next page load instead of leaving the surface empty.
 const isNotDismissed = (doc, ctx, fields) =>
@@ -126,6 +159,7 @@ const ELIGIBILITY_PREDICATES = [
   isPublishedInLocale,
   matchesCountry,
   matchesAudience,
+  matchesDonorAudience,
   isNotDismissed,
 ];
 
@@ -168,9 +202,10 @@ const countrySpecificity = (doc, ctx) =>
     ? 1
     : 0;
 
-// 1 when the editor restricted the audience: a logged-in/out-only choice, or SOME user-kind
-// boxes ticked but not all — ticking every box is the same as no restriction.
+// 1 when the editor restricted the audience: a logged-in/out-only choice, SOME user-kind
+// boxes ticked but not all (ticking every box is the same as no restriction), or donor-only.
 const audienceSpecificity = (doc) => {
+  if (isDonorOnly(doc)) return 1;
   if (doc.showTo !== ShowTo.EVERYONE) return 1;
   const flags = userKindFlags(doc);
   return flags.some(Boolean) && !flags.every(Boolean) ? 1 : 0;
@@ -241,7 +276,7 @@ const selectContent = (docs, ctx, contentType) => {
 // Selection stays page-independent — if the best-fit document is excluded on the current page,
 // nothing shows there, rather than promoting a rival campaign on the page this one links to.
 
-const ALWAYS_EXCLUDED_PATHS = ["/donate", "/mobile", "/app", "/ways-to-give"];
+const ALWAYS_EXCLUDED_PATHS = ["/donate", "/mobile", "/ways-to-give"];
 
 // The pathname of a URL, or null when it cannot be parsed. new URL() THROWS on anything
 // relative or malformed — a realistic editor mistake (a buttonURL of "give/451346") — and this
@@ -274,6 +309,9 @@ const buildViewerContext = () => ({
   countryCandidates: getViewerCountryCandidates(),
   isLoggedIn: Boolean(Sefaria._uid),
   isSustainer: Boolean(Sefaria.is_sustainer),
+  // The one place "unknown" becomes "not a donor". A sustainer gives on a schedule, so they
+  // have donated at least once. Unknown and logged-out viewers are treated as non-donors.
+  isConfirmedDonor: Sefaria.donor_status === DonorStatus.DONOR || Boolean(Sefaria.is_sustainer),
   isReturningVisitor: Sefaria.isReturningVisitor(),
   isNewVisitor: Sefaria.isNewVisitor(),
   // Dismissal keys are only ever written as the literal string "true" (see
@@ -287,6 +325,7 @@ const buildViewerContext = () => ({
 export {
   ContentType,
   ShowTo,
+  DonorStatus,
   CONTENT_FIELDS,
   isEligible,
   selectContent,

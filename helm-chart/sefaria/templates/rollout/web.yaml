@@ -124,8 +124,6 @@ spec:
               fieldRef:
                 fieldPath: metadata.uid
           {{- end }}
-          - name: REDIS_HOST
-            value: "redis-{{ .Values.deployEnv }}"
           - name: NODEJS_HOST
             value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: VARNISH_HOST
@@ -157,12 +155,7 @@ spec:
             value: {{ .Values.deployEnv }}-mongo
           {{- end }}
         envFrom:
-          {{- if .Values.tasks.enabled }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.redisPassword.ref }}
-          {{- end }}
+          {{- include "sefaria.secrets.redisSentinel" . | nindent 10 }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
           - secretRef:

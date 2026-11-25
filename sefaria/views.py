@@ -1,3 +1,4 @@
+import hashlib
 import io
 import os
 import zipfile
@@ -43,13 +44,14 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
+from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern, gen_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
+from api.tasks import dispatch_copy_learning_level_from_ac
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
@@ -61,6 +63,7 @@ from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
+from sefaria.utils.chatbot import mark_chatbot_storage_for_clearing
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.skip_tracking import build_pathway
@@ -70,7 +73,6 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria import tracker
-from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
@@ -118,6 +120,10 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         # Django >= 5.0 dropped GET on LogoutView. Existing <a href="/logout?next=..."> links
         # in the header / mobile menu still rely on GET, so route GET through the same flow as POST.
         return self.post(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        return mark_chatbot_storage_for_clearing(request, response)
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
@@ -213,6 +219,8 @@ def process_register_form(request, auth_method='session'):
 
         import_gravatar(p)
         p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
+        # After the last save: the copy runs in the background and only fills in an empty learning level
+        dispatch_copy_learning_level_from_ac(p)
 
         if auth_method == 'session':
             auth_login(request, user)
@@ -477,6 +485,9 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
+FIND_REFS_TASK_EXPIRES_SECONDS = 60
+
+
 @cors_allow_all
 @api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
@@ -486,7 +497,10 @@ def find_refs_api(request):
     find_refs_input = FindRefsInput(request_text, options, metadata)
     async_result = find_refs_api_task.apply_async(
         args=(asdict(find_refs_input),),
-        queue=CeleryQueue.TASKS.value
+        queue=CeleryQueue.FIND_REFS.value,
+        # The linker client gives up polling after ~60s (its 15 retries, in static/js/linker.v3/main.js, run out
+        # before maxRetryTime). Past that nobody is waiting for the result, so workers should skip the task.
+        expires=FIND_REFS_TASK_EXPIRES_SECONDS,
     )
     logger.info(
         "find_refs_api:enqueued",
@@ -774,9 +788,6 @@ def collections_image_upload(request, resize_image=True):
 def reset_cache(request):
     model.library.rebuild()
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild")
-
     if USE_VARNISH:
         invalidate_all()
 
@@ -808,9 +819,7 @@ def rebuild_linker_resolvers(request):
 @staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
-    in_memory_cache.set("websites_data", website_set)
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
+    gen_cache.publish("websites_data", website_set)
     return HttpResponseRedirect("/?m=Website-Data-Reset")
 
 
@@ -828,9 +837,7 @@ def reset_index_cache_for_text(request, title):
     model.library.refresh_index_record_in_cache(index)
     model.library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
-    elif USE_VARNISH:
+    if USE_VARNISH:
         invalidate_title(index.title)
 
     return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
@@ -887,19 +894,14 @@ def reset_counts(request, title=None):
     else:
         model.refresh_all_states()
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "rebuild_toc")
-
         return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
 @staff_member_required
 def delete_orphaned_counts(request):
     remove_old_counts()
+    # the template cache is shared by every process, so no propagation step is needed
     scache.delete_template_cache("texts_dashboard")
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("scache", "delete_template_cache", ["texts_dashboard"])
 
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
@@ -907,10 +909,6 @@ def delete_orphaned_counts(request):
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild_toc")
-
     return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
 
@@ -919,13 +917,11 @@ def rebuild_auto_completer(request):
     # Three builders, each of which wraps itself: group them so one click reports once.
     with build_pathway("rebuild_auto_completer"):
         library.build_full_auto_completer()
+        gen_cache.mark_fresh("full_auto_completer")
         library.build_lexicon_auto_completers()
+        gen_cache.mark_fresh("lexicon_auto_completer")
         library.build_cross_lexicon_auto_completer()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "build_full_auto_completer")
-        server_coordinator.publish_event("library", "build_lexicon_auto_completers")
-        server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
+        gen_cache.mark_fresh("cross_lexicon_auto_completer")
 
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
@@ -963,10 +959,7 @@ def reset_ref(request, tref):
         vs.refresh()
         model.library.update_index_in_toc(index)
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
-            server_coordinator.publish_event("library", "update_index_in_toc", [oref.index.title])
-        elif USE_VARNISH:
+        if USE_VARNISH:
             invalidate_title(oref.index.title)
 
         return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
@@ -1507,7 +1500,13 @@ def index_sheets_by_timestamp(request):
 
 # Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
 # It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
-STRAPI_SCHEMA_VERSION = "v5"
+# v6: sidebar ads gained `pageType` (page-type targeting). The cache key now also includes a hash
+# of the query body (see strapi_graphql_cache), so even same-version clients posting different
+# query shapes — e.g. a stale browser bundle during a deploy window — can never poison the slot
+# that up-to-date clients read.
+# v7: sidebar ads' hasBlueBackground (boolean) replaced by sidebarAdBackgroundColor (hex string,
+# mirroring bannerBackgroundColor).
+STRAPI_SCHEMA_VERSION = "v7"
 
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
@@ -1568,9 +1567,18 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
                 {"error": "GraphQL query required in request body"}, status=400
             )
 
-        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body. 
-        # Including the schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
-        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}"
+        # Create cache key from the schema version, the specified dates, AND a hash of the query body.
+        # The schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
+        # The query hash closes a subtler hole the version constant alone cannot: during a deploy window, a browser
+        # still running the PREVIOUS frontend bundle posts the previous (smaller) query to this same endpoint. Without
+        # the hash, its response — missing the newly added fields — would be cached under the key that freshly
+        # deployed clients read, silently stripping the new fields from every visitor for the cache TTL.
+        # Distinct query shapes therefore get distinct slots; identical clients still share one slot per date range.
+        # Full SHA-256 digest, untruncated: the key must NEVER collide (a collision silently serves one
+        # query shape's payload to a client that sent a different one — the exact poisoning this exists
+        # to prevent), and Redis key length is not a constraint worth trading that guarantee for.
+        query_hash: str = hashlib.sha256(query.encode("utf-8")).hexdigest()
+        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}_{query_hash}"
 
         # Try to get from cache first
         # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage

@@ -937,16 +937,14 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
     else:
         query["status"] = "public"
     if in_collection:
-        collections = CollectionSet({"slug": {"$in": in_collection}})
-        sheets_list = [collection.sheets for collection in collections]
-        sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
-        query["id"] = {"$in": sheets_ids}
+        query["id"] = {"$in": list(CollectionSet({"slug": {"$in": in_collection}}).sheet_ids())}
 
     projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
          "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
          "displayedCollection":1, "options":1, "llm_scoring":1}
+    # No hint: the planner picks the compound {expandedRefs, status/owner, ...} indexes, which filter inside the
+    # index. The old hint("expandedRefs_1") dated from when this query sorted by views and walked every sheet on the passage.
     sheetsObj = db.sheets.find(query, projection)
-    sheetsObj.hint("expandedRefs_1")
     sheets = [s for s in sheetsObj]
     sheets = calculate_combined_score(sheets, str(oref))
     user_ids = list({s["owner"] for s in sheets})
@@ -1087,7 +1085,7 @@ def choose_existing_topic_for_title(title):
     def compare(t1, t2):
         if is_title_primary(title, t1) == is_title_primary(title, t2):
             # If both or neither match primary title, prefer greater number of sources
-            return getattr(t1, "numSources", 0) - getattr(t2, "numSources", 0)
+            return t1.total_sources - t2.total_sources
         else:
             # Prefer matches to primary title
             return 1 if is_title_primary(title, t1) else -1
@@ -1224,7 +1222,7 @@ def public_tag_list(sort_by="alpha"):
         if title in seen_titles:
             continue
         seen_titles.add(title)
-        results.append({"tag": title, "count": getattr(tag, 'numSources', 0)})
+        results.append({"tag": title, "count": tag.total_sources})
 
     sort_keys =  {
         "alpha": lambda x: x["tag"],

@@ -117,3 +117,29 @@ def test_set_enabled_coerces_before_writing(saveable_profile):
     with whitelisted(False):
         library_assistant.set_enabled(mock.Mock(id=1), "false")
     assert saveable_profile.settings[SETTING_KEY] is False
+
+
+def anonymous_switch(**values):
+    """Patch remote config so only the given keys are set."""
+    cache = mock.Mock()
+    cache.get.side_effect = lambda key, default=None: values.get(key, default)
+    return mock.patch("sefaria.helper.library_assistant.remoteConfigCache", cache)
+
+
+LOGGED_OUT = mock.Mock(is_authenticated=False)
+
+
+def test_logged_out_visitor_gets_the_assistant_when_the_switch_is_not_set():
+    with anonymous_switch():
+        assert library_assistant.is_enabled_for_user(LOGGED_OUT) is True
+
+
+@pytest.mark.parametrize("value", [False, "false"])
+def test_logged_out_visitor_does_not_get_the_assistant_when_the_switch_is_off(value):
+    with anonymous_switch(**{library_assistant.CHATBOT_ANONYMOUS_ENABLED: value}):
+        assert library_assistant.is_enabled_for_user(LOGGED_OUT) is False
+
+
+def test_no_user_is_treated_as_logged_out():
+    with anonymous_switch():
+        assert library_assistant.is_enabled_for_user(None) is True

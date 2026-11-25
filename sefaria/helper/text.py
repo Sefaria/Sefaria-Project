@@ -58,7 +58,7 @@ def rename_category(old, new):
         i.categories = [new if cat == old else cat for cat in i.categories]
         i.save()
 
-    # Not multiserver aware
+    # rebuild_toc() publishes to other processes via GenCache
     library.rebuild_toc()
 
 

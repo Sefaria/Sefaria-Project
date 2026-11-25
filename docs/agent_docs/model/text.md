@@ -190,7 +190,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
 - **Key methods**:
   - `__init__()` -- Stage 1 init. Only builds term mappings. Everything else is lazy.
   - `_build_index_maps()` -- Stage 2. Loads all IndexSet records, builds `_index_map`, `_title_node_maps`, `_index_title_maps`. Called lazily.
-  - `rebuild(include_toc, include_auto_complete)` -- Nuclear option. Rebuilds all index maps, clears title caches, clears Ref cache, resets in_memory_cache. Expensive.
+  - `rebuild(include_toc, include_auto_complete)` -- Nuclear option. Rebuilds all index maps, clears title caches, clears Ref cache, bumps GenCache counters so other processes refresh. Expensive.
   - `rebuild_toc()` -- Rebuilds TOC tree and all derived JSON caches.
   - `init_shared_cache(rebuild)` -- Populates shared cache (Redis) with TOC, terms, topics, etc. Called on startup.
   - `get_index(bookname)` -- Factory. Returns cached Index or looks up by title in title_node_maps.
@@ -207,7 +207,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - **Singleton**: Instantiated at module bottom as `library = Library()`. Imported everywhere.
   - **Shared cache pattern**: Many getters follow a three-tier pattern: (1) check instance variable, (2) check shared cache (Redis), (3) build from scratch. The `rebuild` parameter bypasses tiers 1 and 2.
   - **`all_titles_regex` uses re2** (not stdlib re) with a 512MB memory limit. The compiled regex objects must NOT be stored in Redis (they get corrupted).
-  - **`rebuild()` clears `Ref.clear_cache()`** and `in_memory_cache.reset_all()`. This is very disruptive to running processes.
+  - **`rebuild()` clears `Ref.clear_cache()`**, and peers clear theirs when they notice the `index_map` bump. This is very disruptive to running processes.
   - **Autocompleter rebuild-on-demand**: If an autocompleter is missing, accessor methods rebuild it with a warning. This can cause performance issues if called repeatedly.
 
 ## Non-Obvious Patterns
@@ -246,7 +246,7 @@ The gravitational center of the Sefaria model layer. Defines how texts are struc
   - `sefaria.model.place`, `sefaria.model.timeperiod` -- lazy imports for metadata
   - `sefaria.datatype.jagged_array` -- `JaggedTextArray`, `JaggedArray`
   - `sefaria.system.database` -- `db` (direct MongoDB access)
-  - `sefaria.system.cache` -- `in_memory_cache`, `scache` (shared cache/Redis)
+  - `sefaria.system.cache` -- `gen_cache`, `scache` (shared cache/Redis)
   - `sefaria.helper.normalization` -- `NormalizerFactory`
   - `sefaria.helper.link` -- `AutoLinkerFactory`
   - `sefaria.helper.legacy_ref` -- `legacy_ref_parser_handler`
