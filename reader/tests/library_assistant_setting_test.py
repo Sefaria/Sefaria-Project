@@ -1,5 +1,4 @@
 import json
-import re
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser

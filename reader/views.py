@@ -5320,9 +5320,6 @@ def settings_page(request, tab="account", project_id=None):
         "initialAccountSettings": _account_settings_props(request, profile),
         "initialDeveloper": developer_state(request) if developer_on and session_login(request) else None,
     }
-    if tab == "library-assistant":
-        # The assistant starts closed here: its panel would cover the settings controls (Yotam's POC).
-        props["chatbotStartClosed"] = True
     titles = {
         "account": "Account Settings",
         "developer": "Developer Settings",
