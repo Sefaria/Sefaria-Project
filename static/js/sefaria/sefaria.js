@@ -3276,12 +3276,20 @@ Sefaria = extend(Sefaria, {
       navigator.sendBeacon(syncUrl, new URLSearchParams({ user_history, csrfmiddlewaretoken: getCsrfToken() }));
       return;
     }
-    $.post(`${syncUrl}&annotate=1`, { user_history }, (data) => {
+    const saving = $.post(`${syncUrl}&annotate=1`, { user_history }, (data) => {
       // Insert new items to beginning of history
       Sefaria.userHistory.items = data.created.concat(Sefaria.userHistory.items);
       Sefaria._recentBooksStale = true;
       onSaved?.();
     });
+    Sefaria._historySaved = Promise.resolve(saving).catch(() => {});
+  },
+  _historySaved: Promise.resolve(), // the latest history save, which loads of recent reading wait for
+  flushPendingHistory: () => {}, // set by ReaderApp: saves places still waiting out their intent delay
+  _afterHistorySaved: function () {
+    // Resolves once the places read so far are saved, so a load of recent reading includes them.
+    Sefaria.flushPendingHistory();
+    return Sefaria._historySaved;
   },
   // Recent books -- each of the reader's most recently read books at its last place -- for the homepage's
   // "currently learning" section and the header's list. {limit, items}, from SSR or /api/profile/recent_books.
@@ -3300,20 +3308,22 @@ Sefaria = extend(Sefaria, {
   },
   recentBooks: function (limit) {
     // Resolves to up to `limit` recent books.
-    if (!Sefaria._uid) {
-      const books = Sefaria._readAnonHistory().filter(
-        (x) => x.book !== 'Sheet' && !Sefaria.isExcludedFromRecentBooks(x.book)
-      );
-      return Promise.resolve(books.slice(0, limit));
-    }
-    const cached = Sefaria._recentBooks;
-    if (cached && !Sefaria._recentBooksStale && cached.limit >= limit) {
-      return Promise.resolve(cached.items.slice(0, limit));
-    }
-    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/recent_books?limit=${limit}`).then((items) => {
-      Sefaria._recentBooks = { limit, items };
-      Sefaria._recentBooksStale = false;
-      return items;
+    return Sefaria._afterHistorySaved().then(() => {
+      if (!Sefaria._uid) {
+        const books = Sefaria._readAnonHistory().filter(
+          (x) => x.book !== 'Sheet' && !Sefaria.isExcludedFromRecentBooks(x.book)
+        );
+        return books.slice(0, limit);
+      }
+      const cached = Sefaria._recentBooks;
+      if (cached && !Sefaria._recentBooksStale && cached.limit >= limit) {
+        return cached.items.slice(0, limit);
+      }
+      return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/recent_books?limit=${limit}`).then((items) => {
+        Sefaria._recentBooks = { limit, items };
+        Sefaria._recentBooksStale = false;
+        return items;
+      });
     });
   },
   cachedRecentBooks: function (limit) {
@@ -3325,7 +3335,9 @@ Sefaria = extend(Sefaria, {
     // The reader's last place in each book on each day, for the 30 days before `before` (epoch seconds), and the
     // time of the newest older read ({places, older}). See UserHistory.get_daily_places.
     const params = new URLSearchParams({ before, utc_offset: -new Date().getTimezoneOffset() });
-    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/daily_places?${params.toString()}`);
+    return Sefaria._afterHistorySaved().then(() =>
+      Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/daily_places?${params.toString()}`)
+    );
   },
   saveUserHistory: function (history_item, { beacon = false } = {}) {
     // history_item contains:
@@ -3343,7 +3355,7 @@ Sefaria = extend(Sefaria, {
       Sefaria._syncHistoryItems(history_item_array, { beacon });
     } else {
       // we need to get the heRef for each history item
-      Promise.all(
+      const saving = Promise.all(
         history_item_array
           .filter((x) => !x.secondary)
           .map(
@@ -3362,6 +3374,7 @@ Sefaria = extend(Sefaria, {
         cookie('user_history', JSON.stringify(trimmed), { path: '/', expires: Sefaria.ANON_HISTORY_DAYS });
         Sefaria.userHistory.items = trimmed;
       });
+      Sefaria._historySaved = saving.catch(() => {});
     }
     Sefaria.last_place = history_item_array.filter((x) => !x.secondary).concat(Sefaria.last_place); // while technically we should remove dup. books, this list is only used on client
   },

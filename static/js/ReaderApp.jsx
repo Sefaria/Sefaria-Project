@@ -263,6 +263,7 @@ class ReaderApp extends Component {
     window.addEventListener('resize', this.setPanelCap);
     window.addEventListener('beforeprint', this.handlePrint);
     window.addEventListener('pagehide', this.flushPendingHistorySavesOnPageHide);
+    Sefaria.flushPendingHistory = this.flushPendingHistorySaves; // recent reading shown in-app includes places not yet saved
     document.addEventListener('copy', this.handleCopyEvent);
     this.setPanelCap();
     if (this.props.headerMode) {
@@ -313,6 +314,7 @@ class ReaderApp extends Component {
     window.removeEventListener('resize', this.setPanelCap);
     window.removeEventListener('beforeprint', this.handlePrint);
     window.removeEventListener('pagehide', this.flushPendingHistorySavesOnPageHide);
+    Sefaria.flushPendingHistory = () => {};
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
@@ -1116,7 +1118,7 @@ class ReaderApp extends Component {
   checkPanelScrollIntentAndSaveRecent(state, n) {
     // Saves the place panel `n` moved to (`state`) once the reader has stayed on it for a few seconds, so places
     // scrolled past aren't saved. A place still waiting is saved right away when the reader moves on to another
-    // book or sheet, or leaves the page (flushPendingHistorySaves).
+    // book or sheet, leaves the page, or looks at their recent reading (flushPendingHistorySaves).
     this.panelScrollIntentTimer = this.panelScrollIntentTimer || [];
     this.pendingHistoryPanels = this.pendingHistoryPanels || [];
     const pending = this.pendingHistoryPanels[n];
