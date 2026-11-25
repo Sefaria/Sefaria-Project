@@ -179,8 +179,12 @@ class RefView(View):
         if getattr(index_node, "depth", None) and not oref.is_range() and not oref.is_segment_level():
             state_ja = oref.get_state_ja(vstate=vstate) if vstate else None
             subrefs = oref.all_subrefs(state_ja=state_ja)
-            return_object["navigation_refs"]["first_subref"] = subrefs[0].normal()
-            return_object["navigation_refs"]["last_subref"] = subrefs[-1].normal()
+            # all_subrefs is empty when the ref's section has no addressable child in
+            # this state (for example a commentary verse with no comment). Leave the
+            # keys out in that case, as is done for range and segment-level refs.
+            if subrefs:
+                return_object["navigation_refs"]["first_subref"] = subrefs[0].normal()
+                return_object["navigation_refs"]["last_subref"] = subrefs[-1].normal()
 
         return jsonResponse(return_object)
 

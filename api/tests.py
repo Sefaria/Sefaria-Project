@@ -6,7 +6,8 @@ import json
 
 from api.api_warnings import APIWarningCode
 from reader.tests import SefariaTestCase
-from sefaria.system.database import QueryCounter
+from sefaria.model import Category, Index, JaggedArrayNode, Version, library
+from sefaria.system.database import QueryCounter, db
 
 c = Client()
 
@@ -523,3 +524,81 @@ class APIRefTests(SefariaTestCase):
         self.assertEqual(data["node_type"], "SheetNode")
         self.assertEqual(data["sheet_id"], 1)
         self.assertEqual(data["navigation_refs"]["shortest_path_to_root"][-1], "Sheet 1")
+
+
+class RefViewEmptySubrefTests(SefariaTestCase):
+    """RefView must not 500 when a ref's section has no addressable child.
+
+    A commentary verse with no comment has an empty ``all_subrefs``; the view
+    used to index that empty list for ``first_subref``/``last_subref`` and raise
+    IndexError.  See the GET /api/ref 500 on commentary refs finding.
+    """
+
+    TITLE = "Test Commentary on Genesis"
+    TITLE_HE = "פירוש בדיקה על בראשית"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        Category(
+            {
+                "path": ["Commentary"],
+                "lastPath": "Commentary",
+                "titles": [
+                    {"lang": "en", "text": "Commentary", "primary": True},
+                    {"lang": "he", "text": "פירוש", "primary": True},
+                ],
+            }
+        ).save()
+
+        node = JaggedArrayNode(
+            {
+                "depth": 3,
+                "addressTypes": ["Integer", "Integer", "Integer"],
+                "sectionNames": ["Chapter", "Verse", "Comment"],
+                "key": "testcomm",
+            }
+        )
+        node.add_primary_titles(cls.TITLE, cls.TITLE_HE)
+        index = Index({"title": cls.TITLE, "categories": ["Commentary"], "schema": node.serialize()})
+        index.save()
+
+        # Chapter 1: verse 1 has comments, verse 2 has none, verse 3 has one.
+        Version(
+            {
+                "language": "en",
+                "title": cls.TITLE,
+                "versionSource": "",
+                "versionTitle": "Test Version",
+                "chapter": [[["c1a", "c1b"], [], ["c3a"]]],
+            }
+        ).save()
+        index.versionState().refresh()
+        library.rebuild()
+
+    @classmethod
+    def tearDownClass(cls):
+        for collection in ("index", "texts", "vstate"):
+            db[collection].delete_many({"title": cls.TITLE})
+        db.category.delete_many({"path": ["Commentary"]})
+        db.terms.delete_many({"name": "Commentary"})
+        library.rebuild()
+        super().tearDownClass()
+
+    def test_section_with_no_subrefs_returns_metadata(self):
+        """A commentary verse with no comment returns its metadata, without first_subref."""
+        response = c.get(f"/api/ref/{self.TITLE} 1:2")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(data["is_ref"])
+        self.assertEqual(data["index_title"], self.TITLE)
+        self.assertNotIn("first_subref", data["navigation_refs"])
+        self.assertNotIn("last_subref", data["navigation_refs"])
+
+    def test_section_with_subrefs_includes_first_and_last(self):
+        """A commentary verse with comments still reports its first and last subref."""
+        response = c.get(f"/api/ref/{self.TITLE} 1:1")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(data["navigation_refs"]["first_subref"], f"{self.TITLE} 1:1:1")
+        self.assertEqual(data["navigation_refs"]["last_subref"], f"{self.TITLE} 1:1:2")
