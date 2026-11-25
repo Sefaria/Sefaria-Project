@@ -227,6 +227,7 @@ class LibraryAssistantSettingsPageTest(LibraryAssistantUserTestCase):
 
         self.assertEqual(props["initialSettingsTab"], "library-assistant")
         self.assertEqual(props["initialMenu"], "settings")
+        self.assertIn("libraryAssistantEnabled", props["initialAccountSettings"])
 
     def test_assistant_starts_closed_on_this_tab_only(self):
         self.assertIs(self.props()["chatbotStartClosed"], True)

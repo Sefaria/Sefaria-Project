@@ -19303,3 +19303,121 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 /* Icon buttons and the step back arrow: color change only on hover, no background (restored after removing the publish banner). */
 .devPocPage .devE-ico:hover, .devPocPage .devE-stepBack:hover { background: none; }
+
+/* ==========================================================================
+   Library Assistant settings tab (Penina, 2026-11-18/19; design/personalized-responses)
+   @sefaria/design-system semantic tokens only. Where none fits, a core token or a raw value marked
+   "NO TOKEN" (listed on the wiki: projects/design-system/tasks, "From the Library Assistant settings tab").
+   ========================================================================== */
+.settingsPanel > .laTabPage { max-width: 660px; }
+.laTabPage {
+  --la-radius-card: var(--global-dimension-150);   /* 12px. NO TOKEN: radius (dimension scale stands in) */
+  --la-radius-control: var(--global-dimension-50); /* 4px. NO TOKEN: radius */
+  --la-focus: var(--core-blue-700);                 /* NO TOKEN: focus ring; --border-focus is too light */
+  font-family: var(--english-sans-serif-font-family); /* NO TOKEN: font family */
+  color: var(--text-primary);
+}
+.laTabPage :focus-visible { outline: var(--border-width-thick) solid var(--la-focus); outline-offset: var(--spacing-2xsmall); }
+.laTabPage .laSettings { display: flex; flex-direction: column; gap: var(--spacing-large); }
+
+/* Page header: the title as Account and Developer (en-system-h3-strong, text-secondary), save status at the end */
+.laTabPage .laPageHeader { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-small) var(--spacing-large); }
+.laTabPage .laPageHeader h1 { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.4; color: var(--text-secondary); } /* NO TOKEN: type */
+.laTabPage .laSaveStatus { display: inline-flex; align-items: center; gap: var(--spacing-xsmall); min-height: 24px; margin: 0; font-size: 14px; line-height: 1.4; color: var(--text-muted); white-space: nowrap; }
+.laTabPage .laSavedIcon { width: var(--icon-small); height: var(--icon-small); color: var(--feedback-success); }
+.laTabPage .laSpinner { width: var(--icon-small); height: var(--icon-small); box-sizing: border-box; border: var(--border-width-thick) solid var(--surface-highlighted); border-top-color: var(--action-primary); border-radius: 50%; animation: laSpin .8s linear infinite; }
+@keyframes laSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .laTabPage .laSpinner { animation-duration: 2.4s; } }
+
+/* Text */
+.laTabPage .laHint { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-secondary); } /* NO TOKEN: type */
+.laTabPage .laMeta { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
+.laTabPage .laLink { color: var(--text-link); text-decoration: underline; }
+.laTabPage .laLink:hover { color: var(--text-link-hovered); }
+.laTabPage .laMessage { margin: 0; padding: var(--spacing-small) var(--spacing-medium); border-radius: var(--la-radius-control); background: var(--surface-page); font-size: 14px; line-height: 1.5; color: var(--text-primary); overflow-wrap: anywhere; }
+.laTabPage .laMessage.laError { background: var(--feedback-error-background); color: var(--feedback-error-text); }
+.laTabPage .laJobState, .laTabPage .laRuns, .laTabPage .laHealthResult { display: flex; flex-direction: column; gap: var(--spacing-2xsmall); }
+
+/* Blue boxes: developer settings' project boxes (surface-selected fill, surface-highlighted border) */
+.laTabPage .laCard { display: flex; flex-direction: column; gap: var(--spacing-large); padding: var(--spacing-xlarge); border: var(--border-width-thin) solid var(--surface-highlighted); border-radius: var(--la-radius-card); background: var(--surface-selected); } /* NO TOKEN: a surface token as a border */
+.laTabPage .laCardTools { border-style: dashed; border-color: var(--border-default); background: var(--surface-subtle); }
+.laTabPage .laCardHead { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-large); }
+.laTabPage .laCardHeadText { display: flex; flex-direction: column; gap: var(--spacing-xsmall); min-width: 0; }
+.laTabPage .laCardTitle { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.4; color: var(--text-primary); } /* NO TOKEN: type */
+.laTabPage .laBody { display: flex; flex-direction: column; gap: var(--spacing-large); }
+.laTabPage .laBodyOff { opacity: .5; } /* NO TOKEN: disabled opacity */
+.laTabPage .laBodyOff:focus-within { opacity: 1; }
+
+/* Personalized answers: a heading, not a box */
+.laTabPage .laSectionHead { display: flex; flex-direction: column; gap: var(--spacing-xsmall); margin-block-start: var(--spacing-large); }
+.laTabPage .laH2 { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.4; color: var(--text-primary); text-transform: none; letter-spacing: normal; }
+.laTabPage .laGroup { display: flex; flex-direction: column; gap: var(--spacing-large); }
+.laTabPage .laGroupOff { opacity: .5; } /* the whole area, heading included */
+.laTabPage .laGroupOff .laBodyOff { opacity: 1; } /* no double dimming */
+.laTabPage .laOffNote { margin: 0; padding: var(--spacing-medium) var(--spacing-large); border-radius: var(--la-radius-control); border: var(--border-width-thin) solid var(--feedback-info-border); background: var(--feedback-info-background); color: var(--feedback-info-text); font-size: 14px; line-height: 1.5; }
+
+/* Switch rows and the shared ToggleSwitch: off is API keys' light gray */
+.laTabPage .laSwitchRow { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-large); }
+.laTabPage .laSwitchText { display: flex; flex-direction: column; gap: var(--spacing-2xsmall); min-width: 0; }
+.laTabPage .laSwitchLabel { font-size: 16px; font-weight: 600; line-height: 1.4; color: var(--text-primary); }
+.laTabPage .toggle-switch-container { flex: none; }
+.laTabPage .toggle-switch-inner:before { background-color: var(--action-primary); color: var(--text-inverse); }
+.laTabPage .toggle-switch-inner:after { background-color: var(--core-neutral-gray-300); } /* NO TOKEN: switch off (as API keys); 1.6:1, under WCAG 1.4.11's 3:1 */
+.laTabPage .toggle-switch-switch { background: var(--surface-page); }
+.laTabPage .toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after { background-color: var(--action-primary-disabled); }
+.laTabPage .toggle-switch-checkbox:focus-visible + .toggle-switch-label { outline: var(--border-width-thick) solid var(--la-focus); outline-offset: var(--spacing-2xsmall); }
+
+/* Profile: one white box, parts separated by space only */
+.laTabPage .laProfileList { list-style: none; margin: 0; display: flex; flex-direction: column; gap: var(--spacing-medium); padding: var(--spacing-xlarge) var(--spacing-2xlarge); border: var(--border-width-thin) solid var(--border-default); border-radius: var(--la-radius-control); background: var(--surface-page); }
+.laTabPage .laProfileItem { display: flex; flex-direction: column; gap: var(--spacing-2xsmall); }
+.laTabPage .laProfileHeading { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.4; color: var(--text-secondary); }
+.laTabPage .laProfileBody { margin: 0; font-size: 16px; line-height: 1.5; color: var(--text-primary); }
+.laTabPage .laProfileBody { white-space: pre-wrap; overflow-wrap: anywhere; } /* keeps single line breaks */
+.laTabPage .laProfileParagraph + .laProfileParagraph { margin-top: var(--spacing-medium); }
+.laTabPage .laBadge { font-size: 12px; line-height: 1.5; color: var(--text-muted); } /* "Just updated": no color change, no flash */
+.laTabPage .laEmpty { padding: var(--spacing-large) var(--spacing-xlarge); border: var(--border-width-thin) dashed var(--border-default); border-radius: var(--la-radius-control); background: var(--surface-page); }
+.laTabPage .laEmpty .laProfileBody { font-size: 14px; color: var(--text-secondary); }
+.laTabPage .laProfileMetaRow { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-small) var(--spacing-large); }
+.laTabPage .laEdit { display: flex; flex-direction: column; gap: var(--spacing-medium); }
+
+/* Inputs (common/Input) */
+.laTabPage .sefaria-input-label { color: var(--text-primary); }
+.laTabPage .sefaria-input-control { color: var(--text-primary); border-color: var(--border-default); background: var(--surface-page); }
+.laTabPage .sefaria-input-control::placeholder { color: var(--text-muted); }
+.laTabPage .sefaria-input-control:focus { border-color: var(--border-strong); }
+.laTabPage .sefaria-input--disabled .sefaria-input-control, .laTabPage .sefaria-input-control:disabled { background: var(--surface-subtle); color: var(--text-disabled); }
+.laTabPage .sefaria-input-error { color: var(--feedback-error-text); }
+.laTabPage .laCount { font-size: 12px; line-height: 1; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.laTabPage .laCountOver { color: var(--feedback-error-text); font-weight: 600; }
+
+/* Buttons */
+.laTabPage .laActions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-small); }
+.laTabPage .laButton { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: var(--spacing-small); min-height: 40px; padding: 0 var(--spacing-large); border-radius: var(--la-radius-control); font: 600 14px/1 var(--english-sans-serif-font-family); cursor: pointer; white-space: nowrap; }
+.laTabPage .laButtonPrimary { border: var(--border-width-medium) solid var(--action-primary); background: var(--action-primary); color: var(--text-inverse); }
+.laTabPage .laButtonPrimary:hover { background: var(--action-primary-hover); border-color: var(--action-primary-hover); }
+.laTabPage .laButtonPrimary:active { background: var(--action-primary-pressed); border-color: var(--action-primary-pressed); }
+.laTabPage .laButtonPrimary:disabled, .laTabPage .laButtonPrimary[aria-disabled="true"] { background: var(--action-primary-disabled); border-color: var(--action-primary-disabled); color: var(--text-disabled); cursor: not-allowed; }
+.laTabPage .laButtonSecondary { border: var(--border-width-thin) solid var(--border-default); background: var(--surface-page); color: var(--action-secondary); }
+.laTabPage .laButtonSecondary:hover { background: var(--surface-hover); color: var(--action-secondary-hover); }
+.laTabPage .laButtonSecondary:disabled { color: var(--text-disabled); cursor: not-allowed; }
+.laTabPage .laButtonDanger { border: var(--border-width-medium) solid var(--feedback-error-text); background: var(--feedback-error-text); color: var(--text-inverse); } /* NO TOKEN: destructive action */
+.laTabPage .laButtonDanger:hover { background: var(--feedback-error-hover); border-color: var(--feedback-error-hover); }
+.laTabPage .laButtonDangerSecondary { border: var(--border-width-thin) solid var(--feedback-error-border); background: var(--surface-page); color: var(--feedback-error-text); } /* NO TOKEN: destructive action */
+.laTabPage .laButtonDangerSecondary:hover { background: var(--feedback-error-background); border-color: var(--feedback-error-hover); color: var(--feedback-error-hover); }
+.laTabPage .laButtonDangerSecondary:disabled { border-color: var(--border-default); color: var(--text-disabled); background: var(--surface-page); cursor: not-allowed; }
+
+/* Clear profile dialog: developer settings' confirm window */
+.laTabPage .laDialogStage { background: rgb(0 0 0 / 0.4); } /* NO TOKEN: overlay scrim */
+.laTabPage .laDialog { width: 440px; max-width: calc(100% - 2 * var(--spacing-large)); box-sizing: border-box; padding: var(--spacing-3xlarge) var(--spacing-2xlarge) var(--spacing-2xlarge); border-radius: var(--la-radius-card); background: var(--surface-page); box-shadow: var(--shadow-xlarge); color: var(--text-primary); } /* core shadow: no semantic elevation */
+.laTabPage .laDialog h3 { margin: 0 0 var(--spacing-small); font-size: 20px; font-weight: 600; line-height: 1.4; }
+.laTabPage .laDialog p { margin: 0 0 var(--spacing-2xlarge); font-size: 16px; line-height: 1.5; color: var(--text-secondary); }
+.laTabPage .laDialogActions { display: flex; flex-direction: row-reverse; gap: var(--spacing-small); }
+
+/* Phones: 44px targets, stacked dialog buttons */
+@media (max-width: 600px) {
+  .laTabPage .laCard { padding: var(--spacing-large); }
+  .laTabPage .laProfileList { padding: var(--spacing-large); }
+  .laTabPage .laButton { min-height: 44px; }
+  .laTabPage .laDialogActions { flex-direction: column; }
+}
+.laTabPage .laSaveStatus.laSaveStatusFail { color: var(--feedback-error-text); }

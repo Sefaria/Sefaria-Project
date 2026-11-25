@@ -122,3 +122,13 @@ describe('settings page history state', () => {
     expect(panel.developer.projects[0].keys[0].value).toBe('sfr_secret');
   });
 });
+
+describe('ReaderApp.setAssistantTurnedOff', () => {
+  it('keeps the state the widget and its context follow: off hides at once, on clears it', () => {
+    const app = { state: { assistantTurnedOff: false }, setState: jest.fn((s) => Object.assign(app.state, s)) };
+    ReaderApp.prototype.setAssistantTurnedOff.call(app, true);
+    expect(app.state.assistantTurnedOff).toBe(true);
+    ReaderApp.prototype.setAssistantTurnedOff.call(app, false);
+    expect(app.state.assistantTurnedOff).toBe(false);
+  });
+});

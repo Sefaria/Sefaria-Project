@@ -153,6 +153,8 @@ class ReaderApp extends Component {
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
       showAuth,
+      // The Library Assistant tab turned the assistant off: hide the widget at once, no reload (see setAssistantTurnedOff)
+      assistantTurnedOff: false,
       authPath,
       // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
       // legitimately has no attributable source.
@@ -170,6 +172,12 @@ class ReaderApp extends Component {
     // given view (AuthPage's initialView; its choose card when null).
     this.setState({ showAuth: true, authPath: path, authSource: source, authView: view, showSignUpModal: false });
   };
+  // Called from the Library Assistant settings tab when the on/off setting saves. Off hides the widget now; on clears
+  // this, and the widget shows again only if the page was loaded with it (a token may still be missing until reload).
+  setAssistantTurnedOff(turnedOff) {
+    this.setState({ assistantTurnedOff: !!turnedOff });
+  }
+
   authNext() {
     // Where to return after logging in. If the auth page is already open, keep its own `next`
     // rather than nesting /login?next=... inside a new one.
@@ -2702,7 +2710,11 @@ class ReaderApp extends Component {
     // login and registration screens, which logged-out visitors reach from the assistant itself;
     // it comes back once they leave them.
     const displayChatbot =
-      this.props.chatbot_enabled && isLibraryModule && !this.state.showAuth && !chatbotHiddenByRemoteConfig;
+      this.props.chatbot_enabled &&
+      isLibraryModule &&
+      !this.state.showAuth &&
+      !chatbotHiddenByRemoteConfig &&
+      !this.state.assistantTurnedOff;
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -2790,6 +2802,7 @@ class ReaderApp extends Component {
               chatbot_user_token: this.props.chatbot_user_token,
               chatbot_version: this.props.chatbot_version,
               chatbot_api_base_url: this.props.chatbot_api_base_url,
+              onAssistantToggled: (on) => this.setAssistantTurnedOff(!on),
             }}
             setCentralState={setPanelState}
             multiPanel={this.props.multiPanel}

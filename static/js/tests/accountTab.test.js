@@ -179,31 +179,12 @@ describe('Account tab save', () => {
     expect(payload.settings).not.toHaveProperty('library_assistant');
   });
 
-  it('leaves library_assistant out when the toggle was changed and changed back', () => {
+  it('has no Library Assistant switch: it moved to its own tab', () => {
     mount();
-    choose('libraryAssistantSetting', 'false');
-    choose('libraryAssistantSetting', 'true');
-    const { payload } = save();
-    expect(payload.settings).not.toHaveProperty('library_assistant');
-    expect(window.location.reload).not.toHaveBeenCalled();
-  });
-
-  it('sends library_assistant as a boolean when it was changed, then reloads', () => {
-    mount();
-    choose('libraryAssistantSetting', 'false');
-    const { payload } = save();
-    expect(payload.settings.library_assistant).toBe(false);
-    expect(window.alert).toHaveBeenCalledWith('Settings Saved');
-    expect(window.location.reload).toHaveBeenCalledTimes(1);
-    expect(settingsUpdated).not.toHaveBeenCalled();
-  });
-
-  it('turns the Library Assistant on for a user who had it off', () => {
-    mount({ libraryAssistantEnabled: false });
-    choose('libraryAssistantSetting', 'true');
-    const { payload } = save();
-    expect(payload.settings.library_assistant).toBe(true);
-    expect(window.location.reload).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('.settingsPanel[data-tab="account"] #libraryAssistantSetting')).toBeNull();
+    expect(container.querySelector('.settingsPanel[data-tab="account"]').textContent).not.toContain(
+      'Library Assistant'
+    );
   });
 
   it('sets the translation preference cookies before posting', () => {
@@ -294,7 +275,6 @@ describe('Account tab save', () => {
 
   it('shows the server error and does nothing else when the save is refused', () => {
     mount();
-    choose('libraryAssistantSetting', 'false');
     save({ error: 'Something broke' });
     expect(window.alert).toHaveBeenCalledWith('Something broke');
     expect(window.alert).not.toHaveBeenCalledWith('Settings Saved');
