@@ -4204,5 +4204,15 @@
   "status": "done",
   "note": "Built",
   "by": "src/lib/reader/ctx.ts"
+ },
+ "CON-073": {
+  "status": "done",
+  "note": "New in this reader (no old-client equivalent), behind the findings lab (off by default); the findings API is the Library Assistant's",
+  "by": "src/lib/connections/findings.ts, src/features/reader/ConnectionsPane.tsx"
+ },
+ "CON-074": {
+  "status": "done",
+  "note": "New in this reader (no old-client equivalent), behind the findings lab",
+  "by": "src/ui/FindingsView/FindingsView.tsx"
  }
 }
