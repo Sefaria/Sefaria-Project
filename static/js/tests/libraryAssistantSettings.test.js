@@ -134,6 +134,17 @@ describe('helpers', () => {
   });
 });
 
+const MAX_TEXT = 300;
+
+describe('parseSections line breaks', () => {
+  it('keeps line breaks and blank-line paragraph breaks inside a section', () => {
+    expect(parseSections('# A\nOne\nTwo\n\n\n\nThree\n- x\n- y\n# B\nFour')).toEqual([
+      { heading: 'A', body: 'One\nTwo\n\nThree\n- x\n- y' },
+      { heading: 'B', body: 'Four' },
+    ]);
+  });
+});
+
 describe('changedSectionIndex', () => {
   it('finds a new section, and nothing when nothing changed', () => {
     expect(changedSectionIndex('# A\nOne', '# A\nOne\n# B\nTwo')).toBe(1);
@@ -1055,6 +1066,73 @@ describe('LibraryAssistantSettings', () => {
     const items = [...container.querySelectorAll('.laProfileItem')];
     expect(items[0].textContent).toContain('Just updated');
     expect(items[1].textContent).not.toContain('Just updated');
+  });
+
+  it('renders a section as one <p> per paragraph, keeping single line breaks, as text', async () => {
+    global.fetch.mockImplementation(() =>
+      reply(state({ profile: { ...state().profile, text: '# A\nOne\nTwo <b>x</b>\n\nThree\n# B\nFour' } }))
+    );
+    await render();
+    const items = [...container.querySelectorAll('.laProfileItem')];
+    const paras = [...items[0].querySelectorAll('p.laProfileBody')];
+    expect(paras.map((p) => p.textContent)).toEqual(['One\nTwo <b>x</b>', 'Three']);
+    expect(items[0].querySelector('b')).toBeNull();
+    expect(items[1].querySelectorAll('p.laProfileBody')).toHaveLength(1);
+  });
+
+  it('marks a section Just updated when only its line breaks or paragraphs change', async () => {
+    global.fetch.mockImplementation(() =>
+      reply(state({ profile: { ...state().profile, text: '# A\nOne\nTwo\n# B\nx' } }))
+    );
+    await render();
+    global.fetch.mockImplementation(() =>
+      reply({
+        ...state({ profile: { ...state().profile, text: '# A\nOne\n\nTwo\n# B\nx' } }),
+        edit: { status: 'applied' },
+      })
+    );
+    await type(q('#laEdit'), 'Split it');
+    await act(async () => Simulate.click(byText('button', 'Update profile')));
+    await flush();
+    const items = [...container.querySelectorAll('.laProfileItem')];
+    expect(items[0].textContent).toContain('Just updated');
+    expect(items[0].querySelectorAll('p.laProfileBody')).toHaveLength(2);
+    expect(items[1].textContent).not.toContain('Just updated');
+  });
+
+  describe('header while typing Instructions', () => {
+    it('is empty from the first keystroke until the save starts, then saves', async () => {
+      let finish;
+      await render();
+      global.fetch.mockImplementation(
+        () => new Promise((resolve) => (finish = () => resolve({ ok: true, status: 200, json: () => state() })))
+      );
+      jest.useFakeTimers();
+      await type(q('#laInstructionsText'), 'A');
+      expect(q('.laSaveStatus').textContent).toBe('');
+      await type(q('#laInstructionsText'), 'Answer in English.');
+      expect(q('.laSaveStatus').textContent).toBe('');
+      await act(async () => {
+        jest.advanceTimersByTime(INSTRUCTIONS_SAVE_MS);
+      });
+      expect(q('.laSaveStatus').textContent).toBe('Saving changes…');
+      jest.useRealTimers();
+      await act(async () => {
+        finish();
+      });
+      await flush();
+      expect(q('.laSaveStatus').textContent).toBe('Changes saved');
+    });
+
+    it('says Changes not saved only while the text is over the limit, then nothing again', async () => {
+      await render();
+      await type(q('#laInstructionsText'), 'x'.repeat(MAX_TEXT + 1));
+      expect(q('.laSaveStatus').textContent).toBe('Changes not saved');
+      expect(q('.laSaveStatus').className).toContain('laSaveStatusFail');
+      await type(q('#laInstructionsText'), 'x'.repeat(MAX_TEXT));
+      expect(q('.laSaveStatus').textContent).toBe('');
+      expect(q('.laSaveStatus').className).not.toContain('laSaveStatusFail');
+    });
   });
 
   it('does not update state after unmount', async () => {

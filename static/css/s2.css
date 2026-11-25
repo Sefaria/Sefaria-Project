@@ -19372,6 +19372,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .laTabPage .laProfileItem { display: flex; flex-direction: column; gap: var(--spacing-2xsmall); }
 .laTabPage .laProfileHeading { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.4; color: var(--text-secondary); }
 .laTabPage .laProfileBody { margin: 0; font-size: 16px; line-height: 1.5; color: var(--text-primary); }
+.laTabPage .laProfileBody { white-space: pre-wrap; overflow-wrap: anywhere; } /* keeps single line breaks */
+.laTabPage .laProfileParagraph + .laProfileParagraph { margin-top: var(--spacing-medium); }
 .laTabPage .laBadge { font-size: 12px; line-height: 1.5; color: var(--text-muted); } /* "Just updated": no color change, no flash */
 .laTabPage .laEmpty { padding: var(--spacing-large) var(--spacing-xlarge); border: var(--border-width-thin) dashed var(--border-default); border-radius: var(--la-radius-control); background: var(--surface-page); }
 .laTabPage .laEmpty .laProfileBody { font-size: 14px; color: var(--text-secondary); }

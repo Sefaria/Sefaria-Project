@@ -153,16 +153,27 @@ export const parseSections = (text) => {
     if (heading) {
       current = { heading: heading[1], body: [] };
       sections.push(current);
-    } else if (line.trim()) {
+    } else if (line.trim() || current) {
       if (!current) {
         current = { heading: null, body: [] };
         sections.push(current);
       }
-      current.body.push(line.trim());
+      current.body.push(line.trimEnd());
     }
   });
-  return sections.map((s) => ({ ...s, body: s.body.join(' ') }));
+  // A section keeps its line breaks and its blank-line paragraph breaks (several blank lines count as one);
+  // `body` is the whole section text, so changedSectionIndex compares whole sections.
+  return sections.map((s) => ({
+    ...s,
+    body: s.body
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim(),
+  }));
 };
+// A section's paragraphs: its body split on blank lines. Each renders as its own <p> (single line breaks are kept
+// by CSS white-space: pre-wrap).
+const paragraphsOf = (body) => (body ? body.split('\n\n') : []);
 // Sections are matched by heading and by how many times it has appeared so far, so a repeated heading does not
 // collide; the untitled first section (heading null) is matched like any other.
 const sectionKeys = (sections) => {
@@ -348,13 +359,18 @@ const Counter = ({ length }) => (
 );
 
 /* Top right of the page header, where developer settings has its links. Nothing until the first change. */
-const SaveStatus = ({ saving, saved }) => (
+/* `draft`: the Instructions text is 'clean', 'dirty' (typed, the save not started yet: say nothing) or 'over' (too
+   long, never sent: "Changes not saved"). The element stays in the page, so a screen reader announces the text
+   whenever it appears. */
+const SaveStatus = ({ saving, saved, draft = 'clean' }) => (
   <p
-    className={'laSaveStatus' + (saved === 'fail' && !saving ? ' laSaveStatusFail' : '')}
+    className={'laSaveStatus' + ((saved === 'fail' && !saving) || draft === 'over' ? ' laSaveStatusFail' : '')}
     role="status"
     aria-live="polite"
   >
-    {saving ? (
+    {draft === 'over' ? (
+      <T>{STRINGS.notSaved}</T>
+    ) : draft === 'dirty' ? null : saving ? (
       <>
         <span className="laSpinner" aria-hidden="true" />
         <T>{STRINGS.saving}</T>
@@ -414,7 +430,7 @@ const ClearDialog = ({ onClear, onCancel }) => {
 // The actions that write a setting or the profile.
 const SAVE_ACTIONS = new Set(['toggle', 'set_instructions', 'set_testing', 'clear_profile', 'edit_profile']);
 
-const Personalization = ({ base, token, off, onSaving, active, mock }) => {
+const Personalization = ({ base, token, off, onSaving, onDirty, active, mock }) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [inFlight, setInFlight] = useState(0);
@@ -597,11 +613,19 @@ const Personalization = ({ base, token, off, onSaving, active, mock }) => {
   const saveDraft = () => {
     clearTimeout(saveTimer.current);
     const text = latestDraft.current;
+    // Reported before the write starts, so the header goes from "nothing" straight to "Saving changes…".
+    if (onDirty) onDirty(text.length > MAX_TEXT ? 'over' : 'clean');
     if (text !== queuedDraft.current && text.length <= MAX_TEXT) enqueueDraft(text);
+  };
+  // Tells the header whether the typed text is waiting to be saved ('dirty'), too long to be saved ('over'), or not.
+  const reportDraft = (text) => {
+    if (!onDirty) return;
+    onDirty(text.length > MAX_TEXT ? 'over' : text !== queuedDraft.current ? 'dirty' : 'clean');
   };
   const onDraft = (text) => {
     setDraft(text);
     latestDraft.current = text;
+    reportDraft(text);
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(saveDraft, INSTRUCTIONS_SAVE_MS);
   };
@@ -688,7 +712,11 @@ const Personalization = ({ base, token, off, onSaving, active, mock }) => {
               {sections.map((s, i) => (
                 <li key={i} className="laProfileItem">
                   {s.heading ? <h4 className="laProfileHeading">{s.heading}</h4> : null}
-                  <p className="laProfileBody">{s.body}</p>
+                  {paragraphsOf(s.body).map((para, j) => (
+                    <p key={j} className="laProfileBody laProfileParagraph">
+                      {para}
+                    </p>
+                  ))}
                   {changed !== null && i === changed ? (
                     <span className="laBadge">
                       <T>{STRINGS.justUpdated}</T>
@@ -914,6 +942,7 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
   const [settingError, setSettingError] = useState(null);
   const [pending, setPending] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [draftState, setDraftState] = useState('clean');
   const inFlight = useRef(false);
   // The server's value as last confirmed, and a value chosen while a save was running (sent when it ends).
   const acked = useRef(!!props.libraryAssistantEnabled);
@@ -934,6 +963,9 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
   // `result`: 'ok' or 'fail' when a save of `kind` (the action) ends. The header says "Changes saved" only when no
   // kind's latest save failed: a later toggle that succeeds does not hide unsaved instructions.
   const failedKinds = useRef(new Set());
+  const onDirty = useCallback((state) => {
+    if (tabMounted.current) setDraftState(state);
+  }, []);
   const onSaving = useCallback((delta, result, kind = 'other') => {
     // A write queued at unmount finishes after the tab is gone.
     if (!tabMounted.current) return;
@@ -1015,7 +1047,7 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
           <h1>
             <T>{STRINGS.title}</T>
           </h1>
-          <SaveStatus saving={pending > 0} saved={saved} />
+          <SaveStatus saving={pending > 0} saved={saved} draft={draftState} />
         </header>
 
         <section className="laCard" id="libraryAssistantSetting" aria-labelledby="laAssistant-label">
@@ -1047,7 +1079,15 @@ const LibraryAssistantSettings = ({ active = true, ...props }) => {
             </p>
           </div>
           {hasAccess ? (
-            <Personalization base={base} token={token} off={off} onSaving={onSaving} active={active} mock={mock} />
+            <Personalization
+              base={base}
+              token={token}
+              off={off}
+              onSaving={onSaving}
+              onDirty={onDirty}
+              active={active}
+              mock={mock}
+            />
           ) : (
             <section className="laCard">
               <p className="laHint">
