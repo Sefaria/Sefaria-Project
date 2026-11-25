@@ -16,10 +16,8 @@ jest.mock('../sefaria/sefaria', () => ({
   default: { _: (key) => key, _siteSettings: { TORAH_SPECIFIC: true } },
 }));
 
-/* eslint-disable import/first */
 import { ReaderPanelContext } from '../context';
 import ReaderDisplayOptionsMenu from '../ReaderDisplayOptionsMenu';
-/* eslint-enable import/first */
 
 // ReaderDisplayOptionsMenu relies on webpack's ProvidePlugin for the React global.
 global.React = React;

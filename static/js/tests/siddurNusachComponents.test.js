@@ -25,11 +25,9 @@ jest.mock('../sefaria/sefaria', () => ({
   },
 }));
 
-/* eslint-disable import/first */
 import Sefaria from '../sefaria/sefaria';
 import { SiddurNusachPicker, adoptStoredNusach, saveNusachChoice } from '../SiddurNusachPicker';
 import SiddurTocOverlay from '../SiddurTocOverlay';
-/* eslint-enable import/first */
 
 let container = null;
 const mount = (element) => {
