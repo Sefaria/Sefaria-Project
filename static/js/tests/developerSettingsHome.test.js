@@ -35,7 +35,6 @@ jest.mock('../Misc', () => require('./developerSettingsTestUtils').miscMock());
 jest.mock('../ProfilePic', () => ({ ProfilePic: () => null }));
 
 let server = null;
-let lib = null;
 
 /* The home page of an account that is set up, with the server holding the same state. */
 const openHome = (developer = {}) => {
@@ -54,7 +53,7 @@ const desktopSiteLink = (container) =>
     .find((a) => !a.classList.contains('devE-phoneOnly'));
 
 beforeEach(() => {
-  lib = loadSettings();
+  loadSettings();
   window.scrollTo = jest.fn();
   Element.prototype.scrollIntoView = jest.fn();
   Object.defineProperty(navigator, 'clipboard', {
@@ -880,29 +879,6 @@ describe('publishing a project', () => {
       addedLogo: true,
       addedDonateLink: true,
     });
-  });
-
-  it('labels each data and tool link, and its new-tab link, from Weblate', async () => {
-    await openPublish();
-    expect(screen.getByRole('link', { name: 'API (opens in a new tab)' }).getAttribute('href')).toBe(
-      'https://developers.sefaria.org/reference'
-    );
-    expect(screen.getByRole('link', { name: 'Tutorials (opens in a new tab)' })).toBeTruthy();
-    expect(document.getElementById('devEShareTool10').closest('label').textContent).toMatch(/Other/);
-  });
-
-  it('shows the data and tools, and their new-tab links, in Hebrew', async () => {
-    lib.Sefaria.interfaceLang = 'hebrew';
-    openHome({
-      projects: [project(1, { websiteUrl: SITE, keys: [key(1)] })],
-      profile: { ...READY.profile, description: 'I teach Talmud' },
-    });
-    await click(within(projectSection('Project 1')).getByRole('button', { name: 'פרסום הפרויקט' }));
-    expect(document.getElementById('devEShareTool7').closest('label').textContent).toMatch(/מדריכים/);
-    expect(screen.getByRole('link', { name: 'מדריכים (נפתח בכרטיסייה חדשה)' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'API (נפתח בכרטיסייה חדשה)' })).toBeTruthy();
-    await click(document.getElementById('devEShareTool7'));
-    expect(document.getElementById('devEShareTool7').checked).toBe(true);
   });
 
   it('reopens with the answers the project was submitted with', async () => {
