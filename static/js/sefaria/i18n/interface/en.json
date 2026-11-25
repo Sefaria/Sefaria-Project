@@ -982,5 +982,6 @@
     "developer.publish_form.sefaria_tools.option_08": "Tutorials",
     "developer.publish_form.sefaria_tools.option_09": "Documentation",
     "developer.publish_form.sefaria_tools.option_10": "Patot",
-    "developer.publish_form.sefaria_tools.option_11": "Other"
+    "developer.publish_form.sefaria_tools.option_11": "Other",
+    "developer.errors.not_a_domain.error": "Keys can't be limited to an address that isn't a public domain. Leave keys you use for local development unlimited."
 }
