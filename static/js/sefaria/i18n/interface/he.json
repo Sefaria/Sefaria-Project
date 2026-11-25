@@ -982,5 +982,6 @@
     "developer.publish_form.sefaria_tools.option_08": "מדריכים",
     "developer.publish_form.sefaria_tools.option_09": "תיעוד טכני",
     "developer.publish_form.sefaria_tools.option_10": "Patot",
-    "developer.publish_form.sefaria_tools.option_11": "אחר"
+    "developer.publish_form.sefaria_tools.option_11": "אחר",
+    "developer.errors.not_a_domain.error": "אי אפשר להגביל מפתחות לכתובת שאינה דומיין ציבורי. השאירו מפתחות לפיתוח מקומי ללא הגבלה."
 }
