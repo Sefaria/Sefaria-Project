@@ -198,12 +198,16 @@ const acceptEdit = (res) => isState(res) || (!!res && !!res.edit && res.edit.sta
 /* ---------- ?la_mock=1: an in-memory server, for looking at the design ---------- */
 
 const PRODUCTION_HOSTS = /(^|\.)sefaria\.org(\.il)?$/;
+// The mock is for looks: never on a production host (a trailing DNS dot, www.sefaria.org., names the same host).
+export const shouldMock = (hostname, search) => {
+  const host = String(hostname).replace(/\.$/, '');
+  if (PRODUCTION_HOSTS.test(host) && !/cauldron/.test(host)) return false;
+  return new URLSearchParams(search).get('la_mock') === '1';
+};
 // Read once, when the script loads (unlike the hash): the app rewrites the address bar (dropping the query) before the tab renders.
 const MOCK = (() => {
   try {
-    const host = window.location.hostname;
-    if (PRODUCTION_HOSTS.test(host) && !/cauldron/.test(host)) return false;
-    return new URLSearchParams(window.location.search).get('la_mock') === '1';
+    return shouldMock(window.location.hostname, window.location.search);
   } catch (e) {
     return false;
   }
@@ -414,6 +418,11 @@ const Personalization = ({ base, token, off, onSaving }) => {
   const [health, setHealth] = useState(null);
   const mounted = useRef(true);
   const saveTimer = useRef(null);
+  // Every mutating action runs one after another through this chain, so replies land in the order the actions were
+  // sent and an older State can never replace a newer one.
+  const queue = useRef(Promise.resolve());
+  const saving = useRef(false);
+  const flushing = useRef(null);
   // Sends the instructions text still waiting to be saved, if any, without waiting for the reply: used when the
   // tab goes away (unmount, pagehide), where a timer would never fire. Kept in a ref so it sees the latest props.
   const flushDraft = useRef(() => {});
@@ -421,8 +430,17 @@ const Personalization = ({ base, token, off, onSaving }) => {
     clearTimeout(saveTimer.current);
     const text = latestDraft.current;
     if (mock || text === savedDraft.current || text.length > MAX_TEXT) return;
-    savedDraft.current = text;
-    Promise.resolve(laSettings(base, token, 'set_instructions', { text }, { keepalive: true })).catch(() => {});
+    // Best effort: counted as saved only when the reply is a usable State. Not sent twice while it is out.
+    if (flushing.current === text) return;
+    flushing.current = text;
+    Promise.resolve(laSettings(base, token, 'set_instructions', { text }, { keepalive: true }))
+      .then((res) => {
+        if (isState(res)) savedDraft.current = text;
+      })
+      .catch(() => {})
+      .then(() => {
+        if (flushing.current === text) flushing.current = null;
+      });
   };
   useEffect(() => {
     const onPageHide = () => flushDraft.current();
@@ -444,10 +462,19 @@ const Personalization = ({ base, token, off, onSaving }) => {
       setInFlight((n) => n + 1);
       if (saves) onSaving(1);
       let ok = false;
+      const send = () =>
+        mock
+          ? mockLaSettings(mockStore, action, body)
+          : laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : {});
       try {
-        const res = mock
-          ? await mockLaSettings(mockStore, action, body)
-          : await laSettings(base, token, action, body, action === 'get' ? { timeoutMs: LOAD_TIMEOUT_MS } : {});
+        let res;
+        if (saves) {
+          const turn = queue.current.then(send);
+          queue.current = turn.catch(() => {});
+          res = await turn;
+        } else {
+          res = await send();
+        }
         if (!accept(res)) throw new Error('unexpected response');
         ok = true;
         return res;
@@ -497,18 +524,29 @@ const Personalization = ({ base, token, off, onSaving }) => {
     return res;
   };
 
-  const saveDraft = async (text) => {
+  // `desired` is the latest text in the field (latestDraft), `acked` the last text the server confirmed
+  // (savedDraft). One loop saves until they match, so erasing back to the saved value while a save is running is
+  // saved too, and two saves never overlap.
+  const saveDraft = async () => {
     clearTimeout(saveTimer.current);
-    if (text === savedDraft.current || text.length > MAX_TEXT) return;
-    // Remembered as saved only once the server took it, so a later blur or pause with the same text tries again.
-    const res = await act('set_instructions', { text });
-    if (res) savedDraft.current = text;
+    if (saving.current) return;
+    saving.current = true;
+    try {
+      while (mounted.current && latestDraft.current !== savedDraft.current && latestDraft.current.length <= MAX_TEXT) {
+        const text = latestDraft.current;
+        const res = await act('set_instructions', { text });
+        if (!res) break;
+        savedDraft.current = text;
+      }
+    } finally {
+      saving.current = false;
+    }
   };
   const onDraft = (text) => {
     setDraft(text);
     latestDraft.current = text;
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => saveDraft(text), INSTRUCTIONS_SAVE_MS);
+    saveTimer.current = setTimeout(saveDraft, INSTRUCTIONS_SAVE_MS);
   };
   const sendEdit = async () => {
     const request = editRequest.trim();
@@ -525,7 +563,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
       setRefusal(res.edit.reason);
       return;
     }
-    setEditRequest('');
+    setEditRequest((current) => (current.trim() === request ? '' : current));
     setChanged(changedSectionIndex(before, res.profile.text));
   };
   const runNow = async (kind) => {
@@ -675,7 +713,7 @@ const Personalization = ({ base, token, off, onSaving }) => {
             disabled={off}
             dir="auto"
             onChange={(e) => onDraft(e.target.value)}
-            onBlur={() => saveDraft(draft)}
+            onBlur={saveDraft}
             error={over ? STRINGS.tooLong : null}
             fieldAddon={<Counter length={draft.length} />}
           />

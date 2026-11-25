@@ -12,6 +12,7 @@ import LibraryAssistantSettings, {
   isPreviewBase,
   LOAD_TIMEOUT_MS,
   parseSections,
+  shouldMock,
 } from '../LibraryAssistantSettings';
 
 jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: { interfaceLang: 'english', _: (k) => k } }));
@@ -95,6 +96,22 @@ describe('helpers', () => {
     expect(isPreviewBase('https://9298.ai-server.coolifydev.sefaria.org/api')).toBe(true);
     expect(isPreviewBase('https://chat.sefaria.org/api')).toBe(false);
     expect(isPreviewBase('not a url')).toBe(false);
+  });
+
+  it('never mocks on a production host, with or without a trailing DNS dot', () => {
+    for (const host of [
+      'www.sefaria.org',
+      'www.sefaria.org.',
+      'sefaria.org.',
+      'www.sefaria.org.il.',
+      'a.sefaria.org.il',
+    ]) {
+      expect(shouldMock(host, '?la_mock=1')).toBe(false);
+    }
+    expect(shouldMock('localhost', '?la_mock=1')).toBe(true);
+    expect(shouldMock('localhost', '')).toBe(false);
+    expect(shouldMock('cauldron-x.cauldron.sefaria.org', '?la_mock=1')).toBe(true);
+    expect(shouldMock('cauldron-x.cauldron.sefaria.org.', '?la_mock=1')).toBe(true);
   });
 
   it('parses Profile headings and paragraphs', () => {
@@ -416,6 +433,134 @@ describe('LibraryAssistantSettings', () => {
     expect(q('.laSaveStatus').textContent).toBe('Changes saved');
   });
 
+  describe('serialized saves', () => {
+    // Each fetch waits until the test answers it, in any order.
+    const deferred = () => {
+      const calls = [];
+      global.fetch.mockImplementation((url, init) => {
+        const body = JSON.parse(init.body);
+        return new Promise((resolve) =>
+          calls.push({ body, answer: (st) => resolve({ ok: true, status: 200, json: () => st }) })
+        );
+      });
+      return calls;
+    };
+    const settle = async () => {
+      await flush();
+      await flush();
+    };
+
+    it('reverting to the saved text while a save runs ends with the server holding the field', async () => {
+      await render();
+      const calls = deferred();
+      const field = q('#laInstructionsText');
+      await type(field, 'A');
+      await act(async () => Simulate.blur(field));
+      await settle();
+      expect(calls.map((c) => c.body.text)).toEqual(['A']);
+      await type(field, '');
+      await act(async () => Simulate.blur(field));
+      await settle();
+      expect(calls).toHaveLength(1); // not sent while A is still running
+      await act(async () => calls[0].answer(state({ instructions: { text: 'A', enabled: true, updatedAt: null } })));
+      await settle();
+      expect(calls.map((c) => c.body.text)).toEqual(['A', '']);
+      await act(async () => calls[1].answer(state()));
+      await settle();
+      expect(calls).toHaveLength(2);
+      expect(field.value).toBe('');
+      expect(q('.laSaveStatus').textContent).toBe('Changes saved');
+    });
+
+    it('does not send a toggle ahead of an earlier save, so the older State cannot land last', async () => {
+      await render();
+      const calls = deferred();
+      const field = q('#laInstructionsText');
+      await type(field, 'A');
+      await act(async () => Simulate.blur(field));
+      await settle();
+      await check(q('#laProfile'), false);
+      await settle();
+      expect(calls.map((c) => c.body.action)).toEqual(['set_instructions']);
+      await act(async () => calls[0].answer(state()));
+      await settle();
+      expect(calls.map((c) => c.body.action)).toEqual(['set_instructions', 'toggle']);
+      const off = state({ profile: { ...state().profile, enabled: false } });
+      await act(async () => calls[1].answer(off));
+      await settle();
+      expect(q('#laProfile').checked).toBe(false);
+    });
+
+    it('a best-effort flush that gets no usable reply does not count the text as saved', async () => {
+      await render();
+      global.fetch.mockImplementation(() => reply({}, 500));
+      await type(q('#laInstructionsText'), 'Short answers.');
+      window.dispatchEvent(new Event('pagehide'));
+      await settle();
+      global.fetch.mockImplementation(() => reply(state()));
+      await act(async () => Simulate.blur(q('#laInstructionsText')));
+      await settle();
+      expect(actions().filter((a) => a === 'set_instructions')).toHaveLength(2);
+    });
+  });
+
+  it('keeps what was typed into the edit field while an edit ran', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: '# A\nB' } })));
+    await render();
+    await type(q('#laEdit'), 'make it shorter');
+    let finish;
+    global.fetch.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = () =>
+            resolve({ ok: true, status: 200, json: () => state({ profile: { ...state().profile, text: '# A\nC' } }) });
+        })
+    );
+    await act(async () => Simulate.keyDown(q('#laEdit'), { key: 'Enter' }));
+    await type(q('#laEdit'), 'make it shorter, and warmer');
+    await act(async () => finish());
+    await flush();
+    expect(q('#laEdit').value).toBe('make it shorter, and warmer');
+  });
+
+  it('clears the edit field after an edit when it still holds what was sent', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: '# A\nB' } })));
+    await render();
+    await type(q('#laEdit'), 'make it shorter');
+    await act(async () => Simulate.keyDown(q('#laEdit'), { key: 'Enter' }));
+    await flush();
+    expect(actions()).toContain('edit_profile');
+    expect(q('#laEdit').value).toBe('');
+  });
+
+  it('closes the Clear profile dialog on Escape even inside a wrapper that stops Escape from bubbling', async () => {
+    global.fetch.mockImplementation(() => reply(state({ profile: { ...state().profile, text: '# A\nB' } })));
+    const wrapper = document.createElement('div');
+    document.body.appendChild(wrapper);
+    // What SettingsPage's wrapper does.
+    ReactDOM.render(
+      <div
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') e.stopPropagation();
+        }}
+      >
+        <LibraryAssistantSettings chatbot_user_token="tok" chatbot_api_base_url={BASE} libraryAssistantEnabled={true} />
+      </div>,
+      wrapper
+    );
+    await flush();
+    container = wrapper;
+    await act(async () => Simulate.click(byText('#profile button', 'Clear profile')));
+    const cancel = byText('[role="alertdialog"] button', 'Cancel');
+    expect(cancel).toBeTruthy();
+    cancel.focus();
+    await act(async () => {
+      cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+    expect(q('[role="alertdialog"]')).toBeNull();
+    expect(actions()).not.toContain('clear_profile');
+  });
+
   it('sends Instructions still waiting to save when the tab unmounts', async () => {
     await render();
     await type(q('#laInstructionsText'), 'Short answers.');
@@ -456,10 +601,12 @@ describe('LibraryAssistantSettings', () => {
       jest.advanceTimersByTime(INSTRUCTIONS_SAVE_MS);
     });
     jest.useRealTimers();
-    expect(finishers).toHaveLength(2);
+    // Saves run one at a time: the second is sent only once the first has been answered.
+    expect(finishers).toHaveLength(1);
     expect(q('#laProfile').disabled).toBe(true);
     await act(async () => finishers[0]());
     await flush();
+    expect(finishers).toHaveLength(2);
     expect(q('#laProfile').disabled).toBe(true);
     await act(async () => finishers[1]());
     await flush();

@@ -37,9 +37,10 @@ export const useDialogKeys = (focusRef, onEscape) => {
         first.focus();
       }
     };
-    document.addEventListener('keydown', onKeyDown);
+    // Capture phase: a wrapper that stops Escape from bubbling (SettingsPage does) must not hide it from the dialog.
+    document.addEventListener('keydown', onKeyDown, true);
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown, true);
       if (opener && opener.isConnected && typeof opener.focus === 'function') {
         opener.focus();
       }
