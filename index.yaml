@@ -362,6 +362,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.95.3-claudeecstatic-fermat-oeocni-6bf3465.1.tgz
     version: 0.95.3-claudeecstatic-fermat-oeocni-6bf3465.1
   - apiVersion: v2
+    appVersion: v7.19.4
+    created: "2026-11-25T17:12:07.196969374Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: f0514c328d24a5a9fe57ccdb8cf772cdc5edb847b66956bd7bcfd0abe9b6e826
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.95.3-choresefaria-audit-consolidated-4a5d50c.1.tgz
+    version: 0.95.3-choresefaria-audit-consolidated-4a5d50c.1
+  - apiVersion: v2
     appVersion: v7.17.7
     created: "2026-11-24T08:47:39.043231656Z"
     description: Chart to deploy complete Sefaria environment
@@ -26145,4 +26160,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-25T15:04:19.584317244Z"
+generated: "2026-11-25T17:12:07.19231872Z"
