@@ -1,6 +1,7 @@
 import json
 import logging
 
+import structlog
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -14,6 +15,7 @@ from sefaria.system.exceptions import ComplexBookLevelRefError, DictionaryEntryN
 from .api_warnings import *
 
 logger = logging.getLogger(__name__)
+error_logger = structlog.get_logger(__name__)
 
 
 class StaffRequiredMixin:
@@ -32,6 +34,8 @@ class Text(View):
         try:
             self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs["tref"])
         except Exception as e:
+            if not isinstance(e, InputError):
+                error_logger.exception("Unexpected error parsing ref in v3 texts view", tref=kwargs.get("tref"))
             return jsonResponse({"error": getattr(e, "message", str(e))}, status=404)
         return super().dispatch(request, *args, **kwargs)
 
@@ -86,6 +90,8 @@ class Text(View):
             data = self._handle_warnings(data)
 
         except Exception as e:
+            if not isinstance(e, InputError):
+                error_logger.exception("Unexpected error building v3 text response", tref=kwargs.get("tref"))
             return jsonResponse({"error": str(e)}, status=400)
 
         return jsonResponse(data)
@@ -98,6 +104,7 @@ class RefView(View):
         except (InputError, DictionaryEntryNotFoundError):
             return jsonResponse({"is_ref": False})
         except Exception as e:
+            error_logger.exception("Unexpected error parsing ref in ref view", tref=kwargs.get("tref"))
             return jsonResponse({"error": getattr(e, "message", str(e))}, status=404)
         return super().dispatch(request, *args, **kwargs)
 

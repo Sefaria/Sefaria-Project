@@ -1,4 +1,4 @@
-/* global $target:writable, button:writable, cleanupActiveSource:writable, curTagName:writable, i:writable, isHebrew:writable, makeRef:writable, normRef:writable, options:writable, parseRef:writable, setLanguageLayoutCheckBoxes:writable, source:writable */
+/* global sheetsSanitize:readonly, $target:writable, button:writable, cleanupActiveSource:writable, curTagName:writable, i:writable, isHebrew:writable, makeRef:writable, normRef:writable, options:writable, parseRef:writable, setLanguageLayoutCheckBoxes:writable, source:writable */
 sjs.flags = {
   saving: false,
   sorting: false,
@@ -77,47 +77,42 @@ window.onerror = function (errorMsg, url, lineNumber) {
 
 $(function () {
   function makeMediaEmbedLink(mediaURL) {
-    let embedHTML;
-    let youtubeRe = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-    let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
-    let m;
+    var embedHTML;
+    mediaURL = String(mediaURL || '').trim();
+    var youtubeRe = /^https?:\/\/(?:www\.|m\.)?(?:youtu\.be\/|youtube\.com\/(?:.*v(?:\/|=)|(?:.*\/)?))([\w-]+)/i;
+    var vimeoRe = /^https?:\/\/(?:www\.)?(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+    var clypRe = /^https?:\/\/(?:www\.)?clyp\.it\/([\w-]+)$/i;
+    var soundcloudRe = /^https?:\/\/(?:www\.|m\.)?soundcloud\.com\/[\w\-.]+\/[\w\-.]+\/?(?:[?#][^\s"'<>`\\]*)?$/i;
+    var m;
+    var fileMedia = sheetsSanitize.parseMediaUrl(mediaURL);
+    var esc = sheetsSanitize.escapeHtml;
 
     if ((m = youtubeRe.exec(mediaURL)) !== null) {
-      if (m.index === youtubeRe.lastIndex) {
-        youtubeRe.lastIndex++;
-      }
-      if (m.length > 0) {
-        embedHTML =
-          '<iframe width="560" height="315" src="https://www.youtube.com/embed/' +
-          m[m.length - 1] +
-          '?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
-      }
+      embedHTML =
+        '<iframe width="560" height="315" src="https://www.youtube.com/embed/' +
+        esc(m[1]) +
+        '?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
     } else if ((m = vimeoRe.exec(mediaURL)) !== null) {
-      if (m.index === vimeoRe.lastIndex) {
-        vimeoRe.lastIndex++;
-      }
-      if (m.length > 0) {
-        embedHTML =
-          '<iframe width="560" height="315" src="https://player.vimeo.com/video/' +
-          m[5] +
-          '?title=0&amp;byline=0&amp;portrait=0" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
-      }
-    } else if (mediaURL.match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
-      embedHTML = '<img class="addedMedia" src="' + mediaURL + '" />';
-    } else if (mediaURL.match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
+      embedHTML =
+        '<iframe width="560" height="315" src="https://player.vimeo.com/video/' +
+        esc(m[5]) +
+        '?title=0&amp;byline=0&amp;portrait=0" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+    } else if (fileMedia && fileMedia.kind === 'image') {
+      embedHTML = '<img class="addedMedia" src="' + esc(fileMedia.url) + '" />';
+    } else if (fileMedia && fileMedia.kind === 'audio') {
       embedHTML =
         '<audio src="' +
-        mediaURL +
+        esc(fileMedia.url) +
         '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
-    } else if (mediaURL.match(/https?:\/\/.*clyp\.it\/.+/i) != null) {
+    } else if ((m = clypRe.exec(mediaURL)) !== null) {
       embedHTML =
-        '<audio src="' +
-        mediaURL +
+        '<audio src="https://clyp.it/' +
+        esc(m[1]) +
         '.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
-    } else if (mediaURL.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-.]+\/[\w\-.]+\/?/i) != null) {
+    } else if (soundcloudRe.exec(mediaURL) !== null) {
       embedHTML =
         '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=' +
-        mediaURL +
+        esc(mediaURL) +
         '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false"></iframe>';
     } else embedHTML = false;
 
@@ -1753,10 +1748,18 @@ $(function () {
     var curText = $('.activeSource').find('.text');
     curHighlighter
       .find('.en')
-      .html("<div class='highlighterSegment'>" + curText.find('.en').html().stripHtml() + '</div>');
+      .html(
+        "<div class='highlighterSegment'>" +
+          sheetsSanitize.escapeHtml(curText.find('.en').html().stripHtml()) +
+          '</div>'
+      );
     curHighlighter
       .find('.he')
-      .html("<div class='highlighterSegment'>" + curText.find('.he').html().stripHtml() + '</div>');
+      .html(
+        "<div class='highlighterSegment'>" +
+          sheetsSanitize.escapeHtml(curText.find('.he').html().stripHtml()) +
+          '</div>'
+      );
     autoSave();
   });
 
@@ -1783,24 +1786,24 @@ $(function () {
     if (newTagName !== _('sheets.create_new') && newTagName !== '') {
       $('.sheetHighlighterTags').append(
         '<div class="splitHighlighterSegment" data-tagname="' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '"><div class="colorSwatch active" style="background-color: ' +
-          newTagColor +
+          sheetsSanitize.escapeHtml(newTagColor) +
           '"></div><div class="tagName">' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '</div><div class="editCheckToggle">✎</div></div>'
       );
       $('.highlighterFilterTags').append(
         '<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '_highlighterTag" value="' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '" checked="checked"> <label for="' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '_highlighterTag" style="background-color: ' +
-          newTagColor +
+          sheetsSanitize.escapeHtml(newTagColor) +
           '">' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '</label></div>'
       );
       resetSplitHighlighterSegment();
@@ -1815,24 +1818,24 @@ $(function () {
     if (newTagName !== _('sheets.create_new') && newTagName !== '') {
       $('.sheetHighlighterTags').append(
         '<div class="splitHighlighterSegment active" data-tagname="' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '"><div class="colorSwatch active" style="background-color: ' +
-          newTagColor +
+          sheetsSanitize.escapeHtml(newTagColor) +
           '"></div><div class="tagName">' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '</div><div class="editCheckToggle">✎</div></div>'
       );
       $('.highlighterFilterTags').append(
         '<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '_highlighterTag" value="' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '" checked="checked"> <label for="' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '_highlighterTag" style="background-color: ' +
-          newTagColor +
+          sheetsSanitize.escapeHtml(newTagColor) +
           '">' +
-          newTagName +
+          sheetsSanitize.escapeHtml(newTagName) +
           '</label></div>'
       );
       resetSplitHighlighterSegment();
@@ -1945,15 +1948,16 @@ $(function () {
       var selectedText = curHighlighterSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
       var textAfter = curHighlighterSegment.text().slice(lastSelectedCharacter);
 
-      highlighterTag = highlighterTag.replace(/'/g, '&#39;'); //prevents js errors from improperly escaped strings.
-      $(curHighlighterSegment.parent()).after("<div class='highlighterSegment'>" + textAfter + '</div>');
+      $(curHighlighterSegment.parent()).after(
+        "<div class='highlighterSegment'>" + sheetsSanitize.escapeHtml(textAfter) + '</div>'
+      );
       $(curHighlighterSegment.parent()).after(
         "<div class='highlighterSegment' style='background-color: " +
-          tagBgColor +
+          sheetsSanitize.escapeHtml(tagBgColor) +
           "' data-tag='" +
-          highlighterTag +
+          sheetsSanitize.escapeHtml(highlighterTag) +
           "'>" +
-          selectedText +
+          sheetsSanitize.escapeHtml(selectedText) +
           '</div>'
       );
       $(curHighlighterSegment.parent()).text(textBefore);
@@ -2388,7 +2392,8 @@ function addSource(q, source, appendOrInsert, $target) {
   var additionalRefData = '';
 
   if (source && 'options' in source && 'sourcePrefix' in source['options'] && source['options']['sourcePrefix'] != '') {
-    additionalRefData = additionalRefData + " data-sourceprefix='" + source['options']['sourcePrefix'] + "'";
+    additionalRefData =
+      additionalRefData + " data-sourceprefix='" + sheetsSanitize.escapeHtml(source['options']['sourcePrefix']) + "'";
   }
   if (
     source &&
@@ -2396,7 +2401,11 @@ function addSource(q, source, appendOrInsert, $target) {
     'PrependRefWithEn' in source['options'] &&
     source['options']['PrependRefWithEn'] != ''
   ) {
-    additionalRefData = additionalRefData + " data-prependrefwithen='" + source['options']['PrependRefWithEn'] + "'";
+    additionalRefData =
+      additionalRefData +
+      " data-prependrefwithen='" +
+      sheetsSanitize.escapeHtml(source['options']['PrependRefWithEn']) +
+      "'";
   }
   if (
     source &&
@@ -2404,7 +2413,11 @@ function addSource(q, source, appendOrInsert, $target) {
     'PrependRefWithHe' in source['options'] &&
     source['options']['PrependRefWithHe'] != ''
   ) {
-    additionalRefData = additionalRefData + " data-prependrefwithhe='" + source['options']['PrependRefWithHe'] + "'";
+    additionalRefData =
+      additionalRefData +
+      " data-prependrefwithhe='" +
+      sheetsSanitize.escapeHtml(source['options']['PrependRefWithHe']) +
+      "'";
   }
 
   var newsource =
@@ -2965,7 +2978,7 @@ function buildSheet(data) {
   sjs.loading = true;
 
   if (data.title) {
-    $('#title').html(data.title);
+    $('#title').html(sheetsSanitize.sanitizeHtml(data.title));
     if (isHebrew(data.title.stripHtml())) {
       $('#title').addClass('heTitle');
     }
@@ -3060,9 +3073,9 @@ function buildSheet(data) {
     for (var i = 0; i < data.highlighterTags.length; i++) {
       $('.sheetHighlighterTags').append(
         '<div class="splitHighlighterSegment" data-tagname="' +
-          data.highlighterTags[i].name +
+          sheetsSanitize.escapeHtml(data.highlighterTags[i].name) +
           '"><div class="colorSwatch active" style="background-color: ' +
-          data.highlighterTags[i].color +
+          sheetsSanitize.escapeHtml(data.highlighterTags[i].color) +
           '"></div>' +
           "<div class='colorSwatch' style='background-color: #bd9eb6'></div>" +
           "<div class='colorSwatch' style='background-color: #afcab8'></div>" +
@@ -3072,20 +3085,20 @@ function buildSheet(data) {
           "<div class='colorSwatch' style='background-color: #e8dde5'></div>" +
           "<div class='colorSwatch' style='background-color: #d2ddc9'></div>" +
           '<div class="tagName">' +
-          data.highlighterTags[i].name +
+          sheetsSanitize.escapeHtml(data.highlighterTags[i].name) +
           '</div><div class="editCheckToggle">✎</div></div>'
       );
       $('.highlighterFilterTags').append(
         '<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="' +
-          data.highlighterTags[i].name +
+          sheetsSanitize.escapeHtml(data.highlighterTags[i].name) +
           '_highlighterTag" value="' +
-          data.highlighterTags[i].name +
+          sheetsSanitize.escapeHtml(data.highlighterTags[i].name) +
           '" checked="checked"> <label for="' +
-          data.highlighterTags[i].name +
+          sheetsSanitize.escapeHtml(data.highlighterTags[i].name) +
           '_highlighterTag" style="background-color: ' +
-          data.highlighterTags[i].color +
+          sheetsSanitize.escapeHtml(data.highlighterTags[i].color) +
           '">' +
-          data.highlighterTags[i].name +
+          sheetsSanitize.escapeHtml(data.highlighterTags[i].name) +
           '</label></div>'
       );
     }
@@ -3131,7 +3144,7 @@ function buildSource($target, source, appendOrInsert) {
     }
 
     if (source.title) {
-      $('.customTitle').last().html(source.title).css('display', 'inline-block');
+      $('.customTitle').last().html(sheetsSanitize.sanitizeHtml(source.title)).css('display', 'inline-block');
       $('.sheetItem').last().addClass('hasCustom');
     }
 
@@ -3140,14 +3153,14 @@ function buildSource($target, source, appendOrInsert) {
       var heHighlighterHTML = '';
       for (var i = 0; i < source.highlighter.en.length; i++) {
         var highlighterTagHTML = source.highlighter.en[i].tag
-          ? ' data-tag="' + source.highlighter.en[i].tag + '" '
+          ? ' data-tag="' + sheetsSanitize.escapeHtml(source.highlighter.en[i].tag) + '" '
           : '';
         var highlighterTagColorHTML = '';
         if (highlighterTagHTML != '') {
           var highlighterTagColor = sjs.current.highlighterTags.filter(function (tag) {
             return source.highlighter.en[i].tag == tag.name;
           })[0].color;
-          highlighterTagColorHTML = 'style="background-color: ' + highlighterTagColor + '"';
+          highlighterTagColorHTML = 'style="background-color: ' + sheetsSanitize.escapeHtml(highlighterTagColor) + '"';
         }
 
         enHighlighterHTML =
@@ -3156,20 +3169,20 @@ function buildSource($target, source, appendOrInsert) {
           highlighterTagColorHTML +
           highlighterTagHTML +
           '>' +
-          source.highlighter.en[i].text +
+          sheetsSanitize.sanitizeHtml(source.highlighter.en[i].text) +
           '</div>';
       }
 
       for (var i = 0; i < source.highlighter.he.length; i++) {
         var highlighterTagHTML = source.highlighter.he[i].tag
-          ? ' data-tag="' + source.highlighter.he[i].tag + '" '
+          ? ' data-tag="' + sheetsSanitize.escapeHtml(source.highlighter.he[i].tag) + '" '
           : '';
         var highlighterTagColorHTML = '';
         if (highlighterTagHTML != '') {
           var highlighterTagColor = sjs.current.highlighterTags.filter(function (tag) {
             return source.highlighter.he[i].tag == tag.name;
           })[0].color;
-          highlighterTagColorHTML = 'style="background-color: ' + highlighterTagColor + '"';
+          highlighterTagColorHTML = 'style="background-color: ' + sheetsSanitize.escapeHtml(highlighterTagColor) + '"';
         }
 
         heHighlighterHTML =
@@ -3178,7 +3191,7 @@ function buildSource($target, source, appendOrInsert) {
           highlighterTagColorHTML +
           highlighterTagHTML +
           '>' +
-          source.highlighter.he[i].text +
+          sheetsSanitize.sanitizeHtml(source.highlighter.he[i].text) +
           '</div>';
       }
 
@@ -3195,7 +3208,8 @@ function buildSource($target, source, appendOrInsert) {
       'sourcePrefix' in source['options'] &&
       source['options']['sourcePrefix'] != ''
     ) {
-      additionalRefData = additionalRefData + " data-sourceprefix='" + source['options']['sourcePrefix'] + "'";
+      additionalRefData =
+        additionalRefData + " data-sourceprefix='" + sheetsSanitize.escapeHtml(source['options']['sourcePrefix']) + "'";
     }
 
     var commentHtml =
@@ -3234,7 +3248,8 @@ function buildSource($target, source, appendOrInsert) {
       'sourcePrefix' in source['options'] &&
       source['options']['sourcePrefix'] != ''
     ) {
-      additionalRefData = additionalRefData + " data-sourceprefix='" + source['options']['sourcePrefix'] + "'";
+      additionalRefData =
+        additionalRefData + " data-sourceprefix='" + sheetsSanitize.escapeHtml(source['options']['sourcePrefix']) + "'";
     }
     var attributionData = attributionDataString(source.addedBy, source.isNew, 'outsideBiWrapper');
     var outsideHtml =
@@ -3276,7 +3291,8 @@ function buildSource($target, source, appendOrInsert) {
       'sourcePrefix' in source['options'] &&
       source['options']['sourcePrefix'] != ''
     ) {
-      additionalRefData = additionalRefData + " data-sourceprefix='" + source['options']['sourcePrefix'] + "'";
+      additionalRefData =
+        additionalRefData + " data-sourceprefix='" + sheetsSanitize.escapeHtml(source['options']['sourcePrefix']) + "'";
     }
     var attributionData = attributionDataString(source.addedBy, source.isNew, 'outsideWrapper');
     var outsideHtml =
@@ -3309,26 +3325,28 @@ function buildSource($target, source, appendOrInsert) {
     var mediaLink;
     var mediaClass = 'media';
     var wrapperClass = 'mediaWrapper';
+    var parsedMedia = sheetsSanitize.parseMediaUrl(source.media);
+    var mediaSrc = parsedMedia ? sheetsSanitize.escapeHtml(parsedMedia.url) : '';
+    var mediaKind = parsedMedia ? parsedMedia.kind : null;
 
-    if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-      mediaLink = '<img class="addedMedia" src="' + source.media + '" />';
+    if (mediaKind === 'image') {
+      mediaLink = '<img class="addedMedia" src="' + mediaSrc + '" />';
       mediaClass = 'media';
       wrapperClass += !sjs.is_owner && sjs.current.hideImages ? ' hidden' : '';
-    } else if (source.media.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
-      mediaLink = '<iframe width="560" height="315" src=' + source.media + ' frameborder="0" allowfullscreen></iframe>';
-    } else if (source.media.toLowerCase().match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
-      mediaLink =
-        '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + source.media + '"></iframe>';
+    } else if (mediaKind === 'youtube') {
+      mediaLink = '<iframe width="560" height="315" src="' + mediaSrc + '" frameborder="0" allowfullscreen></iframe>';
+    } else if (mediaKind === 'soundcloud') {
+      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaSrc + '"></iframe>';
       mediaClass = 'media fullWidth';
-    } else if (source.media.match(/https?:\/\/player\.vimeo\.com\/.*/i) != null) {
+    } else if (mediaKind === 'vimeo') {
       mediaLink =
-        '<iframe width="560" height="315" src=' +
-        source.media +
-        ' frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
-    } else if (source.media.match(/\.(mp3)$/i) != null) {
+        '<iframe width="560" height="315" src="' +
+        mediaSrc +
+        '" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+    } else if (mediaKind === 'audio') {
       mediaLink =
         '<audio src="' +
-        source.media +
+        mediaSrc +
         '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
       mediaClass = 'media fullWidth';
     } else {
@@ -3337,7 +3355,8 @@ function buildSource($target, source, appendOrInsert) {
 
     var additionalRefData = '';
     if (source && 'options' in source && 'sourcePrefix' in source['options']) {
-      additionalRefData = additionalRefData + " data-sourceprefix='" + source['options']['sourcePrefix'] + "'";
+      additionalRefData =
+        additionalRefData + " data-sourceprefix='" + sheetsSanitize.escapeHtml(source['options']['sourcePrefix']) + "'";
     }
     var mediaCaption = '';
     if (source.caption && (source.caption.en || source.caption.he)) {
@@ -3347,10 +3366,10 @@ function buildSource($target, source, appendOrInsert) {
         cls +
         "'><div class='mediaCaptionInner'>" +
         "<div class='en'>" +
-        (source.caption.en || '') +
+        sheetsSanitize.sanitizeCaptionHtml(source.caption.en || '') +
         '</div>' +
         "<div class='he'>" +
-        (source.caption.he || '') +
+        sheetsSanitize.sanitizeCaptionHtml(source.caption.he || '') +
         '</div>' +
         '</div></div>';
     }
@@ -3725,7 +3744,9 @@ function copyToSheet(source) {
           '<li class="sheet" data-id="' +
           data.sheets[i].id +
           '">' +
-          (data.sheets[i].title === null ? Sefaria._('common.untitled') : data.sheets[i].title.stripHtml()) +
+          (data.sheets[i].title === null
+            ? Sefaria._('common.untitled')
+            : sheetsSanitize.escapeHtml(data.sheets[i].title.stripHtml())) +
           '</li>';
       }
       $('#sheetList').html(sheets);
@@ -3791,7 +3812,9 @@ $('#addToSheetModal .ok').click(function () {
     if (data['views']) {
       //this is only passed on "new source sheet"
       //add the new sheet to the list
-      $('#sheetList .new').after('<li class="sheet" data-id="' + data.id + '">' + data.title.stripHtml() + '</li>');
+      $('#sheetList .new').after(
+        '<li class="sheet" data-id="' + data.id + '">' + sheetsSanitize.escapeHtml(data.title.stripHtml()) + '</li>'
+      );
       $('.sheet').click(function () {
         $('.sheet').removeClass('selected');
         $(this).addClass('selected');
@@ -3900,12 +3923,20 @@ function fillEmptyHighlighterSegments() {
     if ($(this).find('.en').html() == '') {
       $(this)
         .find('.en')
-        .html("<div class='highlighterSegment'>" + $(this).siblings('.text').find('.en').html().stripHtml() + '</div>');
+        .html(
+          "<div class='highlighterSegment'>" +
+            sheetsSanitize.escapeHtml($(this).siblings('.text').find('.en').html().stripHtml()) +
+            '</div>'
+        );
     }
     if ($(this).find('.he').html() == '') {
       $(this)
         .find('.he')
-        .html("<div class='highlighterSegment'>" + $(this).siblings('.text').find('.he').html().stripHtml() + '</div>');
+        .html(
+          "<div class='highlighterSegment'>" +
+            sheetsSanitize.escapeHtml($(this).siblings('.text').find('.he').html().stripHtml()) +
+            '</div>'
+        );
     }
   });
 }

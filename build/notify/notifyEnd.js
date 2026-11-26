@@ -22,6 +22,9 @@ console.log(`
 const jobKeys = [
     "Jest",
     "Continuous Testing: PyTest",
+    "Continuous Testing: PyTest (no Mongo)",
+    "Continuous Testing: PyTest (linker)",
+    "Continuous Testing: PyTest (corpus)",
     "Playwright",
 ];
 

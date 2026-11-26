@@ -803,7 +803,11 @@ Sefaria = extend(Sefaria, {
   },
   getPrimaryAndTranslationFromVersions: function (versions) {
     let primary, translation;
-    if (versions.length === 1) {
+    if (versions.length === 0) {
+      // No versions returned: use empty placeholders so callers can still read .text and .sources.
+      primary = { text: [] };
+      translation = { text: [] };
+    } else if (versions.length === 1) {
       primary = versions[0];
       translation = { text: [] };
     } else if (versions[0].isPrimary && !versions[1].isSource) {
@@ -1290,7 +1294,11 @@ Sefaria = extend(Sefaria, {
       }, {});
   },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
-  deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
+  deconstructVersionsKey: (versionsKey) => {
+    // Language is the segment after the last separator, so a version title may itself contain '|'.
+    const sep = versionsKey.lastIndexOf('|');
+    return sep === -1 ? [versionsKey] : [versionsKey.slice(0, sep), versionsKey.slice(sep + 1)];
+  },
   setVersionPreference(sref, vtitle, lang) {
     if (lang !== 'en') {
       return;
@@ -3130,16 +3138,22 @@ Sefaria = extend(Sefaria, {
           client: 'web',
         })
           .done((response) => {
-            if (response['error']) {
-              reject(response['error']);
-            } else {
-              if (action === 'add_saved' && !!response.created && response.created.length > 0) {
-                Sefaria.saved.items = response.created.concat(Sefaria.saved.items);
+            // A response that cannot be read rejects; an exception here would otherwise
+            // be swallowed by jQuery and leave this promise pending.
+            try {
+              if (response['error']) {
+                reject(response['error']);
               } else {
-                // delete
-                Sefaria.removeSavedItem({ ref, versions });
+                if (action === 'add_saved' && !!response.created && response.created.length > 0) {
+                  Sefaria.saved.items = response.created.concat(Sefaria.saved.items);
+                } else {
+                  // delete
+                  Sefaria.removeSavedItem({ ref, versions });
+                }
+                resolve(response);
               }
-              resolve(response);
+            } catch (error) {
+              reject(error);
             }
           })
           .fail((jqXHR, textStatus, errorThrown) => {
@@ -3153,7 +3167,11 @@ Sefaria = extend(Sefaria, {
   editProfileAPI: (partialProfile) => {
     const data = { json: JSON.stringify(partialProfile) };
     return new Promise((resolve, reject) => {
-      $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
+      $.post(`${Sefaria.apiHost}/api/profile`, data)
+        .done(resolve)
+        .fail((jqXHR, textStatus, errorThrown) => {
+          reject(errorThrown || textStatus);
+        });
     });
   },
   // TEMPORARY (goes with the experiments framework): no callers.
@@ -3258,20 +3276,26 @@ Sefaria = extend(Sefaria, {
           .map(
             (h) =>
               new Promise((resolve, reject) => {
-                Sefaria.getRef(h.ref).then((oref) => {
-                  h.he_ref = oref.heRef;
-                  resolve(h);
-                });
+                Sefaria.getRef(h.ref)
+                  .then((oref) => {
+                    h.he_ref = oref.heRef;
+                    resolve(h);
+                  })
+                  .catch(reject);
               })
           )
-      ).then((new_hist_array) => {
-        const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-        const user_history_cookie = cookie('user_history');
-        const user_history = user_history_cookie ? JSON.parse(user_history_cookie) : [];
-        const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
-        cookie('user_history', JSON.stringify(trimmed), { path: '/' });
-        Sefaria.userHistory.items = trimmed;
-      });
+      )
+        .then((new_hist_array) => {
+          const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+          const user_history_cookie = cookie('user_history');
+          const user_history = user_history_cookie ? JSON.parse(user_history_cookie) : [];
+          const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
+          cookie('user_history', JSON.stringify(trimmed), { path: '/' });
+          Sefaria.userHistory.items = trimmed;
+        })
+        .catch((error) => {
+          console.error('Could not record user history for a signed-out viewer', error);
+        });
     }
     Sefaria.last_place = history_item_array.filter((x) => !x.secondary).concat(Sefaria.last_place); // while technically we should remove dup. books, this list is only used on client
   },
@@ -3326,6 +3350,8 @@ Sefaria = extend(Sefaria, {
             reject(e);
           },
         });
+      } else {
+        reject('notSignedIn');
       }
     });
   },

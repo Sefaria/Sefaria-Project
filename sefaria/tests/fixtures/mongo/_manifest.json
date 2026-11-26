@@ -1,0 +1,397 @@
+{
+ "base": {
+  "sha256": "ac18ab8dbaad26877b33f8bb5e47703b20111dc6671ee20410b0dc9aee2304fb"
+ },
+ "fixtures": {
+  "sefaria_tests_links_test.py__Test_get_links__test_get_links_excludes_parasha_refs.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/links_test.py::Test_get_links::test_get_links_excludes_parasha_refs",
+   "sha256": "d4aa2141ab6ddc2e928111f30e56088e2fa2014909ac234f0179da7c93729ae7"
+  },
+  "sefaria_tests_links_test.py__Test_get_links__test_get_links_excludes_talmud_perek_refs.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/links_test.py::Test_get_links::test_get_links_excludes_talmud_perek_refs",
+   "sha256": "73e7276955064ca788373e36c9c95e44ce81622ca87e196d997888b821ca0dc3"
+  },
+  "sefaria_tests_links_test.py__Test_get_links__test_get_links_filtered_by_multiple_categories.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/links_test.py::Test_get_links::test_get_links_filtered_by_multiple_categories",
+   "sha256": "3562477a65a9ebf8d25a06f37a7da75e7280202551e769e6d7b677a7c6696f73"
+  },
+  "sefaria_tests_links_test.py__Test_get_links__test_get_links_filtered_by_single_category.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/links_test.py::Test_get_links::test_get_links_filtered_by_single_category",
+   "sha256": "ed1f1f734f540cb0196d5fcbeba4d6e9acc3e3e288f1b7c97f6705fee2656095"
+  },
+  "sefaria_tests_links_test.py__Test_get_links__test_get_links_on_range.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/links_test.py::Test_get_links::test_get_links_on_range",
+   "sha256": "81511032fb29ae2da45fba31742bb9c0bc10808ef2e5d3acdb801d2a721cbd7e"
+  },
+  "sefaria_tests_links_test.py__Test_get_links__test_get_links_version_metadata_is_real_even_without_content_at_position.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/links_test.py::Test_get_links::test_get_links_version_metadata_is_real_even_without_content_at_position",
+   "sha256": "eae5e0c77bc7ef3d8afe6e04b231527cba0685242cc33df1119da102edf2160c"
+  },
+  "sefaria_tests_links_test.py__Test_get_links__test_get_links_without_exclusion_would_include_perek_refs.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/links_test.py::Test_get_links::test_get_links_without_exclusion_would_include_perek_refs",
+   "sha256": "84efa5675f95c18f93a85acb805cccbbf2dfabc422567d76dddef49a3505e4cc"
+  },
+  "sefaria_tests_modtools_test.py__TestBulkDownloadVersionsAPI__test_bulk_download_requires_staff.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestBulkDownloadVersionsAPI::test_bulk_download_requires_staff",
+   "sha256": "f6c0d11ac14d4f761a260c14bdfaa615d5f4fe5e6176de60f4b135b5414a7ae3"
+  },
+  "sefaria_tests_modtools_test.py__TestBulkDownloadVersionsAPI__test_bulk_download_requires_title.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestBulkDownloadVersionsAPI::test_bulk_download_requires_title",
+   "sha256": "b08ed99cc4f16fa7f891e4067c7d470adfb90411c752cfaf877710caf6e6617f"
+  },
+  "sefaria_tests_modtools_test.py__TestBulkDownloadVersionsAPI__test_bulk_download_returns_response.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestBulkDownloadVersionsAPI::test_bulk_download_returns_response",
+   "sha256": "944191676e0ece653e748c0c3de17707ae71ce0b15ab57431ba0b2f6c2dd3770"
+  },
+  "sefaria_tests_modtools_test.py__TestCheckIndexDependenciesAPI__test_check_dependencies_returns_info.json": {
+   "collections": [
+    "links",
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestCheckIndexDependenciesAPI::test_check_dependencies_returns_info",
+   "sha256": "cf80c07ee910d7d2b16f443ad27c7e7dcc6542898078fc5e89c62c98e282fb17"
+  },
+  "sefaria_tests_modtools_test.py__TestIndexLinksDownloadAPI__test_index_links_returns_csv.json": {
+   "collections": [
+    "following",
+    "links",
+    "profiles",
+    "vstate"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestIndexLinksDownloadAPI::test_index_links_returns_csv",
+   "sha256": "c1d956f337de54f7c20ce381ae48ae959878c3b83add2d6389b6720af2bb03ec"
+  },
+  "sefaria_tests_modtools_test.py__TestLinksDeleteAPI__test_links_delete_requires_staff.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestLinksDeleteAPI::test_links_delete_requires_staff",
+   "sha256": "0039251f9798d87800c90344a637663421f59bc65b098ca922e6cb94a6ec560e"
+  },
+  "sefaria_tests_modtools_test.py__TestLinksDeleteAPI__test_links_delete_uses_delete_action.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestLinksDeleteAPI::test_links_delete_uses_delete_action",
+   "sha256": "e421165a5af4ebc9651a2d46900c07a309b8930602af9b8a9d4b51f3cb1f10f2"
+  },
+  "sefaria_tests_modtools_test.py__TestLinksDownloadAPI__test_links_download_handles_invalid_refs.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestLinksDownloadAPI::test_links_download_handles_invalid_refs",
+   "sha256": "1512a83fc1c450ed5dfbff59002045e7a499b219c58be1a20dcb7bb4bdf9e5d4"
+  },
+  "sefaria_tests_modtools_test.py__TestLinksDownloadAPI__test_links_download_returns_csv.json": {
+   "collections": [
+    "following",
+    "links",
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestLinksDownloadAPI::test_links_download_returns_csv",
+   "sha256": "2fcf84a46635002236a913331b810da28575dfbcdd3257c4d8f8711b59c71670"
+  },
+  "sefaria_tests_modtools_test.py__TestLinksUploadAPI__test_links_upload_requires_post.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestLinksUploadAPI::test_links_upload_requires_post",
+   "sha256": "17876723facbd664b95e912535b1e1c29ea85452eaa895e22c3901636fdc71a9"
+  },
+  "sefaria_tests_modtools_test.py__TestLinksUploadAPI__test_links_upload_requires_staff.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestLinksUploadAPI::test_links_upload_requires_staff",
+   "sha256": "57230b97d014fc1fb6f64c6ba834cf88c30faf3ac9ade06a75326b78eccb2cbe"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkDeleteAPI__test_bulk_delete_empty_indices.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_empty_indices",
+   "sha256": "59f0bc7f1694c119e97924626502b0f540c3d0dd8bc97ff408924ee8c8e62234"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkDeleteAPI__test_bulk_delete_hard_deletes_version_and_records_history.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_hard_deletes_version_and_records_history",
+   "sha256": "595b0842972d0b4204b910c17ff81090a232f97c58c7f0e324441f56ad65c598"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkDeleteAPI__test_bulk_delete_missing_indices.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_missing_indices",
+   "sha256": "80b13d912a40d71e9741549b171bf091d2c1a9ec49b29068139c9957d5fd378a"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkDeleteAPI__test_bulk_delete_missing_version_title.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_missing_version_title",
+   "sha256": "b233c1fda4c27d1f2abdbff1b831f7eed04574915147fb160080c89c54045cfe"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkDeleteAPI__test_bulk_delete_partial_success.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_partial_success",
+   "sha256": "80ccf50af4383d4abac0d366ceb12bc3ccd39eab74726dec3278fb3b2effda9b"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkDeleteAPI__test_bulk_delete_reports_failure_for_missing_version.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_reports_failure_for_missing_version",
+   "sha256": "86cb9960b961b43a555d50d8c87e68b3661d7bcec127328cf6436e1ca0ea73cd"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkDeleteAPI__test_bulk_delete_requires_post.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_requires_post",
+   "sha256": "3ceeed9d7cf4cc3c8b60c46bcf53593b3f2f18aa8858b51e8f1a031cd5c59958"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkDeleteAPI__test_bulk_delete_requires_staff.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkDeleteAPI::test_bulk_delete_requires_staff",
+   "sha256": "8b2521157c82837a0959b7c435af7889885a5d68560f66fc261fe4cc3daeefa8"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkEditAPI__test_bulk_edit_clear_nonexistent_field.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_clear_nonexistent_field",
+   "sha256": "b6d883cdc00cc97ddeab70c25c59587e6e8440b9d08013760028c3a4e61bea3d"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkEditAPI__test_bulk_edit_mixed_updates_and_clears.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_mixed_updates_and_clears",
+   "sha256": "f939a87da015af9a3565000e2f49abb2a1f606ed8259c658a07e21e964793f1c"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkEditAPI__test_bulk_edit_null_clears_field.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_null_clears_field",
+   "sha256": "6c8009c335bdd69993ef345a6b1f0c4e13775813b24e7f43cc321d80e24406bf"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkEditAPI__test_bulk_edit_requires_indices.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_requires_indices",
+   "sha256": "7cfd8c2b892c2cfa611aa8b13f67bb1148acea910e39d89a63ade6d26c8f8f08"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkEditAPI__test_bulk_edit_requires_post.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_requires_post",
+   "sha256": "ff8e59f48b69a821c54951746da3a948d43119bbd38637525d9bb13e348804f2"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkEditAPI__test_bulk_edit_requires_staff.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_requires_staff",
+   "sha256": "d0f7ec57fe955bc053f5e46c4be2b121fc84ecec5ffa2ec97c62a0bfc2aba3e9"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkEditAPI__test_bulk_edit_returns_detailed_response.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_returns_detailed_response",
+   "sha256": "0b2a5b50c660f45762e7fc703ddb89a7b2a8e4418147b4cace79402184c6ab1d"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionBulkEditAPI__test_bulk_edit_without_language_parameter.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionBulkEditAPI::test_bulk_edit_without_language_parameter",
+   "sha256": "9f1dae3f866907d70a5c9786416d277ef93d51dfcc48fcaa1200a7e57d04634d"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionIndicesAPI__test_version_indices_empty_for_nonexistent.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionIndicesAPI::test_version_indices_empty_for_nonexistent",
+   "sha256": "6a993188ac1a0767abbba715d00c85a68aee8b8813f7d9b2720b11d8a7aed0c6"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionIndicesAPI__test_version_indices_returns_list.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionIndicesAPI::test_version_indices_returns_list",
+   "sha256": "2c1057329836dcc5bdb969ca344b3dcd1d0f131edd99b87a1710a9930255b12a"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_collision_different_language_family_allowed.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_collision_different_language_family_allowed",
+   "sha256": "5c6d06f0df3bd06772e6d952df809d198fdbc1cfcca2db4857c260ad460cc3a4"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_collision_fails.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_collision_fails",
+   "sha256": "622e585a87d0fbf16cd5024132f702ed43d58f7f6cbbfbf94b46e2501f8120a4"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_empty_new_title.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_empty_new_title",
+   "sha256": "949acc93e6aff1bc5c4e4a4f8ec3d604abd686fb71e1c8f8ab8f1d01679ee3e0"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_enqueues_task_when_celery_enabled.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_enqueues_task_when_celery_enabled",
+   "sha256": "12808cdf04fca61992d6a82784d8c90f0dec8eb40995395a3431052e334f607e"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_missing_fields.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_missing_fields",
+   "sha256": "20141a3dfe8eaeb57a7651f7bd9625e01650d4dd598285f699259ce849e960c4"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_missing_version_returns_404.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_missing_version_returns_404",
+   "sha256": "a8412b0abe212d687617d840cea08111aa2d320edf2c6d19cea7d4cad09bdb23"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_multiple_matches_requires_language.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_multiple_matches_requires_language",
+   "sha256": "9e3bd9a272b6cd9f70922af48b3297963b7e694e42cb6e245cd21a365f1da382"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_multiple_matches_resolved_by_language.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_multiple_matches_resolved_by_language",
+   "sha256": "f5f78bbdee4aa6e6904dbd9e93a588bda6ca566f9539782e9b6ec7312c4f1911"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_requires_post.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_requires_post",
+   "sha256": "a291967c542d83fba6694cd6d6e0106a5f2feef4674740408e4353af60c83a73"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_requires_staff.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_requires_staff",
+   "sha256": "ff027d07e2275ce1464bb97185405c01c6e2eec22976628701989cd57bcbb3ce"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_same_title_rejected.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_same_title_rejected",
+   "sha256": "1dad7131737250d0a102be0da70c1591b19222a4d7f92c8e2deec6da598b993f"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_success.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_success",
+   "sha256": "507da5af1962ca79b47a1aed418f6801eb7e4c29dbb5276038e628670a2b3e3a"
+  },
+  "sefaria_tests_modtools_test.py__TestVersionRenameAPI__test_rename_with_language_parameter.json": {
+   "collections": [
+    "texts"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestVersionRenameAPI::test_rename_with_language_parameter",
+   "sha256": "4a474590c6fb2a954cb812116442034893ec432527156a273322e672de4633f9"
+  },
+  "sefaria_tests_modtools_test.py__TestWorkflowyUploadAPI__test_workflowy_requires_files.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestWorkflowyUploadAPI::test_workflowy_requires_files",
+   "sha256": "c8d045107ffbd980b6d2283fff79010c591701953394584afd195c00a712548a"
+  },
+  "sefaria_tests_modtools_test.py__TestWorkflowyUploadAPI__test_workflowy_requires_post.json": {
+   "collections": [
+    "following",
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestWorkflowyUploadAPI::test_workflowy_requires_post",
+   "sha256": "9e4310f45364032084e542a28637e5eaeade519ddc7497d70a93518afc8ba6d5"
+  },
+  "sefaria_tests_modtools_test.py__TestWorkflowyUploadAPI__test_workflowy_requires_staff.json": {
+   "collections": [
+    "profiles"
+   ],
+   "nodeid": "sefaria/tests/modtools_test.py::TestWorkflowyUploadAPI::test_workflowy_requires_staff",
+   "sha256": "97b008db17bdbee2d2b9b546bbcb6d1c43f42669bde824eda75df63b13167228"
+  },
+  "sefaria_tests_recommendation_test.py__TestClustering__test_out_of_order.json": {
+   "collections": [
+    "vstate"
+   ],
+   "nodeid": "sefaria/tests/recommendation_test.py::TestClustering::test_out_of_order",
+   "sha256": "05e30a0fd1f011729bd2f817a96a559abc05ecfdc42346a12a255d85ce7aafc2"
+  },
+  "sefaria_tests_recommendation_test.py__TestClustering__test_simple.json": {
+   "collections": [
+    "vstate"
+   ],
+   "nodeid": "sefaria/tests/recommendation_test.py::TestClustering::test_simple",
+   "sha256": "872aca7a23a1c3cf015f6a6a918350bbf3e4a575f0706321184dce43728372dd"
+  },
+  "sefaria_tests_recommendation_test.py__TestClustering__test_two_clusters.json": {
+   "collections": [
+    "vstate"
+   ],
+   "nodeid": "sefaria/tests/recommendation_test.py::TestClustering::test_two_clusters",
+   "sha256": "1564c62a2e11b7e1cc70dceb7d2b27953f1fc671115038977fd8a6e62e0ebbc7"
+  },
+  "sefaria_tests_search_dependencies_test.py__TestBookHooks__test_book_save_and_delete.json": {
+   "collections": [
+    "groups",
+    "links",
+    "topic_links",
+    "topics",
+    "vstate"
+   ],
+   "nodeid": "sefaria/tests/search_dependencies_test.py::TestBookHooks::test_book_save_and_delete",
+   "sha256": "ad63011d9d65e386e536f8ca4c36949dffac9f6f201f07ace784ee6d84675d7c"
+  },
+  "sefaria_tests_search_dependencies_test.py__TestTopicHooks__test_pool_lookup_failure_leaves_the_doc_untouched.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_pool_lookup_failure_leaves_the_doc_untouched",
+   "sha256": "e80b7bf3f0721648d60f34cda346660a1d9fdee22351a243b6391de472ed024d"
+  },
+  "sefaria_tests_search_dependencies_test.py__TestTopicHooks__test_topic_delete_with_no_es_doc_is_absorbed.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_delete_with_no_es_doc_is_absorbed",
+   "sha256": "b4eaa2b33153fab57018f526b75189b97c8599f3f83ecf6b599820e314b03e19"
+  },
+  "sefaria_tests_search_dependencies_test.py__TestTopicHooks__test_topic_dropped_from_library_pool_is_evicted_on_next_save.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_dropped_from_library_pool_is_evicted_on_next_save",
+   "sha256": "7519520bc02c5df47e2001b8ddb01ef0e065223b783d1b9251ecc4ee2e513926"
+  },
+  "sefaria_tests_search_dependencies_test.py__TestTopicHooks__test_topic_outside_library_pool_is_never_indexed.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_outside_library_pool_is_never_indexed",
+   "sha256": "4ec1a026396a9e7c97d782bd2fb4362932596065868b6eb5d3e743923fe30b4b"
+  },
+  "sefaria_tests_search_dependencies_test.py__TestTopicHooks__test_topic_save_and_delete_AuthorTopic-author_.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[AuthorTopic-author]",
+   "sha256": "af578e99fe26fea3d5d208a0ccc925ec755f68f99093ff2bcdd7724cdc26aed3"
+  },
+  "sefaria_tests_search_dependencies_test.py__TestTopicHooks__test_topic_save_and_delete_PersonTopic-topic_.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[PersonTopic-topic]",
+   "sha256": "1d804c3a01de311d02c8e96cca3d22189992459f3d90db5ca0559fef526317d0"
+  },
+  "sefaria_tests_search_dependencies_test.py__TestTopicHooks__test_topic_save_and_delete_Topic-topic_.json": {
+   "collections": [],
+   "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[Topic-topic]",
+   "sha256": "693b3402565f68b3caee6169d5df2a977b808f22397d7fae344efd6f90d95896"
+  }
+ },
+ "format": 1,
+ "source": {}
+}
