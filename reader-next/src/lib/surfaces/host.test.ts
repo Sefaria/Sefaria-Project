@@ -42,9 +42,9 @@ function hostWith(over: Partial<SurfaceHostDeps> = {}, initial?: string) {
 
 // @feature SHL-078
 describe("the SurfaceHost", () => {
-  it("is contract 1.1 and hands over the reader's own state API and commands", () => {
+  it("is contract 1.2 and hands over the reader's own state API and commands", () => {
     const { host, deps } = hostWith();
-    expect(host.contract).toEqual({ major: 1, minor: 1 });
+    expect(host.contract).toEqual({ major: 1, minor: 2 });
     expect(host.reader.state).toBe(deps.state);
     expect(host.reader.commands).toBe(deps.commands);
     expect(host.config).toEqual({ apiOrigin: "https://api.s.example.org", relayOrigin: "wss://relay.s.example.org", environment: "staging" });
@@ -197,5 +197,25 @@ describe("socialEnvFrom", () => {
     expect(socialEnvFrom({ PUBLIC_SOCIAL_DEV_ENTRY: "http://localhost:3200/src/surface/entry.ts" })!.devEntry).toBe("http://localhost:3200/src/surface/entry.ts");
     expect(socialEnvFrom({ PUBLIC_SOCIAL_DEV_ENTRY: "http://localhost:3200/e.ts", NODE_ENV: "production" })).toBeUndefined();
     expect(socialEnvFrom({ PUBLIC_SOCIAL_DEV_ENTRY: "https://evil.example/e.ts" })).toBeUndefined();
+  });
+});
+
+describe("SurfaceHost 1.2 ui.chrome", () => {
+  // @feature SHL-080 SurfaceHost 1.2: the reader's chrome insets (rebuild)
+  it("passes the reader's chrome insets through, and is absent when the reader gives none", () => {
+    let insets = { top: 60, inlineStart: 0, inlineEnd: 420, bottom: 0 };
+    const subs = new Set<() => void>();
+    const chrome = { get: () => insets, subscribe: (cb: () => void) => (subs.add(cb), () => void subs.delete(cb)) };
+    const { host } = hostWith({ chrome });
+    expect(host.contract).toEqual({ major: 1, minor: 2 });
+    expect(host.ui.chrome?.get()).toEqual({ top: 60, inlineStart: 0, inlineEnd: 420, bottom: 0 });
+    const cb = vi.fn();
+    const off = host.ui.chrome!.subscribe(cb);
+    insets = { ...insets, inlineEnd: 0 };
+    subs.forEach((s) => s());
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(host.ui.chrome?.get().inlineEnd).toBe(0);
+    off();
+    expect(hostWith().host.ui.chrome).toBeUndefined();
   });
 });

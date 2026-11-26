@@ -3219,6 +3219,24 @@
   "refs": []
  },
  {
+  "id": "SHL-080",
+  "area": "reader-shell",
+  "group": "Surfaces",
+  "name": "SurfaceHost 1.2: the reader's chrome insets (rebuild)",
+  "summary": "SurfaceHost 1.2 adds the optional ui.chrome: how many pixels at each edge of the viewport the reader's own chrome occupies (the site header and sticky panel headers at the top, an open connections panel at the inline end), live, so a surface's floating UI (Sefaria Social's call window) keeps clear of it without reading the reader's markup.",
+  "details": [
+   "The reader marks its chrome with data-surface-chrome=\"top\" | \"bottom\" | \"inline-start\" | \"inline-end\" (SiteHeader, sticky PanelHeader, ConnectionsPanel); src/lib/surfaces/chrome.ts measures the marked elements that show, mirrored for a right-to-left interface.",
+   "Re-measured in one frame on resize, scroll, marked chrome appearing or going, and marked elements resizing; subscribers hear only real changes; nothing is watched until a surface subscribes.",
+   "Optional: a surface built for 1.0 or 1.1 ignores it; a 1.2 surface falls back to its own fixed insets on an older reader."
+  ],
+  "tier": "optional",
+  "src": "reader-next: contract/surface-host.v1.ts, src/lib/surfaces/chrome.ts, src/lib/surfaces/host.ts, src/features/surfaces/SurfaceMount.tsx",
+  "audience": "all",
+  "platform": "all",
+  "status": "rebuild-only",
+  "refs": []
+ },
+ {
   "id": "TXD-001",
   "area": "text-display",
   "group": "Copy and paste",

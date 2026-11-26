@@ -242,7 +242,7 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange, viewer, o
   );
 
   return (
-    <header ref={seen} className={styles.header} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
+    <header ref={seen} className={styles.header} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-surface-chrome="top">
       <div className={`${styles.inner} ${styles.desktop}`}>
         <nav className={styles.nav} aria-label={t("Primary navigation", "ניווט ראשי")}>
           <A href={lib("/")} className={styles.logo}><img src={logo} alt={logoLabel} /><span className={styles.samech} role="img" aria-label={logoLabel} /></A>

@@ -13,7 +13,7 @@ import { ctxOf } from "~/lib/reader/ctx";
 import { acceptsUrl } from "~/lib/reader-state/sefaria/safe-url";
 import { isReaderPath } from "~/lib/reader/paths";
 import { besideHref, besideOrigin, DEFAULT_ORIGIN, entryIndex, isBeside, isSocialPath, rendered, setBesideCollapsed, setBesideOrigin, within, withTransition, type PageLocation } from "./beside";
-import type { SurfaceHost, Unsubscribe } from "../../../contract/surface-host.v1";
+import type { ChromeInsets, SurfaceHost, Unsubscribe } from "../../../contract/surface-host.v1";
 import { SURFACE_HOST_CONTRACT } from "../../../contract/surface-host.v1";
 
 /** The slice of TanStack's router the host uses. */
@@ -53,6 +53,8 @@ export interface SurfaceHostDeps {
   identityToken: () => Promise<string>;
   requestSignIn: () => void;
   ui: { get: () => UiState; subscribe: (cb: () => void) => Unsubscribe };
+  /** SurfaceHost 1.2 `ui.chrome`: the reader's chrome insets (./chrome.ts). Absent in tests that do not need it. */
+  chrome?: { get: () => ChromeInsets; subscribe: (cb: () => void) => Unsubscribe };
   config: SocialEnv | undefined;
   /** The release, tagged on every report. */
   version: string;
@@ -202,6 +204,7 @@ export function createSurfaceHost(d: SurfaceHostDeps): SurfaceHost {
         return d.ui.get().theme;
       },
       subscribe: (cb) => d.ui.subscribe(cb),
+      ...(d.chrome ? { chrome: { get: () => d.chrome!.get(), subscribe: (cb: () => void) => d.chrome!.subscribe(cb) } } : {}),
     },
     config: { apiOrigin: d.config?.apiOrigin ?? "", relayOrigin: d.config?.relayOrigin ?? "", environment: d.config?.environment ?? "local" },
     report,

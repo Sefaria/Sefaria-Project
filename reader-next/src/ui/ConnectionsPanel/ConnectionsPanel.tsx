@@ -38,7 +38,7 @@ export function ConnectionsPanel({ title, back, onClose, actions, lang, onLang, 
   // the sidebar's language button says what it does (it was "Hebrew Language Toggle Icon")
   const toggleName = lang === "en" ? (he ? "הצגה בעברית" : "Show in Hebrew") : he ? "הצגה באנגלית" : "Show in English";
   return (
-    <aside className={styles.panel} aria-label={name}>
+    <aside className={styles.panel} aria-label={name} data-surface-chrome="inline-end">
       <div className={styles.header}>
         {back ? (
           <Link href={back.href} className={styles.back} onClick={back.onClick}>

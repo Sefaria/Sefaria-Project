@@ -10,6 +10,7 @@
  * @feature SHL-076 Social lab and /social routes
  * @feature SHL-077 Surface loader
  * @feature SHL-078 SurfaceHost v1
+ * @feature SHL-080 SurfaceHost 1.2: the reader's chrome insets (rebuild)
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
@@ -26,6 +27,7 @@ import { createWorkspaceCommands, urlDefaultsFor, type WorkspaceRouter } from "~
 import type { UrlDefaults } from "~/lib/workspace/url";
 import type { Viewer } from "~/lib/auth/session";
 import { getSurface, resetSurfaceLoader } from "~/lib/surfaces/load";
+import { createChromeInsets } from "~/lib/surfaces/chrome";
 import { SOCIAL_VERSION_PARAM, socialEnvForPage, socialVersionCookie, socialVersionFromCookie } from "~/lib/surfaces/version";
 import { Button } from "~/ui/Button/Button";
 import { setSocialCookie } from "~/features/shell/social-optin";
@@ -90,6 +92,16 @@ function useHostFactory(): HostFactory | null {
     if (had || !readerState) return had ?? null;
     const defaults = { current: urlDefaultsFor(settings) };
     const ui = store<UiState>({ interfaceLang, theme: themeOf() });
+    // SurfaceHost 1.2 ui.chrome: one measurement for both mounts (src/lib/surfaces/chrome.ts). Browser only: this runs while the
+    // server renders too, where there is nothing to measure and the surface never mounts.
+    const chrome =
+      typeof document === "undefined"
+        ? undefined
+        : createChromeInsets({
+            doc: document,
+            win: window,
+            dir: () => (getComputedStyle(document.documentElement).direction === "rtl" ? "rtl" : "ltr"),
+          });
     const commands = createWorkspaceCommands(router as unknown as WorkspaceRouter, () => defaults.current);
     const identityToken = createIdentityTokenSource({ post: postJson, viewerId: () => viewerOf(qc)?.id ?? null });
     const viewer = {
@@ -117,6 +129,7 @@ function useHostFactory(): HostFactory | null {
           void router.navigate({ href: withNext("/login", `${l.pathname}${l.search}${l.hash}`) });
         },
         ui,
+        chrome,
         config: socialEnvForPage(PUBLIC_CONFIG.social),
         version,
         leavesClient: (pathname) => leavesClient(pathname, browserHost(), PUBLIC_CONFIG.voicesOrigin),
