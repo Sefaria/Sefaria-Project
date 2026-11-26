@@ -5,10 +5,13 @@
  */
 import { DurableObject } from "cloudflare:workers";
 import { createRoom, type Outgoing, type Room as PureRoom } from "../src/lib/session/room";
+import { STATUS_PATH, statusAuthorized, statusOf, type RoomStatus } from "../src/lib/session/room-status";
 
 export interface Env {
   ROOMS: DurableObjectNamespace<Room>;
   ALLOWED_ORIGINS: string;
+  /** Shared with the Sefaria Social server for `GET /status/<id>` (a secret: `wrangler secret put STATUS_SECRET`). Unset: refused. */
+  STATUS_SECRET?: string;
 }
 
 const ROOM_PATH = /^\/r\/([A-Za-z0-9_-]{8,128})$/;
@@ -34,6 +37,14 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     if (url.pathname === "/health") return new Response("ok");
+    const status = STATUS_PATH.exec(url.pathname);
+    if (status) {
+      if (req.method !== "GET") return new Response("method not allowed", { status: 405 });
+      const ok = statusAuthorized(req.headers.get("Authorization"), env.STATUS_SECRET, (a, b) => crypto.subtle.timingSafeEqual(a, b));
+      if (!ok) return Response.json({ error: "unauthorized" }, { status: 401 });
+      const body = await env.ROOMS.get(env.ROOMS.idFromName(status[1]!)).status();
+      return Response.json(body, { headers: { "cache-control": "no-store" } });
+    }
     const match = ROOM_PATH.exec(url.pathname);
     if (!match) return new Response("not found", { status: 404 });
     if (req.headers.get("Upgrade")?.toLowerCase() !== "websocket") return new Response("expected a WebSocket", { status: 426 });
@@ -48,6 +59,11 @@ export class Room extends DurableObject<Env> {
   private sockets = new Map<string, WebSocket>();
   private nextConn = 1;
   private ticker: ReturnType<typeof setInterval> | null = null;
+
+  /** Where the session is now, for Sefaria Social's feed cards (spec 032): no socket, nothing personal. */
+  async status(): Promise<RoomStatus> {
+    return statusOf(this.room.snapshot());
+  }
 
   override async fetch(): Promise<Response> {
     const { 0: client, 1: server } = new WebSocketPair();
