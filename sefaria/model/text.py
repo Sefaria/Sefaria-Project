@@ -3419,7 +3419,10 @@ class Ref(metaclass=RefCacheType):
         r = r.prev_section_ref(vstate=vstate)
         if not r:
             return None
-        last_index = r.get_subrefs_count(self.get_state_ja(vstate=vstate))
+        last_index = r.get_subrefs_count(r.get_state_ja(vstate=vstate))
+        if not last_index:
+            # No populated segment to move to. A section index of 0 or None is not a ref.
+            return None
         d = r._core_dict()
         d["sections"] = d["toSections"] = r.sections + [last_index]
         return Ref(_obj=d)
@@ -3437,7 +3440,9 @@ class Ref(metaclass=RefCacheType):
         if not r.is_segment_level():
             return r
         section_ref = r.section_ref()
-        section_length = section_ref.get_subrefs_count(self.get_state_ja(vstate=vstate))
+        section_length = section_ref.get_subrefs_count(section_ref.get_state_ja(vstate=vstate))
+        if section_length is None:
+            return None
         if r.sections[-1] < section_length:
             d = r._core_dict()
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
