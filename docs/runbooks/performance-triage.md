@@ -10,7 +10,8 @@ returns nothing, open one matching log or span and check its fields before decid
 ## 1. Is it actually slow?
 
 **Thresholds:** API p95 above **1 s** means users feel it. Around **0.2 s** is healthy. Short spikes happen every
-day; what matters is a p95 that stays high for several minutes.
+day; what matters is a p95 that stays high for several minutes. If a Datadog alert brought you here, §7 says what
+it measures.
 
 **Where to look:**
 
@@ -191,8 +192,86 @@ Check each one; most incidents are one of these.
 | **Django ↔ Node round trips** (server-side rendering)                                 | Slow outgoing HTTP spans from `web` to the Node SSR service in the traces of page requests (not yet checked against a real trace)                            | Page traces spend their time in Django or Mongo                                                    |
 | **`user_history` collection**                                                         | Slow-query log grouped by `@attr.ns` shows `sefaria.user_history`; `pymongo.cmd` spans with `user_history` in the resource                                   | Not in the slow-query list                                                                         |
 | **Bot spike**                                                                         | §4: one user agent or IP range jumps in request count                                                                                                        | Traffic mix unchanged                                                                              |
+| **Web pods CPU-throttled** (a heavy client or a pod restart, §7)                      | Throttled / all CFS periods for `production-web` near 100%; every endpoint slows alike (the 2026-11-18 incident)                                             | Throttling under ~50%, slowness limited to a few endpoints                                         |
 
 ## 6. After the incident
 
 - Write down what happened, how you found it, and what fixed it (Shortcut story or incident page).
 - If you found a new failure mode, or a step here was wrong, update this runbook.
+
+## 7. Alerts
+
+Two Datadog monitors watch production web. Monitors aren't kept in code, so the definitions below are the source:
+create or update them in Datadog from here, and change this section when you change them.
+
+**Routing.** The monitors don't name a person or a channel. They carry the tag `team:platform-perf`, and a Datadog
+[monitor notification rule](https://docs.datadoghq.com/monitors/notify/notification_rules/) for that tag decides
+who is notified. To change the recipient, edit the rule, not the monitors. The Datadog Slack app isn't installed, so
+the rule sends email; to get alerts in Slack, use a Slack email-forwarding address (a personal one lands as a
+Slackbot DM, or a channel's address). Each message also notifies `@webhook-polylane`, like the other monitors, so
+the triage agent gets every alert.
+
+### Django p95 latency
+
+The p95 here is Django's (`trace.django.request`), not nginx's. It only counts requests that missed Varnish, so it
+runs higher than the 1 s threshold in §1: Django p95 is above 1 s at most daily peaks. Back-test over 30 days to
+2026-11-19 (5-minute p95, condition held for the whole window):
+
+| p95 above | 5 min | 15 min | 30 min |
+| --------- | ----- | ------ | ------ |
+| 1 s       | 496   | 145    | 63     |
+| 2 s       | 62    | 15     | 5      |
+| 3 s       | 22    | 2      | 0      |
+
+Warning at 2 s, critical at 3 s, over 15 minutes: roughly every three days, and twice a month.
+
+```json
+{
+  "name": "[prod web] Django p95 latency high",
+  "type": "query alert",
+  "query": "percentile(last_15m):p95:trace.django.request{env:production,service:web} > 3",
+  "message": "Django p95 latency on prod web has been above {{threshold}}s for 15 minutes (now {{value}}s).\n\nTriage: https://github.com/Sefaria/Sefaria-Project/blob/master/docs/runbooks/performance-triage.md\nDashboard: https://us5.datadoghq.com/dashboard/9pv-g5r-6ay\n\n@webhook-polylane",
+  "tags": ["team:platform-perf", "service:web", "env:production", "alert:latency"],
+  "priority": 2,
+  "options": {
+    "thresholds": { "critical": 3, "warning": 2, "critical_recovery": 2.5, "warning_recovery": 1.5 },
+    "notify_no_data": false,
+    "require_full_window": false,
+    "renotify_interval": 60,
+    "include_tags": true
+  }
+}
+```
+
+### Web CPU throttling
+
+The web pods run 3 gunicorn workers under a 2-core limit, so they hit the limit at daily peaks. Near 100%
+throttling slows every request (§5). This alert gives warning before latency does. Back-test over the same 30 days:
+
+| Throttled above | 15 min | 30 min |
+| --------------- | ------ | ------ |
+| 70%             | 39     | 10     |
+| 80%             | 19     | 3      |
+| 90%             | 5      | 2      |
+
+At 90% for 15 minutes it fired on 3 days, one of them the 2026-11-18 incident.
+
+```json
+{
+  "name": "[prod web] CPU throttling high",
+  "type": "query alert",
+  "query": "min(last_15m):sum:kubernetes.cpu.cfs.throttled.periods{kube_deployment:production-web,kube_container_name:web}.as_rate() / sum:kubernetes.cpu.cfs.periods{kube_deployment:production-web,kube_container_name:web}.as_rate() > 0.9",
+  "message": "Prod web pods have been CPU-throttled in more than 90% of CFS periods for 15 minutes. Requests slow down across all endpoints. Look for a heavy client (Cloudflare analytics by user agent / ASN) or a pod restart.\n\nTriage: https://github.com/Sefaria/Sefaria-Project/blob/master/docs/runbooks/performance-triage.md\n\n@webhook-polylane",
+  "tags": ["team:platform-perf", "service:web", "env:production", "alert:capacity"],
+  "priority": 3,
+  "options": {
+    "thresholds": { "critical": 0.9, "critical_recovery": 0.7 },
+    "notify_no_data": false,
+    "require_full_window": true,
+    "renotify_interval": 60,
+    "include_tags": true
+  }
+}
+```
+
+Both definitions pass Datadog's monitor validation. Tune the thresholds after two weeks of real alerts.
