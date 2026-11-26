@@ -113,7 +113,7 @@ class ConnectionsPanel extends Component {
       if (this.isScrollReset()) {
         this.props.setSideScrollPosition(null);
       } else if (this.props.scrollPosition && this.isScrollMonitored()) {
-        $('.content').scrollTop(this.props.scrollPosition).trigger('scroll');
+        $(ReactDOM.findDOMNode(this)).find('.content').scrollTop(this.props.scrollPosition).trigger('scroll');
       }
 
       this.addScrollListener();
@@ -126,7 +126,7 @@ class ConnectionsPanel extends Component {
     return ['Resources'].includes(this.props.mode);
   }
   addScrollListener() {
-    this.$scrollView = $('.connectionsPanel .texts');
+    this.$scrollView = $(ReactDOM.findDOMNode(this)).find('.texts');
     if (this.$scrollView[0]) {
       this.$scrollView[0].addEventListener('scroll', this.handleScroll);
     }
@@ -266,6 +266,7 @@ class ConnectionsPanel extends Component {
       this.setState({
         currObjectVersions: { en: null, he: null },
       });
+      return;
     }
     const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(data.versions);
     this.setState({

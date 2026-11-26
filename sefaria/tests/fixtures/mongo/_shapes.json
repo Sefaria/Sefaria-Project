@@ -2126,10 +2126,14 @@
    ]
   },
   "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_save_and_delete[PersonTopic-topic]": {
+   "sheets": [
+    "topics"
+   ],
    "topic_links": [
     "class",
     "fromTopic",
-    "linkType"
+    "linkType",
+    "toTopic"
    ],
    "topics": [
     "slug"

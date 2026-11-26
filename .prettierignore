@@ -23,5 +23,5 @@ e2e-tests/developers-visual/baselines/
 # Prettier's JSON style would rewrite every line of them in any commit that stages them (a merge from master does).
 docs/openAPI.json
 static/js/sefaria/i18n/interface/*.json
-# Recorded MongoDB test fixtures (scripts/pytest_minimal_dataset): written by the recorder, compared byte for byte in CI.
+# Generated Mongo test fixtures (canonical encoding is checked in CI; do not reformat)
 sefaria/tests/fixtures/mongo/

@@ -1,6 +1,6 @@
 {
   "contractVersion": 1,
-  "specSha": "e4388184fe8690f41b74a651f5d0c670659234cfb257e75e970e7edd67191c26",
+  "specSha": "5cc7d2681fdfb61136149892cb6dc63924614912a08fac63bbab22416a54a40a",
   "operationId": "get-v3-texts",
   "method": "get",
   "path": "/api/v3/texts/{tref}",
