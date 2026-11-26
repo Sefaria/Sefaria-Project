@@ -111,11 +111,13 @@ jobs:
       - name: Initial JS/CSS of the reader page within the baseline
         run: node scripts/budgets/measure.mjs
 
-  # desktop and phone run as parallel legs: one after the other they came within a minute of the time limit
+  # desktop and phone run as parallel legs: run one after the other, they came within a minute of the old 35-minute limit
+  # 50 minutes: the desktop leg takes 24-35 minutes on a typical runner and about half again on a slow one (755 tests, 2 workers),
+  # so at 35 slow runners cancelled it a few tests from the end with nothing failed
   e2e:
     name: e2e (${{ matrix.project }})
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 50
     strategy:
       fail-fast: false
       matrix:
