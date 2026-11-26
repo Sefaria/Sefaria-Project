@@ -148,6 +148,19 @@ http {
   access_log /dev/stdout structured;
   client_max_body_size 32M;
 
+  # Upstream responses can carry a large header block: Varnish returns the whole
+  # request URL in the "url" header to support cache invalidation, so a long
+  # /api/bulktext or reader URL makes the upstream response header several
+  # kilobytes. nginx's default response-header buffer is 4 KB, and a larger header
+  # block makes nginx abort the request with 502 "upstream sent too big header while
+  # reading response header from upstream". nginx caps the client request line at
+  # large_client_header_buffers (default 8 KB), so 16 KB covers the header block with
+  # headroom. Tune raise above the tier's buffer defaults for the headers this stack
+  # emits; see Sefaria-Project PR for the Varnish-side removal of the header.
+  proxy_buffer_size 16k;
+  proxy_buffers 4 32k;
+  proxy_busy_buffers_size 64k;
+
   # Add CORS header only if not already set
   # For simple requests, only Access-Control-Allow-Origin is needed.
   # For more complex requests, we need more headers. CORS for these requests are handled in Django.
