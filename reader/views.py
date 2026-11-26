@@ -827,15 +827,24 @@ def make_search_panel_dict(get_dict, i, **kwargs):
     return panel
 
 
+def _split_sheet_id_and_node(sheet_id):
+    """Split a sheet URL id into the sheet id and an optional highlighted node.
+
+    A sheet URL id is the numeric sheet id, optionally followed by ".<node>"
+    to highlight one source. Empty segments are ignored, so a trailing dot
+    ("129389.") or an empty segment ("1..2") resolves to the sheet id instead
+    of raising ValueError. Raise Http404 when no sheet id digits are present.
+    """
+    parts = [part for part in str(sheet_id).split(".") if part]
+    if not parts:
+        raise Http404
+    highlighted_node = int(parts[1]) if len(parts) > 1 else None
+    return int(parts[0]), highlighted_node
+
+
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     # Django 6.0: path('sheets/<int:sheet_id>') passes an int; coerce so the "." substring check below is safe.
-    sheet_id = str(sheet_id)
-    highlighted_node = None
-    if "." in sheet_id:
-        highlighted_node = int(sheet_id.split(".")[1])
-        sheet_id = int(sheet_id.split(".")[0])
-    else:
-        sheet_id = int(sheet_id)
+    sheet_id, highlighted_node = _split_sheet_id_and_node(sheet_id)
 
     db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(sheet_id)
