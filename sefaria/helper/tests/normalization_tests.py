@@ -160,6 +160,24 @@ def test_nested_itag():
     assert content == "Some normal text. outer bull."
 
 
+def test_remove_footnotes_multiline_body():
+    # A footnote body can contain newlines (for example Torah Temimah). The indexer
+    # must strip the footnote without raising and still index its text.
+    text = 'Alpha<sup class="footnote-marker">1</sup><i class="footnote">multi\nline body</i> omega.'
+    assert TextIndexer.remove_footnotes(text) == "Alpha omega. 1 multi\nline body"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'Alpha<sup class="footnote-marker extra">1</sup><i class="footnote">body text</i> omega.',
+        'Alpha<sup class="footnote-marker">1</sup><i class="footnote extra" data-x="9">body text</i> omega.',
+    ],
+)
+def test_remove_footnotes_tolerates_extra_classes_and_attributes(text):
+    assert TextIndexer.remove_footnotes(text) == "Alpha omega. 1 body text"
+
+
 @pytest.mark.xfail(reason="not clear we want to support char_indices_from_word_indices as it's unused")
 def test_two_steps_normalization():
     test_string = " This is a {{test}}"

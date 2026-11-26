@@ -1534,10 +1534,17 @@ class TextIndexer:
         ftnotes = AbstractTextRecord.find_all_footnotes(content)
         if len(ftnotes) == 0:
             return content
+        # A footnote body can span several lines, so match with DOTALL.
+        # The class patterns mirror FootnoteNormalizer.FOOTNOTE_START_RE, which selected
+        # these spans: accept extra class tokens and trailing attributes, otherwise a
+        # selected footnote yields no match.
+        sup_re = re.compile(r'<sup[^>]*class="(?:[^"]+ )?footnote-marker(?: [^"]+)?"[^>]*>(.*?)</sup>', re.DOTALL)
+        itag_re = re.compile(r'<i[^>]*class="(?:[^"]+ )?footnote(?: [^"]+)?"[^>]*>(.*)</i>', re.DOTALL)
         for raw_footnote in ftnotes:
-            sup_text = re.search(r'<sup[^>]*class="footnote-marker">(.*?)</sup>', raw_footnote).group(1)
-            # should be greedy since we already pulled out precise i-tag
-            itag_text = re.search(r'<i[^>]*class="footnote"[^>]*>(.*)</i>', raw_footnote).group(1)
+            sup_match = sup_re.search(raw_footnote)
+            itag_match = itag_re.search(raw_footnote)  # greedy: raw_footnote is one precise i-tag
+            sup_text = sup_match.group(1) if sup_match else ""
+            itag_text = itag_match.group(1) if itag_match else ""
             content += f" {sup_text} {itag_text}"
         content = AbstractTextRecord.strip_itags(content)
         return content
