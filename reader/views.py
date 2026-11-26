@@ -2132,6 +2132,21 @@ def modify_bulk_text_api(request, title):
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
+def _int_query_param(request, name, default):
+    # Read an integer query parameter of the legacy v1 texts API.
+    #
+    # A request that sends a value that is not an integer (for example ?context= or ?multiple=abc)
+    # is an input error, so raise InputError. catch_error_as_json turns that into the structured
+    # JSON error of this endpoint. Without it int() raises ValueError, which surfaced as HTTP 500.
+    raw = request.GET.get(name)
+    if raw is None:
+        return default
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        raise InputError(f"Invalid value for the {name} parameter: {raw}. It must be an integer.") from None
+
+
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref):
@@ -2148,28 +2163,27 @@ def texts_api(request, tref):
             return response
 
         cb = request.GET.get("callback", None)
-        context = int(request.GET.get("context", 1))
-        commentary = bool(int(request.GET.get("commentary", False)))
-        pad = bool(int(request.GET.get("pad", 1)))
+        context = _int_query_param(request, "context", 1)
+        commentary = bool(_int_query_param(request, "commentary", False))
+        pad = bool(_int_query_param(request, "pad", 1))
         versionEn = request.GET.get("ven", None)
         versionHe = request.GET.get("vhe", None)
-        firstAvailableRef = bool(
-            int(request.GET.get("firstAvailableRef", False))
-        )  # use first available ref, which may not be the same as oref
+        # use first available ref, which may not be the same as oref
+        firstAvailableRef = bool(_int_query_param(request, "firstAvailableRef", False))
         if firstAvailableRef:
             temp_oref = oref.first_available_section_ref()
             oref = temp_oref or oref  # don't overwrite oref if first available section ref fails
         layer_name = request.GET.get("layer", None)
-        alts = bool(int(request.GET.get("alts", True)))
-        wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
-        stripItags = bool(int(request.GET.get("stripItags", False)))
-        multiple = int(
-            request.GET.get("multiple", 0)
-        )  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
+        alts = bool(_int_query_param(request, "alts", True))
+        wrapLinks = bool(_int_query_param(request, "wrapLinks", False))
+        stripItags = bool(_int_query_param(request, "stripItags", False))
+        # Either undefined, or a positive integer (indicating how many sections forward)
+        # or a negative integer (indicating backward)
+        multiple = _int_query_param(request, "multiple", 0)
         translationLanguagePreference = request.GET.get(
             "transLangPref", None
         )  # as opposed to vlangPref, this refers to the actual lang of the text
-        fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
+        fallbackOnDefaultVersion = bool(_int_query_param(request, "fallbackOnDefaultVersion", False))
 
         # Guard against pathologically expensive link-expansion requests.
         # e.g. /api/texts/Deuteronomy?commentary=1&pad=0 fetches every link in the book.
@@ -5632,8 +5646,14 @@ def translations_api(request, lang=None):
                         # TODO: fix assumptions?
                         continue
                 else:
+                    vstate = my_index.get("vstate") or []
+                    first_section_ref = vstate[0].get("first_section_ref") if vstate else None
+                    if not first_section_ref:
+                        # This title has no version state record, so there is no entry point to link to.
+                        # Skip the entry instead of failing the whole listing with an IndexError.
+                        continue
                     to_add["title"] = my_index_info["title"]
-                    ref = Ref(my_index["vstate"][0]["first_section_ref"]).url()
+                    ref = Ref(first_section_ref).url()
                     version_param = f"{my_index['languageFamilyName']}|{my_index['versionTitle']}"
                     params = urllib.parse.urlencode({"ven": version_param, "lang": "bi"})
                     to_add["url"] = f"/{ref}?{params}"
