@@ -180,6 +180,22 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // PR gate = every test tagged `@pr`: core journeys that CI runs on every PR
+    // against the PR's own code, served on the runner (build/ci/start-e2e-app.sh,
+    // https://www.sefaria.test). Members must not need the Hebrew .org.il domain,
+    // the Library Assistant, Elasticsearch results, or sheets and user profiles
+    // (the runner's database is the public dump, which has none).
+    // See e2e-tests/Sanity/README.md "The @pr subset".
+    {
+      name: 'chrome-pr',
+      testDir: './e2e-tests',
+      grep: /@pr\b/,
+      testIgnore: ['**/mobile web/**', '**/feature-specs/**'],
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
     // Library Assistant (chatbot) tests — run on Library module with LA-whitelisted user
     {
       name: 'chrome-assistant',

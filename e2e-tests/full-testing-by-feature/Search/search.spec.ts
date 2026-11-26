@@ -15,12 +15,14 @@ import { LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS, SEARCH_DROPDOWN } from '../../constants';
 
-test.describe('Search', { tag: '@sanity' }, () => {
+// @pr is per test, not on this describe: SRCH-006 needs Voices user profiles, which the e2e
+// runner's database (the public dump) doesn't have. See e2e-tests/Sanity/README.md §6a.
+test.describe('Search', { tag: ['@sanity'] }, () => {
 
   // =================================================================
   // TEST 1: LIBRARY - Search suggestion click and navigation
   // =================================================================
-  test('SRCH-001: Library - Click search suggestion and arrive at destination', async ({ context }) => {
+  test('SRCH-001: Library - Click search suggestion and arrive at destination', { tag: '@pr' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
 
     // Type in search to trigger suggestions
@@ -44,7 +46,7 @@ test.describe('Search', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 2: LIBRARY - Submit search and verify results
   // =================================================================
-  test('SRCH-002: Library - Submit search and get results', async ({ context }) => {
+  test('SRCH-002: Library - Submit search and get results', { tag: '@pr' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
 
     // Type search term and submit
@@ -69,7 +71,7 @@ test.describe('Search', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 3: LIBRARY - Search dropdown sections validation
   // =================================================================
-  test('SRCH-003: Library - Search dropdown sections and icons validation', async ({ context }) => {
+  test('SRCH-003: Library - Search dropdown sections and icons validation', { tag: '@pr' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -90,7 +92,7 @@ test.describe('Search', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 4: VOICES - Search suggestion click and navigation
   // =================================================================
-  test('SRCH-004: Voices - Click search suggestion and arrive at destination', async ({ context }) => {
+  test('SRCH-004: Voices - Click search suggestion and arrive at destination', { tag: '@pr' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -115,7 +117,7 @@ test.describe('Search', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 5: VOICES - Submit search and verify results
   // =================================================================
-  test('SRCH-005: Voices - Submit search and get results', async ({ context }) => {
+  test('SRCH-005: Voices - Submit search and get results', { tag: '@pr' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 

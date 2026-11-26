@@ -492,7 +492,7 @@ export const MODULE_TEXTS = {
       SIGN_UP_BUTTON: 'Sign Up'
     },
     HE: {
-      TEXTS_LINK: 'מקורות',
+      TEXTS_LINK: 'טקסטים', // was 'מקורות' until the header label changed
       TOPICS_LINK: 'נושאים',
       SIGN_UP_BUTTON: 'הרשמה'
     }
