@@ -7,6 +7,7 @@ describe("labs", () => {
     expect(parseLabs("")).toEqual([]);
     expect(parseLabs(" recording , follow_me,nope,")).toEqual(["follow_me", "recording"]);
     expect(parseLabs("social")).toEqual(["social"]);
+    expect(parseLabs("social,labs_skin")).toEqual(["social", "labs_skin"]);
   });
 
   // @feature SHL-076
@@ -27,5 +28,14 @@ describe("labs", () => {
     expect(labEnabled("follow_me", { "feature.reader.labs.follow_me": false }, ["follow_me"])).toBe(false);
     expect(labEnabled("follow_me", { "feature.reader.labs.follow_me": true }, [])).toBe(true);
     expect(labEnabled("follow_me", { "feature.reader.labs.follow_me": "true" }, [])).toBe(false);
+  });
+
+  // @feature SHL-080
+  it("has a Labs skin lab, off by default and switched like the others", () => {
+    expect(parseLabs("social,labs_skin")).toEqual(["social", "labs_skin"]);
+    expect(labEnabled("labs_skin", undefined, undefined)).toBe(false);
+    expect(labKey("labs_skin")).toBe("feature.reader.labs.labs_skin");
+    expect(labEnabled("labs_skin", {}, ["labs_skin"])).toBe(true);
+    expect(labEnabled("labs_skin", { "feature.reader.labs.labs_skin": false }, ["labs_skin"])).toBe(false);
   });
 });

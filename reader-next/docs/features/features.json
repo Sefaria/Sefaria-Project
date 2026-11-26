@@ -3219,6 +3219,24 @@
   "refs": []
  },
  {
+  "id": "SHL-080",
+  "area": "reader-shell",
+  "group": "Surfaces",
+  "name": "Sefaria Labs skin (rebuild)",
+  "summary": "Behind the labs_skin lab (off by default), the reader takes the Sefaria Labs look: white pages, a Night site header with a teal-to-violet rule and a LABS tag, the Labs mono for navigation, the panel bar's ref, verse numbers and section titles, gold verse numbers, dots and highlights, and violet for the Library Assistant only. With the lab off nothing changes.",
+  "details": [
+   "Lab `labs_skin` in src/lib/labs.ts: PUBLIC_LABS, or the remote-config bool feature.reader.labs.labs_skin.",
+   "The root sets data-skin=\"labs\" on <html> when the lab is on (never on a standalone page); src/ui/tokens/labs-skin.css re-maps tokens under that attribute and each component module adds its rules under :global([data-skin=\"labs\"]).",
+   "The mono face is JetBrains Mono 500 (SIL OFL), self-hosted in public/fonts/JetBrains-Mono/."
+  ],
+  "tier": "optional",
+  "src": "reader-next: src/ui/tokens/labs-skin.css, src/routes/__root.tsx",
+  "audience": "all",
+  "platform": "all",
+  "status": "rebuild-only",
+  "refs": []
+ },
+ {
   "id": "TXD-001",
   "area": "text-display",
   "group": "Copy and paste",

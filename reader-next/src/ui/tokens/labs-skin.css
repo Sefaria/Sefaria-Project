@@ -3,8 +3,8 @@
  * paper; the Labs identity lives in the chrome and the type. Night navy for the site header with a teal-to-violet rule under it, the
  * Labs mono (JetBrains Mono) for everything the system writes (navigation, refs, verse numbers, section titles, buttons), gold for
  * the reader's own marks (verse numbers, highlights, the cursor bar on a chosen verse), violet only for the AI. The texts keep their
- * serif faces. Component rules sit in each module under :global([data-skin="labs"]); this file holds the palette and the font.
- * Values: the Sefaria Labs design system ("Night" and the signal colours).
+ * serif faces. The palette is the --sefaria-labs-* tokens (tokens.css); this file maps it onto the reader's tokens and gives the
+ * component modules short names. Component rules sit in each module under :global([data-skin="labs"]).
  */
 @font-face {
   font-family: "JetBrains Mono";
@@ -15,45 +15,44 @@
 }
 
 :root[data-skin="labs"] {
-  /* Night: the chrome */
-  --labs-night: #0b1426;
-  --labs-night-raised: #13213a;
-  --labs-night-line: #24365a;
-  --labs-night-ink: #f2ede3;
-  --labs-night-muted: #a9b4c8;
-  /* Signals: teal = live, violet = a model wrote it, gold = the reader's own marks */
-  --labs-live: #00796f;
-  --labs-live-bright: #3ce0c4;
-  --labs-spark: #6b3a8e;
-  --labs-spark-bright: #b98cf0;
-  --labs-gold: #7a5d0e;
-  --labs-gold-bright: #e6c873;
-  --labs-gold-wash: #fbf3d9;
+  --labs-night: var(--sefaria-labs-night);
+  --labs-night-raised: var(--sefaria-labs-night-raised);
+  --labs-night-line: var(--sefaria-labs-night-line);
+  --labs-night-ink: var(--sefaria-labs-night-ink);
+  --labs-night-muted: var(--sefaria-labs-night-muted);
+  --labs-live: var(--sefaria-labs-live);
+  --labs-live-bright: var(--sefaria-labs-live-bright);
+  --labs-spark: var(--sefaria-labs-spark);
+  --labs-spark-bright: var(--sefaria-labs-spark-bright);
+  --labs-gold: var(--sefaria-labs-gold);
+  --labs-gold-bright: var(--sefaria-labs-gold-bright);
+  --labs-gold-wash: var(--sefaria-labs-gold-wash);
   --labs-rule: linear-gradient(90deg, var(--labs-live-bright), var(--labs-spark-bright));
   /* Hebrew letters fall through to Heebo, so a Hebrew interface keeps its letters */
   --labs-font-mono: "JetBrains Mono", "Heebo", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* The reader's tokens: white paper, deeper ink, the Labs blue */
-  --sefaria-color-page: #ffffff;
-  --sefaria-color-surface: #ffffff;
-  --sefaria-color-surface-subtle: #ffffff;
-  --sefaria-color-text: #1b2233;
-  --sefaria-color-text-strong: #0b1426;
-  --sefaria-color-text-secondary: #545b6a;
-  --sefaria-color-text-muted: #545b6a;
-  --sefaria-color-text-dark-grey: #545b6a;
-  --sefaria-color-brand: #1e3f73;
-  --sefaria-color-brand-hover: #152f57;
-  --sefaria-color-link: #1e3f73;
-  --sefaria-color-focus: #6b3a8e;
-  --sefaria-color-purple: var(--labs-spark);
-  --sefaria-color-promo: #4f2a6a;
-  --sefaria-color-highlight: #f6e7b8;
-  --sefaria-color-highlight-soft: var(--labs-gold-wash);
-  --sefaria-color-focus-tint: #fdf9ec;
-  --sefaria-color-selection: #f6e7b8;
-  --sefaria-color-border-title: #e6c873;
+  --sefaria-color-page: var(--sefaria-labs-paper);
+  --sefaria-color-surface: var(--sefaria-labs-paper);
+  --sefaria-color-surface-subtle: var(--sefaria-labs-paper);
+  --sefaria-color-text: var(--sefaria-labs-ink);
+  --sefaria-color-text-strong: var(--sefaria-labs-ink-strong);
+  --sefaria-color-text-secondary: var(--sefaria-labs-ink-muted);
+  --sefaria-color-text-muted: var(--sefaria-labs-ink-muted);
+  --sefaria-color-text-dark-grey: var(--sefaria-labs-ink-muted);
+  --sefaria-color-border: var(--sefaria-labs-line);
+  --sefaria-color-brand: var(--sefaria-labs-blue);
+  --sefaria-color-brand-hover: var(--sefaria-labs-blue-hover);
+  --sefaria-color-link: var(--sefaria-labs-blue);
+  --sefaria-color-focus: var(--sefaria-labs-spark);
+  --sefaria-color-purple: var(--sefaria-labs-spark);
+  --sefaria-color-promo: var(--sefaria-labs-spark-deep);
+  --sefaria-color-highlight: var(--sefaria-labs-highlight);
+  --sefaria-color-highlight-soft: var(--sefaria-labs-gold-wash);
+  --sefaria-color-focus-tint: var(--sefaria-labs-gold-tint);
+  --sefaria-color-selection: var(--sefaria-labs-highlight);
+  --sefaria-color-border-title: var(--sefaria-labs-gold-bright);
   --sefaria-radius-md: 8px;
 }
 
-:root[data-skin="labs"] ::selection { background: #f6e7b8; color: #0b1426; }
+:root[data-skin="labs"] ::selection { background: var(--sefaria-color-selection); color: var(--sefaria-labs-ink-strong); }

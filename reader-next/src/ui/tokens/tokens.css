@@ -69,6 +69,31 @@
   --sefaria-color-notice-rule: light-dark(#cccccc, #55554f);
   --sefaria-color-on-notice: #ffffff;
 
+  /* ── Colour: the Sefaria Labs palette (lab labs_skin; mapped onto the tokens above by src/ui/tokens/labs-skin.css) ──
+     Night is the Labs chrome and stays Night in both themes; teal = live, violet = a model wrote it, gold = the reader's own marks. */
+  --sefaria-labs-night: light-dark(#0b1426, #0b1426);
+  --sefaria-labs-night-raised: light-dark(#13213a, #13213a);
+  --sefaria-labs-night-line: light-dark(#24365a, #24365a);
+  --sefaria-labs-night-ink: light-dark(#f2ede3, #f2ede3);
+  --sefaria-labs-night-muted: light-dark(#a9b4c8, #a9b4c8);
+  --sefaria-labs-paper: light-dark(#ffffff, #0b1426);
+  --sefaria-labs-ink: light-dark(#1b2233, #f2ede3);
+  --sefaria-labs-ink-strong: light-dark(#0b1426, #ffffff);
+  --sefaria-labs-ink-muted: light-dark(#545b6a, #a9b4c8);
+  --sefaria-labs-line: light-dark(#e6e8ee, #24365a);
+  --sefaria-labs-blue: light-dark(#1e3f73, #8fb0e8);
+  --sefaria-labs-blue-hover: light-dark(#152f57, #b3cdee);
+  --sefaria-labs-live: light-dark(#00796f, #3ce0c4);
+  --sefaria-labs-live-bright: light-dark(#3ce0c4, #3ce0c4);
+  --sefaria-labs-spark: light-dark(#6b3a8e, #b98cf0);
+  --sefaria-labs-spark-bright: light-dark(#b98cf0, #b98cf0);
+  --sefaria-labs-spark-deep: light-dark(#4f2a6a, #3a2350);
+  --sefaria-labs-gold: light-dark(#7a5d0e, #e6c873);
+  --sefaria-labs-gold-bright: light-dark(#e6c873, #e6c873);
+  --sefaria-labs-gold-wash: light-dark(#fbf3d9, #2a2618);
+  --sefaria-labs-gold-tint: light-dark(#fdf9ec, #232016);
+  --sefaria-labs-highlight: light-dark(#f6e7b8, #3a3524);
+
   /* ── Colour: semantic ─────────────────────────────── */
   --sefaria-color-danger: light-dark(#c03522, #f0897a);
   --sefaria-color-danger-bg: light-dark(#fdeeee, #3a2321);
