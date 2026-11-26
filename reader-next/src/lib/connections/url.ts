@@ -17,6 +17,8 @@ export const SIDEBAR_MODES = [
   "Sheets", "Notes", "Translations", "Translation Open", "Version Open", "About", "AboutSheet", "Navigation", "WebPages",
   "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin",
   "Advanced Tools", "Share", "Feedback", "Add To Sheet", "Add Connection", "LexiconHeadwordEdit", "LexiconContentEdit",
+  // interactive pages (Claude assets) on the passage, behind the linked_panels lab; new in this reader (CON-075)
+  "Assets",
 ] as const;
 export type SidebarModeName = (typeof SIDEBAR_MODES)[number];
 

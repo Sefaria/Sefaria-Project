@@ -203,7 +203,8 @@ export async function loadWorkspaceRoute(args: {
   fullSearch?: ReaderSearch;
 }): Promise<WorkspaceRouteData> {
   let ws = decodeWorkspace(urlToRef(args.splat), args.search as RawSearch);
-  const ids = panelOrder(ws);
+  // the texts to load: an asset panel (a<n>) brings its own page in its frame (features/assets/AssetPanel.tsx)
+  const ids = panelOrder(ws).filter((id) => ws.panels[id]!.kind === "text");
   const prefs = args.prefs ?? (await readVersionPrefs());
   const dismissed = await readBannerDismissed();
   const query = { ...((args.fullSearch ?? args.search) as Record<string, unknown>) };

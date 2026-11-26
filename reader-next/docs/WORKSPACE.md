@@ -92,6 +92,34 @@ Scroll tracking replaces history (nothing moves); selecting a verse and opening/
 history entry's state says which panel caused it (`{ nav: "scroll" | "select", panel, ref }`), so only that
 panel reacts; other panels keep their columns and scroll positions.
 
+## Linked panels
+
+Two panels can follow each other segment by segment (atlas SHL-090–092; lab `linked_panels`; plan
+`LINKED_PANELS_AND_ASSETS_PLAN.md` at the Sefaria-Project root, decisions D1–D4 and P1–P3).
+
+- **State.** The panel opened from another one holds the link: `PanelState.link = { to, away? }`. Ops renumber `to` with the
+  panels; `close`/`replace` of either side ends the link; `openOnly` drops all links (`src/lib/workspace/ops.ts`).
+- **Address.** `link=<follower>-<leader>` (`~` when paused), comma-separated, written after sefaria.org's own parameters and
+  before `ctx`. Panels are counted by their place in the row, not by the `p<n>` numbers (which skip sidebar slots). An address
+  without links is byte-for-byte the old one.
+- **What can be linked** (`src/lib/text/link-map.ts`): the same text (two versions or translations); a commentary or targum and its
+  base text (index `dependence` Commentary/Targum, one `base_text_titles`, a `base_text_mapping`). Nothing else auto-links.
+- **Runtime** (`src/features/workspace/links.tsx`, `PanelLinksProvider` inside `WorkspaceNavProvider`). Each text panel registers
+  an endpoint (its book, its current segment, a way to scroll to a segment without that counting as reading). The panel tells the
+  bus when the *reader* moved it: `onSettled`, a chosen verse, or a `go` navigation the reader made inside it. The bus maps the
+  place and moves the other panel: scrolled when the segment is loaded (the address catches up with a `nav: "scroll"` replace),
+  else sent there (`nav: "go"` replace). Navigations the bus makes carry `NavState.link`, so the moved panel never passes them on.
+  The other panel's address update waits for the moved panel's own, so the two replaces never read the same old address.
+- **Pausing.** The link symbol (`PanelLinkToggle`) on the dividing line pauses or resumes; a move the other side cannot map pauses
+  the link. Resuming brings the other panel to the one the reader moved last, realigning books if they went apart.
+- **Asset panels** (SHL-093/094): `PanelState` kind `"asset"`, written `a<n>=<asset>` in its slot; rendered by
+  `features/assets/AssetPanel.tsx` in a `sandbox="allow-scripts"` frame. The asset talks over a MessagePort (protocol in
+  `src/lib/assets/protocol.ts`, shim in `src/lib/assets/shim.ts`). The bus sends an asset every focus change of its text
+  (`links.focused`, a replay's too) and treats the asset's own reports as the reader's movement (`links.moved`, `links.open`).
+  Surfaces see text panels only (`src/lib/surfaces/workspace-view.ts`); closing a text closes its assets.
+- **Replay and Follow Me** need nothing extra: the link is in the address and every panel's place is in the `sefaria.scroll` slice,
+  so a replay puts both panels back; nothing it applies is the reader's movement, so the bus stays quiet.
+
 ## Rendering
 
 ```

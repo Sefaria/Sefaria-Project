@@ -38,6 +38,21 @@ interface PanelBase {
   asides: AsideState[];
   /** How the side panels are arranged among themselves. Absent: one column, in order. */
   asideLayout?: LayoutNode<AsideId>;
+  /** This panel follows another one, segment by segment, and the other follows it (docs/WORKSPACE.md, "Linked panels"). */
+  link?: PanelLink;
+}
+
+/**
+ * A link between two panels, kept on the panel that was opened from the other (the commentary opened beside its text). Both directions
+ * follow: scrolling either moves the other. `away`: the link is kept but paused (the reader unlinked, or one side went somewhere the
+ * other cannot follow); the link symbol turns grey and a click links them again.
+ *
+ * @feature SHL-090 Linked panels
+ */
+export interface PanelLink {
+  /** The panel this one is linked to (ids follow position; operations renumber it with the panels). */
+  to: PanelId;
+  away?: true;
 }
 
 /** A text open at a ref (section, segment or range). */
@@ -50,8 +65,23 @@ export interface TextPanelState extends PanelBase {
   aliyot?: 0 | 1;
 }
 
-export type PanelState = TextPanelState;
+/**
+ * An interactive page (a Claude asset) shown beside a text, in a sandboxed frame, following the text it is linked to and moving it
+ * (LINKED_PANELS_AND_ASSETS_PLAN.md §5). `asset` names where its HTML comes from: `sample:<name>` (shipped with the reader),
+ * `local:<key>` (a file the reader opened in this tab), or a stored asset's id (`<uuid>` or `<uuid>@<version>`).
+ *
+ * @feature SHL-093 Asset panel
+ */
+export interface AssetPanelState extends PanelBase {
+  kind: "asset";
+  asset: string;
+}
+
+export type PanelState = TextPanelState | AssetPanelState;
 export type PanelKind = PanelState["kind"];
+
+/** The panel's text ref, for a text panel. */
+export const panelRef = (p: PanelState | undefined): string | undefined => (p?.kind === "text" ? p.ref : undefined);
 
 export interface Workspace {
   panels: Record<PanelId, PanelState>;

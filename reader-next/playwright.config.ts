@@ -35,7 +35,7 @@ const DOMAIN_MODULES = JSON.stringify({
 const API_ENV: Record<string, string> = {
   ...(process.env.E2E_LIVE ? {} : { PUBLIC_API_ORIGIN: `http://localhost:${API_PORT}` }),
   // the labs the e2e specs cover (src/lib/labs.ts), on by default here; remote config could still turn them off
-  PUBLIC_LABS: "follow_me,recording",
+  PUBLIC_LABS: "follow_me,recording,linked_panels",
 };
 export default defineConfig({
   testDir: "e2e",

@@ -11,7 +11,9 @@ import type { AsideId, AsideState, PanelId, PanelState, Workspace } from "./type
 
 /** A panel as the caller describes it: ids are assigned by the workspace. */
 export type NewPanel = DistributiveOmit<PanelState, "id" | "asides"> & { asides?: Omit<AsideState, "id">[] };
-type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K & keyof T> : never;
+/** Fields a panel may change (its kind's own, plus the shared ones). */
+export type PanelPatch = Partial<DistributiveOmit<PanelState, "id" | "kind" | "asides">>;
 
 export const panelOrder = (ws: Workspace): PanelId[] => leaves(ws.layout);
 export const panelAt = (ws: Workspace, index: number): PanelState | undefined => {
@@ -33,20 +35,76 @@ export function renumber(ws: Workspace): Workspace {
   if (!ws.layout) return ws;
   const order = panelOrder(ws);
   const map = new Map(order.map((id, i) => [id, `p${i + 1}` as PanelId]));
-  if (order.every((id) => map.get(id) === id)) return ws;
+  if (order.every((id) => map.get(id) === id)) return dropDanglingLinks(ws);
   const panels: Record<PanelId, PanelState> = {};
   for (const id of order) {
     const p = ws.panels[id]!;
     const nid = map.get(id)!;
     const asideMap = new Map(p.asides.map((a) => [a.id, a.id.replace(/^p\d+/, nid) as AsideId]));
+    const { link, ...rest } = p;
+    const to = link ? map.get(link.to) : undefined;
     panels[nid] = {
-      ...p,
+      ...rest,
       id: nid,
       asides: p.asides.map((a) => ({ ...a, id: asideMap.get(a.id)! })),
       ...(p.asideLayout ? { asideLayout: renameLeaves(p.asideLayout, (x) => asideMap.get(x as AsideId) ?? x) } : {}),
+      // a link follows its panel to its new number; one to a panel that is gone goes with it
+      ...(link && to && to !== nid ? { link: { ...link, to } } : {}),
     } as PanelState;
   }
   return { panels, layout: renameLeaves(ws.layout, (id) => map.get(id) ?? id), ...ctxOf(ws) };
+}
+
+/** Links to panels that are no longer open are dropped (a link is between two open panels). */
+function dropDanglingLinks(ws: Workspace): Workspace {
+  if (!Object.values(ws.panels).some((p) => p.link && (!ws.panels[p.link.to] || p.link.to === p.id))) return ws;
+  const panels: Record<PanelId, PanelState> = {};
+  for (const [id, p] of Object.entries(ws.panels) as [PanelId, PanelState][]) {
+    if (p.link && (!ws.panels[p.link.to] || p.link.to === p.id)) {
+      const { link: _gone, ...rest } = p;
+      panels[id] = rest as PanelState;
+    } else panels[id] = p;
+  }
+  return { ...ws, panels };
+}
+
+// ── links ───────────────────────────────────────────────────────────────────────────────────────────
+
+/** Link panel `follower` to panel `to` (replacing any link it had). @feature SHL-090 */
+export function linkPanels(ws: Workspace, follower: PanelId, to: PanelId): Workspace {
+  const p = ws.panels[follower];
+  if (!p || !ws.panels[to] || follower === to) return ws;
+  return { ...ws, panels: { ...ws.panels, [follower]: { ...p, link: { to } } } };
+}
+
+/** Pause (`away`) or resume a panel's link. @feature SHL-091 */
+export function setLinkAway(ws: Workspace, follower: PanelId, away: boolean): Workspace {
+  const p = ws.panels[follower];
+  if (!p?.link || !!p.link.away === away) return ws;
+  return { ...ws, panels: { ...ws.panels, [follower]: { ...p, link: away ? { to: p.link.to, away: true } : { to: p.link.to } } } };
+}
+
+/** Remove a panel's link. */
+export function unlinkPanel(ws: Workspace, follower: PanelId): Workspace {
+  const p = ws.panels[follower];
+  if (!p?.link) return ws;
+  const { link: _gone, ...rest } = p;
+  return { ...ws, panels: { ...ws.panels, [follower]: rest as PanelState } };
+}
+
+/** The open links, as [follower, leader] pairs, in panel order. */
+export function linksOf(ws: Workspace): { follower: PanelId; leader: PanelId; away: boolean }[] {
+  return panelOrder(ws).flatMap((id) => {
+    const l = ws.panels[id]?.link;
+    return l && ws.panels[l.to] && l.to !== id ? [{ follower: id, leader: l.to, away: !!l.away }] : [];
+  });
+}
+
+/** The panels linked to `id` (either way), with whether each link is paused. */
+export function linkedTo(ws: Workspace, id: PanelId): { other: PanelId; follower: PanelId; away: boolean }[] {
+  return linksOf(ws)
+    .filter((l) => l.follower === id || l.leader === id)
+    .map((l) => ({ other: l.follower === id ? l.leader : l.follower, follower: l.follower, away: l.away }));
 }
 
 /** The workspace's reserved context (Workspace.ctx), to carry onto a workspace an operation builds afresh. */
@@ -59,7 +117,8 @@ function materialise(id: PanelId, p: NewPanel): PanelState {
 /** Open a panel on its own, replacing everything (header search, top-level links). */
 export function openOnly(ws: Workspace, p: NewPanel): Workspace {
   const id: PanelId = "p1";
-  return { panels: { [id]: materialise(id, p) }, layout: leaf(id), ...ctxOf(ws) };
+  const { link: _none, ...alone } = materialise(id, p);
+  return { panels: { [id]: alone as PanelState }, layout: leaf(id), ...ctxOf(ws) };
 }
 
 /** Open a panel next to another one (default: after it, in the same row). Opening into an empty workspace opens it alone. */
@@ -86,20 +145,28 @@ export const openAtEnd = (ws: Workspace, p: NewPanel): Workspace => openNextTo(w
 /** Put a different panel in the same place. The new panel gets a new id (it is a different thing). */
 export function replace(ws: Workspace, target: PanelId, p: NewPanel): Workspace {
   if (!ws.layout || !ws.panels[target]) return ws;
-  // the new panel takes the old one's place, so (ids following position) its id too
+  // the new panel takes the old one's place, so (ids following position) its id too; links to the old panel go with it
   const { [target]: _gone, ...rest } = ws.panels;
-  return { panels: { ...rest, [target]: materialise(target, p) }, layout: ws.layout, ...ctxOf(ws) };
+  const others = Object.fromEntries(Object.entries(rest).map(([k, x]) => [k, x.link?.to === target ? (({ link: _l, ...y }) => y)(x) : x]));
+  return { panels: { ...(others as Record<PanelId, PanelState>), [target]: materialise(target, p) }, layout: ws.layout, ...ctxOf(ws) };
 }
 
-/** Close a panel; its side panels close with it. Closing the last panel leaves an empty workspace (→ home). */
+/**
+ * Close a panel; its side panels close with it, and so do the asset panels linked to it (an asset is shown beside its text, never on
+ * its own). Closing the last panel leaves an empty workspace (→ home).
+ */
 export function close(ws: Workspace, target: PanelId): Workspace {
   if (!ws.layout || !ws.panels[target]) return ws;
-  const { [target]: _gone, ...rest } = ws.panels;
-  return renumber({ panels: rest, layout: remove(ws.layout, target), ...ctxOf(ws) });
+  const gone = new Set<PanelId>([target]);
+  for (const [id, p] of Object.entries(ws.panels) as [PanelId, PanelState][]) if (p.kind === "asset" && p.link?.to === target) gone.add(id);
+  const panels = Object.fromEntries(Object.entries(ws.panels).filter(([id]) => !gone.has(id as PanelId))) as Record<PanelId, PanelState>;
+  let layout: LayoutNode<PanelId> | null = ws.layout;
+  for (const id of gone) layout = layout ? remove(layout, id) : null;
+  return renumber({ panels, layout, ...ctxOf(ws) });
 }
 
 /** Change a panel's own fields (ref, versions, language…). */
-export function updatePanel(ws: Workspace, target: PanelId, patch: Partial<Omit<PanelState, "id" | "kind" | "asides">>): Workspace {
+export function updatePanel(ws: Workspace, target: PanelId, patch: PanelPatch): Workspace {
   const p = ws.panels[target];
   if (!p) return ws;
   return { ...ws, panels: { ...ws.panels, [target]: { ...p, ...patch } as PanelState } };

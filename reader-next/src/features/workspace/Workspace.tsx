@@ -5,7 +5,7 @@ import { createFocusSlice, type FocusValue } from "~/lib/reader-state/sefaria/sl
 import { leaves, withSizes, type LayoutNode } from "~/lib/layout/tree";
 import { urlToRef } from "~/lib/ref/url";
 import { legacyRowSizes, MIN_PANEL_WIDTH } from "~/lib/workspace/sizing";
-import type { PanelId, PanelState } from "~/lib/workspace/types";
+import type { PanelId, PanelState, TextPanelState } from "~/lib/workspace/types";
 import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
 import { panelKeysFor, readNavState, withPanelKeys } from "~/lib/workspace/commands";
 import { selectionKey } from "~/lib/text/queries";
@@ -15,8 +15,10 @@ import { ReportingBoundary } from "~/lib/monitoring/ErrorBoundary";
 import { SplitView } from "~/ui/SplitView/SplitView";
 import type { WorkspaceRouteData } from "../reader/reader-route";
 import { TextPanel } from "../reader/TextPanel";
+import { AssetPanel } from "../assets/AssetPanel";
 import styles from "./Workspace.module.css";
 import { WorkspaceNavProvider } from "./navigation";
+import { PanelLinksProvider } from "./links";
 
 /**
  * Everything on screen for a reader URL: the panels in the URL, arranged by the workspace layout and sized by
@@ -53,6 +55,7 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
   if (!layout) return null;
   return (
     <WorkspaceNavProvider>
+      <PanelLinksProvider>
       {phoneShows && (
         // same breakpoint as Workspace.module.css's phone rules; only rendered after an apply, so never part of the server render
         <style>{`@media (max-width: 842px){[data-phone-panel="${phoneShows}"]>[data-direction]>div:first-child{display:none}[data-phone-panel="${phoneShows}"]>[data-direction]>div:has([data-leaf="${phoneShows}"]){display:block}}`}</style>
@@ -66,6 +69,7 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
           renderLeaf={(id) => <PanelHost panel={ws.panels[id]!} data={data} innerSizes={sizes.inner[order.indexOf(id)]} alone={order.length === 1} />}
         />
       </div>
+      </PanelLinksProvider>
     </WorkspaceNavProvider>
   );
 }
@@ -112,6 +116,14 @@ function usePanelFocus(panels: Record<PanelId, PanelState>) {
 
 /** One panel: picks the component for its kind (more kinds — sheets, menus, search — plug in here). */
 function PanelHost({ panel, data, innerSizes, alone }: { panel: PanelState; data: WorkspaceRouteData; innerSizes?: number[]; alone: boolean }) {
+  // an asset brings its own page in its frame: nothing for the loader to load (SHL-093)
+  if (panel.kind === "asset") {
+    return (
+      <ReportingBoundary name="asset-panel" resetKey={panel.asset} fallback={() => <ErrorState title={<InterfaceText en="Something went wrong!" he="ארעה תקלה במערכת." />} />}>
+        <AssetPanel panel={panel} />
+      </ReportingBoundary>
+    );
+  }
   const panelData = panelDataFor(panel, data);
   // A panel just opened while its text loads.
   if (!panelData) return <LoadingState />;
@@ -134,7 +146,7 @@ function PanelHost({ panel, data, innerSizes, alone }: { panel: PanelState; data
  * ref it shows, wherever it was filed, and only otherwise the data at its position (the panel that stayed kept its
  * component but rendered the closed panel's text until the load finished, then restarted its column).
  */
-export function panelDataFor(panel: PanelState, data: WorkspaceRouteData) {
+export function panelDataFor(panel: TextPanelState, data: WorkspaceRouteData) {
   // the same text in two panels (a translation opened beside its source) differs by the versions its URL asked for
   const shows = (d: WorkspaceRouteData["panels"][PanelId] | undefined) => !!d && d.ref === panel.ref && selectionKey(d.requested) === selectionKey(panel.versions);
   const atPosition = data.panels[panel.id];

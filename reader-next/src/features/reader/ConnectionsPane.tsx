@@ -53,6 +53,9 @@ import { nameQueryOptions } from "~/lib/search/autocomplete";
 import { manuscriptsForRefs, mediaForRefs } from "~/lib/connections/media";
 import { mergePages, sitesOf, sortPages, webPagesQueryOptions } from "~/lib/connections/webpages";
 import { WebPagesView } from "~/ui/WebPagesView/WebPagesView";
+import { assetsApiOrigin, assetsForRefs, assetsQueryOptions, type PassageAsset } from "~/lib/connections/assets";
+import { AssetsView } from "~/ui/AssetsView/AssetsView";
+import { useLab } from "~/features/reader-state/labs";
 import { ManuscriptsView } from "~/ui/ManuscriptsView/ManuscriptsView";
 import { TorahReadingsView } from "~/ui/TorahReadingsView/TorahReadingsView";
 import { indexDetailsQueryOptions } from "~/lib/catalog/index-details";
@@ -99,6 +102,8 @@ export interface ConnectionsPaneProps {
   onNavigate: (href: string) => void;
   /** Open a connected text (in the owning panel, CON-033). */
   onOpenText: (ref: string) => void;
+  /** Open an interactive page beside this text, linked to it (CON-075). */
+  onOpenAsset?: (asset: PassageAsset) => void;
   /** The panel with a translation chosen (a real link), and choosing it / opening the passage in it. */
   translationHref: (v: TranslationVersion) => string;
   /** The sidebar previewing a translation (a link on each preview), and the version it now previews (`vside`). */
@@ -281,6 +286,14 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
       : undefined;
   const sheetsHref = `${hebrew ? "https://chiburim.sefaria.org.il" : VOICES}/sheets-with-ref/${refToUrl(selectionRef)}`;
 
+  // Interactive pages (Claude assets) on the passage (linked_panels lab, a Social server configured): one request per section to Social,
+  // the selection's picked out here. Never waited for: the row shows once there is an answer with some; a failure is none.
+  const assetsLab = useLab("linked_panels") && !!assetsApiOrigin() && !!props.onOpenAsset;
+  const onAssets = assetsLab && view.view === "mode" && view.mode === "Assets";
+  const assetsQ = useQuery({ ...assetsQueryOptions(sectionRef), enabled: assetsLab && (view.view === "resources" || onAssets) });
+  const assetRefs = useMemo(() => (selectedRefs.length ? selectedRefs : (props.section?.segments.map((s) => s.ref) ?? [])), [selectedRefs, props.section]);
+  const selectedAssets = useMemo(() => assetsForRefs(assetsQ.data, assetRefs), [assetsQ.data, assetRefs]);
+
   const onTranslations = view.view === "mode" && view.mode === "Translations";
   const onTranslationOpen = view.view === "mode" && view.mode === "Translation Open";
   const translationsQ = useQuery({ ...allTranslationsQueryOptions(selectionRef), enabled: onTranslations || onTranslationOpen });
@@ -380,6 +393,14 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           onSite={(name) => onNavigate(hrefFor({ view: "webpages", site: name }))}
           refLabel={(r) => localizedRef(r, props.section, hebrew ? "he" : "en")}
         />
+      </ConnectionsPanel>
+    );
+  }
+
+  if (onAssets) {
+    return (
+      <ConnectionsPanel label="Interactive pages" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+        <AssetsView assets={selectedAssets} loading={assetsQ.isPending} onOpen={(a) => props.onOpenAsset?.(a)} />
       </ConnectionsPanel>
     );
   }
@@ -802,6 +823,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
               signedIn={!!viewer}
               moderator={!!viewer?.isStaff}
               notesCount={notesQ.data?.length ?? 0}
+              assetsCount={assetsLab ? selectedAssets.length : undefined}
             />
             {/* the connections above came from /api/links; a cold /api/related (sheets, topics…) can end in a 504 after 15 s */}
             <PartLoad q={resourcesQ} what={RESOURCES} />
@@ -929,13 +951,16 @@ export function ConnectionsPane(props: ConnectionsPaneProps) {
   // only a signed-out reader is asked to sign up; a signed-in reader gets the tool itself (CON-011)
   const gated = props.view.view === "mode" && !viewer ? SIGN_IN_TOOLS[props.view.mode] : undefined;
   const resources: ConnectionsView = { view: "resources" };
+  // with=Assets where interactive pages are off (the lab, or no Social server): Resources, as if the view did not exist
+  const assetsOn = useLab("linked_panels") && !!assetsApiOrigin() && !!props.onOpenAsset;
+  const assetsOff = !assetsOn && props.view.view === "mode" && props.view.mode === "Assets";
   const kind = gated ?? asked;
   const close = () => {
     setAsked(undefined);
     if (gated) props.onNavigate(props.hrefFor(resources));
   };
   const root = useRef<HTMLDivElement>(null);
-  useSidebarScroll(root, gated ? resources : props.view);
+  useSidebarScroll(root, gated || assetsOff ? resources : props.view);
   // The filters used in this sidebar, newest first (the old panel's recentFilters: set from the address on load, each new filter put
   // in front; a recent filter's own link keeps the order: setConnectionsFilter with updateRecent false)
   const filterNow = props.view.view === "texts" ? props.view.filter : undefined;
@@ -952,7 +977,7 @@ export function ConnectionsPane(props: ConnectionsPaneProps) {
     <>
       {/* display: contents: the panel stays the flex child it was; this only gives the scroll memory its element */}
       <div ref={root} style={{ display: "contents" }}>
-        <ConnectionsPaneInner {...props} view={gated ? resources : props.view} onSignUp={setAsked} recentFilters={recentShown} onRecentChip={() => (fromChip.current = true)} />
+        <ConnectionsPaneInner {...props} view={gated || assetsOff ? resources : props.view} onSignUp={setAsked} recentFilters={recentShown} onRecentChip={() => (fromChip.current = true)} />
       </div>
       <SignUpModal kind={kind} onClose={close} next={location.href} />
     </>

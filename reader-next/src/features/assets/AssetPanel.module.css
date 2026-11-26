@@ -1,0 +1,20 @@
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--sefaria-color-surface);
+}
+.body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.frame { flex: 1; width: 100%; min-height: 0; border: 0; display: block; background: var(--sefaria-color-surface); }
+.warning {
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: var(--sefaria-color-text-secondary);
+  background: var(--sefaria-color-surface-subtle);
+  border-block-end: 1px solid var(--sefaria-color-border);
+}

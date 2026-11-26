@@ -35,6 +35,8 @@ export interface NavState {
   panelKeys?: string[];
   /** Set on the replace that only completed the address (canonicalize): the entry is still the one the reader arrived at. */
   canonical?: true;
+  /** Made by a panel link (features/workspace/links.tsx), not by the reader: the panel it moved does not pass it on. */
+  link?: true;
 }
 
 let keySeq = 0;

@@ -17,8 +17,10 @@ import { versionKey, type TranslationVersion } from "~/lib/versions/translations
 import { isHighlighted } from "~/lib/text/plan";
 import { highlightOf, keepsRange as rangeIsKept, selectionAddress, wholeSectionRange } from "~/lib/text/range-selection";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
-import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
-import type { AsideId, TextPanelState, Workspace } from "~/lib/workspace/types";
+import { close, closeAside, linkPanels, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { MAX_ASSET_BYTES } from "~/lib/assets/manifest";
+import { keepLocal } from "../assets/source";
+import { panelRef, type AsideId, type TextPanelState, type Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
 import { CloseTextButton, DisplayOptionsButton, SaveTextButton } from "~/ui/ReaderControls/ReaderControls";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
@@ -34,6 +36,8 @@ import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
 import { entryKey, navFor, panelKeysOf, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
+import { useLinkEndpoint, usePanelLinks } from "../workspace/links";
+import { PanelLinkToggle } from "../workspace/PanelLinkToggle";
 import { panelForRef } from "../workspace/open-ref";
 import { toRouterLocation } from "../shared/RouterLink";
 // Not a lazy chunk (tried once to shrink the first load): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
@@ -172,9 +176,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // anchor keeping holds it through reflows); else measured on the panel's own DOM (lib/reader-state/sefaria/slices/dom-position.ts).
   const panelKey = panel.key ?? id;
   const connectionsOnScreenRef = useRef(false);
+  // the column's scroll engine, for a linked panel to move this one (features/workspace/links.tsx)
+  const engineRef = useRef<{ scrollToSegment: (ref: string) => void } | undefined>(undefined);
   const registerPosition = useCallback(
-    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void; getPosition?: () => SavedPosition | undefined }) =>
-      nav.registerPanel(id, get, {
+    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void; getPosition?: () => SavedPosition | undefined }) => {
+      engineRef.current = engine;
+      return nav.registerPanel(id, get, {
         key: panelKey,
         getPosition: engine?.getPosition,
         restorePosition: (pos) => (engine ? engine.restorePosition(pos) : !!rootEl.current && placeSegment(rootEl.current, pos)),
@@ -184,7 +191,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           engine.scrollToSegment(ref);
           return true;
         },
-      }),
+      });
+    },
     [nav, id, panelKey],
   );
   const onSections = useCallback((refs: string[]) => void (columnSections.current = refs), []);
@@ -202,12 +210,41 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     prefetchNeighbours(qc, current.passage, versions);
   }, [qc, current.passage, versions]);
 
+  // ── linked panels (features/workspace/links.tsx) ────────────────────────────────────────────────────
+  const links = usePanelLinks();
+  const currentPlace = useRef(current);
+  currentPlace.current = current;
+  useLinkEndpoint(id, {
+    indexTitle: () => currentPlace.current.passage.indexTitle,
+    place: () => currentPlace.current.ref,
+    scrollTo: (ref) => {
+      const engine = engineRef.current;
+      if (!engine || !rootEl.current?.querySelector(`[data-reader-scroller] [role="group"][data-ref="${CSS.escape(ref)}"]`)) return false;
+      engine.scrollToSegment(ref);
+      return true;
+    },
+  });
+  // A navigation inside this panel that the reader made (contents, a search hit; not one a link made) moves its linked panels too.
+  // (the entry the panel opened on is not passed on: arriving is not moving)
+  const linkedNav = readNavState(location.state).link;
+  const announcedEntry = useRef(thisEntry);
+  useEffect(() => {
+    if (thisEntry === null || announcedEntry.current === thisEntry) return;
+    announcedEntry.current = thisEntry;
+    if (kind !== "go" || !navState.mine || linkedNav) return;
+    const target = entry.current.target ?? initial[0]?.segments[0]?.ref;
+    if (target) links.moved(id, target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per history entry this panel was sent to
+  }, [thisEntry]);
+
   const onFocus = useCallback(
     (ref: string, passage: TextPassage) => {
       setCurrent((c) => (c.ref === ref && c.passage === passage ? c : { ref, passage }));
       nav.panelMoved();
+      // linked assets hear every move of this panel, a replay's too (D9)
+      links.focused(id, ref);
     },
-    [nav],
+    [nav, links, id],
   );
   // The scroll slice also hears scrolling inside one long segment (no focus change); panelMoved throttles to a frame.
   useEffect(() => {
@@ -238,9 +275,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       if (asideRef.current.length) setSelection([ref]);
       nav.panelMoved();
       // The address bar always names the verse being read (like the old reader), without moving anything.
-      apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "scroll", panel: id } });
+      const written = apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "scroll", panel: id } });
+      // the reader scrolled here: linked panels follow
+      links.moved(id, ref, written);
     },
-    [apply, id, nav],
+    [apply, id, nav, links],
   );
 
   // Every range of several segments stays in the address and highlighted, inside one section or across sections, sidebar open or
@@ -336,7 +375,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "select", panel: id, ref } });
         return;
       }
-      apply(
+      const written = apply(
         (ws) => {
           const existing = ws.panels[id]?.asides.find((a) => a.kind === "connections");
           // choosing another verse ends a name's card (the old closeNamedEntityInConnectionPanel)
@@ -345,8 +384,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         },
         { state: { nav: "select", panel: id, ref } },
       );
+      // choosing a verse moves linked panels to it
+      links.moved(id, ref, written);
     },
-    [apply, id, newSidebarLang],
+    [apply, id, newSidebarLang, links],
   );
 
   /**
@@ -366,11 +407,44 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       const aside = before.panels[id]?.asides.find((a) => a.kind === "connections");
       const lang = settings.language === "bilingual" ? "bi" : aside?.lang === "he" ? "he" : aside?.lang === "en" ? "en" : settings.language === "hebrew" ? "he" : "en";
       const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "text", ref, versions: { ...versions }, lang });
-      nav.go(after, { state: { nav: "go", panel: opened } });
+      // a commentary, targum or another version of this text opens linked to it (D1, D4)
+      void nav.go(after, { state: { nav: "go", panel: opened } }).then(() => links.autoLink(id, opened, ref));
     },
-    [apply, nav, id, settings.language],
+    [apply, nav, id, settings.language, links],
   );
   const openTextHere = useCallback((ref: string) => openFromSidebar(ref), [openFromSidebar]);
+
+  /** A stored interactive page from the sidebar opens beside this text, linked to it (the sidebar closes, as Open does). CON-075 */
+  const openAssetBeside = useCallback(
+    (asset: string) => {
+      const before = nav.current();
+      if (isSinglePanel()) return; // one panel at a time: an asset needs its text beside it
+      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "asset", asset });
+      void nav.go(linkPanels(after, opened, id), { state: { nav: "go", panel: opened } });
+    },
+    [nav, id],
+  );
+
+  /** An interactive page from a file (a Claude asset saved as HTML) opens beside this text, linked to it; kept in this tab only. SHL-093 */
+  const assetFile = useRef<HTMLInputElement>(null);
+  const uiHebrew = useInterfaceLang() === "hebrew";
+  const openAssetFile = useCallback(
+    async (file: File) => {
+      if (file.size > MAX_ASSET_BYTES) {
+        window.alert(uiHebrew ? "הקובץ גדול מדי (עד 5MB)." : "That file is too large (5 MB at most).");
+        return;
+      }
+      const key = keepLocal(await file.text());
+      if (!key) {
+        window.alert(uiHebrew ? "הדפדפן לא שמר את הקובץ." : "The browser would not keep that file for this tab.");
+        return;
+      }
+      const before = nav.current();
+      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "asset", asset: key });
+      void nav.go(linkPanels(after, opened, id), { state: { nav: "go", panel: opened } });
+    },
+    [nav, id, uiHebrew],
+  );
 
   /** Search in this text: a new query replaces the last (no history entry), and opening a hit sends this panel to it in the
    *  version it was found in, the sidebar staying on the results (SRC-094, SRC-096). */
@@ -756,6 +830,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             trigger={(p) => <DisplayOptionsButton {...p} label={displayOptionsLabel} />}
           >
             <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} directions={{ primary: section.primaryVersion?.direction, translation: section.translationVersion?.direction }}
+              onOpenAsset={links.enabled ? () => (setMenuOpen(false), assetFile.current?.click()) : undefined}
               onRecordSession={sessionEntry ? () => (setMenuOpen(false), sessionEntry.onRecordSession()) : undefined}
               onLoadRecording={sessionEntry ? () => (setMenuOpen(false), sessionEntry.onLoadRecording()) : undefined} />
           </Popover>
@@ -763,6 +838,13 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
       />
       <VisuallyHidden role="status" aria-live="polite" aria-atomic="true" data-testid="reader-announcer">{announced}</VisuallyHidden>
+      {links.enabled ? (
+        <input ref={assetFile} type="file" accept=".html,.htm,text/html" hidden data-testid="open-asset-file" onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void openAssetFile(file);
+        }} />
+      ) : null}
       <SignUpModal kind={saveAsked ? "save" : undefined} onClose={() => setSaveAsked(false)} next={typeof window === "undefined" ? "/" : window.location.href} />
       <div ref={bannerBox} className={styles.bannerBox}>
       {transBanner ? (
@@ -827,6 +909,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         void closePanel();
       }}
     >
+      <PanelLinkToggle id={id} link={panel.link} />
       <SplitView
         node={frame}
         renderLeaf={(leafId) =>
@@ -845,6 +928,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
                 shownVersions={shownVersions}
                 onNavigate={goSidebarView}
                 onOpenText={openTextHere}
+                onOpenAsset={links.enabled ? (a) => openAssetBeside(a.versionId ? `${a.id}@${a.versionId}` : a.id) : undefined}
                 onGoToRef={goToRef}
                 versions={versions}
                 searchQuery={aside?.sbsq}
@@ -863,7 +947,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
                 onSelectTranslation={onSelectTranslation}
                 onOpenTranslation={onOpenTranslation}
                 onOpenSource={onOpenSource}
-                allOpenRefs={panelOrder(nav.current()).map((pid) => nav.current().panels[pid]?.ref).filter((r): r is string => !!r)}
+                allOpenRefs={panelOrder(nav.current()).map((pid) => panelRef(nav.current().panels[pid])).filter((r): r is string => !!r)}
                 onClose={closeSidebar}
                 // a bilingual sidebar (an old link's lang2=bi) shows as the text's language for now
                 lang={aside?.lang === "bi" ? undefined : aside?.lang}

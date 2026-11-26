@@ -21,7 +21,7 @@ import { leaf, row } from "~/lib/layout/tree";
 import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { decodeVtitle, encodeVtitle, versionParamToApi } from "~/lib/reader/url-state";
 import { CTX_PARAM, parseCtx } from "~/lib/reader/ctx";
-import type { AsideState, PanelId, TextPanelState, Workspace } from "./types";
+import type { AsideState, PanelId, PanelState, TextPanelState, Workspace } from "./types";
 import { panelOrder } from "./ops";
 
 export type RawSearch = Record<string, string | number | undefined>;
@@ -67,25 +67,69 @@ export const MAX_PANELS = 6;
 
 /** Read a workspace from the path's ref (already in human form, e.g. "Genesis 1:3") and the query. */
 export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace {
-  const extra = Object.keys(search)
-    .map((k) => /^p(\d+)$/.exec(k))
-    .filter((m): m is RegExpExecArray => !!m && Number(m[1]) >= 2 && !!str(search[m[0]]))
-    .map((m) => Number(m[1]))
+  // a slot holds a text (p<n>) or an asset panel (a<n>, not sefaria.org's grammar: only the new reader writes it); a text wins a tie
+  const extra = [
+    ...new Set(
+      Object.keys(search)
+        .map((k) => /^[pa](\d+)$/.exec(k))
+        .filter((m): m is RegExpExecArray => !!m && Number(m[1]) >= 2 && !!str(search[m[0]]))
+        .map((m) => Number(m[1])),
+    ),
+  ]
     .sort((a, b) => a - b)
     .slice(0, MAX_PANELS - 1);
   // A panel's sidebar language is lang<k+1> when no panel is numbered k+1 (the sidebar took that slot)
   const sideLang = (k: number) => (extra.includes(k + 1) ? undefined : asSideLang(search[`lang${k + 1}`]));
-  const panels: TextPanelState[] = [panelFrom("p1", firstRef, search, "", sideLang(1))];
+  const panels: PanelState[] = [panelFrom("p1", firstRef, search, "", sideLang(1))];
   extra.forEach((n, i) => {
     const id = `p${i + 2}` as PanelId;
-    panels.push(panelFrom(id, urlToRef(String(search[`p${n}`])), search, String(n), sideLang(n)));
+    const asset = str(search[`a${n}`]);
+    if (!str(search[`p${n}`]) && asset) panels.push({ id, kind: "asset", asset, asides: [] });
+    else panels.push(panelFrom(id, urlToRef(String(search[`p${n}`])), search, String(n), sideLang(n)));
   });
+  for (const l of parseLinks(search[LINK_PARAM], panels.length)) {
+    const p = panels[l.follower - 1]!;
+    p.link = { to: `p${l.leader}` as PanelId, ...(l.away ? { away: true as const } : {}) };
+  }
   const ctx = parseCtx(search[CTX_PARAM]);
   return {
     panels: Object.fromEntries(panels.map((p) => [p.id, p])),
     layout: panels.length === 1 ? leaf(panels[0]!.id) : row(...panels.map((p) => leaf(p.id))),
     ...(ctx ? { ctx } : {}),
   };
+}
+
+/**
+ * Linked panels in the address (not part of sefaria.org's grammar, so written last and only when there are links): `link=2-1`
+ * says the second panel follows the first; `2-1~` that the link is paused; several are comma-separated. Panels are counted by their
+ * place in the row (1, 2, 3…), not by the `p<n>` numbers, which skip the slots sidebars take.
+ *
+ * @feature SHL-090 Linked panels
+ */
+export const LINK_PARAM = "link";
+export function parseLinks(raw: unknown, panelCount: number): { follower: number; leader: number; away: boolean }[] {
+  const s = str(raw);
+  if (!s) return [];
+  const seen = new Set<number>();
+  const out: { follower: number; leader: number; away: boolean }[] = [];
+  for (const part of s.split(",")) {
+    const m = /^(\d{1,2})-(\d{1,2})(~?)$/.exec(part.trim());
+    if (!m) continue;
+    const follower = Number(m[1]), leader = Number(m[2]);
+    if (follower === leader || follower < 1 || leader < 1 || follower > panelCount || leader > panelCount || seen.has(follower)) continue;
+    seen.add(follower);
+    out.push({ follower, leader, away: m[3] === "~" });
+  }
+  return out;
+}
+export function formatLinks(ws: Workspace): string | undefined {
+  const order = panelOrder(ws);
+  const parts = order.flatMap((id, i) => {
+    const l = ws.panels[id]?.link;
+    const at = l ? order.indexOf(l.to) : -1;
+    return l && at >= 0 && at !== i ? [`${i + 1}-${at + 1}${l.away ? "~" : ""}`] : [];
+  });
+  return parts.length ? parts.join(",") : undefined;
 }
 
 /** What the URL says when a panel has not set its own: the reader's stored settings (the old panel settings). */
@@ -106,7 +150,8 @@ const isOnkelos = (ref: string) => /^Onkelos (Genesis|Exodus|Leviticus|Numbers|D
 /** One entry of the old client's flat panel list. */
 type Hist =
   | { mode: "Text"; url: string; versions: [string, string][]; lang: string; aliyot?: 0 | 1 }
-  | { mode: "Connections"; url: string; sources: string; lang: string; vside?: string; lookup?: string; sbsq?: string; entity?: { slug: string; text: string } };
+  | { mode: "Connections"; url: string; sources: string; lang: string; vside?: string; lookup?: string; sbsq?: string; entity?: { slug: string; text: string } }
+  | { mode: "Asset"; asset: string };
 
 /** "family|Title" (API) per side → the old `&v<lang><n>=family|Title_With_Underscores` pairs, English first (currVersions order). */
 function versionPairs(p: TextPanelState): [string, string][] {
@@ -121,7 +166,12 @@ function histories(ws: Workspace, d: UrlDefaults): Hist[] {
   const out: Hist[] = [];
   for (const id of panelOrder(ws)) {
     const p = ws.panels[id];
-    if (!p || p.kind !== "text") continue;
+    if (!p) continue;
+    if (p.kind === "asset") {
+      // an asset is never the first panel: the address's path is a text (an asset panel left first is dropped from the address)
+      if (out.length) out.push({ mode: "Asset", asset: p.asset });
+      continue;
+    }
     const url = refToUrl(p.ref);
     // An Onkelos panel keeps an `aliyot` its URL set: the old client applies it to the panel but drops it from the address, which
     // here (the URL is the state) would turn the aliyot off again at the first rewrite. One it never had is not written, as before.
@@ -180,6 +230,10 @@ function workspaceParams(ws: Workspace, d: UrlDefaults): { path: string; params:
   let params: Param[] = [...vparams(first.versions, 0), raw("lang", first.lang), ...("aliyot" in first ? [raw("aliyot", first.aliyot!)] : [])];
   for (let i = 1; i < h.length; i++) {
     const cur = h[i]!, prev = h[i - 1]!;
+    if (cur.mode === "Asset") {
+      params.push(text(`a${i + 1}`, cur.asset));
+      continue;
+    }
     if (cur.mode === "Connections" && prev.mode === "Text") {
       const tail = cur.vside ? [version(`vside${i === 1 ? "" : i}`, encodeVtitle(cur.vside))] : [];
       if (i === 1) {
@@ -217,7 +271,10 @@ function workspaceParams(ws: Workspace, d: UrlDefaults): { path: string; params:
     if (d.singlePanel && i === 1 && cur.mode === "Connections" && prev.mode === "Text") continue;
     params.push(raw(`lang${i + 1}`, cur.lang), ...("aliyot" in cur ? [raw(`aliyot${i + 1}`, cur.aliyot!)] : []));
   }
-  // the reserved context (lib/reader/ctx.ts), last: not part of sefaria.org's grammar, so every legacy address is unchanged without it
+  // linked panels, then the reserved context (lib/reader/ctx.ts), last: neither is part of sefaria.org's grammar, so every legacy
+  // address is unchanged without them
+  const links = formatLinks(ws);
+  if (links) params.push(raw(LINK_PARAM, links));
   const ctx = parseCtx(ws.ctx);
   if (ctx) params.push(raw(CTX_PARAM, ctx));
   return { path, params };
