@@ -183,6 +183,21 @@ entries:
     version: 0.96.0-fixknn-search-accept-api-key-10fc339.1
   - apiVersion: v2
     appVersion: v7.17.3
+    created: "2026-11-26T21:15:20.723287911Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 733e454f028b8435ad897113d6ed55e520f56afd16c467a3622e2993f4b994b8
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.96.0-featsocial-user-lookup-b4b0b8f.1.tgz
+    version: 0.96.0-featsocial-user-lookup-b4b0b8f.1
+  - apiVersion: v2
+    appVersion: v7.17.3
     created: "2026-11-22T22:51:27.626887046Z"
     description: Chart to deploy complete Sefaria environment
     digest: 23cdd9afc85dc5eba4a4af41c142d000458c60c7875349418100bcb448a41abf
@@ -26235,4 +26250,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-11-26T20:42:17.1466868Z"
+generated: "2026-11-26T21:15:20.717744359Z"
