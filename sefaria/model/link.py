@@ -390,22 +390,28 @@ def process_index_title_change_in_links(indx, **kwargs):
     queries = [{"refs": {"$regex": pattern}} for pattern in patterns]
     links = LinkSet({"$or": queries})
     for l in links:
-        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search("|".join(patterns), r) else r for r in l.refs]
-        l.expandedRefs0 = [
-            r.replace(kwargs["old"], kwargs["new"], 1) if re.search("|".join(patterns), r) else r
-            for r in l.expandedRefs0
-        ]
-        l.expandedRefs1 = [
-            r.replace(kwargs["old"], kwargs["new"], 1) if re.search("|".join(patterns), r) else r
-            for r in l.expandedRefs1
-        ]
         try:
+            l.refs = [
+                r.replace(kwargs["old"], kwargs["new"], 1) if re.search("|".join(patterns), r) else r for r in l.refs
+            ]
+            l.expandedRefs0 = [
+                r.replace(kwargs["old"], kwargs["new"], 1) if re.search("|".join(patterns), r) else r
+                for r in l.expandedRefs0
+            ]
+            l.expandedRefs1 = [
+                r.replace(kwargs["old"], kwargs["new"], 1) if re.search("|".join(patterns), r) else r
+                for r in l.expandedRefs1
+            ]
             l._skip_lang_check = True
             l._skip_expanded_refs_set = True
             l.save()
         except InputError:  # TODO: this belongs in a better place - perhaps in abstract
-            logger.warning(f"Deleting link that failed to save: {l.refs[0]} - {l.refs[1]}")
-            l.delete()
+            # The renamed ref no longer validates. Keep the link rather than deleting it; it is left pointing at the old title.
+            logger.warning(f"Leaving link {l._id} with stale refs after failed save", link_id=str(l._id))
+        except Exception:
+            # Unexpected failure (e.g. a connection error or a legacy link without expanded refs): never delete on
+            # error, log the link id, and keep cascading to the remaining links.
+            logger.exception(f"Leaving link {l._id} with stale refs after unexpected failure", link_id=str(l._id))
 
 
 def process_index_delete_in_links(indx, **kwargs):
