@@ -101,3 +101,32 @@ def test_append_version_reports_sources_on_genuine_multi_version_merge():
         for v in VersionSet({"title": title}):
             v.delete()
         idx.delete()
+
+
+def test_first_available_section_ref_none_serializes_as_null():
+    """
+    A ref whose requested section is empty and has no following content has no
+    first_available_section_ref() -- it returns None. The adapter used to call
+    .normal() on that None and raise AttributeError, which surfaced as HTTP 500 in the
+    reader on Siddur and Jastrow pages. It must serialize the field as null instead.
+    """
+    title = "Adapter None Section Test Book"
+    idx = _fresh_synthetic_index(title)
+    vt = "Adapter Test A"
+    try:
+        chunk = Ref(f"{title} 1:1").text(direction="ltr", lang="en", vtitle=vt)
+        chunk.text = "A verse 1"
+        chunk.save()
+
+        oref = Ref(f"{title} 2")  # section 2 is empty and no following section has content
+        assert oref.first_available_section_ref() is None
+
+        adapter = TextRequestAdapter(oref.section_ref(), [["english", vt]])
+        result = adapter.get_versions_for_query()
+
+        assert result["firstAvailableSectionRef"] is None
+        assert result["sectionRef"] == oref.section_ref().normal()
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
