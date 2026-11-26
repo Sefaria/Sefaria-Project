@@ -4428,6 +4428,10 @@ class Ref(metaclass=RefCacheType):
         return self.index_node.full_title("he")
 
     def _get_normal(self, lang):
+        if self.index_node is None:
+            raise InputError(
+                f"Cannot get the normal form of a reference with no index: {getattr(self, 'tref', None)!r}"
+            )
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
