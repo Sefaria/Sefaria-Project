@@ -18,6 +18,11 @@ describe("assistantAccessQuery", () => {
     expect(await fetchAccess({ enabled: true, userToken: "" })).toEqual({ enabled: false, userToken: null, isModerator: false });
     expect(await fetchAccess({ enabled: "yes", userToken: 5 })).toEqual({ enabled: false, userToken: null, isModerator: false });
   });
+  it("the saved 'Hide Ask button' choice, when the server sends a boolean", async () => {
+    expect(await fetchAccess({ enabled: true, userToken: "tok", floatingButtonHidden: true })).toMatchObject({ floatingButtonHidden: true });
+    expect(await fetchAccess({ enabled: true, userToken: "tok", floatingButtonHidden: false })).toMatchObject({ floatingButtonHidden: false });
+    expect(await fetchAccess({ enabled: true, userToken: "tok", floatingButtonHidden: "true" })).not.toHaveProperty("floatingButtonHidden");
+  });
   it("a server error is an error (the assistant stays hidden)", async () => {
     await expect(fetchAccess({ error: "x" }, 500)).rejects.toThrow(/HTTP 500/);
   });

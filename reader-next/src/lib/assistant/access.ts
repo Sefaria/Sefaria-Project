@@ -2,7 +2,8 @@
  * Whether this visitor gets the Library Assistant. Signed in: the token that names them to it, from `GET /api/library-assistant`
  * (reader/views.py `library_assistant_api`). The server decides, as for sefaria.org's pages (library_assistant.is_enabled, the
  * token minted with CHATBOT_USER_ID_SECRET); this client never sees the secret. User data: memory only, never on disk. Signed out:
- * remote config's switch decides, as base_props does (`chatbot_access_props`, `is_enabled_for_anonymous`).
+ * remote config's switch decides, as base_props does (`chatbot_access_props`, `is_enabled_for_anonymous`). Signed in, the answer
+ * also carries the reader's saved "Hide Ask button" choice (base_props' `chatbot_hide_launcher`).
  *
  * @feature AI-003 Chatbot user token and props
  */
@@ -19,9 +20,15 @@ export const assistantAccessQuery = (uid: number | null) =>
     queryFn: async ({ signal }): Promise<AssistantAccess> => {
       const r = await fetch(sameOrigin(ASSISTANT_ACCESS_URL), { credentials: "same-origin", signal });
       if (!r.ok) throw new Error(`Library Assistant: HTTP ${r.status}`);
-      const d = (await r.json()) as { enabled?: unknown; userToken?: unknown; isModerator?: unknown };
+      const d = (await r.json()) as { enabled?: unknown; userToken?: unknown; isModerator?: unknown; floatingButtonHidden?: unknown };
       const userToken = typeof d.userToken === "string" && d.userToken ? d.userToken : null;
-      return { enabled: d.enabled === true && userToken !== null, userToken, isModerator: d.isModerator === true };
+      return {
+        enabled: d.enabled === true && userToken !== null,
+        userToken,
+        isModerator: d.isModerator === true,
+        // the saved "Hide Ask button" choice (src/lib/assistant/floating-button.ts)
+        ...(typeof d.floatingButtonHidden === "boolean" ? { floatingButtonHidden: d.floatingButtonHidden } : {}),
+      };
     },
     enabled: uid !== null,
     // the token lasts 72 hours; a page that stays open a day still has a good one

@@ -26,8 +26,8 @@ describe("sefaria:bootstrap-url", () => {
     expect(bootstrapUrlAction(null, here)).toBeNull();
   });
   it("is received on the document, and stops when uninstalled", () => {
-    const navigate = vi.fn(), load = vi.fn(), refreshReader = vi.fn();
-    const stop = installLegacyEvents(document, { navigate, load, refreshReader });
+    const navigate = vi.fn(), load = vi.fn(), refreshReader = vi.fn(), launcherVisibility = vi.fn();
+    const stop = installLegacyEvents(document, { navigate, load, refreshReader, launcherVisibility });
     document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: "/Exodus.3", replaceHistory: true } }));
     expect(navigate).toHaveBeenCalledWith({ pathname: "/Exodus.3", search: "", hash: "" }, { replace: true });
     document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: "/sheets/love" } }));
@@ -37,5 +37,21 @@ describe("sefaria:bootstrap-url", () => {
     stop();
     document.dispatchEvent(new CustomEvent("sefaria:bootstrap-url", { detail: { url: "/Exodus.4" } }));
     expect(navigate).toHaveBeenCalledTimes(1);
+  });
+});
+
+// @feature AI-011 — the assistant's "Hide Ask button" switch (master #4004)
+describe("chatbot:launcher_visibility", () => {
+  it("passes on hidden or shown, and ignores anything without a boolean", () => {
+    const launcherVisibility = vi.fn();
+    const stop = installLegacyEvents(document, { navigate: vi.fn(), load: vi.fn(), refreshReader: vi.fn(), launcherVisibility });
+    document.dispatchEvent(new CustomEvent("chatbot:launcher_visibility", { detail: { hidden: true } }));
+    document.dispatchEvent(new CustomEvent("chatbot:launcher_visibility", { detail: { hidden: false } }));
+    document.dispatchEvent(new CustomEvent("chatbot:launcher_visibility", { detail: { hidden: "true" } }));
+    document.dispatchEvent(new CustomEvent("chatbot:launcher_visibility"));
+    expect(launcherVisibility.mock.calls).toEqual([[true], [false]]);
+    stop();
+    document.dispatchEvent(new CustomEvent("chatbot:launcher_visibility", { detail: { hidden: true } }));
+    expect(launcherVisibility).toHaveBeenCalledTimes(2);
   });
 });

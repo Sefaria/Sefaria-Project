@@ -120,6 +120,12 @@ export interface AssistantAccess {
   /** The encrypted, short-lived token that names them to the assistant (`user-id`); null for a signed-out visitor. */
   userToken: string | null;
   isModerator: boolean;
+  /**
+   * The signed-in reader's saved "Hide Ask button" choice (settings.library_assistant_floating_button_hidden), kept current in the
+   * query cache when they flip it here (src/lib/assistant/floating-button.ts). Absent for a signed-out visitor: the widget keeps
+   * that choice in the browser itself.
+   */
+  floatingButtonHidden?: boolean;
 }
 
 /** `<lc-chatbot>`'s attributes, as the old ReaderApp set them (AI-011). Limits come from remote config, as on the old server. */
@@ -145,6 +151,9 @@ export function assistantAttributes(
     // signed out only: the free answers remote config allows (for the widget's analytics; the chat server enforces it)
     // (any value remote config holds, as the old `chatbot_anon_free_answers ?? undefined`)
     ...(!access.userToken && opts.anonFreeAnswers !== undefined && opts.anonFreeAnswers !== null ? { "anon-free-answers": String(opts.anonFreeAnswers) } : {}),
+    // signed in only: their saved "Hide Ask button" choice (the old `hide-launcher`, master #4004), which wins over the widget's
+    // own browser choice; left off for a signed-out visitor
+    ...(access.userToken && typeof access.floatingButtonHidden === "boolean" ? { "hide-launcher": String(access.floatingButtonHidden) } : {}),
     // outside production only: the design-system version to preview (the old `design-system-preview={design_system_preview || undefined}`)
     ...(opts.designSystemPreview ? { "design-system-preview": opts.designSystemPreview } : {}),
   };

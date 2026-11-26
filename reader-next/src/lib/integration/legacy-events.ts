@@ -8,17 +8,21 @@
  *    (the assistant opens those in a new tab itself). As on sefaria.org a ref "closes all panels": the address is the whole workspace.
  *  - `sefaria:settings-updated` — the reader's settings changed elsewhere (the Django settings page): what was read about the reader
  *    is read again.
+ *  - `chatbot:launcher_visibility` — the Library Assistant's "Hide Ask button" switch (`detail.hidden`, a boolean); a signed-in
+ *    reader's choice is saved to their account (src/lib/assistant/floating-button.ts). Anything else in `detail` is ignored.
  *
  * Events the assistant sends that are not for the page: `appetizer_click` (its own analytics, dispatched on the element; sefaria.org
  * has no listener) — listed in docs/INTEGRATION.md.
  *
  * @feature AI-011 Library Assistant chatbot widget
  */
+import { launcherHiddenFromDetail } from "~/lib/assistant/floating-button";
 import { PUBLIC_CONFIG } from "~/lib/config";
 import { leavesClient } from "~/lib/routing/django-paths";
 
 export const BOOTSTRAP_URL_EVENT = "sefaria:bootstrap-url";
 export const SETTINGS_UPDATED_EVENT = "sefaria:settings-updated";
+export const LAUNCHER_VISIBILITY_EVENT = "chatbot:launcher_visibility";
 
 export interface LegacyEventTargets {
   /** A navigation in the app to a path and query of this client. */
@@ -27,6 +31,8 @@ export interface LegacyEventTargets {
   load: (href: string, opts: { replace: boolean }) => void;
   /** Read the reader's settings and account again. */
   refreshReader: () => void;
+  /** The Library Assistant's floating Ask button was hidden (true) or shown (false) from its menu. */
+  launcherVisibility: (hidden: boolean) => void;
 }
 
 /** Sefaria's own sites: this host, or any *.sefaria.org / *.sefaria.org.il host (as ReaderApp._getPathAndRefFromUrl). */
@@ -61,10 +67,16 @@ export function installLegacyEvents(doc: Document, targets: LegacyEventTargets):
     else targets.navigate({ pathname: action.pathname, search: action.search, hash: action.hash }, { replace: action.replace });
   };
   const onSettings = () => targets.refreshReader();
+  const onLauncher = (e: Event) => {
+    const hidden = launcherHiddenFromDetail((e as CustomEvent).detail);
+    if (hidden !== null) targets.launcherVisibility(hidden);
+  };
   doc.addEventListener(BOOTSTRAP_URL_EVENT, onBootstrap);
   doc.addEventListener(SETTINGS_UPDATED_EVENT, onSettings);
+  doc.addEventListener(LAUNCHER_VISIBILITY_EVENT, onLauncher);
   return () => {
     doc.removeEventListener(BOOTSTRAP_URL_EVENT, onBootstrap);
     doc.removeEventListener(SETTINGS_UPDATED_EVENT, onSettings);
+    doc.removeEventListener(LAUNCHER_VISIBILITY_EVENT, onLauncher);
   };
 }
