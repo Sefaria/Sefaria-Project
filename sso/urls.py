@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import user_lookup, views
 
 urlpatterns = [
     # Google One Tap redirect mode: Google POSTs credential + g_csrf_token here
@@ -21,4 +21,6 @@ urlpatterns = [
     # and Varnish passes it uncached; the response's Cache-Control governs Cloudflare.
     path("api/social/token", views.social_token),
     path(".well-known/sefaria-social-jwks.json", views.social_jwks),
+    # Sefaria Social: which account has an email address (server to server, signed; sso/user_lookup.py).
+    path("api/social/user-lookup", user_lookup.social_user_lookup),
 ]
