@@ -559,7 +559,13 @@ def _get_normalized_versions(tref, ven, vhe):
     """
     if not ven and not vhe:
         return [None, None]  # saves `version_list()` db query
-    versions = Ref(tref).version_list()
+    try:
+        versions = Ref(tref).version_list()
+    except InputError:
+        # `tref` cannot be parsed as a Ref (e.g. an unresolvable reader title).
+        # No versions can be matched, and catchall turns an unresolvable title
+        # into a 404 -- do not let InputError escape this helper as a 500.
+        return [None, None]
     normalized = []
     for version_param, direction in [(ven, "ltr"), (vhe, "rtl")]:
         if not version_param:
@@ -613,17 +619,20 @@ def catchall(request, tref, sheet=None):
     """
     active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
-    current_versions, normalized_versions = _get_current_and_normalized_versions(request, tref)
-    if current_versions != normalized_versions:
-        return _reader_redirect_versions(request, tref, current_versions, normalized_versions)
-
     if sheet is None:
-        # Validate ref first
+        # Validate the title before normalizing version params. Normalization
+        # resolves the tref with Ref(), so an unresolvable title must fall
+        # through to the 404 here instead of escaping as a 500.
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
+    current_versions, normalized_versions = _get_current_and_normalized_versions(request, tref)
+    if current_versions != normalized_versions:
+        return _reader_redirect_versions(request, tref, current_versions, normalized_versions)
+
+    if sheet is None:
         # If on wrong module, redirect to library module
         if active_module != LIBRARY_MODULE:
             return redirect_to_module(request, f"/{tref}", LIBRARY_MODULE)
