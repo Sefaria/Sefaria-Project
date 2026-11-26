@@ -387,6 +387,7 @@ class TestUnitGuards:
 # --------------------------------------------------------------------------- #
 
 
+@pytest.mark.needs_mongo
 class TestBookHooks:
     def test_book_save_and_delete(self, django_db_setup, django_db_blocker, search_on):
         """T2: creating an Index upserts its book doc (id = English title);
@@ -457,6 +458,7 @@ class TestBookHooks:
         index_pos = max(i for i, op in enumerate(fake.log) if op == ("index", BOOK_INDEX, TEST_BOOK_RENAMED))
         assert delete_pos < index_pos
 
+    @pytest.mark.needs_corpus
     def test_version_rename_reindexes_segments(self, search_on, test_book):
         """T6 (regression guard): the delete_text/delete_text_by_ref_string
         refactor didn't change the pre-existing 3-arg delete_version path."""
@@ -475,6 +477,7 @@ class TestBookHooks:
         assert not (text_ids & old_ids), "stale old-versionTitle docs remain"
         assert new_ids <= text_ids, "new-versionTitle docs missing"
 
+    @pytest.mark.needs_corpus
     def test_segment_failure_does_not_abort_rename(self, search_on, test_book, monkeypatch):
         """T7a: best-effort semantics. One segment failing to index mid-rename
         must not abort the rename; the other segments index and the failure is
@@ -506,6 +509,7 @@ class TestBookHooks:
         assert failing_ref in list(summary_calls[0].kwargs["failed_refs"])
 
 
+@pytest.mark.needs_mongo
 @pytest.mark.django_db
 class TestTopicHooks:
     @pytest.mark.parametrize(
@@ -649,6 +653,7 @@ class TestTopicHooks:
             t.delete()
 
 
+@pytest.mark.needs_corpus
 class TestCategoryHooks:
     def test_category_path_change_reindexes_books(self, search_on, monkeypatch):
         """T5: renaming a category re-upserts its books' docs with the new

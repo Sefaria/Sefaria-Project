@@ -88,6 +88,7 @@ def _list(prompt_topic, **kwargs):
     return tpa.list_prompts(topics=[prompt_topic.slug], **kwargs)
 
 
+@pytest.mark.needs_corpus  # prompt_topic save cascades a slug change via arrayFilters, which mongomock lacks
 class TestListPrompts:
     def test_lists_prompts_for_topic(self, prompt_topic, ai_link, human_link):
         results = _list(prompt_topic)["results"]
@@ -128,6 +129,7 @@ class TestListPrompts:
                 _list(prompt_topic, **kwargs)
 
 
+@pytest.mark.needs_corpus  # prompt_topic save cascades a slug change via arrayFilters, which mongomock lacks
 class TestUpdatePrompt:
     def _version(self, link):
         return tpa.list_prompts(link_id=str(link._id))["results"][0]["version"]
@@ -213,6 +215,7 @@ def _during_write_window(action):
     return patch.object(tpa, "_prepare_description", wrapped)
 
 
+@pytest.mark.needs_corpus  # prompt_topic save cascades a slug change via arrayFilters, which mongomock lacks
 class TestUpdatePromptConcurrency:
     def test_simultaneous_updates_only_one_wins(self, ai_link):
         version = _version(ai_link)
@@ -271,6 +274,7 @@ class TestUpdatePromptConcurrency:
         assert db.topic_links.find_one({"_id": ai_link._id}) is None
 
 
+@pytest.mark.needs_corpus  # prompt_topic save cascades a slug change via arrayFilters, which mongomock lacks
 class TestUpdatePromptFailureSafety:
     def test_audit_insert_failure_leaves_content_unchanged(self, ai_link):
         version = _version(ai_link)
@@ -318,6 +322,7 @@ class TestUpdatePromptFailureSafety:
         assert audit["after"]["version"] == tpa.description_version(_stored(ai_link)["en"])
 
 
+@pytest.mark.needs_corpus  # prompt_topic save cascades a slug change via arrayFilters, which mongomock lacks
 class TestDryRunMatchesSave:
     def test_html_input_preview_equals_saved_result(self, ai_link):
         version = _version(ai_link)
@@ -364,6 +369,7 @@ class TestAdminMCPEndpoints:
     def _client(self):
         return Client(enforce_csrf_checks=True, HTTP_HOST=HOST)
 
+    @pytest.mark.needs_corpus  # needs prompt_topic (arrayFilters slug cascade)
     def test_token_patch_succeeds_with_csrf_enforced(self, django_user_model, ai_link):
         staff = django_user_model.objects.create_user(username="mcp-staff", password="pass", is_staff=True)
         client = self._client()

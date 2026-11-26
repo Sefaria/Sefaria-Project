@@ -1,7 +1,10 @@
+import pytest
+
 from sefaria.model import *
 from sefaria.recommendation_engine import RecommendationEngine
 
 
+@pytest.mark.needs_mongo
 class TestClustering:
     def test_simple(self):
         trefs = ["Genesis 1:1", "Genesis 1:2", "Genesis 1:4"]

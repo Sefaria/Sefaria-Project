@@ -3,10 +3,12 @@ from django.test.client import Client
 
 django.setup()
 import json
+from unittest import mock
 
 from api.api_warnings import APIWarningCode
 from reader.tests import SefariaTestCase
 from sefaria.system.database import QueryCounter
+from sefaria.system.exceptions import InputError
 
 c = Client()
 
@@ -523,3 +525,58 @@ class APIRefTests(SefariaTestCase):
         self.assertEqual(data["node_type"], "SheetNode")
         self.assertEqual(data["sheet_id"], 1)
         self.assertEqual(data["navigation_refs"]["shortest_path_to_root"][-1], "Sheet 1")
+
+
+class APIErrorHandlingTests(SefariaTestCase):
+    """Unexpected failures keep master's status codes and are logged; input errors keep their 4xx responses."""
+
+    PARSE_PATCH = "api.views.Ref.instantiate_ref_with_legacy_parse_fallback"
+    ADAPTER_PATCH = "api.views.TextRequestAdapter"
+
+    def test_text_unexpected_ref_parse_error_keeps_404_and_logs(self):
+        with (
+            mock.patch(self.PARSE_PATCH, side_effect=RuntimeError("unexpected")),
+            mock.patch("api.views.error_logger") as log,
+        ):
+            response = c.get("/api/v3/texts/Genesis.1")
+        self.assertEqual(404, response.status_code)
+        log.exception.assert_called_once()
+
+    def test_text_unexpected_adapter_error_keeps_400_and_logs(self):
+        with (
+            mock.patch(self.PARSE_PATCH),
+            mock.patch(self.ADAPTER_PATCH) as adapter,
+            mock.patch("api.views.error_logger") as log,
+        ):
+            adapter.return_value.get_versions_for_query.side_effect = RuntimeError("unexpected")
+            response = c.get("/api/v3/texts/Genesis.1")
+        self.assertEqual(400, response.status_code)
+        log.exception.assert_called_once()
+
+    def test_text_input_error_from_adapter_returns_400(self):
+        with mock.patch(self.PARSE_PATCH), mock.patch(self.ADAPTER_PATCH) as adapter:
+            adapter.return_value.get_versions_for_query.side_effect = InputError("bad version request")
+            response = c.get("/api/v3/texts/Genesis.1")
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(json.loads(response.content)["error"], "bad version request")
+
+    def test_text_input_error_from_ref_parse_returns_404(self):
+        with mock.patch(self.PARSE_PATCH, side_effect=InputError("unparseable ref")):
+            response = c.get("/api/v3/texts/Genesis.1")
+        self.assertEqual(404, response.status_code)
+        self.assertEqual(json.loads(response.content)["error"], "unparseable ref")
+
+    def test_ref_unexpected_parse_error_keeps_404_and_logs(self):
+        with (
+            mock.patch(self.PARSE_PATCH, side_effect=RuntimeError("unexpected")),
+            mock.patch("api.views.error_logger") as log,
+        ):
+            response = c.get("/api/ref/Genesis.1")
+        self.assertEqual(404, response.status_code)
+        log.exception.assert_called_once()
+
+    def test_ref_input_error_still_reports_not_a_ref(self):
+        with mock.patch(self.PARSE_PATCH, side_effect=InputError("unparseable ref")):
+            response = c.get("/api/ref/Genesis.1")
+        self.assertEqual(200, response.status_code)
+        self.assertFalse(json.loads(response.content)["is_ref"])

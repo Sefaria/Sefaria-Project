@@ -11,6 +11,7 @@ import structlog
 
 # Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
+from bson.errors import InvalidId
 from bson.objectid import ObjectId
 from cerberus import Validator
 
@@ -55,7 +56,15 @@ class AbstractMongoRecord:
 
         if isinstance(_id, str):
             # allow _id as either string or ObjectId
-            _id = ObjectId(_id)
+            try:
+                _id = ObjectId(_id)
+            except InvalidId:
+                raise InputError(f"{type(self).__name__}.load_by_id() expects a valid ObjectId string.")
+        elif not isinstance(_id, ObjectId):
+            # refuse query operators and other non-id values rather than passing them into the query
+            raise InputError(
+                f"{type(self).__name__}.load_by_id() expects a string or ObjectId, not {type(_id).__name__}."
+            )
         return self.load({"_id": _id})
 
     def load(self, query, proj=None):

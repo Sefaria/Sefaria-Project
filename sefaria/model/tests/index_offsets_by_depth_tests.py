@@ -4,6 +4,9 @@ from sefaria.model import *
 from sefaria.model.legacy_text import TextFamily
 from sefaria.system.exceptions import InputError
 
+# Creates Versions against real Index records from the restored dump (corpus job).
+pytestmark = pytest.mark.needs_corpus
+
 
 @pytest.fixture
 def index_offsets_by_depth():
@@ -70,7 +73,22 @@ def text():
 
 @pytest.fixture
 def version(index, text):
-    v = Version({"language": "en", "title": "test", "versionSource": "", "versionTitle": "test", "chapter": text})
+    v = Version(
+        {
+            "language": "en",
+            "actualLanguage": "en",
+            "languageFamilyName": "english",
+            "direction": "ltr",
+            "isSource": False,
+            "isPrimary": True,
+            # Index._normalize capitalizes the first letter of the stored title ("test" -> "Test"),
+            # and Version.get_index() is an exact, case-sensitive Index().load({"title": ...}).
+            "title": "Test",
+            "versionSource": "",
+            "versionTitle": "test",
+            "chapter": text,
+        }
+    )
     return v
 
 
@@ -89,7 +107,7 @@ def test_invalid_version(version):
 
 @pytest.fixture
 def textchunck(text, index):
-    t = Ref("test").text("en", "test")
+    t = Ref("test").text("en", "test", direction="ltr")
     t.text = text
     t.save()
     index.versionState().refresh()

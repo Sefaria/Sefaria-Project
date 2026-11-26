@@ -38,7 +38,13 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.user_profile import *
 from sefaria.sheets import *
-from sefaria.sheets import bleach_text, clean_source
+from sefaria.sheets import (
+    bleach_text,
+    clean_sheet_for_render,
+    clean_source_for_render,
+    clean_sources,
+    sheet_removes_rendered_media,
+)
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache
 from sefaria.system.decorators import catch_error_as_json
@@ -57,6 +63,14 @@ def annotate_user_links(sources):
             source["subsources"] = annotate_user_links(source["subsources"])
 
     return sources
+
+
+def sheet_json_for_script(sheet):
+    """
+    Serializes a sheet for embedding in an inline <script> block. Markup characters are written as
+    JSON unicode escapes, so no field value can close the script element.
+    """
+    return json.dumps(sheet).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
 @ensure_csrf_cookie
@@ -187,6 +201,7 @@ def view_sheet(request, sheet_id, editorMode=False):
     if "error" in sheet and sheet["error"] != "Sheet updated.":
         return HttpResponse(sheet["error"])
 
+    clean_sheet_for_render(sheet)
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
@@ -223,7 +238,7 @@ def view_sheet(request, sheet_id, editorMode=False):
         "sheets.html",
         None,
         {
-            "sheetJSON": json.dumps(sheet),
+            "sheetJSON": sheet_json_for_script(sheet),
             "sheet": sheet,
             "sheet_class": sheet_class,
             "can_edit": can_edit_flag,
@@ -258,6 +273,7 @@ def view_visual_sheet(request, sheet_id):
     if "error" in sheet:
         return HttpResponse(sheet["error"])
 
+    clean_sheet_for_render(sheet)
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
@@ -278,7 +294,7 @@ def view_visual_sheet(request, sheet_id):
         "sheets_visual.html",
         None,
         {
-            "sheetJSON": json.dumps(sheet),
+            "sheetJSON": sheet_json_for_script(sheet),
             "sheet": sheet,
             "sheet_class": sheet_class,
             "can_edit": can_edit_flag,
@@ -581,10 +597,6 @@ def sheet_stats(request):
     pass
 
 
-def _media_urls(sheet):
-    return {source["media"] for source in sheet.get("sources", []) if isinstance(source, dict) and "media" in source}
-
-
 def _limit_mcp_sheet_save(sheet, user_id):
     """
     Narrows what a save through an MCP token (the AI chatbot's MCP tools) may do, in place.
@@ -606,7 +618,7 @@ def _limit_mcp_sheet_save(sheet, user_id):
         return jsonResponse({"error": "MCP clients can only update sheets you own."}, status=403)
     if "lastModified" not in sheet:
         return jsonResponse({"error": "lastModified is required to update a sheet."}, status=400)
-    if "sources" in sheet and not _media_urls(existing) <= _media_urls(sheet):
+    if "sources" in sheet and sheet_removes_rendered_media(existing, sheet):
         return jsonResponse({"error": "MCP clients can't remove image or media sources."}, status=403)
     sheet["status"] = existing["status"]
     return None
@@ -663,10 +675,7 @@ def save_sheet_api(request):
         else:
             existing = None
 
-        cleaned_sources = []
-        for source in sheet["sources"]:
-            cleaned_sources.append(clean_source(source))
-        sheet["sources"] = cleaned_sources
+        sheet["sources"] = clean_sources(sheet["sources"])
 
         sheet["title"] = bleach_text(sheet["title"])
 
@@ -723,6 +732,8 @@ def sheet_api(request, sheet_id):
             sheet = get_sheet_for_panel(int(sheet_id))
         else:
             sheet = get_sheet(int(sheet_id))
+        if "error" not in sheet:
+            clean_sheet_for_render(sheet)
         return jsonResponse(sheet, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
@@ -732,6 +743,8 @@ def sheet_api(request, sheet_id):
 def sheet_node_api(request, sheet_id, node_id):
     if request.method == "GET":
         sheet_node = get_sheet_node(int(sheet_id), int(node_id))
+        if "error" not in sheet_node:
+            clean_source_for_render(sheet_node)
         return jsonResponse(sheet_node, callback=request.GET.get("callback", None))
 
     if request.method == "POST":

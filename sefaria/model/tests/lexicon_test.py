@@ -40,6 +40,7 @@ def make_lexicon_entry():
 
 
 class Test_Lexicon_Lookup:
+    @pytest.mark.needs_corpus
     def test_bible_lookup(self):
         word = "תִּשְׁמֹ֑רוּ"
         lookup_ref = "Leviticus 19.3"
@@ -71,6 +72,7 @@ class Test_Lexicon_Lookup:
         }
         assert {(lexicon, unicodedata.normalize("NFC", headword)) for lexicon, headword in expected} <= found
 
+    @pytest.mark.needs_corpus
     def test_hts_lookup(self):
         word = "Ma'aser Sheni"
         word2 = "Am Ha'aretz"
@@ -166,6 +168,7 @@ class Test_DictionaryNode_AllChildren:
         }
         return DictionaryNode(serial)
 
+    @pytest.mark.needs_corpus
     def test_all_children_caches_lexicon_entry_set_query(self):
         """all_children() must only construct/query LexiconEntrySet once across multiple calls,
         even though it fully iterates each returned iterator every time."""
@@ -186,6 +189,7 @@ class Test_DictionaryNode_AllChildren:
             assert mock_les.call_count == 1
             assert call_count == 1
 
+    @pytest.mark.needs_corpus
     def test_all_children_matches_uncached_direct_query(self):
         """The sequence of children yielded by all_children() (by .word) must match a fresh,
         independent LexiconEntrySet enumeration (by .headword), in order."""
@@ -199,6 +203,7 @@ class Test_DictionaryNode_AllChildren:
         assert len(cached_words) > 0
         assert cached_words == fresh_headwords
 
+    @pytest.mark.needs_corpus
     def test_all_children_returns_independent_iterators(self):
         """Calling all_children() twice on the same node instance must yield two independent
         iterators - fully consuming one must not exhaust the other."""
@@ -574,12 +579,14 @@ class Test_GetAvailableLexiconHeadword:
 class Test_ChangeLexiconHeadword:
     PARENT_LEXICON = "Test Lexicon Change Headword"
 
+    @pytest.mark.needs_corpus
     def test_rebuild_library_flag_false_skips_rebuild(self, make_lexicon_entry):
         make_lexicon_entry("old-a", self.PARENT_LEXICON)
         with patch("sefaria.helper.schema.library") as mock_library:
             change_lexicon_headword(self.PARENT_LEXICON, "old-a", "new-a", rebuild_library=False)
             mock_library.rebuild.assert_not_called()
 
+    @pytest.mark.needs_corpus
     def test_rebuild_library_defaults_true(self, make_lexicon_entry):
         make_lexicon_entry("old-b", self.PARENT_LEXICON)
         with patch("sefaria.helper.schema.library") as mock_library:
@@ -599,6 +606,7 @@ class Test_ChangeLexiconHeadword:
         with pytest.raises(ValueError):
             change_lexicon_headword(self.PARENT_LEXICON, "existing-b", "existing-a")
 
+    @pytest.mark.needs_corpus
     def test_word_form_lookup_uses_normalized_headword_not_raw_argument(self, make_lexicon_entry):
         # word_form is updated via a raw pymongo update_many, not through the model layer --
         # unlike prev_hw/next_hw on a neighbor LexiconEntry, there's no LexiconEntry.save()

@@ -1,7 +1,13 @@
-import pytest
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 
+import pytest
+from pymongo.errors import AutoReconnect
+
+import sefaria.model.link as link_model
 from sefaria.model import *
-from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.system.database import db
+from sefaria.system.exceptions import DuplicateRecordError, InputError
 
 
 class Test_Link_Save:
@@ -110,6 +116,7 @@ class Test_Link_Save:
         l1 = Link().load({"refs": ["Psalms 1:1", "Siddur Ashkenaz, Weekday, Maariv, Vehu Rachum 1"]})
         assert not l1
 
+    @pytest.mark.needs_corpus
     def test_ranged_link_when_section_link_exists(self):
         link1 = Link(
             {
@@ -134,6 +141,7 @@ class Test_Link_Save:
             link2.save()
         l1.delete()
 
+    @pytest.mark.needs_corpus
     def test_section_link_when_ranged_link_exists(self):
         link1 = Link(
             {
@@ -158,6 +166,7 @@ class Test_Link_Save:
             link2.save()
         l1.delete()
 
+    @pytest.mark.needs_corpus
     def test_section_link_when_ranged_link_exists_reverse(self):
         link1 = Link(
             {
@@ -193,3 +202,40 @@ class Test_Link_Save:
                 }
             )
             assert link._pre_save() is None
+
+
+class Test_LinkCascadeOnTitleChange:
+    @pytest.mark.parametrize(
+        "save_error",
+        [
+            AutoReconnect("connection dropped during cascade"),
+            InputError("renamed ref no longer validates"),
+        ],
+    )
+    def test_failed_save_keeps_link(self, monkeypatch, save_error):
+        refs = ["Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10:16"]
+        lk = Link({"auto": True, "generated_by": "link_cascade_tester", "type": "commentary", "refs": refs})
+        lk.save()
+        try:
+
+            def failing_save(self, *args, **kwargs):
+                raise save_error
+
+            monkeypatch.setattr(link_model.Link, "save", failing_save)
+            monkeypatch.setattr(link_model, "report_progress", lambda *a, **k: None)
+            log = MagicMock()
+            monkeypatch.setattr(link_model, "logger", log)
+
+            link_model.process_index_title_change_in_links(
+                SimpleNamespace(title="Avi Ezer"), old="Avi Ezer", new="Avi Ezer Renamed"
+            )
+
+            logged = log.warning.call_args_list + log.exception.call_args_list
+            assert len(logged) == 1
+            assert logged[0].kwargs["link_id"] == str(lk._id)
+
+            stored = db.links.find_one({"generated_by": "link_cascade_tester"})
+            assert stored is not None
+            assert stored["refs"] == refs
+        finally:
+            db.links.delete_many({"generated_by": "link_cascade_tester"})
