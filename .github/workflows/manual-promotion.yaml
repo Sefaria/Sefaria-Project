@@ -14,8 +14,10 @@ name: "Manual Promotion"
 # Reverse chaining: when a prod → preprod PR is merged, the chain-backmerge
 # job below automatically opens the follow-up preprod → master PR — so a
 # single prod → preprod trigger walks the hotfix all the way back to master.
-# The chained PR is created with BYPASS_BRANCH_PROTECTION_TOKEN so its
-# required checks (PyTest / Playwright / Sandbox Deploy) actually run.
+# Both PRs are created with BYPASS_BRANCH_PROTECTION_TOKEN so their checks
+# actually run (GITHUB_TOKEN-created PRs start no workflow run): the chained PR
+# gets master's required checks (PyTest / Playwright / Sandbox Deploy), and a
+# promotion PR gets the Promotion Gate, Integration Tests and Helm runs.
 #
 # After a PR is created and reviewed, merge it normally.
 # The promotion-gate.yaml check enforces that only valid source branches can merge.
@@ -75,10 +77,14 @@ jobs:
               exit 1 ;;
           esac
 
+      # BYPASS_BRANCH_PROTECTION_TOKEN (a PAT) is used for the same reason as the
+      # back-merge job below: GITHUB_TOKEN-created PRs start no workflow run, so a
+      # GITHUB_TOKEN-created promotion PR records the Promotion Gate, Integration
+      # Tests and Helm suites as failed with zero jobs and never evaluates them.
       - name: Generate changelog and create PR
         id: create_pr
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.BYPASS_BRANCH_PROTECTION_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SOURCE: ${{ github.event.inputs.source }}
           TARGET: ${{ github.event.inputs.target }}
