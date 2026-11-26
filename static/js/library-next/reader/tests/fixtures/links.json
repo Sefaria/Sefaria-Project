@@ -1,0 +1,1136 @@
+[
+ {
+  "index_title": "Rashbam on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Rashbam on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Rashbam on Genesis 1:1:1",
+  "sourceHeRef": "רשב\"ם על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1120,
+   1160
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Rashbam",
+   "he": "רשב\"ם"
+  }
+ },
+ {
+  "index_title": "Ramban on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Ramban on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Ramban on Genesis 1:1:1",
+  "sourceHeRef": "רמב\"ן על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1246,
+   1270
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Ramban",
+   "he": "רמב\"ן"
+  }
+ },
+ {
+  "index_title": "Sforno on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Sforno on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Sforno on Genesis 1:1:1",
+  "sourceHeRef": "ספורנו על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1500,
+   1550
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Sforno",
+   "he": "ספורנו"
+  }
+ },
+ {
+  "index_title": "Sforno on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Sforno on Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Sforno on Genesis 1:1:2",
+  "sourceHeRef": "ספורנו על בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1500,
+   1550
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Sforno",
+   "he": "ספורנו"
+  }
+ },
+ {
+  "index_title": "Kli Yakar on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Kli Yakar on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Kli Yakar on Genesis 1:1:1",
+  "sourceHeRef": "כלי יקר על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1598,
+   1602
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Kli Yakar",
+   "he": "כלי יקר"
+  }
+ },
+ {
+  "index_title": "Kli Yakar on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Kli Yakar on Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Kli Yakar on Genesis 1:1:2",
+  "sourceHeRef": "כלי יקר על בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1598,
+   1602
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Kli Yakar",
+   "he": "כלי יקר"
+  }
+ },
+ {
+  "index_title": "Ramban on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Ramban on Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Ramban on Genesis 1:1:2",
+  "sourceHeRef": "רמב\"ן על בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1246,
+   1270
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Ramban",
+   "he": "רמב\"ן"
+  }
+ },
+ {
+  "index_title": "Ibn Ezra on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Ibn Ezra on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Ibn Ezra on Genesis 1:1:1",
+  "sourceHeRef": "אבן עזרא על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1155,
+   1165
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Ibn Ezra",
+   "he": "אבן עזרא"
+  }
+ },
+ {
+  "index_title": "Ibn Ezra on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Ibn Ezra on Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Ibn Ezra on Genesis 1:1:2",
+  "sourceHeRef": "אבן עזרא על בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1155,
+   1165
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Ibn Ezra",
+   "he": "אבן עזרא"
+  }
+ },
+ {
+  "index_title": "Legends of the Jews",
+  "category": "Midrash",
+  "type": "summary",
+  "ref": "Legends of the Jews 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Legends of the Jews 1:1:1",
+  "sourceHeRef": "אגדות היהודים א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1909
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Legends of the Jews",
+   "he": "אגדות היהודים"
+  }
+ },
+ {
+  "index_title": "Sforno on Genesis",
+  "category": "Quoting Commentary",
+  "type": "",
+  "ref": "Sforno on Genesis 1:16:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Sforno on Genesis 1:16:1",
+  "sourceHeRef": "ספורנו על בראשית א׳:ט״ז:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1500,
+   1550
+  ],
+  "commentaryNum": 16.0001,
+  "collectiveTitle": {
+   "en": "Sforno on Genesis",
+   "he": "ספורנו על בראשית"
+  }
+ },
+ {
+  "index_title": "Psalms",
+  "category": "Tanakh",
+  "type": "related",
+  "ref": "Psalms 33:6",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Psalms 33:6",
+  "sourceHeRef": "תהילים ל״ג:ו׳",
+  "sourceHasEn": true,
+  "compDate": [
+   -1000,
+   0
+  ],
+  "commentaryNum": 33.0006,
+  "collectiveTitle": {
+   "en": "Psalms",
+   "he": "תהילים"
+  }
+ },
+ {
+  "index_title": "Mishnah Chagigah",
+  "category": "Mishnah",
+  "type": "reference",
+  "ref": "Mishnah Chagigah 2:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Mishnah Chagigah 2:1",
+  "sourceHeRef": "משנה חגיגה ב׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   190,
+   230
+  ],
+  "commentaryNum": 2.0001,
+  "collectiveTitle": {
+   "en": "Mishnah Chagigah",
+   "he": "משנה חגיגה"
+  }
+ },
+ {
+  "index_title": "Shadal on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Shadal on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Shadal on Genesis 1:1:1",
+  "sourceHeRef": "שד\"ל על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1835,
+   1865
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Shadal",
+   "he": "שד\"ל"
+  }
+ },
+ {
+  "index_title": "Shadal on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Shadal on Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Shadal on Genesis 1:1:2",
+  "sourceHeRef": "שד\"ל על בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1835,
+   1865
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Shadal",
+   "he": "שד\"ל"
+  }
+ },
+ {
+  "index_title": "Targum Jonathan on Genesis",
+  "category": "Targum",
+  "type": "targum",
+  "ref": "Targum Jonathan on Genesis 1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Targum Jonathan on Genesis 1:1",
+  "sourceHeRef": "תרגום יונתן על בראשית א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   150,
+   250
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Targum Jonathan on Genesis",
+   "he": "תרגום יונתן על בראשית"
+  }
+ },
+ {
+  "index_title": "Targum Neofiti",
+  "category": "Targum",
+  "type": "targum",
+  "ref": "Targum Neofiti 1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Targum Neofiti 1:1",
+  "sourceHeRef": "תרגום ניאופיטי א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   30,
+   70
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Targum Neofiti",
+   "he": "תרגום ניאופיטי"
+  }
+ },
+ {
+  "index_title": "Kitzur Ba'al HaTurim on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Kitzur Ba'al HaTurim on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Kitzur Ba'al HaTurim on Genesis 1:1:1",
+  "sourceHeRef": "קיצור בעל הטורים על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1280,
+   1340
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Kitzur Ba'al HaTurim",
+   "he": "קיצור בעל הטורים "
+  }
+ },
+ {
+  "index_title": "Or HaChaim on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Or HaChaim on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Or HaChaim on Genesis 1:1:1",
+  "sourceHeRef": "אור החיים על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1718,
+   1742
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Or HaChaim",
+   "he": "אור החיים"
+  }
+ },
+ {
+  "index_title": "Or HaChaim on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Or HaChaim on Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Or HaChaim on Genesis 1:1:2",
+  "sourceHeRef": "אור החיים על בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1718,
+   1742
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Or HaChaim",
+   "he": "אור החיים"
+  }
+ },
+ {
+  "index_title": "Radak on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Radak on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Radak on Genesis 1:1:1",
+  "sourceHeRef": "רד\"ק על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1185,
+   1235
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Radak",
+   "he": "רד\"ק"
+  }
+ },
+ {
+  "index_title": "Haamek Davar on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Haamek Davar on Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Haamek Davar on Genesis 1:1:1",
+  "sourceHeRef": "העמק דבר על בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1840,
+   1880
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Haamek Davar",
+   "he": "העמק דבר"
+  }
+ },
+ {
+  "index_title": "Haamek Davar on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Haamek Davar on Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Haamek Davar on Genesis 1:1:2",
+  "sourceHeRef": "העמק דבר על בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1840,
+   1880
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Haamek Davar",
+   "he": "העמק דבר"
+  }
+ },
+ {
+  "index_title": "Radak on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Radak on Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Radak on Genesis 1:1:2",
+  "sourceHeRef": "רד\"ק על בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1185,
+   1235
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Radak",
+   "he": "רד\"ק"
+  }
+ },
+ {
+  "index_title": "Meshekh Chokhmah",
+  "category": "Quoting Commentary",
+  "type": "parshanut",
+  "ref": "Meshekh Chokhmah, Bereshit 2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Meshekh Chokhmah, Bereshit 2",
+  "sourceHeRef": "משך חכמה, בראשית ב׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1875,
+   1925
+  ],
+  "commentaryNum": 2,
+  "collectiveTitle": {
+   "en": "Meshekh Chokhmah",
+   "he": "משך חכמה"
+  }
+ },
+ {
+  "index_title": "Onkelos Genesis",
+  "category": "Targum",
+  "type": "targum",
+  "ref": "Onkelos Genesis 1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Onkelos Genesis 1:1",
+  "sourceHeRef": "תרגום אונקלוס על בראשית א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   80,
+   120
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Onkelos Genesis",
+   "he": "תרגום אונקלוס על בראשית"
+  }
+ },
+ {
+  "index_title": "Nineteen Letters",
+  "category": "Jewish Thought",
+  "type": "commentary",
+  "ref": "Nineteen Letters 3:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Nineteen Letters 3:2",
+  "sourceHeRef": "אגרות צפון ג׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1836
+  ],
+  "commentaryNum": 3.0002,
+  "collectiveTitle": {
+   "en": "Nineteen Letters",
+   "he": "אגרות צפון"
+  }
+ },
+ {
+  "index_title": "Nineteen Letters",
+  "category": "Jewish Thought",
+  "type": "",
+  "ref": "Nineteen Letters 4:1",
+  "anchorRef": "Genesis 1:1-2",
+  "sourceRef": "Nineteen Letters 4:1",
+  "sourceHeRef": "אגרות צפון ד׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1836
+  ],
+  "commentaryNum": 4.0001,
+  "collectiveTitle": {
+   "en": "Nineteen Letters",
+   "he": "אגרות צפון"
+  }
+ },
+ {
+  "index_title": "Penei David",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Penei David, Genesis, Bereshit 1:1-2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Penei David, Genesis, Bereshit 1:1-2",
+  "sourceHeRef": "פני דוד, בראשית, בראשית א׳:א׳-ב׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1768,
+   1792
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Penei David",
+   "he": "פני דוד"
+  }
+ },
+ {
+  "index_title": "Penei David",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Penei David, Genesis, Bereshit 2:1-7",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Penei David, Genesis, Bereshit 2:1-7",
+  "sourceHeRef": "פני דוד, בראשית, בראשית ב׳:א׳-ז׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1768,
+   1792
+  ],
+  "commentaryNum": 2.0001,
+  "collectiveTitle": {
+   "en": "Penei David",
+   "he": "פני דוד"
+  }
+ },
+ {
+  "index_title": "Targum Jerusalem",
+  "category": "Targum",
+  "type": "targum",
+  "ref": "Targum Jerusalem, Genesis 1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Targum Jerusalem, Genesis 1:1",
+  "sourceHeRef": "תרגום ירושלמי, בראשית א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   380,
+   1180
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Targum Jerusalem",
+   "he": "תרגום ירושלמי"
+  }
+ },
+ {
+  "index_title": "Tafsir Rasag",
+  "category": "Targum",
+  "type": "targum",
+  "ref": "Tafsir Rasag, Genesis 1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Tafsir Rasag, Genesis 1:1",
+  "sourceHeRef": "תפסיר רס\"ג, בראשית א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   918,
+   942
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Tafsir Rasag",
+   "he": "תפסיר רס\"ג"
+  }
+ },
+ {
+  "index_title": "Genesis",
+  "category": "Tanakh",
+  "type": "related",
+  "ref": "Genesis 2:4",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Genesis 2:4",
+  "sourceHeRef": "בראשית ב׳:ד׳",
+  "sourceHasEn": true,
+  "compDate": [
+   -1400,
+   -400
+  ],
+  "commentaryNum": 2.0004,
+  "collectiveTitle": {
+   "en": "Genesis",
+   "he": "בראשית"
+  }
+ },
+ {
+  "index_title": "Mei HaShiloach",
+  "category": "Chasidut",
+  "type": "commentary",
+  "ref": "Mei HaShiloach, Volume I, Genesis, Bereshit 1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Mei HaShiloach, Volume I, Genesis, Bereshit 1",
+  "sourceHeRef": "מי השלוח, חלק א, ספר בראשית, בראשית א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1840,
+   1860
+  ],
+  "commentaryNum": 1,
+  "collectiveTitle": {
+   "en": "Mei HaShiloach",
+   "he": "מי השלוח"
+  }
+ },
+ {
+  "index_title": "Mei HaShiloach",
+  "category": "Chasidut",
+  "type": "commentary",
+  "ref": "Mei HaShiloach, Volume II, Genesis, Bereshit 1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Mei HaShiloach, Volume II, Genesis, Bereshit 1",
+  "sourceHeRef": "מי השלוח, חלק ב, ספר בראשית, בראשית א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1840,
+   1860
+  ],
+  "commentaryNum": 1,
+  "collectiveTitle": {
+   "en": "Mei HaShiloach",
+   "he": "מי השלוח"
+  }
+ },
+ {
+  "index_title": "Tur HaArokh",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Tur HaArokh, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Tur HaArokh, Genesis 1:1:1",
+  "sourceHeRef": "הטור הארוך, בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1280,
+   1340
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Tur HaAroch",
+   "he": "הטור הארוך"
+  }
+ },
+ {
+  "index_title": "Minchat Shai on Torah",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Minchat Shai on Torah, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Minchat Shai on Torah, Genesis 1:1:1",
+  "sourceHeRef": "מנחת שי על תורה, בראשית א׳:א׳:א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1526
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Minchat Shai",
+   "he": "מנחת שי"
+  }
+ },
+ {
+  "index_title": "Proverbs",
+  "category": "Tanakh",
+  "type": "related",
+  "ref": "Proverbs 9:10",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Proverbs 9:10",
+  "sourceHeRef": "משלי ט׳:י׳",
+  "sourceHasEn": true,
+  "compDate": [
+   -800,
+   -400
+  ],
+  "commentaryNum": 9.001,
+  "collectiveTitle": {
+   "en": "Proverbs",
+   "he": "משלי"
+  }
+ },
+ {
+  "index_title": "Sefer HaYashar",
+  "category": "Musar",
+  "type": "related",
+  "ref": "Sefer HaYashar 1:5",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Sefer HaYashar 1:5",
+  "sourceHeRef": "ספר הישר א׳:ה׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1300
+  ],
+  "commentaryNum": 1.0005,
+  "collectiveTitle": {
+   "en": "Sefer HaYashar",
+   "he": "ספר הישר"
+  }
+ },
+ {
+  "index_title": "Mizrachi",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Mizrachi, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Mizrachi, Genesis 1:1:1",
+  "sourceHeRef": "מזרחי, בראשית א׳:א׳:א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1475,
+   1525
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Mizrachi",
+   "he": "מזרחי"
+  }
+ },
+ {
+  "index_title": "Mizrachi",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Mizrachi, Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Mizrachi, Genesis 1:1:2",
+  "sourceHeRef": "מזרחי, בראשית א׳:א׳:ב׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1475,
+   1525
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Mizrachi",
+   "he": "מזרחי"
+  }
+ },
+ {
+  "index_title": "Rabbeinu Bahya",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Rabbeinu Bahya, Bereshit 1:1:9-11",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Rabbeinu Bahya, Bereshit 1:1:9-11",
+  "sourceHeRef": "רבנו בחיי, בראשית א׳:א׳:ט׳-י״א",
+  "sourceHasEn": true,
+  "compDate": [
+   1290,
+   1310
+  ],
+  "commentaryNum": 1.0009,
+  "collectiveTitle": {
+   "en": "Rabbeinu Bahya",
+   "he": "רבנו בחיי"
+  }
+ },
+ {
+  "index_title": "Rabbeinu Bahya",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Rabbeinu Bahya, Bereshit 1:1:12-14",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Rabbeinu Bahya, Bereshit 1:1:12-14",
+  "sourceHeRef": "רבנו בחיי, בראשית א׳:א׳:י״ב-י״ד",
+  "sourceHasEn": true,
+  "compDate": [
+   1290,
+   1310
+  ],
+  "commentaryNum": 1.0012,
+  "collectiveTitle": {
+   "en": "Rabbeinu Bahya",
+   "he": "רבנו בחיי"
+  }
+ },
+ {
+  "index_title": "Malbim on Genesis",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Malbim on Genesis 1:1:1-9",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Malbim on Genesis 1:1:1-9",
+  "sourceHeRef": "מלבי\"ם על בראשית א׳:א׳:א׳-ט׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1845,
+   1875
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Malbim",
+   "he": "מלבי\"ם"
+  }
+ },
+ {
+  "index_title": "HaKtav VeHaKabalah",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "HaKtav VeHaKabalah, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "HaKtav VeHaKabalah, Genesis 1:1:1",
+  "sourceHeRef": "הכתב והקבלה, בראשית א׳:א׳:א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1829,
+   1839
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "HaKtav VeHaKabalah",
+   "he": "הכתב והקבלה"
+  }
+ },
+ {
+  "index_title": "HaKtav VeHaKabalah",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "HaKtav VeHaKabalah, Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "HaKtav VeHaKabalah, Genesis 1:1:2",
+  "sourceHeRef": "הכתב והקבלה, בראשית א׳:א׳:ב׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1829,
+   1839
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "HaKtav VeHaKabalah",
+   "he": "הכתב והקבלה"
+  }
+ },
+ {
+  "index_title": "Torah Temimah on Torah",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Torah Temimah on Torah, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Torah Temimah on Torah, Genesis 1:1:1",
+  "sourceHeRef": "תורה תמימה על התורה, בראשית א׳:א׳:א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1898,
+   1902
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Torah Temimah on Torah",
+   "he": "תורה תמימה על התורה"
+  }
+ },
+ {
+  "index_title": "Torah Temimah on Torah",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Torah Temimah on Torah, Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Torah Temimah on Torah, Genesis 1:1:2",
+  "sourceHeRef": "תורה תמימה על התורה, בראשית א׳:א׳:ב׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1898,
+   1902
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Torah Temimah on Torah",
+   "he": "תורה תמימה על התורה"
+  }
+ },
+ {
+  "index_title": "Riva on Torah",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Riva on Torah, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Riva on Torah, Genesis 1:1:1",
+  "sourceHeRef": "ריב\"א על התורה, בראשית א׳:א׳:א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1090,
+   1130
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Riva",
+   "he": "ריב\"א"
+  }
+ },
+ {
+  "index_title": "Siftei Chakhamim",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Siftei Chakhamim, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Siftei Chakhamim, Genesis 1:1:1",
+  "sourceHeRef": "שפתי חכמים, בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1660,
+   1680
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Siftei Chakhamim",
+   "he": "שפתי חכמים"
+  }
+ },
+ {
+  "index_title": "Siftei Chakhamim",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Siftei Chakhamim, Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Siftei Chakhamim, Genesis 1:1:2",
+  "sourceHeRef": "שפתי חכמים, בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1660,
+   1680
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Siftei Chakhamim",
+   "he": "שפתי חכמים"
+  }
+ },
+ {
+  "index_title": "Guide for the Perplexed",
+  "category": "Jewish Thought",
+  "type": "",
+  "ref": "Guide for the Perplexed, Part 2 30:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Guide for the Perplexed, Part 2 30:1",
+  "sourceHeRef": "מורה נבוכים, חלק ב' ל׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1190
+  ],
+  "commentaryNum": 30.0001,
+  "collectiveTitle": {
+   "en": "Guide for the Perplexed",
+   "he": "מורה נבוכים"
+  }
+ },
+ {
+  "index_title": "Jeremiah",
+  "category": "Tanakh",
+  "type": "related",
+  "ref": "Jeremiah 2:3",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Jeremiah 2:3",
+  "sourceHeRef": "ירמיהו ב׳:ג׳",
+  "sourceHasEn": true,
+  "compDate": [
+   -600,
+   -500
+  ],
+  "commentaryNum": 2.0003,
+  "collectiveTitle": {
+   "en": "Jeremiah",
+   "he": "ירמיהו"
+  }
+ },
+ {
+  "index_title": "Ralbag Beur HaMilot on Torah",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Ralbag Beur HaMilot on Torah, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Ralbag Beur HaMilot on Torah, Genesis 1:1:1",
+  "sourceHeRef": "רלב\"ג ביאור המלות על התורה, בראשית א׳:א׳:א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1326,
+   1340
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Ralbag Beur HaMilot",
+   "he": "רלב\"ג ביאור המלות"
+  }
+ },
+ {
+  "index_title": "Psalms",
+  "category": "Tanakh",
+  "type": "",
+  "ref": "Psalms 33:9",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Psalms 33:9",
+  "sourceHeRef": "תהילים ל״ג:ט׳",
+  "sourceHasEn": true,
+  "compDate": [
+   -1000,
+   0
+  ],
+  "commentaryNum": 33.0009,
+  "collectiveTitle": {
+   "en": "Psalms",
+   "he": "תהילים"
+  }
+ },
+ {
+  "index_title": "Tzror HaMor on Torah",
+  "category": "Commentary",
+  "type": "commentary",
+  "ref": "Tzror HaMor on Torah, Genesis 1:1:1-2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Tzror HaMor on Torah, Genesis 1:1:1-2",
+  "sourceHeRef": "צרור המור על התורה, בראשית א׳:א׳:א׳-ב׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1460,
+   1510
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Tzror HaMor",
+   "he": "צרור המור"
+  }
+ },
+ {
+  "index_title": "Midrash Aggadah",
+  "category": "Midrash",
+  "type": "midrash",
+  "ref": "Midrash Aggadah, Genesis 1:1:1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Midrash Aggadah, Genesis 1:1:1",
+  "sourceHeRef": "מדרש אגדה, בראשית א׳:א׳:א׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1020,
+   1220
+  ],
+  "commentaryNum": 1.0001,
+  "collectiveTitle": {
+   "en": "Midrash Aggadah",
+   "he": "מדרש אגדה"
+  }
+ },
+ {
+  "index_title": "Midrash Aggadah",
+  "category": "Midrash",
+  "type": "midrash",
+  "ref": "Midrash Aggadah, Genesis 1:1:2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Midrash Aggadah, Genesis 1:1:2",
+  "sourceHeRef": "מדרש אגדה, בראשית א׳:א׳:ב׳",
+  "sourceHasEn": true,
+  "compDate": [
+   1020,
+   1220
+  ],
+  "commentaryNum": 1.0002,
+  "collectiveTitle": {
+   "en": "Midrash Aggadah",
+   "he": "מדרש אגדה"
+  }
+ },
+ {
+  "index_title": "Maor VaShemesh",
+  "category": "Chasidut",
+  "type": "commentary",
+  "ref": "Maor VaShemesh, Bereshit 1",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Maor VaShemesh, Bereshit 1",
+  "sourceHeRef": "מאור ושמש, בראשית א׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1817,
+   1823
+  ],
+  "commentaryNum": 1,
+  "collectiveTitle": {
+   "en": "Maor VaShemesh",
+   "he": "מאור ושמש"
+  }
+ },
+ {
+  "index_title": "Maor VaShemesh",
+  "category": "Chasidut",
+  "type": "commentary",
+  "ref": "Maor VaShemesh, Bereshit 2",
+  "anchorRef": "Genesis 1:1",
+  "sourceRef": "Maor VaShemesh, Bereshit 2",
+  "sourceHeRef": "מאור ושמש, בראשית ב׳",
+  "sourceHasEn": false,
+  "compDate": [
+   1817,
+   1823
+  ],
+  "commentaryNum": 2,
+  "collectiveTitle": {
+   "en": "Maor VaShemesh",
+   "he": "מאור ושמש"
+  }
+ }
+]

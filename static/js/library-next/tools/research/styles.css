@@ -1,0 +1,55 @@
+/* Scholar reader tools. Logical properties only; the panel sets the writing direction. */
+
+/* versions diff */
+.ln-diff-side { font-size: var(--ln-text-m); line-height: 1.8; }
+.ln-diff-token.is-changed { border-radius: 3px; padding-inline: 2px; }
+.ln-diff-a .ln-diff-token.is-changed, .ln-diff-del { background: color-mix(in srgb, #c0392b 18%, transparent); text-decoration: line-through; text-decoration-color: #c0392b; }
+.ln-diff-b .ln-diff-token.is-changed, .ln-diff-ins { background: color-mix(in srgb, #2e7d32 20%, transparent); }
+.ln-diff-legend { display: inline-flex; gap: var(--ln-space-2); margin-inline-start: var(--ln-space-2); }
+.ln-diff-summary { margin: 0; }
+
+/* manuscripts */
+.ln-ms-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: var(--ln-space-3); }
+.ln-ms-card { display: grid; gap: var(--ln-space-1); }
+.ln-ms-thumb { display: block; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--ln-color-rule); border-radius: var(--ln-radius-s); background: var(--ln-color-surface); }
+.ln-ms-thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+.ln-ms-thumb.is-broken img { display: none; }
+.ln-ms-thumb.is-broken { display: grid; place-items: center; }
+.ln-ms-thumb.is-broken::after { content: "⧉"; font-size: 2rem; color: var(--ln-color-muted); }
+.ln-ms-meta { display: grid; gap: 2px; font-size: var(--ln-text-xs); }
+.ln-ms-title { font-size: var(--ln-text-s); }
+.ln-ms-desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* lexicon */
+.ln-lex-line { margin: 0 0 var(--ln-space-2); line-height: 2.1; font-size: var(--ln-text-l); }
+.ln-lex-n { font-size: var(--ln-text-xs); color: var(--ln-color-muted); margin-inline-end: var(--ln-space-2); font-family: var(--ln-font-ui); }
+.ln-lex-word { background: none; border: 0; border-radius: 4px; padding: 0 3px; margin: 0 1px; font: inherit; color: inherit; cursor: pointer; }
+.ln-lex-word:hover, .ln-lex-word:focus-visible { background: var(--ln-color-surface); outline: 1px solid var(--ln-color-rule); }
+.ln-lex-word.is-active { background: var(--ln-color-ink); color: var(--ln-color-page); }
+.ln-lex-input { flex: 1 1 8rem; }
+.ln-lex-entries { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ln-space-3); }
+.ln-lex-entry { border-block-start: 1px solid var(--ln-color-rule); padding-block-start: var(--ln-space-2); }
+.ln-lex-headword { font-size: var(--ln-text-l); }
+.ln-lex-source { margin-inline-start: auto; color: var(--ln-color-ink-2); border: 1px solid var(--ln-color-rule); border-radius: 999px; padding: 0 var(--ln-space-2); }
+.ln-lex-senses { margin: var(--ln-space-1) 0 0; padding-inline-start: 1.2em; font-size: var(--ln-text-s); line-height: 1.5; }
+.ln-lex-sense.depth-1 { margin-inline-start: 1em; }
+.ln-lex-sense.depth-2 { margin-inline-start: 2em; }
+.ln-lex-sense a { color: inherit; text-decoration: underline; }
+.ln-lex-refs { margin: var(--ln-space-1) 0 0; }
+
+/* cite / export */
+.ln-cite-block { white-space: pre-wrap; font-family: var(--ln-font-mono, ui-monospace, monospace); margin: 0; }
+
+/* cross-references graph */
+.ln-graph { inline-size: 100%; max-inline-size: 22rem; block-size: auto; display: block; margin-inline: auto; font-family: var(--ln-font-ui); }
+.ln-graph-arc { fill: none; stroke-width: 3; opacity: 0.35; }
+.ln-graph-edge { opacity: 0.35; }
+.ln-graph-center circle { fill: var(--ln-color-ink); }
+.ln-graph-center text { fill: var(--ln-color-page); font-size: 12px; font-weight: 600; }
+.ln-graph-node { cursor: pointer; }
+.ln-graph-node:hover circle, .ln-graph-node:focus-visible circle { stroke: var(--ln-color-ink); stroke-width: 2; }
+.ln-graph-node:focus-visible { outline: none; }
+.ln-graph-label { font-size: 9px; fill: var(--ln-color-ink-2); }
+.ln-graph-count { font-size: 8px; fill: #fff; font-weight: 600; pointer-events: none; }
+.ln-graph-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ln-space-1) var(--ln-space-3); font-size: var(--ln-text-xs); }
+.ln-graph-legend-item { display: inline-flex; align-items: center; gap: var(--ln-space-1); }

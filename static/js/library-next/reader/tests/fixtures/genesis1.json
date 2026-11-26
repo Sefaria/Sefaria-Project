@@ -1,0 +1,167 @@
+{
+ "ref": "Genesis 1",
+ "heRef": "בראשית א׳",
+ "isComplex": false,
+ "text": [
+  "When God began to create<sup class=\"footnote-marker\">a</sup><i class=\"footnote\"><b>When God began to create </b>In contrast to others “In the beginning God created.”</i> heaven and earth— ",
+  "the earth being unformed and void, with darkness over the surface of the deep and a wind from<sup class=\"footnote-marker\">b</sup><i class=\"footnote\"><b>a wind from </b>In contrast to others “the spirit of.”</i> God sweeping over the water— ",
+  "God said, “Let there be light”; and there was light. ",
+  "God saw that the light was good, and God separated the light from the darkness. ",
+  "God called the light Day—and called the darkness Night. And there was evening and there was morning, a first day.<sup class=\"footnote-marker\">c</sup><i class=\"footnote\"><b>a first day </b>In contrast to others “one day.”</i> "
+ ],
+ "he": [
+  "<big>בְּ</big>רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃",
+  "וְהָאָ֗רֶץ הָיְתָ֥ה תֹ֙הוּ֙ וָבֹ֔הוּ וְחֹ֖שֶׁךְ עַל־פְּנֵ֣י תְה֑וֹם וְר֣וּחַ אֱלֹהִ֔ים מְרַחֶ֖פֶת עַל־פְּנֵ֥י הַמָּֽיִם׃",
+  "וַיֹּ֥אמֶר אֱלֹהִ֖ים יְהִ֣י א֑וֹר וַֽיְהִי־אֽוֹר׃",
+  "וַיַּ֧רְא אֱלֹהִ֛ים אֶת־הָא֖וֹר כִּי־ט֑וֹב וַיַּבְדֵּ֣ל אֱלֹהִ֔ים בֵּ֥ין הָא֖וֹר וּבֵ֥ין הַחֹֽשֶׁךְ׃",
+  "וַיִּקְרָ֨א אֱלֹהִ֤ים&thinsp;<small>׀</small>&thinsp;לָאוֹר֙ י֔וֹם וְלַחֹ֖שֶׁךְ קָ֣רָא לָ֑יְלָה וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם אֶחָֽד׃&nbsp;<span class=\"mam-spi-pe\">{פ}</span><br>"
+ ],
+ "versions": [
+  {
+   "status": "locked",
+   "priority": 2,
+   "license": "CC-BY-SA",
+   "language": "he",
+   "versionTitle": "Miqra according to the Masorah",
+   "versionTitleInHebrew": "מקרא על פי המסורה",
+   "shortVersionTitle": "",
+   "actualLanguage": "he",
+   "isPrimary": true,
+   "isSource": true
+  },
+  {
+   "status": "locked",
+   "priority": 1,
+   "license": "Public Domain",
+   "language": "he",
+   "versionTitle": "Tanach with Ta'amei Hamikra",
+   "versionTitleInHebrew": "תנ״ך מלווה בטעמי מקרא",
+   "shortVersionTitle": "",
+   "actualLanguage": "he",
+   "isPrimary": true,
+   "isSource": true
+  },
+  {
+   "status": "locked",
+   "priority": "",
+   "license": "Public Domain",
+   "language": "he",
+   "versionTitle": "Tanach with Text Only",
+   "versionTitleInHebrew": "תנ״ך - טקסט בלבד",
+   "shortVersionTitle": "",
+   "actualLanguage": "he",
+   "isPrimary": true,
+   "isSource": true
+  },
+  {
+   "status": "locked",
+   "priority": 8,
+   "license": "CC-BY-NC",
+   "language": "en",
+   "versionTitle": "THE JPS TANAKH: Gender-Sensitive Edition",
+   "versionTitleInHebrew": "",
+   "shortVersionTitle": "Revised JPS, 2023",
+   "actualLanguage": "en",
+   "isPrimary": false,
+   "isSource": false
+  },
+  {
+   "status": "locked",
+   "priority": 7,
+   "license": "CC-BY-NC",
+   "language": "en",
+   "versionTitle": "The Contemporary Torah, Jewish Publication Society, 2006",
+   "versionTitleInHebrew": "",
+   "shortVersionTitle": "The Contemporary Torah, JPS, 2006",
+   "actualLanguage": "en",
+   "isPrimary": false,
+   "isSource": false
+  },
+  {
+   "status": "locked",
+   "priority": 6,
+   "license": "Copyright: Schocken",
+   "language": "en",
+   "versionTitle": "The Five Books of Moses, by Everett Fox. New York, Schocken Books, 1995",
+   "versionTitleInHebrew": "",
+   "shortVersionTitle": "The Schocken Bible, Everett Fox, 1995 ©",
+   "actualLanguage": "en",
+   "isPrimary": false,
+   "isSource": false
+  },
+  {
+   "status": "locked",
+   "priority": 5,
+   "license": "CC-BY-NC",
+   "language": "en",
+   "versionTitle": "The Koren Jerusalem Bible",
+   "versionTitleInHebrew": "",
+   "shortVersionTitle": "",
+   "actualLanguage": "en",
+   "isPrimary": false,
+   "isSource": false
+  }
+ ],
+ "textDepth": 2,
+ "sectionNames": [
+  "Chapter",
+  "Verse"
+ ],
+ "addressTypes": [
+  "Perek",
+  "Pasuk"
+ ],
+ "lengths": [
+  50,
+  1533
+ ],
+ "length": 50,
+ "heTitle": "בראשית",
+ "type": "Tanakh",
+ "primary_category": "Tanakh",
+ "book": "Genesis",
+ "categories": [
+  "Tanakh",
+  "Torah"
+ ],
+ "order": [
+  1,
+  1
+ ],
+ "sections": [
+  1
+ ],
+ "toSections": [
+  1
+ ],
+ "isDependant": false,
+ "indexTitle": "Genesis",
+ "heIndexTitle": "בראשית",
+ "sectionRef": "Genesis 1",
+ "firstAvailableSectionRef": "Genesis 1",
+ "heSectionRef": "בראשית א׳",
+ "isSpanning": false,
+ "versionTitle": "THE JPS TANAKH: Gender-Sensitive Edition",
+ "versionTitleInHebrew": "",
+ "shortVersionTitle": "Revised JPS, 2023",
+ "shortVersionTitleInHebrew": "",
+ "versionSource": "https://jps.org/books/the-jps-tanakh-gender-sensitive-edition/",
+ "versionStatus": "locked",
+ "extendedNotesHebrew": "",
+ "digitizedBySefaria": false,
+ "license": "CC-BY-NC",
+ "formatEnAsPoetry": false,
+ "heVersionTitle": "Miqra according to the Masorah",
+ "heVersionTitleInHebrew": "מקרא על פי המסורה",
+ "heShortVersionTitle": "",
+ "heShortVersionTitleInHebrew": "",
+ "heVersionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
+ "heVersionStatus": "locked",
+ "heExtendedNotesHebrew": "",
+ "heDigitizedBySefaria": false,
+ "heLicense": "CC-BY-SA",
+ "formatHeAsPoetry": false,
+ "index_offsets_by_depth": {},
+ "next": "Genesis 2",
+ "prev": null
+}
