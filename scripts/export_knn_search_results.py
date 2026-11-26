@@ -3,7 +3,7 @@
 Export Sefaria KNN search results for a CSV of natural-language queries.
 
 Example:
-    SEFARIA_KNN_AUTH_TOKEN=... python scripts/export_knn_search_results.py
+    SEFARIA_KNN_AUTH_TOKEN=... SEFARIA_API_KEY=sfr_... python scripts/export_knn_search_results.py
 """
 
 import argparse
@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import requests
 
@@ -26,6 +26,15 @@ except ImportError:
 DEFAULT_INPUT = Path("data/private/dataset_natural_language_search.csv")
 DEFAULT_OUTPUT = Path("data/private/dataset_natural_language_search_knn_results.csv")
 DEFAULT_API_URL = "https://www.sefaria.org/api/knn-search"
+# The API key is only ever sent to these domains and their subdomains.
+SEFARIA_DOMAINS = (
+    "sefaria.org",
+    "sefaria.org.il",
+    "sefariastaging.org",
+    "sefariastaging-il.org",
+    "sefariapreprod.org",
+    "sefariapreprod-il.org",
+)
 DEFAULT_QUERY_COLUMN = "Simplified Search"
 RAW_QUERY_COLUMN = "User Query (click to open in Braintrust)"
 OUTPUT_FIELDS = [
@@ -51,6 +60,12 @@ def parse_args() -> argparse.Namespace:
         "--auth-token",
         default=os.environ.get("SEFARIA_KNN_AUTH_TOKEN"),
         help="Bearer token for /api/knn-search. Defaults to SEFARIA_KNN_AUTH_TOKEN.",
+    )
+    parser.add_argument(
+        "--api-key",
+        default=os.environ.get("SEFARIA_API_KEY"),
+        help="Sefaria API key (sfr_...) sent as X-API-Key on knn-search requests, to Sefaria hosts only. "
+        "Defaults to SEFARIA_API_KEY.",
     )
     parser.add_argument(
         "--query-column",
@@ -82,13 +97,21 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def is_sefaria_host(url: str) -> bool:
+    host = (urlsplit(url).hostname or "").lower().rstrip(".")
+    return any(host == domain or host.endswith("." + domain) for domain in SEFARIA_DOMAINS)
+
+
 def require_valid_args(args: argparse.Namespace) -> None:
     if not args.input.exists():
         raise SystemExit(f"Input CSV not found: {args.input}")
     if args.output.exists() and not args.overwrite:
         raise SystemExit(f"Output CSV already exists: {args.output}. Pass --overwrite to replace it.")
-    if not args.auth_token:
-        raise SystemExit("Missing auth token. Set SEFARIA_KNN_AUTH_TOKEN or pass --auth-token.")
+    args.api_key = (args.api_key or "").strip() or None
+    if args.api_key and not (urlsplit(args.api_url).scheme == "https" and is_sefaria_host(args.api_url)):
+        raise SystemExit("--api-key is only sent over HTTPS to Sefaria hosts; check --api-url.")
+    if not args.auth_token and not args.api_key:
+        raise SystemExit("Missing auth token. Set SEFARIA_KNN_AUTH_TOKEN or pass --auth-token (or an API key).")
     if args.limit < 1:
         raise SystemExit("--limit must be at least 1")
     if args.linked_ref_limit < 1:
@@ -103,7 +126,11 @@ def knn_search(session: requests.Session, args: argparse.Namespace, query: str) 
         "linked_ref_limit": args.linked_ref_limit,
         "include_text": True,
     }
-    response = session.post(args.api_url, json=payload, timeout=args.timeout)
+    headers = {"X-API-Key": args.api_key} if args.api_key else None
+    # No redirects with a key: requests would carry X-API-Key to another host.
+    response = session.post(
+        args.api_url, json=payload, timeout=args.timeout, headers=headers, allow_redirects=not args.api_key
+    )
     response.raise_for_status()
     return response.json()
 
@@ -254,12 +281,13 @@ def main() -> None:
     session = requests.Session()
     session.headers.update(
         {
-            "Authorization": f"Bearer {args.auth_token}",
             "Content-Type": "application/json",
             # Inlined so the script runs without the repo on sys.path; keep in sync with sefaria/constants/http.py.
             "User-Agent": "Sefaria/scripts",
         }
     )
+    if args.auth_token:
+        session.headers["Authorization"] = f"Bearer {args.auth_token}"
     text_cache: dict[str, tuple[str, str]] = {}
 
     with args.input.open(newline="", encoding="utf-8-sig") as input_file:

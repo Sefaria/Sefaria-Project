@@ -1,6 +1,7 @@
 """Standalone checker regression tests: stdlib only, no external requests."""
 
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -117,7 +118,7 @@ class CheckerTests(unittest.TestCase):
     def test_complete_run_and_before_after_changes(self):
         calls = []
 
-        def send(url, payload, token, timeout):
+        def send(url, payload, token, timeout, api_key=None):
             calls.append((payload, token))
             if token is None:
                 return 401, None, {"error": "Unauthorized"}
@@ -146,6 +147,79 @@ class CheckerTests(unittest.TestCase):
                 "https://example.test", "fake", "new", 1, 1, send=lambda *a: self.fail("Must not send")
             )
         self.assertTrue(all(not c["ok"] for c in checks))
+
+    def test_api_key_goes_with_the_bearer_on_authenticated_cases_only(self):
+        sent = []
+
+        def send(url, payload, token, timeout, api_key=None):
+            sent.append((token, api_key))
+            if token is None:
+                return 401, None, {"error": "Unauthorized"}
+            if not payload["query"]:
+                return 400, None, {"error": "Empty query"}
+            row = result(**payload.get("filters", {}))
+            if not payload["include_text"]:
+                del row["text"]
+            return 200, "new", {"results": [row], "linked_refs": []}
+
+        checks = checker.run_checks("https://example.test", "fake", "new", 1, 30, send=send, api_key="sfr_fake")
+        self.assertTrue(all(c["ok"] for c in checks))
+        self.assertEqual(sent[-1], (None, None))
+        self.assertTrue(all(pair == ("fake", "sfr_fake") for pair in sent[:-1]))
+
+    def test_request_sends_api_key_header_only_when_given(self):
+        import io
+
+        captured = []
+
+        class Response(io.BytesIO):
+            code = 200
+            headers = {}
+
+        class Opener:
+            def open(self, request, timeout):
+                captured.append(request)
+                return Response(b"{}")
+
+        with patch.object(checker.urllib.request, "build_opener", return_value=Opener()):
+            checker.request_json("https://www.sefaria.org/api/knn-search", {}, "fake", 1, api_key="sfr_fake")
+            checker.request_json("https://www.sefaria.org/api/knn-search", {}, "fake", 1)
+        self.assertEqual(captured[0].get_header("X-api-key"), "sfr_fake")
+        self.assertEqual(captured[0].get_header("Authorization"), "Bearer fake")
+        self.assertIsNone(captured[1].get_header("X-api-key"))
+
+    def test_sefaria_hosts(self):
+        for host in ("www.sefaria.org", "sefaria.org.il", "www.sefariapreprod-il.org", "x.cauldron.sefaria.org"):
+            self.assertTrue(checker.is_sefaria_host(host), host)
+        for host in ("example.test", "sefaria.org.evil.test", "notsefaria.org", "localhost", None):
+            self.assertFalse(checker.is_sefaria_host(host), host)
+
+    def test_api_key_is_not_sent_to_other_hosts(self):
+        import tempfile
+
+        seen = {}
+
+        def fake_run_checks(url, token, expected_backend, timeout, budget, api_key=None):
+            seen["api_key"] = api_key
+            return []
+
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch.dict(
+                checker.os.environ, {"SEMANTIC_SEARCH_API_TOKEN": "fake", "SEFARIA_API_KEY": "sfr_fake"}, clear=True
+            ),
+            patch.object(checker, "run_checks", fake_run_checks),
+        ):
+            for url, expected in (
+                ("https://www.sefaria.org/api/knn-search", "sfr_fake"),
+                ("http://localhost:8000/api/knn-search", None),
+                ("https://example.test/api/knn-search", None),
+            ):
+                output = Path(directory) / f"{len(seen)}-{expected}.json"
+                checker.main(["--api-url", url, "--label", "t", "--output", str(output)])
+                self.assertEqual(seen["api_key"], expected, url)
+                self.assertEqual(json.loads(output.read_text())["api_key_sent"], expected is not None)
+                output.unlink()
 
     def test_redirect_is_not_followed(self):
         self.assertIsNone(checker.NoRedirect().redirect_request(None, None, 302, "", {}, "https://other.test"))
