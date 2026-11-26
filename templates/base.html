@@ -67,7 +67,7 @@
     {% endwith %}
 
     {% if ldBreadcrumbs %}{% autoescape off %}
-    <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
+    <script type="application/ld+json">{{ ldBreadcrumbs|script_json }}</script>
     {% endautoescape %}{% endif %}
 
     {% block head %}{% endblock %}

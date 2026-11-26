@@ -211,3 +211,18 @@ def test_base_page_props_cannot_end_the_script_block():
         assert PROPS_MARKER_MIXED_CASE not in html
         printed = re.search(r"props:\s+(\{.*\}),\n\s+inReaderApp", html).group(1)
         assert json.loads(printed) == props
+
+
+@pytest.mark.django_db
+def test_base_page_breadcrumb_json_cannot_end_the_script_block():
+    from django.template.loader import render_to_string
+
+    breadcrumbs = json.dumps({"@type": "BreadcrumbList", "name": PROPS_MARKER}, ensure_ascii=False)
+    html = render_to_string("base.html", {"ldBreadcrumbs": breadcrumbs}, request=_request("/sheets/1"))
+    audit = _MarkupAudit()
+    audit.feed(html)
+    audit.close()
+    assert html.lower().count("</script") == audit.script_blocks
+    assert PROPS_MARKER not in html
+    printed = re.search(r'<script type="application/ld\+json">(.*?)</script>', html, re.S).group(1)
+    assert json.loads(printed) == json.loads(breadcrumbs)

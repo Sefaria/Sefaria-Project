@@ -39,7 +39,6 @@ from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.user_profile import *
 from sefaria.sheets import *
 from sefaria.sheets import (
-    _clean_sheet_options,
     bleach_text,
     clean_sheet_for_render,
     clean_source_for_render,
@@ -1166,7 +1165,7 @@ def export_to_drive(request, credential, sheet_id):
         return jsonResponse({"error": {"message": sheet["error"]}})
 
     options = {"language": request.GET.get("language", "bilingual"), "layout": request.GET.get("layout", "heRight")}
-    sheet["options"] = _clean_sheet_options(sheet["options"] | options)
+    sheet["options"] = sheet["options"] | options
 
     file_metadata = {"name": strip_tags(sheet["title"].strip()), "mimeType": "application/vnd.google-apps.document"}
     html_string = bytes(sheet_to_html_string(sheet), "utf8")
