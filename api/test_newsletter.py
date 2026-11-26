@@ -334,6 +334,26 @@ class TestRaiseIfACPageIsTruncated:
         assert _catalog.fetch_ac_lists() == [{"id": "1"}]
 
 
+class TestNormalizeNewsletterIcon:
+    """Tests for turning a hand-typed icon value into an icon file name"""
+
+    def test_keeps_name_with_extension(self):
+        assert _catalog.normalize_newsletter_icon("educator-resources.svg") == "educator-resources.svg"
+
+    def test_adds_svg_when_extension_is_missing(self, caplog):
+        assert _catalog.normalize_newsletter_icon("educator-resources") == "educator-resources.svg"
+        assert "'educator-resources'" in caplog.text
+
+    def test_uses_default_without_a_warning_when_icon_is_absent(self, caplog):
+        assert _catalog.normalize_newsletter_icon(None) == "news-and-resources.svg"
+        assert caplog.text == ""
+
+    @pytest.mark.parametrize("icon", ["", "   ", 5, ["educator-resources.svg"]])
+    def test_uses_default_and_reports_an_unusable_icon(self, icon, caplog):
+        assert _catalog.normalize_newsletter_icon(icon) == "news-and-resources.svg"
+        assert "is not a file name" in caplog.text
+
+
 class TestFetchACNewsletters:
     """Tests for complete newsletter list building with metadata"""
 
@@ -370,6 +390,25 @@ class TestFetchACNewsletters:
         assert newsletters[0]["language"] == "english"
         assert newsletters[1]["id"] == "2"
         assert newsletters[1]["icon"] == "educator-resources.svg"
+
+    @mock.patch("api.newsletter_service._catalog.fetch_ac_lists")
+    @mock.patch("api.newsletter_service._catalog.fetch_ac_personalization_variables")
+    def test_icon_without_extension_gets_svg(self, mock_variables, mock_lists):
+        """An icon typed without its extension names an existing file"""
+        mock_lists.return_value = [
+            {"id": "19", "stringid": "academic_and_scholar_updates", "name": "Academic & Scholar Updates"},
+        ]
+        mock_variables.return_value = [
+            {
+                "tag": "list_19_meta",
+                "name": "Academic & Scholar Updates",
+                "content": '{"icon": "educator-resources", "language": "english"}',
+            },
+        ]
+
+        newsletters = _catalog.fetch_ac_newsletters()
+
+        assert newsletters[0]["icon"] == "educator-resources.svg"
 
     @mock.patch("api.newsletter_service._catalog.fetch_ac_lists")
     @mock.patch("api.newsletter_service._catalog.fetch_ac_personalization_variables")

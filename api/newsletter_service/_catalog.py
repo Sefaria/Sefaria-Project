@@ -6,6 +6,7 @@ import json
 import logging
 import re
 from collections.abc import Mapping, Sequence
+from pathlib import PurePosixPath
 from typing import Any
 
 from django.core.cache import cache
@@ -146,6 +147,38 @@ def parse_variable_metadata(
     return metadata
 
 
+DEFAULT_NEWSLETTER_ICON: str = "news-and-resources.svg"
+
+
+def normalize_newsletter_icon(icon: Any) -> str:
+    """
+    Return the icon's file name under static/icons/newsletter-signup/.
+
+    In product terms: the picture the sign-up page shows for one newsletter. The
+    field is typed by hand in ActiveCampaign, so an entry can name the file
+    without its extension. The page builds the icon URL from this value alone, so
+    a name without the extension answers 404 and the option shows the fallback.
+
+    Args:
+        icon: The metadata value, or None when the variable omits the field. An
+            absent field is expected and uses the default; a blank or non-string
+            value is malformed metadata and is reported
+
+    Returns:
+        str: An existing file name such as "educator-resources.svg"
+    """
+    if icon is None:
+        return DEFAULT_NEWSLETTER_ICON
+    if not isinstance(icon, str) or not icon.strip():
+        logger.warning(f"Newsletter icon metadata {icon!r} is not a file name; using {DEFAULT_NEWSLETTER_ICON}")
+        return DEFAULT_NEWSLETTER_ICON
+    name: str = icon.strip()
+    if PurePosixPath(name).suffix:
+        return name
+    logger.warning(f"Newsletter icon metadata {name!r} has no file extension; using {name}.svg")
+    return f"{name}.svg"
+
+
 def fetch_all_ac_list_ids() -> list[str]:
     """
     Fetch all list IDs from ActiveCampaign (managed and unmanaged).
@@ -246,7 +279,7 @@ def fetch_ac_newsletters() -> list[NewsletterInfo]:
                 if variable_data["metadata"].get("language", "english") == "english"
                 else {"en": None, "he": variable_data["name"]}
             ),
-            "icon": variable_data["metadata"].get("icon", "news-and-resources.svg"),
+            "icon": normalize_newsletter_icon(variable_data["metadata"].get("icon")),
             "language": variable_data["metadata"].get("language", "english"),
             # Marks the general list, the one whose new subscribers get a
             # confirmation email. The metadata is typed by hand in ActiveCampaign,
