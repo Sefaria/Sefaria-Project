@@ -5,7 +5,12 @@ Refs pointing to virtual schemas, etc
 
 """
 
+import pytest
+
 from sefaria.model import *
+
+# Needs the Jastrow lexicon and library records from the restored dump (corpus job).
+pytestmark = pytest.mark.needs_corpus
 
 
 class Test_VirtualRefs:

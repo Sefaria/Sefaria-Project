@@ -39,7 +39,7 @@ def test_powered_by_form_path_is_not_the_poc_form():
 
 
 @pytest.mark.django_db
-def test_powered_by_still_redirects_to_the_developer_portal(client):
+def test_powered_by_still_redirects_to_the_gallery(client):
     # Site behaviour in sites/sefaria/urls.py, unrelated to the removed form.
     response = client.get("/powered-by")
     assert response.status_code == 301

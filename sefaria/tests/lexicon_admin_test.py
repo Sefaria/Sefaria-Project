@@ -86,6 +86,7 @@ def clean_lexicon_entries():
 
 
 class TestLexiconEntryGet:
+    @pytest.mark.needs_corpus
     @pytest.mark.django_db
     def test_returns_entry(self, anon_client):
         """GET is public -- no staff check."""
@@ -121,6 +122,7 @@ class TestLexiconEntryPatch:
             assert response.status_code == 403
             assert "Moderators" in json.loads(response.content)["error"]
 
+    @pytest.mark.needs_corpus
     @pytest.mark.django_db
     def test_rejects_excluded_attr(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-excl", "parent_lexicon": NO_INDEX_LEXICON}).save()
@@ -130,6 +132,7 @@ class TestLexiconEntryPatch:
         assert response.status_code == 400
         assert "headword" in json.loads(response.content)["error"]
 
+    @pytest.mark.needs_corpus
     @pytest.mark.django_db
     def test_success_replaces_content(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-ok", "parent_lexicon": NO_INDEX_LEXICON, "notes": "old"}).save()
@@ -155,6 +158,7 @@ class TestLexiconEntryPatch:
         response = patch_json(staff_client, entry_url(NO_INDEX_LEXICON, "lexadmintest-dupe2"), {"content": {}})
         assert response.status_code == 409
 
+    @pytest.mark.needs_corpus
     @pytest.mark.django_db
     def test_rejects_bad_content_shape(self, staff_client):
         """DictionaryEntry.attr_schemas rejects a non-dict content -- exercised end-to-end
@@ -212,6 +216,7 @@ class TestLexiconEntryHeadwordPatch:
         assert response.status_code == 200
         assert json.loads(response.content) == {"status": "ok", "headword": "lexadmintest-hwsame"}
 
+    @pytest.mark.needs_corpus
     @pytest.mark.django_db
     def test_rename_success(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-hwold", "parent_lexicon": NO_INDEX_LEXICON}).save()
@@ -227,6 +232,7 @@ class TestLexiconEntryHeadwordPatch:
         assert LexiconEntry().load({"parent_lexicon": NO_INDEX_LEXICON, "headword": "lexadmintest-hwold"}) is None
         assert LexiconEntry().load({"parent_lexicon": NO_INDEX_LEXICON, "headword": "lexadmintest-hwnew"})
 
+    @pytest.mark.needs_corpus
     @pytest.mark.django_db
     def test_rename_resolves_collision_with_superscript(self, staff_client):
         LexiconEntry({"headword": "lexadmintest-hwtaken", "parent_lexicon": NO_INDEX_LEXICON}).save()
@@ -271,6 +277,7 @@ class TestLexiconEntryHeadwordPatch:
         )
         assert response.status_code == 409
 
+    @pytest.mark.needs_corpus
     @pytest.mark.django_db
     def test_rename_race_returns_409_not_500(self, staff_client):
         """get_available_lexicon_headword already confirmed the resolved value was free --
@@ -287,6 +294,7 @@ class TestLexiconEntryHeadwordPatch:
         assert response.status_code == 409
         assert "please retry" in json.loads(response.content)["error"]
 
+    @pytest.mark.needs_corpus
     @pytest.mark.django_db
     def test_rename_corrupted_pointer_returns_500_not_409(self, staff_client):
         """A next_hw pointing at no real entry is pre-existing bad data, unrelated to this

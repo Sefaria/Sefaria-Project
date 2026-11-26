@@ -2,14 +2,17 @@ from types import SimpleNamespace
 
 import pytest
 
+import sefaria.model.topic as topic_model
 from django_topics.models import Topic as DjangoTopic
 from django_topics.models import TopicPool
 from django_topics.models.pool import PoolType
+from sefaria.model.abstract import deps as notify_deps
 from sefaria.model.text import Ref
 from sefaria.model.topic import (
     AuthorIndexAggregation,
     IntraTopicLink,
     IntraTopicLinkSet,
+    PersonTopic,
     RefTopicLink,
     RefTopicLinkSet,
     Topic,
@@ -195,6 +198,7 @@ class TestTopics:
         ls = ts["1"].link_set(_class=None)
         assert {getattr(l, "ref", getattr(l, "topic", None)) for l in ls} == (trefs | {_ms("2")})
 
+    @pytest.mark.needs_corpus
     def test_merge(self, topic_graph_to_merge):
         ts = topic_graph_to_merge["topics"]
         ts["20"].merge(ts["40"])
@@ -419,3 +423,54 @@ class TestRefTopicLink:
         with pytest.raises(DuplicateRecordError):
             l2.save()
         l1.delete()
+
+
+def _topic_classes():
+    """Base Topic plus every class named in Topic.subclass_map; notify() dispatches on the exact class."""
+    return [Topic] + [getattr(topic_model, name) for name in Topic.subclass_map.values()]
+
+
+class TestTopicDeleteCascadeSubclasses:
+    @pytest.mark.parametrize("klass", _topic_classes(), ids=lambda k: k.__name__)
+    def test_delete_cascade_subscribed(self, klass):
+        assert topic_model.process_topic_delete in notify_deps.get((klass, "delete", None), [])
+
+    @pytest.mark.parametrize("klass", _topic_classes(), ids=lambda k: k.__name__)
+    def test_description_change_link_creation_only_for_base_topic(self, klass):
+        subscribed = topic_model.process_topic_description_change in notify_deps.get(
+            (klass, "attributeChange", "description"), []
+        )
+        assert subscribed == (klass is Topic)
+
+    @pytest.mark.django_db
+    def test_deleting_person_topic_removes_links_sheet_tags_and_django_row(self, django_db_setup, django_db_blocker):
+        slug = _ms("person-delete")
+        other_slug = _ms("person-delete-other")
+        sheet_id = 1234567891
+        with django_db_blocker.unblock():
+            clean_links("person-delete")
+            clean_links("person-delete-other")
+            other = make_topic("person-delete-other")
+            person = PersonTopic({"slug": slug, "titles": [{"text": slug, "primary": True, "lang": "en"}]})
+            person.save()
+            make_it_link("person-delete", "person-delete-other", "is-a")
+            make_rt_link("person-delete", "Genesis 1:1")
+            mongo_db.sheets.insert_one(
+                {
+                    "id": sheet_id,
+                    "topics": [{"slug": slug, "asTyped": "person"}, {"slug": other_slug, "asTyped": "other"}],
+                }
+            )
+            try:
+                assert DjangoTopic.objects.filter(slug=slug).exists()
+                person.delete()
+                assert IntraTopicLinkSet({"$or": [{"fromTopic": slug}, {"toTopic": slug}]}).count() == 0
+                assert RefTopicLinkSet({"toTopic": slug}).count() == 0
+                sheet = mongo_db.sheets.find_one({"id": sheet_id})
+                assert [t["slug"] for t in sheet["topics"]] == [other_slug]
+                assert not DjangoTopic.objects.filter(slug=slug).exists()
+            finally:
+                mongo_db.sheets.delete_one({"id": sheet_id})
+                clean_links("person-delete")
+                clean_links("person-delete-other")
+                other.delete()
