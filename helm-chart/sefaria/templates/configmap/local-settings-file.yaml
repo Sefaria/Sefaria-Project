@@ -305,6 +305,7 @@ data:
     # USER_DELETED_WEBHOOK_URLS: comma-separated; empty sends nothing.
     USER_DELETED_WEBHOOK_URLS = [url.strip() for url in os.getenv("USER_DELETED_WEBHOOK_URLS", "").split(",") if url.strip()]
     USER_DELETED_WEBHOOK_SECRET = os.getenv("USER_DELETED_WEBHOOK_SECRET")
+    SOCIAL_LOOKUP_SECRET = os.getenv("SOCIAL_LOOKUP_SECRET")
 
     # Celery (Redis/Sentinel connection settings are defined above)
     CELERY_REDIS_BROKER_DB_NUM = os.getenv("CELERY_REDIS_BROKER_DB_NUM")

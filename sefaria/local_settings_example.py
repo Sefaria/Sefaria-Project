@@ -321,6 +321,11 @@ SOCIAL_TOKEN_LIFETIME_SECONDS = 600
 USER_DELETED_WEBHOOK_URLS = []
 USER_DELETED_WEBHOOK_SECRET = None
 
+# Account lookup by email for Sefaria Social's room invitations (sso/user_lookup.py, POST
+# /api/social/user-lookup): Social signs each request with this secret, the same scheme as the
+# webhook above. None: the endpoint answers 503 and Social emails every invited address.
+SOCIAL_LOOKUP_SECRET = None
+
 # Simple JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
