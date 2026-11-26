@@ -1195,6 +1195,11 @@ class ResolvedRefPruner:
         """
         Applies some heuristics to remove false positives
         """
+        # A resolved ref whose `ref` has no index (e.g. one built from empty ref text) cannot be
+        # ordered, compared, or rendered - Ref.order_id(), Ref.contains() and Ref.is_empty() all
+        # require an index. It is not a valid citation, so drop it up front instead of letting the
+        # ordering below raise and fail the whole link request.
+        resolved_refs = [r for r in resolved_refs if r.ref is None or r.ref.index is not None]
         resolved_refs = ResolvedRefPruner.remove_incorrect_matches(resolved_refs)
         if len(resolved_refs) == 0:
             return resolved_refs

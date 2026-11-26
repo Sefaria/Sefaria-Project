@@ -6,6 +6,20 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
 
+def test_refined_pruning_drops_resolved_ref_without_index():
+    # A resolved ref whose Ref has no index (e.g. built from empty ref text) cannot be ordered:
+    # Ref.order_id() and the pruner's index comparison both raise on it. The pruner must drop such a
+    # match rather than fail the whole link request (production AttributeError on NoneType.categories).
+    from sefaria.model.linker.ref_part_and_node_match import RefPartAndNodeMatch
+    from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRef, ResolvedRefPruner
+
+    indexless_ref = Ref("")
+    assert indexless_ref.index is None
+    node = SimpleNamespace(ref_order_id=lambda: "X")
+    bad_match = ResolvedRef(None, [RefPartAndNodeMatch((), node, True)], indexless_ref)
+    assert ResolvedRefPruner.prune_refined_ref_part_matches(ResolutionThoroughness.NORMAL, [bad_match, bad_match]) == []
+
+
 class Test_Ref:
     def test_short_names(self):
         ref = Ref("Exo. 3:1")
@@ -17,6 +31,12 @@ class Test_Ref:
         assert Ref("Prov.3.21")
         assert Ref("Exo.3.21")
         assert Ref("1Ch.") == Ref("1 Chronicles")
+
+    def test_order_id_falls_back_when_ref_has_no_index(self):
+        # A ref built from empty/None text has no index, so it has no catalog order. order_id() is a
+        # best-effort sort key and must return its fallback instead of raising AttributeError.
+        assert Ref("").order_id() == "Z"
+        assert Ref(None).order_id() == "Z"
 
     def test_normal_form_is_identifcal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
