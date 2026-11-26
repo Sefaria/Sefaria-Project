@@ -1,0 +1,554 @@
+// "Currently learning" (CurrentlyLearning.jsx): the homepage section, the header's list (a dropdown on desktop, a
+// sheet on mobile), and the history page's Books view.
+// Colors, spacing and border widths come from the design system's semantic tokens; fonts come from the `serif` /
+// `sans-serif` classes and InterfaceText. Values the design system has no token for yet (typography, radius, scrim,
+// shadow) are marked NO TOKEN.
+
+@import 'breakpoints';
+
+$icon-button-radius: 6px; // NO TOKEN: radius
+
+@mixin focus-ring {
+  outline: var(--border-width-thick) solid var(--border-focus);
+  outline-offset: var(--spacing-2xsmall);
+}
+
+@mixin icon-button {
+  width: var(--spacing-5xlarge); // 44px tap target
+  height: var(--spacing-5xlarge);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: var(--icon-large);
+  color: var(--icon-muted);
+}
+
+.currentlyLearning {
+  margin: 0 0 var(--spacing-4xlarge);
+
+  &.clPanelBody {
+    margin: 0;
+  }
+
+  .clHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-large);
+    margin-bottom: var(--spacing-medium);
+  }
+
+  .clHeading {
+    // Matches the "Browse the Library" title (.navTitle h1).
+    margin: 0;
+    font-size: var(--sans-serif-h3-font-size);
+    font-weight: 500; // NO TOKEN: typography
+    color: var(--text-secondary);
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .clShowMore {
+    font-size: var(--sans-serif-small-font-size);
+    color: var(--text-link);
+    min-height: var(--spacing-5xlarge);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xsmall);
+  }
+
+  // Rows: the header's list and the history page
+  .clList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: var(--border-width-thin) solid var(--border-default);
+  }
+
+  .clRow {
+    border-bottom: var(--border-width-thin) solid var(--border-default);
+  }
+
+  .clRowMain {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-medium);
+    padding: var(--spacing-medium) 0;
+  }
+
+  .clStripe {
+    width: var(--spacing-xsmall);
+    align-self: stretch;
+    flex-shrink: 0;
+  }
+
+  .clRowText {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .clBook {
+    margin: 0;
+    font-size: var(--serif-body-font-size);
+    font-weight: 400; // NO TOKEN: typography
+    color: var(--text-primary);
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .clPlace {
+    margin: var(--spacing-2xsmall) 0 0;
+    font-size: var(--sans-serif-small-font-size);
+    color: var(--text-muted);
+  }
+
+  .clActions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xsmall);
+    flex-shrink: 0;
+  }
+
+  .clIconButton {
+    @include icon-button;
+
+    padding: 0;
+    border-radius: $icon-button-radius;
+
+    &:hover {
+      background: var(--surface-hover);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    img {
+      width: var(--icon-medium);
+      height: var(--icon-medium);
+    }
+  }
+
+  .clExpandButton {
+    img {
+      transition: transform 0.15s ease;
+    }
+
+    &.expanded img {
+      transform: rotate(180deg);
+    }
+  }
+
+  // A book's places on each day (history page)
+  .clVisits {
+    list-style: none;
+    margin: 0;
+    padding-block: 0 var(--spacing-large);
+    padding-inline: var(--spacing-large) 0;
+    font-size: var(--sans-serif-small-font-size);
+
+    li {
+      min-height: var(--spacing-3xlarge);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-small);
+      color: var(--text-muted);
+    }
+
+    a {
+      color: var(--text-link);
+      padding: var(--spacing-small) 0;
+    }
+  }
+
+  // The logged-out invitation to sign up
+  .clEmptyState {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-medium);
+    padding-block: var(--spacing-medium);
+    padding-inline: 0 var(--spacing-medium);
+    background: var(--surface-subtle);
+    border: var(--border-width-thin) dashed var(--border-default);
+    border-top: none;
+
+    .clStripe {
+      background: var(--border-default);
+    }
+  }
+
+  .clHeader + .clEmptyState {
+    border-top: var(--border-width-thin) dashed var(--border-default);
+  }
+
+  .clEmptyTitle {
+    margin: 0;
+    font-size: var(--serif-body-font-size);
+    color: var(--text-secondary);
+  }
+
+  .clEmptyBody {
+    margin: var(--spacing-2xsmall) 0 0;
+    font-size: var(--sans-serif-small-font-size);
+    color: var(--text-secondary);
+
+    a {
+      color: var(--text-link);
+      text-decoration: underline; // inline text links: WCAG 2.5.8's inline exception covers the small target
+    }
+  }
+
+  // Homepage cards, left to right
+  .clCards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-large);
+
+    @include breakpoint(tablet) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @include breakpoint(mobile) {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--spacing-medium);
+    }
+  }
+
+  .clCard {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    padding: var(--spacing-medium) var(--spacing-large) var(--spacing-large);
+    border: var(--border-width-thin) solid var(--border-default);
+    border-top: var(--spacing-xsmall) solid var(--border-default); // the book's category color, set inline
+    background: var(--surface-page);
+
+    .clBook {
+      font-size: var(--serif-h3-font-size);
+      line-height: 1.25; // NO TOKEN: typography
+      padding-top: var(--spacing-xsmall);
+      overflow-wrap: anywhere;
+    }
+
+    .clPlace {
+      margin: var(--spacing-xsmall) 0 0;
+      color: var(--text-secondary);
+    }
+
+    .clContinue {
+      margin-top: auto;
+    }
+
+    .clCardWhen + .clContinue {
+      margin-top: var(--spacing-large);
+    }
+  }
+
+  .clCardWhen {
+    margin: var(--spacing-2xsmall) 0 0;
+    font-size: var(--sans-serif-small-font-size);
+    color: var(--text-muted);
+  }
+
+  .clSignUpCard {
+    justify-content: flex-start;
+    background: var(--surface-subtle);
+    border: var(--border-width-thin) dashed var(--border-default);
+    border-top: var(--spacing-xsmall) solid var(--border-default);
+
+    .clEmptyTitle {
+      padding-top: var(--spacing-xsmall);
+      font-size: var(--serif-h3-font-size);
+      line-height: 1.25; // NO TOKEN: typography
+    }
+
+    .clEmptyBody {
+      margin-top: var(--spacing-small);
+    }
+  }
+
+  .clLoadMore {
+    margin-top: var(--spacing-large);
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.clMessage {
+  color: var(--text-muted);
+  font-size: var(--sans-serif-small-font-size);
+  margin: var(--spacing-small) 0;
+}
+
+.sefaria-common-button.clContinue {
+  // Text size matches the header Sign Up button; min-height raised to meet 44px tap targets.
+  min-height: var(--spacing-5xlarge);
+  padding: 0 var(--spacing-large);
+  font-size: var(--sans-serif-small-font-size);
+  white-space: nowrap;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.sefaria-common-button.clSecondary {
+  // The library theme has no working secondary variant (its .secondary rule targets voices only).
+  --theme-button-background: var(--surface-page);
+  --theme-button-text: var(--action-primary);
+  --theme-button-border: var(--border-default);
+}
+
+// History page: Books / All activity
+.clViewToggle {
+  display: flex;
+  gap: var(--spacing-2xlarge);
+  border-bottom: var(--border-width-thin) solid var(--border-default);
+  margin: 0 0 var(--spacing-small);
+}
+
+.clViewToggleButton {
+  background: none;
+  border: none;
+  border-bottom: var(--border-width-thick) solid transparent;
+  padding: 0;
+  min-height: var(--spacing-5xlarge);
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &.current {
+    color: var(--text-primary);
+    border-bottom-color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Header button
+.clHeaderButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  .header-icons & {
+    width: var(--icon-medium);
+    height: var(--icon-medium);
+  }
+
+  img.button-icon {
+    width: var(--icon-medium);
+    height: var(--icon-medium);
+    margin: 0;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Desktop dropdown: wider than the header's 200px menus, to fit the list
+.clHeaderDropdown {
+  position: relative;
+}
+
+.interface-english .header .headerDropdownMenu.clHeaderDropdown .dropdownLinks-menu,
+.interface-hebrew .header .headerDropdownMenu.clHeaderDropdown .dropdownLinks-menu,
+.header .clHeaderDropdown .dropdownLinks-menu {
+  width: 480px;
+  min-width: 480px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.interface-english .header .clHeaderDropdown .dropdownLinks-menu {
+  right: 0;
+}
+
+.interface-hebrew .header .clHeaderDropdown .dropdownLinks-menu {
+  left: 0;
+}
+
+.clDropdownPanel {
+  padding: var(--spacing-large) var(--spacing-large) var(--spacing-small);
+  cursor: default;
+}
+
+.clDropdownPanel .clHeading,
+.clSheet .clHeading {
+  margin: 0 0 var(--spacing-small);
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500; // NO TOKEN: typography
+  color: var(--text-secondary);
+}
+
+// The header's link colors would otherwise override these
+.header .clDropdownPanel {
+  .clVisits a,
+  .clEmptyBody a,
+  .clPanelFooter a {
+    color: var(--text-link);
+  }
+
+  a.sefaria-common-button.clContinue,
+  a.sefaria-common-button.clContinue * {
+    color: var(--theme-button-text);
+  }
+}
+
+.clPanelFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--spacing-xsmall);
+
+  a {
+    gap: var(--spacing-xsmall);
+    min-height: var(--spacing-5xlarge);
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--sans-serif-small-font-size);
+    color: var(--text-link);
+  }
+}
+
+// Mobile header and the reader's controls bar
+.mobileHeaderRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-xsmall);
+}
+
+.clMobileButton.clIconButton {
+  @include icon-button;
+}
+
+.readerControls .rightButtons .clMobileButton {
+  margin: 0;
+}
+
+// Mobile sheet: from the trailing edge, 85% wide
+.clSheetBox {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+}
+
+.clSheetScrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 40%); // NO TOKEN: scrim
+  animation: cl-fade-in 0.2s ease-out;
+}
+
+.clSheet {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 85%;
+  max-width: 420px;
+  background: var(--surface-page);
+  overflow-y: auto;
+  padding: var(--spacing-small) var(--spacing-large) var(--spacing-2xlarge);
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%); // NO TOKEN: shadow
+  animation: cl-slide-from-right 0.25s ease-out;
+
+  .interface-hebrew & {
+    right: auto;
+    left: 0;
+    animation-name: cl-slide-from-left;
+  }
+
+  .clSheetHeader .clHeading {
+    margin: 0;
+  }
+
+  .clIconButton {
+    @include icon-button;
+  }
+
+  .clSheetClose {
+    margin-inline-end: calc(-1 * var(--spacing-medium));
+  }
+
+  // The sheet is narrow at every size, so rows always stack their actions under the title.
+  .currentlyLearning {
+    .clRowMain {
+      flex-wrap: wrap;
+    }
+
+    .clRowText {
+      flex-basis: calc(100% - var(--spacing-large));
+    }
+
+    .clActions {
+      width: 100%;
+      padding-inline-start: var(--spacing-large);
+      box-sizing: border-box;
+
+      .clContinue {
+        flex: 1;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    .interface-hebrew & {
+      animation: cl-fade-in 0.2s ease-out;
+    }
+  }
+}
+
+.clSheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-small);
+  margin-bottom: var(--spacing-xsmall);
+}
+
+@keyframes cl-slide-from-right {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes cl-slide-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes cl-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

@@ -1675,8 +1675,7 @@ def texts_list(request):
     desc = _(
         "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."
     )
-    props = get_user_history_props(request)
-    return menu_page(request, page="navigation", title=title, desc=desc, props=props)
+    return menu_page(request, page="navigation", title=title, desc=desc, props=get_recent_books_props(request))
 
 
 def calendars(request):
@@ -1725,7 +1724,9 @@ def user_history_content(request):
     """
     Unified user history view that works for both library and sheets modules
     """
-    props = get_user_history_props(request)
+    # The library's history page opens on the Books view, which loads its own data; the activity list loads when
+    # it's chosen, so rendering it here would be wasted.
+    props = get_user_history_props(request) if request.active_module != LIBRARY_MODULE else {}
     title = get_page_title("My User History", module=request.active_module)
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
@@ -5085,7 +5086,7 @@ def profile_sync_api(request):
                             "error": f"Length of user history sync too large. Maximum supported is {MAX_LEN_USER_HISTORY}."
                         }
                     )
-                # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
+                # oldest first (clients send newest first), so each book's newest item becomes its UserLastPlace
                 for hist in reversed(field_data):
                     if "ref" not in hist:
                         logger.warning(f"Ref not in hist. History item: {hist}. User ID: {request.user.id}")
@@ -5108,7 +5109,7 @@ def profile_sync_api(request):
             else:
                 last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
 
-            uhs = UserHistory.get_sync_items(request.user.id, last_sync)
+            uhs = profile.get_sync_history(last_sync)
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True, annotate=False) for uh in uhs]
             ret["settings"] = profile.settings
@@ -5195,6 +5196,51 @@ def _get_anonymous_user_history(request):
     return history
 
 
+HOMEPAGE_RECENT_BOOKS = 3  # the homepage's "currently learning" section
+MAX_RECENT_BOOKS = 20
+
+
+def get_recent_books_props(request):
+    """SSR data for the homepage's "currently learning" section. Logged-out readers' books are in a cookie the client reads."""
+    if not request.user.is_authenticated or request.active_module != LIBRARY_MODULE:
+        return {}
+    books = UserProfile(user_obj=request.user).get_recent_books(HOMEPAGE_RECENT_BOOKS)
+    return {"recentBooks": {"limit": HOMEPAGE_RECENT_BOOKS, "items": books}}
+
+
+@catch_error_as_json
+def recent_books_api(request):
+    """
+    GET the logged-in user's most recently read books, each at its last place: the "currently learning" lists.
+    :limit: how many books (default 3, at most 20)
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse([])
+    limit = min(_int_param(request, "limit", HOMEPAGE_RECENT_BOOKS), MAX_RECENT_BOOKS)
+    return jsonResponse(UserProfile(user_obj=request.user).get_recent_books(limit))
+
+
+@catch_error_as_json
+def daily_places_api(request):
+    """
+    GET the logged-in user's reading in the 30 days before `before`, for the history page (UserHistory.get_daily_places).
+    :before: epoch seconds (default now)
+    :utc_offset: the reader's offset from UTC in minutes, so places are grouped by the reader's days
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to see your history.")})
+    before = _int_param(request, "before", epoch_time() + 1)
+    utc_offset = _int_param(request, "utc_offset", 0)
+    return jsonResponse(UserProfile(user_obj=request.user).get_daily_places(before, utc_offset))
+
+
+def _int_param(request, name, default):
+    try:
+        return int(request.GET.get(name, default))
+    except ValueError:
+        raise InputError(f"'{name}' must be an integer")
+
+
 def user_history_api(request):
     """
     GET API for user history for a particular user. optional URL params are
@@ -5214,6 +5260,9 @@ def user_history_api(request):
         limit = int(request.GET.get("limit", 100))
         annotate = bool(int(request.GET.get("annotate", 0)))
         sheets_only = bool(int(request.GET.get("sheets_only", 0)))
+        if last_place:
+            places = user.get_last_places(book=book)[skip : skip + limit]
+            return jsonResponse([uh.contents(for_api=True, annotate=annotate) for uh in places])
         return jsonResponse(
             user.get_history(
                 oref=oref,

@@ -6,7 +6,6 @@ import { AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption }
 import { NewsletterSignUpForm } from './NewsletterSignUpForm';
 import { InterfaceText, ProfileListing, Dropdown } from './Misc';
 import { Promotions } from './Promotions';
-import { SignUpModalKind } from './sefaria/signupModalContent';
 import Util from './sefaria/util';
 import Button from './common/Button';
 
@@ -76,7 +75,6 @@ const SidebarModules = ({ type, props }) => {
     PortalMobile: PortalMobile,
     PortalOrganization: PortalOrganization,
     PortalNewsletter: PortalNewsletter,
-    RecentlyViewed: RecentlyViewed,
     StudyCompanion: StudyCompanion,
   };
   if (!type) {
@@ -107,83 +105,6 @@ const TitledText = ({ children, title, text }) => {
     </SidebarModule>
   );
 };
-const RecentlyViewedItem = ({ oref }) => {
-  const trackItem = () => {
-    gtag('event', 'recently_viewed', { link_text: oref.ref, link_type: 'ref' });
-  };
-  const params = Sefaria.util.getUrlVersionsParams(oref.versions);
-  const url = '/' + Sefaria.normRef(oref.ref) + (params ? '?' + params : '');
-  return (
-    <li>
-      <a href={url} onClick={() => trackItem()}>
-        {Sefaria._v({ he: oref.he_ref, en: oref.ref })}
-      </a>
-    </li>
-  );
-};
-const RecentlyViewedList = ({ items }) => {
-  const recentlyViewedListItems = items.map((x) => {
-    return <RecentlyViewedItem oref={x} key={`RecentlyViewedItem${x.ref}`} />;
-  });
-  return (
-    <div className={'navSidebarLink serif recentlyViewed'}>
-      <ul>{recentlyViewedListItems}</ul>
-    </div>
-  );
-};
-const RecentlyViewed = ({ toggleSignUpModal, mobile }) => {
-  const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
-  const handleAllHistory = (e) => {
-    if (!Sefaria._uid) {
-      e.preventDefault();
-      toggleSignUpModal(SignUpModalKind.ViewHistory);
-    }
-    gtag('event', 'recently_viewed', { link_type: 'all_history', logged_in: !!Sefaria._uid });
-  };
-
-  const filterRecentlyViewedItems = () => {
-    let itemsToShow = [];
-    let booksFound = [];
-    Sefaria.userHistory.items.forEach((x) => {
-      if (!booksFound.includes(x.book) && x.book !== 'Sheet') {
-        booksFound.push(x.book);
-        itemsToShow.push(x);
-      }
-    });
-
-    itemsToShow = itemsToShow.slice(0, 3);
-    setRecentlyViewedItems(itemsToShow);
-  };
-
-  useEffect(() => {
-    if (!Sefaria.userHistory.loaded) {
-      Sefaria.loadUserHistory(20, filterRecentlyViewedItems);
-    } else {
-      filterRecentlyViewedItems();
-    }
-  }, []);
-
-  if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
-    return null;
-  }
-  const allHistoryPhrase = mobile ? 'nav_sidebar.all_history' : 'nav_sidebar.all_history_desktop';
-  const recentlyViewedList = <RecentlyViewedList items={recentlyViewedItems} />;
-  return (
-    <SidebarModule>
-      <div className="recentlyViewed">
-        <div id="header">
-          <SidebarModuleTitle>nav_sidebar.recently_viewed</SidebarModuleTitle>
-          {!mobile && recentlyViewedList}
-          <a href="/history" id="history" onClick={handleAllHistory}>
-            <InterfaceText>{allHistoryPhrase}</InterfaceText>
-          </a>
-        </div>
-        {mobile && recentlyViewedList}
-      </div>
-    </SidebarModule>
-  );
-};
-
 // pageTypeOverride flows in via the module descriptor ({type: "Promo", props: {...}}) for pages
 // whose kind can't be read from panel state — today only the portal sidebar, which passes
 // portal_page (see PortalNavSideBar in TopicPage.jsx). Everywhere else the module is used
@@ -1258,4 +1179,4 @@ const PortalNewsletter = ({ title, description }) => {
   );
 };
 
-export { NavSidebar, SidebarFooter, SidebarModules, RecentlyViewed, ParashahLink };
+export { NavSidebar, SidebarFooter, SidebarModules, ParashahLink };

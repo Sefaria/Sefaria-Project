@@ -4,7 +4,8 @@ import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
 import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
-import { NavSidebar, SidebarModules, RecentlyViewed } from './NavSidebar';
+import { NavSidebar, SidebarModules } from './NavSidebar';
+import { CurrentlyLearning } from './CurrentlyLearning';
 import TextCategoryPage from './TextCategoryPage';
 import ComparePanelHeader from './ComparePanelHeader';
 import {
@@ -110,7 +111,6 @@ const TextsPage = ({
   const sidebarModules = [
     multiPanel ? { type: 'AboutSefaria' } : { type: null },
     { type: 'Promo' },
-    multiPanel ? { type: 'RecentlyViewed', props: { toggleSignUpModal } } : { type: null },
     { type: 'Translations' },
     { type: 'LearningSchedules' },
     { type: 'Resources' },
@@ -123,11 +123,11 @@ const TextsPage = ({
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
+            {!compare && <CurrentlyLearning />}
             {title}
             {about}
             {dedication}
             {libraryMessage}
-            {!multiPanel && <RecentlyViewed toggleSignUpModal={toggleSignUpModal} mobile={true} />}
             {categoryListings}
           </div>
           {!compare ? <NavSidebar sidebarModules={sidebarModules} /> : null}

@@ -74,3 +74,40 @@ describe('_trimUserHistoryForCookie', () => {
     expect(Sefaria._trimUserHistoryForCookie([oversized, historyItem(2)])).toEqual([]);
   });
 });
+
+describe('logged-out recent books', () => {
+  const DAY = 24 * 60 * 60;
+  const now = () => Sefaria.util.epoch_time();
+  const item = (book, ageDays = 0) => ({ ref: `${book} 1:1`, book, time_stamp: now() - ageDays * DAY });
+  const books = (items) => items.map((x) => x.book);
+
+  afterEach(() => {
+    document.cookie = 'user_history=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    jest.restoreAllMocks();
+  });
+
+  test('a new place replaces its book', () => {
+    const items = [item('Exodus'), item('Genesis')];
+    const added = Sefaria._addToAnonHistory(items, [{ ...item('Genesis'), ref: 'Genesis 2:1' }]);
+    expect(added.map((x) => x.ref)).toEqual(['Genesis 2:1', 'Exodus 1:1']);
+  });
+
+  test('keeps the newest books, up to the maximum', () => {
+    const items = ['A', 'B', 'C', 'D', 'E'].map((b) => item(b));
+    expect(books(Sefaria._addToAnonHistory(items, [item('F')]))).toEqual(['F', 'A', 'B', 'C', 'D']);
+  });
+
+  test('reading the cookie drops places older than the limit', () => {
+    const items = [item('Genesis', 1), item('Exodus', Sefaria.ANON_HISTORY_DAYS + 1)];
+    document.cookie = `user_history=${encodeURIComponent(JSON.stringify(items))}; path=/`;
+    expect(books(Sefaria._readAnonHistory())).toEqual(['Genesis']);
+  });
+
+  test('liturgy is excluded from recent books', () => {
+    jest.spyOn(Sefaria, 'index').mockImplementation((title) => ({
+      primary_category: title === 'Siddur Ashkenaz' ? 'Liturgy' : 'Tanakh',
+    }));
+    expect(Sefaria.isExcludedFromRecentBooks('Genesis')).toBe(false);
+    expect(Sefaria.isExcludedFromRecentBooks('Siddur Ashkenaz')).toBe(true);
+  });
+});

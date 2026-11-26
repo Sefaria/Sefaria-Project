@@ -8,10 +8,13 @@ import { NotesList } from './NoteListing';
 import { SheetBlock, TextPassage } from './Story';
 import { LanguageToggleButton, LoadingMessage, InterfaceText } from './Misc';
 import Util from './sefaria/util';
+import { CurrentlyLearningHistory } from './CurrentlyLearning';
 
 const UserHistoryPanel = ({ menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal }) => {
   const [notes, setNotes] = useState(null);
+  const [historyView, setHistoryView] = useState('books'); // the library's history page: 'books' | 'activity'
   const contentRef = useRef();
+  const hasBooksView = menuOpen === 'history' && Sefaria.activeModule === 'library' && Sefaria.is_history_enabled;
 
   useEffect(() => {
     if (menuOpen === 'notes' && Sefaria.activeModule === 'library') {
@@ -80,8 +83,28 @@ const UserHistoryPanel = ({ menuOpen, toggleLanguage, openDisplaySettings, openN
                 <LanguageToggleButton toggleLanguage={toggleLanguage} />
               )}
             </div>
+            {hasBooksView && (
+              <div className="clViewToggle" role="group" aria-label={Sefaria._('common.history')}>
+                {[
+                  ['books', 'currently_learning.books'],
+                  ['activity', 'currently_learning.all_activity'],
+                ].map(([view, label]) => (
+                  <button
+                    key={view}
+                    type="button"
+                    className={'clViewToggleButton' + (historyView === view ? ' current' : '')}
+                    aria-pressed={historyView === view}
+                    onClick={() => setHistoryView(view)}
+                  >
+                    <InterfaceText>{label}</InterfaceText>
+                  </button>
+                ))}
+              </div>
+            )}
             {menuOpen === 'notes' ? (
               <NotesList notes={notes} onDeleteNote={(noteId) => setNotes(notes.filter((n) => n._id !== noteId))} />
+            ) : hasBooksView && historyView === 'books' ? (
+              <CurrentlyLearningHistory />
             ) : (
               <UserHistoryList
                 store={store}

@@ -3230,10 +3230,120 @@ Sefaria = extend(Sefaria, {
     }
     return trimmed;
   },
-  saveUserHistory: function (history_item) {
+  // Logged-out readers keep their last place in each of their most recent books, for the "currently learning"
+  // lists, in the `user_history` cookie. It's merged into their account when they log in (mergeAnonHistory).
+  ANON_HISTORY_MAX_BOOKS: 5,
+  ANON_HISTORY_DAYS: 14,
+  _readAnonHistory: function () {
+    // The cookie's items, newest first, without those older than ANON_HISTORY_DAYS.
+    const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+    let items;
+    try {
+      items = JSON.parse(cookie('user_history') || '[]');
+    } catch (e) {
+      return [];
+    }
+    const oldest = Sefaria.util.epoch_time() - Sefaria.ANON_HISTORY_DAYS * 24 * 60 * 60;
+    return Array.isArray(items) ? items.filter((x) => x && x.book && x.time_stamp >= oldest) : [];
+  },
+  _addToAnonHistory: function (items, newItems) {
+    // `items` and `newItems` are newest first. A new item replaces its book's item; the newest books are kept.
+    const newBooks = new Set(newItems.map((x) => x.book));
+    return newItems.concat(items.filter((x) => !newBooks.has(x.book))).slice(0, Sefaria.ANON_HISTORY_MAX_BOOKS);
+  },
+  mergeAnonHistory: function () {
+    // Called in the browser for a logged-in reader: moves what they read before logging in (or signing up) into
+    // their account.
+    if (!$.cookie('user_history')) {
+      return;
+    }
+    const items = Sefaria._readAnonHistory();
+    $.removeCookie('user_history', { path: '/' });
+    if (!items.length || !Sefaria.is_history_enabled) {
+      return;
+    }
+    Sefaria._syncHistoryItems(items, {
+      onSaved: () => Sefaria._recentBooksListeners.forEach((listener) => listener()),
+    });
+  },
+  _syncHistoryItems: function (items, { beacon = false, onSaved = null } = {}) {
+    // Saves a logged-in reader's history `items` (newest first; the server applies them oldest first).
+    // `beacon`: send with navigator.sendBeacon, for a save made while the page unloads.
+    const syncUrl = `${Sefaria.apiHost}/api/profile/sync?no_return=1`;
+    const user_history = JSON.stringify(items);
+    if (beacon && navigator.sendBeacon) {
+      // A beacon can't set the CSRF header, so the token goes in the form body.
+      navigator.sendBeacon(syncUrl, new URLSearchParams({ user_history, csrfmiddlewaretoken: getCsrfToken() }));
+      return;
+    }
+    const saving = $.post(`${syncUrl}&annotate=1`, { user_history }, (data) => {
+      // Insert new items to beginning of history
+      Sefaria.userHistory.items = data.created.concat(Sefaria.userHistory.items);
+      Sefaria._recentBooksStale = true;
+      onSaved?.();
+    });
+    Sefaria._historySaved = Promise.resolve(saving).catch(() => {});
+  },
+  _historySaved: Promise.resolve(), // the latest history save, which loads of recent reading wait for
+  flushPendingHistory: () => {}, // set by ReaderApp: saves places still waiting out their intent delay
+  _afterHistorySaved: function () {
+    // Resolves once the places read so far are saved, so a load of recent reading includes them.
+    Sefaria.flushPendingHistory();
+    return Sefaria._historySaved;
+  },
+  // Recent books -- each of the reader's most recently read books at its last place -- for the homepage's
+  // "currently learning" section and the header's list. {limit, items}, from SSR or /api/profile/recent_books.
+  _recentBooks: null,
+  _recentBooksStale: false, // set by each save, so the next look reloads them
+  _recentBooksListeners: new Set(),
+  onRecentBooksChange: function (listener) {
+    // Calls `listener` when recent books change other than by reading, e.g. after logged-out reading is merged.
+    Sefaria._recentBooksListeners.add(listener);
+    return () => Sefaria._recentBooksListeners.delete(listener);
+  },
+  isExcludedFromRecentBooks: function (book) {
+    // Whether `book` is left out of the "currently learning" lists. Mirrors is_excluded_from_recent_books on the
+    // server, which applies it for logged-in readers; this applies it to logged-out readers' cookie.
+    return Sefaria.index(book)?.primary_category === 'Liturgy';
+  },
+  recentBooks: function (limit) {
+    // Resolves to up to `limit` recent books.
+    return Sefaria._afterHistorySaved().then(() => {
+      if (!Sefaria._uid) {
+        const books = Sefaria._readAnonHistory().filter(
+          (x) => x.book !== 'Sheet' && !Sefaria.isExcludedFromRecentBooks(x.book)
+        );
+        return books.slice(0, limit);
+      }
+      const cached = Sefaria._recentBooks;
+      if (cached && !Sefaria._recentBooksStale && cached.limit >= limit) {
+        return cached.items.slice(0, limit);
+      }
+      return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/recent_books?limit=${limit}`).then((items) => {
+        Sefaria._recentBooks = { limit, items };
+        Sefaria._recentBooksStale = false;
+        return items;
+      });
+    });
+  },
+  cachedRecentBooks: function (limit) {
+    // Recent books available without a request (SSR or an earlier load), or null.
+    const cached = Sefaria._recentBooks;
+    return Sefaria._uid && cached && cached.limit >= limit ? cached.items.slice(0, limit) : null;
+  },
+  loadDailyPlaces: function (before) {
+    // The reader's last place in each book on each day, for the 30 days before `before` (epoch seconds), and the
+    // time of the newest older read ({places, older}). See UserHistory.get_daily_places.
+    const params = new URLSearchParams({ before, utc_offset: -new Date().getTimezoneOffset() });
+    return Sefaria._afterHistorySaved().then(() =>
+      Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/daily_places?${params.toString()}`)
+    );
+  },
+  saveUserHistory: function (history_item, { beacon = false } = {}) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
     // optionally: `secondary`, `he_ref`, `language`
+    // `beacon`: send with navigator.sendBeacon, for a save made while the page unloads.
     if (!Sefaria.is_history_enabled || !history_item) {
       return;
     }
@@ -3242,17 +3352,10 @@ Sefaria = extend(Sefaria, {
       h.time_stamp = Sefaria.util.epoch_time();
     }
     if (Sefaria._uid) {
-      $.post(
-        Sefaria.apiHost + '/api/profile/sync?no_return=1&annotate=1',
-        { user_history: JSON.stringify(history_item_array) },
-        (data) => {
-          // Insert new items to beginning of history
-          Sefaria.userHistory.items = data.created.concat(Sefaria.userHistory.items);
-        }
-      );
+      Sefaria._syncHistoryItems(history_item_array, { beacon });
     } else {
       // we need to get the heRef for each history item
-      Promise.all(
+      const saving = Promise.all(
         history_item_array
           .filter((x) => !x.secondary)
           .map(
@@ -3265,13 +3368,13 @@ Sefaria = extend(Sefaria, {
               })
           )
       ).then((new_hist_array) => {
+        const items = Sefaria._addToAnonHistory(Sefaria._readAnonHistory(), new_hist_array);
+        const trimmed = Sefaria._trimUserHistoryForCookie(items);
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-        const user_history_cookie = cookie('user_history');
-        const user_history = user_history_cookie ? JSON.parse(user_history_cookie) : [];
-        const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
-        cookie('user_history', JSON.stringify(trimmed), { path: '/' });
+        cookie('user_history', JSON.stringify(trimmed), { path: '/', expires: Sefaria.ANON_HISTORY_DAYS });
         Sefaria.userHistory.items = trimmed;
       });
+      Sefaria._historySaved = saving.catch(() => {});
     }
     Sefaria.last_place = history_item_array.filter((x) => !x.secondary).concat(Sefaria.last_place); // while technically we should remove dup. books, this list is only used on client
   },
@@ -4414,6 +4517,9 @@ Sefaria.unpackDataFromProps = function (props) {
   if (props.collectionListing) {
     Sefaria._collectionsList.list = props.collectionListing;
   }
+  if (props.recentBooks) {
+    Sefaria._recentBooks = props.recentBooks;
+  }
   Sefaria.versionPreferences = new VersionPreferences(props.versionPrefsByCorpus);
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : '/';
   Sefaria.unpackBaseProps(props);
@@ -4538,6 +4644,7 @@ Sefaria.resetCache = function () {
 
   // Caches that are user-level or can grow unbounded
   this.last_place = []; // Code smell: user state stored in library
+  this._recentBooks = null;
   this._lastPlaceLoaded = {};
   this._parseRef = {};
   this._texts = {};

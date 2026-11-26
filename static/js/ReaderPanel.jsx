@@ -42,6 +42,7 @@ import { ElasticSearchQuerier } from './ElasticSearchQuerier';
 import { SheetsHomePage } from './sheets/SheetsHomePage';
 import { TopicsLandingPage } from './TopicLandingPage/TopicsLandingPage';
 import ReaderDisplayOptionsMenu from './ReaderDisplayOptionsMenu';
+import { CurrentlyLearningMobileButton } from './CurrentlyLearning';
 import GuideOverlay from './GuideOverlay';
 import { shouldUseEditor } from './sefaria/sheetsUtils';
 import { DropdownMenu } from './common/DropdownMenu';
@@ -1576,12 +1577,16 @@ class ReaderControls extends Component {
       </div>
     );
 
+    // On mobile the reader's controls stand in for the site header, which has the currently learning button.
+    const showCurrentlyLearning = !this.props.multiPanel && Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     let leftControls =
       hideHeader || connectionsHeader ? null : (
         <div className="leftButtons">
           {this.props.multiPanel ? <CloseButton onClick={this.props.closePanel} /> : null}
           {this.props.multiPanel ? null : <MenuButton onClick={this.props.openMobileNavMenu} />}
           <SaveButton placeholder={true} />
+          {/* Balances the currently learning button on the right, so the title stays centered. */}
+          {showCurrentlyLearning && <SaveButton placeholder={true} />}
         </div>
       );
 
@@ -1591,6 +1596,7 @@ class ReaderControls extends Component {
       hideHeader || connectionsHeader ? null : (
         <div className="rightButtons">
           {this.props.showGuide && <GuideButton onShowGuide={this.props.showGuide} tooltip={true} />}
+          {showCurrentlyLearning && <CurrentlyLearningMobileButton />}
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
