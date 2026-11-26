@@ -545,6 +545,25 @@ class MLStripper(HTMLParser):
         return " ".join(self.fed)
 
 
+_SCRIPT_JSON_ESCAPES = {
+    "<": "\\u003c",
+    ">": "\\u003e",
+    "&": "\\u0026",
+    "\u2028": "\\u2028",
+    "\u2029": "\\u2029",
+}
+_SCRIPT_JSON_RE = re.compile("[<>&\u2028\u2029]")
+
+
+def json_for_script(json_string):
+    """
+    Makes a JSON document safe to print inside an inline <script> block. Markup characters and the two
+    JS line separators are rewritten as JSON unicode escapes, so no value can end the script element.
+    These characters only occur inside JSON string literals, so the result parses to the same value.
+    """
+    return _SCRIPT_JSON_RE.sub(lambda m: _SCRIPT_JSON_ESCAPES[m.group()], json_string)
+
+
 def strip_tags(html, remove_new_lines=False):
     """
     Returns the text of html with tags stripped.

@@ -39,6 +39,7 @@ from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.user_profile import *
 from sefaria.sheets import *
 from sefaria.sheets import (
+    _clean_sheet_options,
     bleach_text,
     clean_sheet_for_render,
     clean_source_for_render,
@@ -49,7 +50,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.chatbot import MCP_TOKEN_AUDIENCE
-from sefaria.utils.util import get_redirect_to_help_center, strip_tags
+from sefaria.utils.util import get_redirect_to_help_center, json_for_script, strip_tags
 
 
 def annotate_user_links(sources):
@@ -70,7 +71,7 @@ def sheet_json_for_script(sheet):
     Serializes a sheet for embedding in an inline <script> block. Markup characters are written as
     JSON unicode escapes, so no field value can close the script element.
     """
-    return json.dumps(sheet).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return json_for_script(json.dumps(sheet))
 
 
 @ensure_csrf_cookie
@@ -1165,7 +1166,7 @@ def export_to_drive(request, credential, sheet_id):
         return jsonResponse({"error": {"message": sheet["error"]}})
 
     options = {"language": request.GET.get("language", "bilingual"), "layout": request.GET.get("layout", "heRight")}
-    sheet["options"] = sheet["options"] | options
+    sheet["options"] = _clean_sheet_options(sheet["options"] | options)
 
     file_metadata = {"name": strip_tags(sheet["title"].strip()), "mimeType": "application/vnd.google-apps.document"}
     html_string = bytes(sheet_to_html_string(sheet), "utf8")

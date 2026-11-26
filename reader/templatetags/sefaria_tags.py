@@ -34,7 +34,7 @@ from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
 from sefaria.model.text import Ref, Version
 from sefaria.model.collection import Collection
-from sefaria.utils.util import strip_tags as strip_tags_func
+from sefaria.utils.util import strip_tags as strip_tags_func, json_for_script
 from sefaria.utils.hebrew import hebrew_plural, hebrew_parasha_name
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
 
@@ -148,6 +148,12 @@ def static(path):
 
 
 ref_link_cache = {}  # simple cache for ref links
+
+
+@register.filter(is_safe=True)
+def script_json(value):
+    """Escapes a JSON string for printing inside an inline <script> block (see json_for_script)."""
+    return json_for_script(str(value))
 
 
 @register.filter(is_safe=True)

@@ -1,3 +1,5 @@
+import pytest
+
 from sefaria.image_generator import html_to_text_canonical
 from sefaria.utils.util import find_all_html_elements_indices, strip_markdown, truncate_string
 
@@ -122,3 +124,28 @@ def test_html_to_text_canonical_cases():
 
     for name, inp, expected in cases:
         assert html_to_text_canonical(inp) == expected, name
+
+
+MARKER_VALUES = [
+    "</script><b>MARKER</b>",
+    "</SCRIPT ><i>MARKER</i>",
+    "<!--MARKER--><script>",
+    "a & b &amp; c",
+    "quote \" and ' and backslash \\ and newline \n tab \t",
+    "line separator paragraph",
+    "עברית </script> ok",
+]
+
+
+@pytest.mark.parametrize("ensure_ascii", [True, False])
+def test_json_for_script_has_no_markup_characters_and_round_trips(ensure_ascii):
+    import json
+
+    from sefaria.utils.util import json_for_script
+
+    props = {"values": MARKER_VALUES, "nested": dict(enumerate(MARKER_VALUES)), "n": 3, "none": None}
+    printed = json_for_script(json.dumps(props, ensure_ascii=ensure_ascii))
+    for char in ("<", ">", "&", " ", " "):
+        assert char not in printed
+    assert json.loads(printed) == json.loads(json.dumps(props))
+    assert json.loads(printed)["values"] == MARKER_VALUES

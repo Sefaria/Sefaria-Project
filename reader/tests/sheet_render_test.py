@@ -1,5 +1,6 @@
 """Sheet pages print user-written fields as escaped text or as bleached HTML, and embed sheet JSON safely."""
 
+import json
 import re
 from html.parser import HTMLParser
 from unittest import mock
@@ -185,3 +186,28 @@ def test_ref_link_fallback_escapes_unparseable_ref():
 
     assert "<img" not in ref_link(IMG_ONERROR)
     assert "<img" not in he_ref_link(IMG_ONERROR)
+
+
+PROPS_MARKER = "</script><b>MARKER</b>"
+PROPS_MARKER_MIXED_CASE = "</ScRiPt ><i>MARKER</i>"
+
+
+@pytest.mark.django_db
+def test_base_page_props_cannot_end_the_script_block():
+    from django.template.loader import render_to_string
+
+    props = {"note": PROPS_MARKER, "mixed": PROPS_MARKER_MIXED_CASE, "amp": "a & b", "sep": "x y"}
+    request = _request("/sheets/1")
+    for ensure_ascii in (True, False):
+        html = render_to_string(
+            "base.html", {"propsJSON": json.dumps(props, ensure_ascii=ensure_ascii)}, request=request
+        )
+        audit = _MarkupAudit()
+        audit.feed(html)
+        audit.close()
+        # Every opening script tag has exactly one closing tag: no value ended a block early.
+        assert html.lower().count("</script") == audit.script_blocks
+        assert PROPS_MARKER not in html
+        assert PROPS_MARKER_MIXED_CASE not in html
+        printed = re.search(r"props:\s+(\{.*\}),\n\s+inReaderApp", html).group(1)
+        assert json.loads(printed) == props
