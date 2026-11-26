@@ -28,6 +28,7 @@ import type { Viewer } from "~/lib/auth/session";
 import { getSurface, resetSurfaceLoader } from "~/lib/surfaces/load";
 import { SOCIAL_VERSION_PARAM, socialEnvForPage, socialVersionCookie, socialVersionFromCookie } from "~/lib/surfaces/version";
 import { Button } from "~/ui/Button/Button";
+import { setSocialCookie } from "./social-optin";
 import { ErrorState } from "~/ui/Feedback/Feedback";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { createIdentityTokenSource } from "~/lib/surfaces/identity";
@@ -371,6 +372,8 @@ function PersistentMount() {
 
 /** The page mount: an empty, sized element (no layout shift when the surface fills it) under /social/*. */
 export function SurfacePage() {
+  // a Social page opts this browser in to the new reader (./social-optin.ts): later pages and reloads stay here
+  useEffect(() => setSocialCookie(), []);
   return (
     <ReportingBoundary name="surface-page" fallback={() => <div className={styles.page} data-surface-mount="page" data-surface-state="failed" />}>
       <PageSlot where="route" />

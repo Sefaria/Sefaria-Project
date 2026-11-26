@@ -42,6 +42,14 @@ describe("kill switch (remote config feature.reader.next.disabled)", () => {
     expect(writes).toContain("reader_follow=; max-age=0; path=/; samesite=lax");
   });
 
+  it("on, for a reader who came in through Social (only reader_social): clears that cookie and reloads", () => {
+    const { doc, writes } = fakeDoc("a=1; reader_social=1");
+    const reload = vi.fn();
+    expect(applyKillSwitch({ "feature.reader.next.disabled": true }, { doc, hostname: "www.sefaria.org", reload, storage: memory() })).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(writes).toContain("reader_social=; max-age=0; path=/; samesite=lax");
+  });
+
   it("off, or no cookie: nothing happens", () => {
     const reload = vi.fn();
     expect(applyKillSwitch({ "feature.reader.next.disabled": false }, { ...fakeDoc("reader_version=next"), hostname: "x.org", reload, storage: memory() })).toBe(false);
@@ -81,6 +89,15 @@ describe("back to the classic reader", () => {
     const { doc, writes } = fakeDoc("reader_version=next; reader_follow=1");
     await backToClassic({ post, reload, doc, hostname: "localhost" });
     expect(writes).toEqual(["reader_version=; path=/; max-age=0; samesite=lax", "reader_follow=; max-age=0; path=/; samesite=lax"]);
+    expect(reload).toHaveBeenCalled();
+  });
+
+  it("also clears Social's routing cookie, so nginx does not send the reload straight back", async () => {
+    const post = vi.fn(async () => ({ ok: true, status: 200, data: {}, networkError: false }));
+    const reload = vi.fn();
+    const { doc, writes } = fakeDoc("reader_version=next; reader_social=1");
+    await backToClassic({ post, reload, doc, hostname: "localhost" });
+    expect(writes).toContain("reader_social=; max-age=0; path=/; samesite=lax");
     expect(reload).toHaveBeenCalled();
   });
 
