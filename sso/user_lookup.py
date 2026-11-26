@@ -8,8 +8,8 @@ room by email (sefaria-social spec 059): an account is told in Social, any other
 
     {"email": "<address>"}
 
-    200 {"user_id": <int>}   -- an account has that address
-    404 {}                   -- none does
+    200 {"user_id": <int>}   -- an active account has that address
+    404 {}                   -- none does (or only a deactivated one)
     400 {"error": ...}       -- not JSON, no email, or a body over 1 KB
     401 {"error": ...}       -- missing or wrong signature
     503 {"error": ...}       -- SOCIAL_LOOKUP_SECRET is not set
@@ -69,6 +69,9 @@ def social_user_lookup(request):
     try:
         user = get_user(email.strip())
     except Exception:  # get_user raises DoesNotExist (and MultipleObjectsReturned) for no single match
+        user = None
+    if user is not None and not user.is_active:
+        # A deactivated account is not told in Social: Social emails the address instead.
         user = None
     response = JsonResponse({"user_id": user.pk}, status=200) if user else JsonResponse({}, status=404)
     response["Cache-Control"] = "no-store"

@@ -39,6 +39,11 @@ class SocialUserLookupTest(SimpleTestCase):
         get_user.assert_called_once_with("Ben@Example.org")
 
     @patch("sso.user_lookup.get_user")
+    def test_a_deactivated_account_answers_404(self, get_user):
+        get_user.return_value = User(pk=4242, is_active=False)
+        self.assertEqual(self._post({"email": "gone@example.org"}).status_code, 404)
+
+    @patch("sso.user_lookup.get_user")
     def test_an_address_without_an_account_answers_404(self, get_user):
         get_user.side_effect = User.DoesNotExist
         response = self._post({"email": "nobody@example.org"})
