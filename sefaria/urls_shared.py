@@ -156,6 +156,7 @@ shared_patterns = [
         lexicon_api_views.LexiconEntryHeadwordView.as_view(),
     ),
     path("api/lexicon-entry/<path:lexicon>/<path:headword>", lexicon_api_views.LexiconEntryView.as_view()),
+    path("api/lexicon/<str:lexicon>/headwords", lexicon_api_views.LexiconHeadwordsView.as_view()),
     re_path(r"^api/notifications/?$", reader_views.notifications_api),
     re_path(r"^api/notifications/read", reader_views.notifications_read_api),
     re_path(r"^api/updates/?(?P<gid>.+)?$", reader_views.updates_api),

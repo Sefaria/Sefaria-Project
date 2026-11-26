@@ -7,6 +7,7 @@ from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon
 from sefaria.model import diff_strings, log_update
 from sefaria.model.lexicon import DictionaryEntry, Lexicon, LexiconEntry, LexiconEntrySet
 from sefaria.model.text import Ref
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 from .views import StaffRequiredMixin, _load_json_body
@@ -64,6 +65,26 @@ def _not_found():
 
 def _ambiguous():
     return jsonResponse({"error": "More than one entry currently matches this headword."}, status=409)
+
+
+class LexiconHeadwordsView(View):
+    """GET /api/lexicon/<lexicon>/headwords: every headword of a lexicon with its `rid`, in print order.
+
+    [{"headword": "א", "rid": "ET-0001"}, ...], sorted by rid (zero-padded, so it sorts as a string), then the entries
+    without a rid, by headword. One projection query; no entry content. Built for talmudit.org's browse pages and
+    sitemap, which list the Encyclopedia Talmudit in print order; generic for any lexicon."""
+
+    CACHE_SECONDS = 600
+
+    def get(self, request, lexicon):
+        if not Lexicon().load({"name": lexicon}):
+            return jsonResponse({"error": "Lexicon not found."}, status=404)
+        rows = db[LexiconEntry.collection].find({"parent_lexicon": lexicon}, {"_id": 0, "headword": 1, "rid": 1})
+        rows = [r for r in rows if r.get("headword")]
+        rows.sort(key=lambda r: (r.get("rid") is None, str(r.get("rid") or ""), r["headword"]))
+        response = jsonResponse([{"headword": r["headword"], "rid": r.get("rid")} for r in rows])
+        response["Cache-Control"] = f"public, max-age={self.CACHE_SECONDS}"
+        return response
 
 
 class LexiconEntryView(View):
