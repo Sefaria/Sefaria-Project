@@ -821,7 +821,7 @@ def add_source_to_sheet_api(request, sheet_id):
 
     sheet = db.sheets.find_one({"id": int(sheet_id)})
     if not sheet:
-        return {"error": "No sheet with id %s." % (id)}
+        return jsonResponse({"error": "No sheet with id %s." % (sheet_id)})
     if sheet["owner"] != request.user.id:
         return jsonResponse({"error": "User can only edit their own sheet"})
 
@@ -864,7 +864,7 @@ def copy_source_to_sheet_api(request, sheet_id):
         return jsonResponse({"error": "Need both a sheet and source node ID to copy."})
     sheet = db.sheets.find_one({"id": int(sheet_id)})
     if not sheet:
-        return {"error": "No sheet with id %s." % (id)}
+        return jsonResponse({"error": "No sheet with id %s." % (sheet_id)})
     if sheet["owner"] != request.user.id:
         return jsonResponse({"error": "User can only edit their own sheet"})
     source = get_sheet_node(int(copy_sheet), int(copy_source))
@@ -903,7 +903,7 @@ def visual_sheet_api(request, sheet_id):
     API for visual source sheet layout
     """
     if not request.user.is_authenticated:
-        return {"error": "You must be logged in to save a sheet layout."}
+        return jsonResponse({"error": "You must be logged in to save a sheet layout."})
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -918,7 +918,7 @@ def like_sheet_api(request, sheet_id):
     API to like sheet_id.
     """
     if not request.user.is_authenticated:
-        return {"error": "You must be logged in to like sheets."}
+        return jsonResponse({"error": "You must be logged in to like sheets."})
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
