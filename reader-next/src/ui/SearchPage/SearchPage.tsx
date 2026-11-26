@@ -7,6 +7,7 @@ import type { TopicCategory } from "~/lib/topics/topic-toc";
 import { authorLifespan, formatYear, SOURCE_SORTS, selectionOf, matchesFilterText, type FilterNode, type SearchSort, type SearchTab, type SortOption } from "~/lib/search/search-page";
 import { snippetOf, type MergedHit, type SearchHit } from "~/lib/search/text-search";
 import { Icon } from "../Icon/Icon";
+import { MaskIcon } from "../MaskIcon/MaskIcon";
 import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
 import { Skeleton } from "../Skeleton/Skeleton";
@@ -30,9 +31,9 @@ export function SearchBar({ query, onSubmit }: { query: string; onSubmit: (q: st
   };
   return (
     <div className={styles.bar} role="search" data-search-page-bar="">
-      <button type="button" aria-label={he ? "שליחת חיפוש" : "Submit search"} onClick={run}><Icon name="search" size="26px" /></button>
+      <button type="button" aria-label={he ? "שליחת חיפוש" : "Submit search"} onClick={run}><MaskIcon src="/icons/search_mdl.svg" size={24} /></button>
       <input value={v} maxLength={75} dir="auto" enterKeyHint="search" aria-label={he ? "חיפוש" : "Search"} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === "Enter" && run()} />
-      {v ? <button type="button" aria-label={he ? "ניקוי החיפוש" : "Clear search term"} onClick={() => setV("")}><Icon name="close" size="20px" /></button> : null}
+      {v ? <button type="button" aria-label={he ? "ניקוי החיפוש" : "Clear search term"} onClick={() => setV("")}><MaskIcon src="/icons/heavy-x.svg" size={24} /></button> : null}
     </div>
   );
 }
@@ -105,7 +106,7 @@ export function MobileFilterButton({ onClick }: { onClick: () => void }) {
   const he = useInterfaceLang() === "hebrew";
   return (
     <button type="button" className={styles.mobileFilterBtn} aria-label={he ? "מיון וסינון תוצאות" : "Sort & filter results"} aria-haspopup="dialog" onClick={onClick}>
-      <Icon name="sliders" size="1.6em" />
+      <MaskIcon src="/icons/sliders-horizontal.svg" size={24} />
     </button>
   );
 }
@@ -136,7 +137,7 @@ export function MobileFilterPanel({ title, onClose, children }: { title: ReactNo
   return (
     <div ref={ref} tabIndex={-1} className={styles.panel} role="dialog" aria-modal="true" aria-labelledby={titleId} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <div className={styles.panelBar}>
-        <button type="button" className={styles.panelClose} aria-label={he ? "סגירה" : "Close"} onClick={onClose}><Icon name="close" size="1.6em" /></button>
+        <button type="button" className={styles.panelClose} aria-label={he ? "סגירה" : "Close"} onClick={onClose}><Icon name="close" size="38px" /></button>
         <span id={titleId} className={styles.panelTitle}>{title}</span>
       </div>
       <div className={styles.panelBody}>{children}</div>
@@ -227,13 +228,13 @@ export function SortMenu<V extends string = SearchSort>({ sort, onChange, disabl
   return (
     <div className={styles.sort} ref={ref} onKeyDown={onMenuKeys}>
       <button ref={button} type="button" className={styles.sortBtn} aria-haspopup="menu" aria-expanded={open} aria-controls={id} aria-disabled={disabled || undefined} aria-label={he ? `מיון לפי ${cur.he}` : `Sort by ${cur.en}`} onClick={() => !disabled && setOpen((o) => !o)}>
-        <Icon name="sort-arrows" /><span>{he ? cur.he : cur.en}</span><Icon name="chevron-down" size="1em" />
+        <MaskIcon src="/icons/sort.svg" size={18} /><span>{he ? cur.he : cur.en}</span><MaskIcon className={styles.sortChevron} src="/icons/chevron-down-line.svg" size={18} />
       </button>
       {open ? (
         <div id={id} ref={menu} className={styles.menu} role="menu">
           {list.map((s) => (
             <button key={s.value} type="button" role="menuitemradio" tabIndex={-1} aria-checked={s.value === sort} onClick={() => { close(true); if (s.value !== sort) onChange(s.value); }}>
-              <span className={styles.tick}>{s.value === sort ? <Icon name="check" size="1em" /> : null}</span>{he ? s.he : s.en}
+              <span className={styles.tick}>{s.value === sort ? <MaskIcon src="/icons/check-mark.svg" size={10} /> : null}</span>{he ? s.he : s.en}
             </button>
           ))}
         </div>
@@ -246,9 +247,15 @@ export interface SearchResultCardProps {
   hit: MergedHit;
   hrefFor: (hit: SearchHit) => string;
   onOpen: (hit: SearchHit) => void;
+  /** The colour of the bar: the book's primary category (sefaria.org's `palette.refColor`); else the hit's first category. */
+  accent?: string;
 }
-/** One result: ref, matched words in bold, version, and — when other versions match too — "N more versions". The whole card opens it. */
-export function SearchResultCard({ hit, hrefFor, onOpen }: SearchResultCardProps) {
+/**
+ * One result, as sefaria.org's SearchResultCard (sources mode): the ref, the matched words in bold, the version, and — when other
+ * versions match too — "N more versions", which opens a list of them, each a grey box (its text and its version) that opens that
+ * version. The whole card opens the result.
+ */
+export function SearchResultCard({ hit, hrefFor, onOpen, accent }: SearchResultCardProps) {
   const he = useInterfaceLang() === "hebrew";
   const [shown, setShown] = useState(false);
   const s = hit._source;
@@ -260,28 +267,32 @@ export function SearchResultCard({ hit, hrefFor, onOpen }: SearchResultCardProps
     if ((e.target as Element).closest("a, button") || window.getSelection()?.type === "Range") return;
     if (plain(e)) onOpen(hit);
   };
+  const versionLang = (h: SearchHit) => (he && h._source.hebrew_version_title ? "he" : "en");
   return (
-    <article className={styles.card} style={{ ["--_c" as string]: categoryColor(s.categories?.[0]) }} onClick={open}>
+    <article className={styles.card} style={{ ["--_c" as string]: accent ?? categoryColor(s.categories?.[0]) }} onClick={open}>
       <Link className={styles.title} href={hrefFor(hit)} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(hit); } }}>{he ? s.heRef : s.ref}</Link>
       <div className={styles.snippet} lang={snip.lang} dir={snip.lang === "he" ? "rtl" : "ltr"} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snip.html) }} />
-      <div className={styles.version} lang={he && s.hebrew_version_title ? "he" : "en"} dir={dirFor(he && s.hebrew_version_title ? "he" : "en")}>{(he && s.hebrew_version_title) || s.version}</div>
+      <div className={styles.version} lang={versionLang(hit)} dir={dirFor(versionLang(hit))}>{(he && s.hebrew_version_title) || s.version}</div>
       {n > 0 ? (
-        <>
+        <div className={styles.versions}>
           <button type="button" className={styles.more} data-open={shown} aria-expanded={shown} onClick={() => setShown((v) => !v)}>
             <InterfaceText en={`${n} more version${n > 1 ? "s" : ""}`} he={`${n} ${n > 1 ? "גרסאות נוספות" : "גרסה נוספת"}`} />
-            <Icon name="chevron-down" className={styles.caret} size="0.9em" />
+            <MaskIcon className={styles.caret} src="/icons/chevron-down-line.svg" size={18} />
           </button>
           {shown ? (
-            <div className={styles.nested}>
-              {dups.map((d) => (
-                <div key={d._id}>
-                  <div className={styles.snippet} lang={snippetOf(d).lang} dir={dirFor(snippetOf(d).lang)} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snippetOf(d).html) }} />
-                  <div className={styles.version}><Link href={hrefFor(d)} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(d); } }}>{(he && d._source.hebrew_version_title) || d._source.version}</Link></div>
-                </div>
-              ))}
+            <div className={styles.versionList}>
+              {dups.map((d) => {
+                const ds = snippetOf(d);
+                return (
+                  <Link key={d._id} className={styles.versionItem} href={hrefFor(d)} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(d); } }}>
+                    <div className={styles.snippet} lang={ds.lang} dir={dirFor(ds.lang)} dangerouslySetInnerHTML={{ __html: sanitizeHtml(ds.html) }} />
+                    <div className={styles.version} lang={versionLang(d)} dir={dirFor(versionLang(d))}>{(he && d._source.hebrew_version_title) || d._source.version}</div>
+                  </Link>
+                );
+              })}
             </div>
           ) : null}
-        </>
+        </div>
       ) : null}
     </article>
   );
@@ -315,7 +326,7 @@ export function SearchFilters({ tree, applied, onToggle }: SearchFiltersProps) {
                   <span>{he ? n.heTitle : n.title} <span className={styles.num}>({n.count})</span></span>
                 </label>
                 {n.children.length ? (
-                  <button type="button" className={styles.chev} aria-expanded={expanded} aria-label={he ? `הצגת ספרים: ${n.heTitle}` : `Show books in ${n.title}`} onClick={() => toggleOpen(n.key)}><Icon name="chevron-down" /></button>
+                  <button type="button" className={styles.chev} aria-expanded={expanded} aria-label={he ? `הצגת ספרים: ${n.heTitle}` : `Show books in ${n.title}`} onClick={() => toggleOpen(n.key)}><Icon name="chevron-down" size="20px" /></button>
                 ) : null}
               </div>
               {expanded ? (
@@ -361,13 +372,14 @@ function Crumbs({ items }: { items: { label: string; href?: string }[] }) {
     ro.observe(el);
     return () => ro.disconnect();
   }, [items]);
-  const shown = collapsed ? [items[0]!, { label: "…" }, items[items.length - 1]!] : items;
+  // the "…" names what it hides (sefaria.org shows them in a tooltip, joined by " > ")
+  const shown = collapsed ? [items[0]!, { label: "…", hidden: items.slice(1, -1).map((c) => c.label).join(" > ") }, items[items.length - 1]!] : items;
   return (
     <div ref={ref} className={styles.entityCrumbs}>
       {shown.map((c, i) => (
         <span key={`${c.label}-${i}`}>
-          {i ? <Icon name="chevron-right" size="0.8em" /> : null}
-          {"href" in c && c.href ? <Link href={c.href}>{c.label}</Link> : c.label}
+          {i ? <MaskIcon className={styles.crumbChevron} src="/icons/chevron-right-sm.svg" size={12} /> : null}
+          {"href" in c && c.href ? <Link href={c.href}>{c.label}</Link> : "hidden" in c ? <span title={c.hidden}>{c.label}</span> : c.label}
         </span>
       ))}
     </div>
@@ -375,7 +387,7 @@ function Crumbs({ items }: { items: { label: string; href?: string }[] }) {
 }
 
 /** One Books / Authors / Topics result: a round icon, the crumbs above the name, a date or author line, the description. */
-export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityType; hit: EntityHit; topicParent?: TopicCategory; liProps?: Record<string, unknown> }) {
+export function EntityCard({ type, hit, topicParent, liProps, accent: bookAccent }: { type: EntityType; hit: EntityHit; topicParent?: TopicCategory; liProps?: Record<string, unknown>; accent?: string }) {
   const he = useInterfaceLang() === "hebrew";
   const lib = useLibraryHref();
   const name = he ? hit.title_he || hit.title_en : hit.title_en || hit.title_he;
@@ -391,17 +403,20 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
     ? cats.map((c, i) => ({ label: c, href: `/texts/${cats.slice(0, i + 1).join("/")}` }))
     : hit.categoryLabel_en ? [{ label: he ? hit.categoryLabel_he ?? hit.categoryLabel_en : hit.categoryLabel_en }]
     : topicParent ? [{ label: he ? topicParent.he : topicParent.en, href: lib(`/topics/category/${topicParent.slug}`) }] : [];
-  const accent = type === "book" ? categoryColor(cats[0] ?? "") : "#000";
+  // a book's bar and icon in its primary category's colour (sefaria.org's palette.refColor of the title); authors and topics black
+  const accent = type === "book" ? (bookAccent ?? categoryColor(cats[0] ?? "")) : "var(--sefaria-color-text-strong)";
   const host = useSiteHost();
   const href = hit.url ?? entityHref(type, hit, host);
-  const icon = type === "book" ? (hit.isCategory ? "layers" : "book") : type === "author" ? "pen" : "hash";
+  // sefaria.org's icon files (SearchResultCard TYPE_ICONS): a book's in its colour, an author's and a topic's black
+  const icon = type === "book" ? (hit.isCategory ? "/icons/collection.svg" : "/icons/book.svg") : type === "author" ? "/icons/iconmonstr-pen-17.svg" : "/icons/topic.svg";
   const titleLink = useRef<HTMLAnchorElement>(null);
   return (
     // The whole card opens the result (a click on one of its own links goes where that link does)
-    <li {...liProps} className={styles.entity} style={{ "--_c": accent } as never} onClick={(e) => { if (plain(e) && !(e.target as Element).closest("a")) titleLink.current?.click(); }}>
-      <span className={styles.entityIcon} style={type === "book" ? { color: accent } : undefined}><Icon name={icon} size="1.4em" /></span>
+    <li {...liProps} className={styles.entity} data-centered={desc ? undefined : ""} style={{ "--_c": accent } as never} onClick={(e) => { if (plain(e) && !(e.target as Element).closest("a")) titleLink.current?.click(); }}>
+      <span className={styles.entityIcon} style={{ color: accent }}><MaskIcon src={icon} size={18} /></span>
       <div className={styles.entityBody}>
         {crumbs.length ? <Crumbs items={crumbs} /> : null}
+        <div className={styles.entityHeader}>
         <Link ref={titleLink} className={styles.entityTitle} href={href} lang={lang} dir={dirFor(lang)} data-result-title="">{name}</Link>
         {date || authorName ? (
           <div className={styles.entityMeta} lang={lang} dir={dirFor(lang)}>
@@ -410,6 +425,7 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
             {authorName ? (hit.authors?.[0] ? <Link href={lib(`/topics/${hit.authors[0]}?tab=author-works-on-sefaria`)}>{authorName}</Link> : authorName) : null}
           </div>
         ) : null}
+        </div>
         {desc ? <p className={`${styles.entityDesc} ${type === "book" ? styles.bookDesc : ""}`} lang={lang} dir={dirFor(lang)}>{desc}</p> : null}
       </div>
     </li>
@@ -417,11 +433,11 @@ export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityTy
 }
 
 /** `topicParents`: slug → the topic category above it (the topic TOC), for the crumb on Author and Topic cards. */
-export function EntityResults({ type, hits, empty, topicParents, itemProps }: { type: EntityType; hits: readonly EntityHit[]; empty: ReactNode; topicParents?: Record<string, TopicCategory>; itemProps?: (hit: EntityHit, index: number) => Record<string, unknown> }) {
+export function EntityResults({ type, hits, empty, topicParents, itemProps, accentFor }: { type: EntityType; hits: readonly EntityHit[]; empty: ReactNode; topicParents?: Record<string, TopicCategory>; itemProps?: (hit: EntityHit, index: number) => Record<string, unknown>; accentFor?: (hit: EntityHit) => string | undefined }) {
   if (!hits.length) return <>{empty}</>;
   return (
     <ul className={styles.list}>
-      {hits.map((h, i) => <EntityCard key={`${h.url ?? h.slug ?? h.path}-${i}`} type={type} hit={h} topicParent={type !== "book" && h.slug ? topicParents?.[h.slug] : undefined} liProps={itemProps?.(h, i)} />)}
+      {hits.map((h, i) => <EntityCard key={`${h.url ?? h.slug ?? h.path}-${i}`} type={type} hit={h} topicParent={type !== "book" && h.slug ? topicParents?.[h.slug] : undefined} liProps={itemProps?.(h, i)} accent={type === "book" ? accentFor?.(h) : undefined} />)}
     </ul>
   );
 }
@@ -550,9 +566,6 @@ export function NoResults({ tab, query, assistant = false }: { tab: SearchTab; q
       </p>
       {/* with the assistant on, its "Search with Library Assistant" button takes this one's place */}
       {availability === "unavailable" ? <Link className={styles.emptyCta} href={ctaHref}>{he ? n.cta[1] : n.cta[0]}</Link> : null}
-      <p className={styles.emptyCaption}>
-        {he ? <>נתקלתם בבעיה? אפשר <a href="https://sefaria.formstack.com/forms/hebrew_bugs">לדווח על תקלה</a> או <a href="mailto:hello@sefaria.org">ליצור איתנו קשר</a>.</> : <>Something seems wrong? <a href="https://sefaria.formstack.com/forms/bug_report">Report a bug</a> or <a href="mailto:hello@sefaria.org">contact us</a>.</>}
-      </p>
     </div>
   );
 }

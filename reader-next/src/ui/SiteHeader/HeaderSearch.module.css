@@ -13,12 +13,30 @@
 .input { flex: 1; min-width: 0; height: 25px; margin: 0 0 1px; padding: 1px 2px; box-sizing: border-box; border: 0; background: none; font-family: var(--sefaria-font-text-en); font-size: 18px; line-height: normal; color: var(--sefaria-color-text-strong); outline: none; }
 /* sefaria.org: .interface-hebrew input { font-family: Heebo… } and no fixed height (26.5px of content at 18px) */
 .input[data-interface="hebrew"] { font-family: var(--sefaria-font-ui-he); height: auto; }
-.dropdown { position: absolute; z-index: 40; inset-inline-start: 0; top: calc(100% + 6px); width: max(100%, 320px); max-height: 70vh; overflow: auto; background: var(--sefaria-color-surface); border-radius: 8px; box-shadow: 0 4px 16px rgb(0 0 0 / 22%); padding-block: 6px; }
-.group { padding-block: 4px; }
-.groupTitle { padding: 6px 16px 2px; font-family: var(--sefaria-font-ui-en); font-size: 12px; letter-spacing: 0.05em; color: var(--sefaria-color-text-muted); text-transform: uppercase; }
-.item { display: flex; align-items: center; gap: 12px; padding: 7px 16px; color: var(--sefaria-color-text); text-decoration: none; cursor: pointer; font-family: var(--sefaria-font-text-en); font-size: 18px; }
-.item[lang="he"] { font-family: var(--sefaria-font-text-he); }
-.item[data-active="true"], .item:hover { background: var(--sefaria-color-surface-subtle, #f0f0f0); }
-.icon { color: var(--sefaria-color-text-muted); flex: none; }
-.override { font-family: var(--sefaria-font-ui-en); font-size: 15px; color: var(--sefaria-color-text-secondary); }
-.override strong { font-weight: 500; color: var(--sefaria-color-text); }
+/* the native clear button of a search field: sefaria.org's box is a text field, which has none */
+.input::-webkit-search-cancel-button { appearance: none; -webkit-appearance: none; }
+/* As sefaria.org's .autocomplete-dropdown (s2.css): 45px below the top of the box (the header's lower edge), as wide as its longest
+   row up to 130% of the box, a 1px 3px shadow, corners 0 0 6px 4px. Each group 5px above and below over a hairline #ccc, its name
+   (Roboto 14px/18px #999, 6px down, 15px in) in a column 20% wide plus 10px; each row 6px 12px, serif 18px/23px, its 18px icon at 40%
+   10px before the text, #ededec behind the highlighted row. "Search for:" Roboto 16px/19px #666, then the words in quotes. */
+.dropdown { position: absolute; z-index: 40; inset-inline-start: 0; top: 45px; width: max-content; max-width: 130%; background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-autocomplete); border-radius: 0 0 6px 4px; }
+.dropdown[hidden] { display: none; }
+.group { display: flex; align-items: start; padding-block: 5px; border-block-end: 0.77px solid var(--sefaria-color-border-strong); }
+.groupTitle { box-sizing: content-box; flex: none; width: 20%; margin-block-start: 6px; padding-inline: 0 10px; text-indent: 15px; white-space: nowrap; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 18px; color: var(--sefaria-color-icon-light); }
+:lang(he) .groupTitle, [dir="rtl"] .groupTitle { font-family: var(--sefaria-font-ui-he); }
+.groupItems { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
+.item { display: flex; align-items: center; text-decoration: none; cursor: pointer; }
+.row { display: flex; flex-grow: 1; max-width: 100%; padding: 6px 12px; font-family: var(--sefaria-font-text-en); font-size: 18px; line-height: 23px; color: var(--sefaria-color-text-strong); }
+.item[lang="he"] .row { font-family: var(--sefaria-font-text-he); }
+.item[data-active="true"] .row { background: var(--sefaria-color-chip); }
+.icon { margin-block-start: 2px; margin-inline-end: 10px; color: var(--sefaria-color-text-strong); opacity: 0.4; }
+.item[data-search] .icon { padding-inline-start: 3px; }
+.override { font-family: var(--sefaria-font-ui-en); font-size: 16px; line-height: 19px; color: var(--sefaria-color-text-dark-grey); }
+:lang(he) .override, [dir="rtl"] .override { font-family: var(--sefaria-font-ui-he); }
+/* The phone (s2.css @media max-width 842px): the list under the menu's box, across the screen; no group names or rules; the
+   "Search for" row 12px above and below between #ededec hairlines, 16px over the rest; black text */
+.box[data-mobile] .dropdown { position: fixed; top: 120px; inset-inline-start: 0; width: 100vw; max-width: none; max-height: calc(100dvh - 120px); overflow-y: auto; padding-block-end: 10px; box-shadow: var(--sefaria-shadow-autocomplete); }
+.box[data-mobile] .group { padding-block: 0; border-block-end: 0; }
+.box[data-mobile] .groupTitle { width: 0; padding: 0; visibility: hidden; }
+.box[data-mobile] .item[data-search] { padding-block: 12px; margin-block-end: 16px; border-block: 0.77px solid var(--sefaria-color-chip); }
+.box[data-mobile] .icon { padding-inline-start: 2px; }

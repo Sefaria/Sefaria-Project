@@ -105,16 +105,13 @@
       "8 literal colour(s)"
     ],
     "src/ui/SearchPage/SearchPage.module.css": [
-      "14 literal colour(s)"
+      "5 literal colour(s)"
     ],
     "src/ui/SegmentText/SegmentText.module.css": [
       "2 literal colour(s)"
     ],
     "src/ui/SidebarSearch/SidebarSearch.module.css": [
       "1 literal colour(s)"
-    ],
-    "src/ui/SiteHeader/HeaderSearch.module.css": [
-      "2 literal colour(s)"
     ],
     "src/ui/SiteHeader/SiteHeader.module.css": [
       "1 literal colour(s)"
@@ -177,9 +174,6 @@
   "reader-state-core-pure": {},
   "lang-with-dir": {
     "src/ui/NavSidebar/NavSidebar.tsx": [
-      "1 element(s)"
-    ],
-    "src/ui/SiteHeader/HeaderSearch.tsx": [
       "1 element(s)"
     ],
     "src/ui/SiteHeader/SiteHeader.tsx": [

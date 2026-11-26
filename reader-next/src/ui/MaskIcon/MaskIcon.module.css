@@ -1,0 +1,8 @@
+/* A legacy icon file drawn as a mask: its shape from the file, its colour from the text colour (a token), so it follows the theme */
+.icon {
+  display: inline-block;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask: var(--_src) center / contain no-repeat;
+  mask: var(--_src) center / contain no-repeat;
+}
