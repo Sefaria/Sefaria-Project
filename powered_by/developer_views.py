@@ -21,7 +21,7 @@ from reader.views import menu_page
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
 
-from . import developer
+from . import developer, e2e_mailbox
 
 MAX_BODY_BYTES = 16 * 1024
 
@@ -173,9 +173,11 @@ def confirmation_url(request, key):
 
 def send_confirmation_email(request, user):
     context = {"activate_url": confirmation_url(request, developer.confirmation_for(user).key)}
+    subject = render_to_string("developer/email_confirmation_subject.txt", context).strip()
+    body = render_to_string("developer/email_confirmation_message.txt", context)
     send_mail(
-        render_to_string("developer/email_confirmation_subject.txt", context).strip(),
-        render_to_string("developer/email_confirmation_message.txt", context),
+        subject,
+        body,
         None,
         [user.email],
         html_message=render_to_string(
@@ -183,6 +185,7 @@ def send_confirmation_email(request, user):
             {**context, "request": request},  # for its lang attribute
         ),
     )
+    e2e_mailbox.record([user.email], subject, body)
 
 
 LINK_PAGE_TITLES = {

@@ -5,6 +5,7 @@ from django.urls import path, re_path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 import powered_by.developer_views as developer_views
+import powered_by.e2e_mailbox as e2e_mailbox
 import reader.views as reader_views
 import remote_config.views as remote_config_views
 import sefaria.views as sefaria_views
@@ -65,6 +66,7 @@ urlpatterns = [
     path("api/developer/profile", developer_views.profile_api),
     path("api/developer/confirmation", developer_views.confirmation_api),
     path("api/developer/confirmation/new-link", developer_views.new_link_api),
+    path("api/test-mailbox/latest", e2e_mailbox.latest_api),
     path("api/developer/projects", developer_views.projects_api),
     path("api/developer/projects/<str:project_id>", developer_views.project_api),
     path("api/developer/projects/<str:project_id>/keys", developer_views.project_keys_api),
