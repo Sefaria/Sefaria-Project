@@ -387,6 +387,18 @@ class EditTextViewTest(SefariaTestCase):
         self.assertFalse(any(v.get("isEdited") for v in data["versions"]))
         self.assertTrue(any(v.get("isPrimary") for v in data["versions"]))
 
+    def test_edit_text_book_title_opens_add_new(self):
+        data = self._get_init_json(f"/translate/{self.TITLE.replace(' ', '_')}")
+        self.assertEqual(data["mode"], "add new")
+        self.assertEqual(data["newTitle"], self.TITLE)
+
+
+class EditTextUnknownTitleTest(SefariaTestCase):
+    def test_non_text_title_is_not_found(self):
+        for route in ("add", "edit", "translate"):
+            response = c.get(f"/{route}/Mishnah")
+            self.assertEqual(404, response.status_code, route)
+
 
 class LoginTest(SefariaTestCase):
     def setUp(self):
