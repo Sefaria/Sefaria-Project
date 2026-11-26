@@ -147,3 +147,13 @@
   [data-bilayout="heLeft"] .translation, [data-bilayout="heRight"] .translation { color: var(--sefaria-color-text-dark-grey); }
   [data-language="bilingual"] .translation[dir="rtl"] { color: var(--sefaria-color-text-strong); }
 }
+
+/* The Sefaria Labs skin (src/ui/tokens/labs-skin.css): verse numbers in the Labs mono and gold; link dots gold; a chosen or focused
+   verse gets the gold wash and a gold cursor bar at its reading-start edge (the Margin motif: a cursor on a line). */
+:global([data-skin="labs"]) .number { color: var(--labs-gold); }
+:global([data-skin="labs"]) .numberInner, :global([data-skin="labs"]) .number[data-lang="he"] .numberInner { font-family: var(--labs-font-mono); font-size: 11px; font-weight: 500; }
+:global([data-skin="labs"]) .dotInner { background: var(--labs-gold-bright); }
+:global([data-skin="labs"]) .segment[data-highlighted="true"],
+:global([data-skin="labs"] [data-show-focus="true"]) .segment[data-focused="true"] { box-shadow: inset 3px 0 0 var(--labs-gold-bright); border-radius: 2px; }
+:global([data-skin="labs"]) .segment[data-highlighted="true"]:dir(rtl),
+:global([data-skin="labs"] [data-show-focus="true"]) .segment[data-focused="true"]:dir(rtl) { box-shadow: inset -3px 0 0 var(--labs-gold-bright); }

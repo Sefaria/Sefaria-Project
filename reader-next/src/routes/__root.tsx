@@ -46,6 +46,8 @@ import appCss from "~/features/shell/App.module.css";
 import tokens from "~/ui/tokens/tokens.css?url";
 import fonts from "~/ui/tokens/fonts.css?url";
 import base from "~/ui/tokens/base.css?url";
+import labsSkin from "~/ui/tokens/labs-skin.css?url";
+import { useLab } from "~/features/reader-state/labs";
 import { configScript, PUBLIC_CONFIG } from "~/lib/config";
 import { analyticsHeadScripts, attachDeclarativeAnalytics, saMetadataScript, searchFlow, simpleAnalyticsScript, useAppAnalytics } from "~/lib/analytics";
 import { GARAMOND_FILES, TYPEKIT_CSS } from "~/lib/fonts/typekit";
@@ -133,6 +135,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: fonts },
       { rel: "stylesheet", href: tokens },
       { rel: "stylesheet", href: base },
+      // the Sefaria Labs skin: inert until <html data-skin="labs"> (lab labs_skin)
+      { rel: "stylesheet", href: labsSkin },
     ],
     };
   },
@@ -294,6 +298,8 @@ function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: 
   const cachedViewer = useViewer();
   const viewer = Route.useLoaderData()?.viewer ?? cachedViewer;
   const { interfaceLang, diaspora } = useRootPrefs();
+  // the Sefaria Labs skin (src/ui/tokens/labs-skin.css), behind its lab; never on a standalone page
+  const labsSkin = useLab("labs_skin") && !standalone;
   const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: !!viewer, staff: !!viewer?.email?.includes("sefaria.org") });
   // The runtime config (before any module runs: src/lib/config.ts), then the analytics vendors, each only when configured. Plain
   // <script> tags here run once per document; the router's head() would re-inject them on every navigation.
@@ -302,7 +308,7 @@ function RootDocument({ children, lang, dir, standalone }: Readonly<{ children: 
   return (
     // Pinned light: with no theme the tokens follow the OS, but ~200 literal colours do not, so dark-OS readers got a
     // half-dark page. Dark mode arrives behind its remote-config flag once every colour is a token.
-    <html lang={lang} dir={dir} data-theme="light">
+    <html lang={lang} dir={dir} data-theme="light" data-skin={labsSkin ? "labs" : undefined}>
       <head>
         {headScripts.map(({ children: code, ...attrs }, i) => (code ? <script key={i} {...attrs} dangerouslySetInnerHTML={{ __html: code }} /> : <script key={i} {...attrs} />))}
         {/* base.html's static links and meta (src/lib/shell/site-head.ts): plain tags, once per document. Declared in head() they were

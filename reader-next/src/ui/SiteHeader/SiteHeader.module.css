@@ -73,3 +73,26 @@
 
 /* Print (legacy s2-print.css .header): the site header is not printed */
 @media print { .header { display: none !important; } }
+
+/* The Sefaria Labs skin (src/ui/tokens/labs-skin.css): a Night header over white paper, a teal-to-violet rule under it, the nav in the
+   Labs mono, the library logo drawn in the light ink, and a LABS tag after it with a blinking cursor (the Margin motif). */
+:global([data-skin="labs"]) .header { background: var(--labs-night); color: var(--labs-night-ink); box-shadow: none; }
+:global([data-skin="labs"]) .header::after { content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 2px; background: var(--labs-rule); }
+:global([data-skin="labs"]) .logo img, :global([data-skin="labs"]) .iconLink img, :global([data-skin="labs"]) .iconOnly img { filter: brightness(0) invert(0.93); }
+:global([data-skin="labs"]) .desktop .samech { background-color: var(--labs-night-ink); }
+:global([data-skin="labs"]) .logo::after {
+  content: "LABS" / "";
+  margin-inline-start: 12px; padding: 3px 8px 3px 16px; border: 1px solid var(--labs-night-line); border-radius: 9999px;
+  background: linear-gradient(var(--labs-live-bright), var(--labs-live-bright)) no-repeat 7px center / 2px 11px;
+  font-family: var(--labs-font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; line-height: 1; color: var(--labs-night-ink);
+  animation: labsCaret 1.2s steps(1) infinite;
+}
+:global([dir="rtl"][data-skin="labs"]) .logo::after, :global([data-skin="labs"]) .header[dir="rtl"] .logo::after { padding: 3px 16px 3px 8px; background-position: calc(100% - 7px) center; }
+@keyframes labsCaret { 50% { background-size: 0 11px; } }
+@media (prefers-reduced-motion: reduce) { :global([data-skin="labs"]) .logo::after { animation: none; } }
+:global([data-skin="labs"]) .link { font-family: var(--labs-font-mono); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--labs-night-muted); }
+:global([data-skin="labs"]) .link:hover { color: var(--labs-night-ink); }
+:global([data-skin="labs"]) .link > span { transform: none; }
+:global([data-skin="labs"]) .searchBtn, :global([data-skin="labs"]) .icons, :global([data-skin="labs"]) .iconLink, :global([data-skin="labs"]) .menuButton { color: var(--labs-night-muted); }
+:global([data-skin="labs"]) .signup { background: var(--labs-gold-bright); color: var(--labs-night); border-radius: 9999px; font-family: var(--labs-font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+:global([data-skin="labs"]) .assistantPill { background: var(--labs-spark); box-shadow: 0 0 0 1px var(--labs-spark-bright) inset; font-family: var(--labs-font-mono); font-size: 12px; letter-spacing: 0.04em; }

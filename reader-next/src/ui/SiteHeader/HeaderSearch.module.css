@@ -22,3 +22,10 @@
 .icon { color: var(--sefaria-color-text-muted); flex: none; }
 .override { font-family: var(--sefaria-font-ui-en); font-size: 15px; color: var(--sefaria-color-text-secondary); }
 .override strong { font-weight: 500; color: var(--sefaria-color-text); }
+
+/* The Sefaria Labs skin (src/ui/tokens/labs-skin.css): on the Night header the box is a raised Night well with the query in the Labs
+   mono; the phone menu's box (light) and the results drop-down keep the light treatment. */
+:global([data-skin="labs"]) .box:not([data-mobile]) .field { background: var(--labs-night-raised); box-shadow: 0 0 0 1px var(--labs-night-line) inset; }
+:global([data-skin="labs"]) .box:not([data-mobile]) .input { color: var(--labs-night-ink); font-family: var(--labs-font-mono); font-size: 13px; letter-spacing: 0.02em; }
+:global([data-skin="labs"]) .box:not([data-mobile]) .input::placeholder { color: var(--labs-night-muted); }
+:global([data-skin="labs"]) .box:not([data-mobile]) .btn img, :global([data-skin="labs"]) .box:not([data-mobile]) .keyboard img { filter: brightness(0) invert(0.75); }
