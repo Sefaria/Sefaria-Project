@@ -21,7 +21,7 @@ const (
 
 var reg = fakeLookup{
 	alpha:   {ID: "11111111-1111-1111-1111-111111111111", Key: alpha, ProjectID: "proj_alpha", Tier: "developer"},
-	beta:    {ID: "22222222-2222-2222-2222-222222222222", Key: beta, ProjectID: "proj_beta", Tier: "partner", AllowedOrigins: []string{"https://beta.example.org"}},
+	beta:    {ID: "22222222-2222-2222-2222-222222222222", Key: beta, ProjectID: "proj_beta", Tier: "partner", AllowedOrigins: []string{"beta.example.org"}},
 	revoked: {ID: "33333333-3333-3333-3333-333333333333", Key: revoked, ProjectID: "proj_alpha", Tier: "developer", Revoked: true},
 }
 
@@ -43,6 +43,7 @@ func TestDecideEnforce(t *testing.T) {
 		{"unknown key on ungated path is anonymous", Request{Path: "/x", APIKey: unknown}, true, 200, "", "", "anonymous", "api_key_invalid"},
 		{"revoked key on ungated path is anonymous", Request{Path: "/x", APIKey: revoked}, true, 200, "", "", "anonymous", "api_key_invalid"},
 		{"registered origin ok", Request{Path: "/x", APIKey: beta, Origin: "https://beta.example.org"}, true, 200, "", "proj_beta", "partner", "ok"},
+		{"registered domain, www subdomain ok", Request{Path: "/x", APIKey: beta, Origin: "https://www.beta.example.org"}, true, 200, "", "proj_beta", "partner", "ok"},
 		{"registered origin mismatch", Request{Path: "/x", APIKey: beta, Origin: "https://evil.example.org"}, false, 403, "origin_not_allowed", "", "", "origin_not_allowed"},
 		{"registered origin, call without Origin refused", Request{Path: "/x", APIKey: beta}, false, 403, "origin_not_allowed", "", "", "origin_not_allowed"},
 		{"anonymous", Request{Path: "/api/texts/Genesis.1"}, true, 200, "", "", "anonymous", "anonymous"},
@@ -252,6 +253,47 @@ func TestCommaJoinedValueIsBadKeyLegacyOrSfrFirst(t *testing.T) {
 			d := Decide(reg, observe, Request{Method: "GET", Path: "/api/texts/Genesis.1", APIKey: k})
 			if !d.Allow || d.Keyed || d.Result != CodeKeyInvalid || !d.KeyNotAccepted {
 				t.Fatalf("got %+v", d)
+			}
+		})
+	}
+}
+
+func TestOriginAllowed(t *testing.T) {
+	cases := []struct {
+		name    string
+		domains []string
+		origin  string
+		allow   bool
+	}{
+		{"typed example.org, site on www", []string{"example.org"}, "https://www.example.org", true},
+		{"typed www.example.org, saved without www, site without www", []string{"example.org"}, "https://example.org", true},
+		{"subdomain", []string{"example.org"}, "https://app.example.org", true},
+		{"http origin", []string{"example.org"}, "http://example.org", true},
+		{"non-default port", []string{"example.org"}, "https://example.org:8443", true},
+		{"uppercase origin host", []string{"example.org"}, "https://APP.Example.ORG", true},
+		{"punycode", []string{"xn--bcher-kva.example"}, "https://xn--bcher-kva.example", true},
+		{"punycode subdomain", []string{"xn--bcher-kva.example"}, "https://www.xn--bcher-kva.example", true},
+		{"IPv6 exact", []string{"[::1]"}, "http://[::1]:8080", true},
+		{"IPv4 exact", []string{"203.0.113.7"}, "http://203.0.113.7", true},
+		{"subdomain of a shared host", []string{"myapp.vercel.app"}, "https://preview.myapp.vercel.app", true},
+		{"one of several domains", []string{"a.example", "example.org"}, "https://example.org", true},
+
+		{"same suffix, different label", []string{"example.org"}, "https://badexample.org", false},
+		{"domain as a prefix of another domain", []string{"example.org"}, "https://example.org.evil.com", false},
+		{"userinfo trick", []string{"example.org"}, "https://example.org@evil.com", false},
+		{"missing Origin", []string{"example.org"}, "", false},
+		{"opaque null Origin", []string{"example.org"}, "null", false},
+		{"unparsable Origin", []string{"example.org"}, "https://exa mple.org:x", false},
+		{"different domain", []string{"example.org"}, "https://example.com", false},
+		{"parent of the saved domain", []string{"app.example.org"}, "https://example.org", false},
+		{"sibling on a shared host", []string{"myapp.vercel.app"}, "https://other.vercel.app", false},
+		{"IPv4 has no subdomains", []string{"203.0.113.7"}, "http://x.203.0.113.7", false},
+		{"different IPv6", []string{"[::1]"}, "http://[::2]", false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := originAllowed(c.domains, c.origin); got != c.allow {
+				t.Fatalf("originAllowed(%q, %q) = %v, want %v", c.domains, c.origin, got, c.allow)
 			}
 		})
 	}

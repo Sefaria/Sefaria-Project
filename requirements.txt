@@ -251,6 +251,8 @@ pgvector==0.4.2
 psycopg2-binary==2.9.9 #for dev: psycopg2-binary==2.9.9
 ptyprocess==0.7.0
     # via pexpect
+publicsuffixlist==1.1.0.20261018
+    # via -r ./requirements.txt
 py==1.11.0
     # via pytest
 py2-py3-django-email-as-username==1.7.1

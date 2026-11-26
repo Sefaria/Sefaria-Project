@@ -3,6 +3,7 @@ package authz
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	pathpkg "path"
 	"regexp"
@@ -184,12 +185,12 @@ func decide(l Lookup, cfg Config, r Request, meter string) Decision {
 			}
 			return notAccepted(allow("", TierAnonymous, CodeKeyInvalid))
 		}
-		if len(k.AllowedOrigins) > 0 && !contains(k.AllowedOrigins, r.Origin) {
+		if len(k.AllowedOrigins) > 0 && !originAllowed(k.AllowedOrigins, r.Origin) {
 			origin := r.Origin
 			if origin == "" {
 				origin = "a request without an Origin header"
 			}
-			return deny(cfg, 403, CodeOriginNotAllowed, fmt.Sprintf("This key only accepts requests from its registered website, and %s is not one. Turn the restriction off for keys used from a server, script, app or agent.", origin))
+			return deny(cfg, 403, CodeOriginNotAllowed, fmt.Sprintf("This key only accepts requests from its registered domain and its subdomains, and %s is not one. Turn the restriction off for keys used from a server, script, app or agent.", origin))
 		}
 		d := allow(k.ProjectID, k.Tier, "ok")
 		d.Keyed = true
@@ -241,9 +242,21 @@ func BearerToken(authorization string) (string, bool) {
 	return "", false
 }
 
-func contains(list []string, v string) bool {
-	for _, x := range list {
-		if x == v {
+// originAllowed reports whether the Origin header's host is one of the saved domains or a subdomain of
+// one, matching whole labels. Scheme and port don't matter. An IP address only matches itself, and an
+// empty or unparsable Origin matches nothing.
+func originAllowed(domains []string, origin string) bool {
+	u, err := url.Parse(origin)
+	if err != nil || u.Hostname() == "" {
+		return false
+	}
+	host := strings.ToLower(u.Hostname())
+	ip := net.ParseIP(host) != nil
+	if ip && strings.Contains(host, ":") {
+		host = "[" + host + "]" // Django saves IPv6 in brackets
+	}
+	for _, d := range domains {
+		if host == d || (!ip && net.ParseIP(d) == nil && strings.HasSuffix(host, "."+d)) {
 			return true
 		}
 	}

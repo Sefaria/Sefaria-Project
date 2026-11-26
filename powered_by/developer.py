@@ -10,6 +10,7 @@ confirmed; existing keys keep working, but no new project or key can be created.
 
 import ipaddress
 import logging
+import re
 from datetime import UTC, datetime, timedelta
 from datetime import timezone as dt_timezone
 from urllib.parse import urlsplit
@@ -25,6 +26,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
 from django.db import transaction
 from django.utils import timezone
+from publicsuffixlist import PublicSuffixList
 
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
@@ -80,6 +82,11 @@ REVEAL_THROTTLE_PREFIX = "developer-key-reveal:"
 audit_logger = logging.getLogger("powered_by.key_reveal")
 
 _url_validator = URLValidator(schemes=["http", "https"])
+# A public host name, as the settings page checks it: dotted labels and a top-level domain of letters or
+# punycode. No IP addresses, localhost, single labels or trailing dot.
+WEBSITE_HOST_RE = re.compile(
+    r"^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{2,59})$"
+)
 
 
 class CooldownError(Exception):
@@ -121,9 +128,6 @@ def iso(dt):
     return dt.isoformat() if dt else None
 
 
-DEFAULT_PORTS = {"http": 80, "https": 443}
-
-
 def _origin_host(hostname):
     """A host as browsers write it in the Origin header: punycode for a non-Latin name, IPv6 in brackets."""
     try:
@@ -136,17 +140,60 @@ def _origin_host(hostname):
         return hostname.lower()
 
 
-def origin_of(url):
+def domain_of(url):
     """
-    The browser Origin of a URL: scheme://host[:port], lowercase, without a default port. The
-    auth service compares it to the Origin header as an exact string.
+    The domain a restricted key works on: the website's host, lowercase, in ASCII (punycode)
+    form, without a leading www., scheme or port. The auth service accepts an Origin whose host
+    is this domain or a subdomain of it; an IP address only matches itself.
     """
-    parts = urlsplit(url)
-    scheme = parts.scheme.lower()
-    origin = "{}://{}".format(scheme, _origin_host(parts.hostname or ""))
-    if parts.port and parts.port != DEFAULT_PORTS.get(scheme):
-        origin += f":{parts.port}"
-    return origin
+    host = _origin_host(urlsplit(url).hostname or "").rstrip(".")
+    return host[len("www.") :] if host.startswith("www.") else host
+
+
+# A key restricted to a public suffix (co.uk, vercel.app, github.io, ...) would work for every site under it, so
+# that is refused; a site of one's own under it (myapp.vercel.app) is fine. The Public Suffix List's private
+# section covers most shared hosts; these are shared hosts it doesn't list.
+PUBLIC_SUFFIXES = PublicSuffixList()
+EXTRA_SHARED_HOSTS = frozenset(
+    {
+        "sites.google.com",
+        "googleusercontent.com",
+        "wordpress.com",
+        "squarespace.com",
+        "netlify.com",
+        "glitch.me",
+        "railway.app",
+        "codesandbox.io",
+        "stackblitz.io",
+    }
+)
+
+SHARED_DOMAIN_ERROR = (
+    "A key can't be restricted to {domain}, because other people's sites share it. Use your "
+    "site's own address, such as yourapp.{domain}, or leave the key unrestricted."
+)
+NOT_A_DOMAIN_ERROR = (
+    "A key can't be restricted to {domain}, because it isn't a public domain. Leave keys "
+    "you use for local development unrestricted."
+)
+
+
+def _is_ip(host):
+    try:
+        ipaddress.ip_address(host.strip("[]"))
+        return True
+    except ValueError:
+        return False
+
+
+def check_restrictable(domain):
+    """Raises InputError when a key restricted to the domain would work for sites that aren't the owner's."""
+    if _is_ip(domain):
+        return
+    if "." not in domain:
+        raise InputError(NOT_A_DOMAIN_ERROR.format(domain=domain))
+    if domain in EXTRA_SHARED_HOSTS or PUBLIC_SUFFIXES.is_public(domain):
+        raise InputError(SHARED_DOMAIN_ERROR.format(domain=domain))
 
 
 def session_login(request):
@@ -591,6 +638,8 @@ def clean_project_fields(data):
     if fields["websiteUrl"]:
         try:
             _url_validator(fields["websiteUrl"])
+            if not WEBSITE_HOST_RE.match(_origin_host(urlsplit(fields["websiteUrl"]).hostname or "")):
+                raise ValidationError("not a public host name")
         except ValidationError:
             raise InputError("The website is not a valid web address.")
     if fields["contactEmail"]:
@@ -774,6 +823,8 @@ def update_project(user, project_id, data):
     fields = clean_project_fields(data)
     old_link = profile.project_link
     restricted_keys = list(api_project.api_keys.filter(revoked_at__isnull=True).exclude(allowed_origins=[]))
+    if fields["websiteUrl"] != old_link and fields["websiteUrl"] and restricted_keys:
+        check_restrictable(domain_of(fields["websiteUrl"]))
     _apply_fields(profile, fields)
     _set_visibility(profile, fields["visibility"])
     profile.save()
@@ -781,7 +832,7 @@ def update_project(user, project_id, data):
         api_project.contact_email = fields["contactEmail"]
     api_project.save()
     if profile.project_link != old_link:
-        new_origins = [origin_of(profile.project_link)] if profile.project_link else []
+        new_origins = [domain_of(profile.project_link)] if profile.project_link else []
         for api_key in restricted_keys:
             api_key.allowed_origins = new_origins
             api_key.save(update_fields=["allowed_origins"])
@@ -855,7 +906,9 @@ def set_key_restriction(user, key_id, restrict):
     website = _lock_owned_project(user, api_key.project_id).profile.project_link
     if restrict and not website:
         raise InputError("Add the project's website before restricting a key to it.")
-    api_key.allowed_origins = [origin_of(website)] if restrict else []
+    if restrict:
+        check_restrictable(domain_of(website))
+    api_key.allowed_origins = [domain_of(website)] if restrict else []
     api_key.save(update_fields=["allowed_origins"])
     return api_key
 

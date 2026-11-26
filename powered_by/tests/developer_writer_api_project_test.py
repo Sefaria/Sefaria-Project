@@ -89,7 +89,7 @@ class WebsiteRestrictionTest(DeveloperApiTestCase):
         status, _ = self.call("post", self.url, {"project": {**PROJECT, "websiteUrl": "https://new.example.org"}})
 
         self.assertEqual(status, 200)
-        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["https://new.example.org"])
+        self.assertEqual(ApiKey.objects.get(id=restricted).allowed_origins, ["new.example.org"])
         self.assertEqual(ApiKey.objects.get(id=unrestricted).allowed_origins, [])
 
 

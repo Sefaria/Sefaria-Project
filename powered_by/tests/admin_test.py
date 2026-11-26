@@ -105,7 +105,7 @@ class ProjectAdminTest(TestCase):
         )
         self.api_project = ApiProject.objects.create(profile=self.listing)
         self.key = ApiKey.objects.create(
-            project=self.api_project, label="Production", allowed_origins=["https://tehillimcircle.org"]
+            project=self.api_project, label="Production", allowed_origins=["tehillimcircle.org"]
         )
 
     def tearDown(self):
@@ -157,14 +157,14 @@ class ProjectAdminTest(TestCase):
         self.assertEqual(project_after, project_before)
         self.assertEqual(row(ApiKey, self.key.pk), key_before)
 
-    def test_N_M11_an_invalid_origin_is_rejected(self):
+    def test_N_M11_an_invalid_domain_is_rejected(self):
         data = self.api_change_form()
         data["api_keys-0-allowed_origins"] = '["https://tehillimcircle.org/with/a/path"]'
 
         response = self.api_save(data)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(ApiKey.objects.get(pk=self.key.pk).allowed_origins, ["https://tehillimcircle.org"])
+        self.assertEqual(ApiKey.objects.get(pk=self.key.pk).allowed_origins, ["tehillimcircle.org"])
 
     def test_admin_project_page_masks_keys(self):
         ApiKey.objects.create(project=self.api_project, label="Masked", key="sfr_abcdef1234567890")
@@ -377,7 +377,7 @@ class ProjectAdminTest(TestCase):
     def test_a_stale_admin_save_cannot_widen_origins_an_owner_restricted_after_the_form_was_built(self):
         ApiKey.objects.filter(pk=self.key.pk).update(allowed_origins=[])
         data = self.api_change_form()  # rendered while the key allowed any origin
-        restricted = ["https://restricted.example.org"]
+        restricted = ["restricted.example.org"]
         ApiKey.objects.filter(pk=self.key.pk).update(allowed_origins=restricted)
         data["api_keys-0-label"] = "Renamed in a stale form"
 
@@ -389,25 +389,25 @@ class ProjectAdminTest(TestCase):
 
     def test_an_admin_can_still_change_origins_and_label_on_purpose(self):
         data = self.api_change_form()
-        data["api_keys-0-allowed_origins"] = '["https://new.example.org"]'
+        data["api_keys-0-allowed_origins"] = '["new.example.org"]'
         data["api_keys-0-label"] = "Changed"
 
         self.stale_key_formset(data).save()
 
         saved = ApiKey.objects.get(pk=self.key.pk)
-        self.assertEqual(saved.allowed_origins, ["https://new.example.org"])
+        self.assertEqual(saved.allowed_origins, ["new.example.org"])
         self.assertEqual(saved.label, "Changed")
 
     def test_a_stale_admin_save_cannot_overwrite_a_label_changed_after_the_form_was_built(self):
         data = self.api_change_form()
         ApiKey.objects.filter(pk=self.key.pk).update(label="Owner's label")
-        data["api_keys-0-allowed_origins"] = '["https://new.example.org"]'
+        data["api_keys-0-allowed_origins"] = '["new.example.org"]'
 
         self.stale_key_formset(data).save()
 
         saved = ApiKey.objects.get(pk=self.key.pk)
         self.assertEqual(saved.label, "Owner's label")
-        self.assertEqual(saved.allowed_origins, ["https://new.example.org"])
+        self.assertEqual(saved.allowed_origins, ["new.example.org"])
 
     def test_a_stale_admin_save_cannot_undelete_an_api_project_deleted_after_the_form_was_built(self):
         from powered_by.admin import ApiProjectAdmin

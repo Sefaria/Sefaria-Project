@@ -24,6 +24,7 @@ import {
   type,
   within,
 } from './developerSettingsTestUtils';
+import Sefaria from '../sefaria/sefaria';
 
 jest.mock('../sefaria/sefaria', () => require('./developerSettingsTestUtils').sefariaMock());
 jest.mock('../sefaria/sefariaJquery', () => require('./developerSettingsTestUtils').jqueryMock());
@@ -169,6 +170,36 @@ describe('refused saves', () => {
     await click(button('Limit key'));
     expect(server.calls()).toEqual(['POST projects/p1']);
     expect(screen.getByText('Invalid website')).toBeTruthy();
+  });
+
+  it('explains why a key cannot be limited to a shared host, instead of asking to try again', async () => {
+    open({ ...READY, projects: [project(1, { websiteUrl: 'https://sites.google.com/view/daf', keys: [key(1)] })] });
+    server.fail(
+      'POST',
+      'keys/k1',
+      400,
+      "A key can't be restricted to sites.google.com, because other people's sites share it. Use your site's own " +
+        'address, such as yourapp.sites.google.com, or leave the key unrestricted.'
+    );
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
+    // The copy lives in Weblate, so look it up by key rather than pinning its wording here.
+    expect(screen.getByText(Sefaria._keyedString('developer.errors.shared_host.error', 'en'))).toBeTruthy();
+    expect(screen.queryByText("Something went wrong and your change wasn't saved. Please try again.")).toBeNull();
+    expect(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }).checked).toBe(false);
+  });
+
+  it('explains that a local address is not a public domain, not that it is a shared host', async () => {
+    open({ ...READY, projects: [project(1, { websiteUrl: 'http://localhost:3000', keys: [key(1)] })] });
+    server.fail(
+      'POST',
+      'keys/k1',
+      400,
+      "A key can't be restricted to localhost, because it isn't a public domain. Leave keys you use for local " +
+        'development unrestricted.'
+    );
+    await click(screen.getByRole('switch', { name: 'Limit Key 1 to your website' }));
+    expect(screen.getByText(Sefaria._keyedString('developer.errors.not_a_domain.error', 'en'))).toBeTruthy();
+    expect(screen.queryByText(Sefaria._keyedString('developer.errors.shared_host.error', 'en'))).toBeNull();
   });
 });
 
