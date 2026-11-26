@@ -40,9 +40,9 @@ describe("workspace operations", () => {
     expect(id).toBe("p2");
     expect(refs(opened)).toEqual(["Genesis 1", "Leviticus 1", "Exodus 1"]);
     expect(panelOrder(opened)).toEqual(["p1", "p2", "p3"]);
-    expect(opened.panels.p2!.ref).toBe("Leviticus 1");
+    expect((opened.panels.p2 as TextPanelState).ref).toBe("Leviticus 1");
     const back = decodeWorkspace("Genesis 1", encodeWorkspace(opened)!.search);
-    expect(panelOrder(back).map((x) => back.panels[x]!.ref)).toEqual(panelOrder(opened).map((x) => opened.panels[x]!.ref));
+    expect(panelOrder(back).map((x) => (back.panels[x] as TextPanelState).ref)).toEqual(panelOrder(opened).map((x) => (opened.panels[x] as TextPanelState).ref));
     ws = openAside(opened, "p3", { kind: "connections", view: "all" });
     ws = close(ws, "p1");
     expect(panelOrder(ws)).toEqual(["p1", "p2"]);

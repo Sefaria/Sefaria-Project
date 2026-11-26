@@ -42,11 +42,15 @@ function hostWith(over: Partial<SurfaceHostDeps> = {}, initial?: string) {
 
 // @feature SHL-078
 describe("the SurfaceHost", () => {
-  it("is contract 1.1 and hands over the reader's own state API and commands", () => {
+  it("is contract 1.1 and hands over the reader's own state API, and its commands seen as text panels only", () => {
     const { host, deps } = hostWith();
     expect(host.contract).toEqual({ major: 1, minor: 1 });
     expect(host.reader.state).toBe(deps.state);
-    expect(host.reader.commands).toBe(deps.commands);
+    // asset panels are not part of contract 1.x (workspace-view.ts): the commands are a view of the reader's own
+    expect(host.reader.commands.canonicalize).toBe(deps.commands.canonicalize);
+    const ws = { panels: { p1: { id: "p1", kind: "text", ref: "Genesis 1", versions: {}, asides: [] }, p2: { id: "p2", kind: "asset", asset: "sample:x", asides: [] } }, layout: { type: "split", direction: "row", children: [{ type: "leaf", id: "p1" }, { type: "leaf", id: "p2" }] } };
+    vi.mocked(deps.commands.current).mockReturnValue(ws as never);
+    expect(Object.keys(host.reader.commands.current().panels)).toEqual(["p1"]);
     expect(host.config).toEqual({ apiOrigin: "https://api.s.example.org", relayOrigin: "wss://relay.s.example.org", environment: "staging" });
   });
 

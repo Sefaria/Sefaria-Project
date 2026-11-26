@@ -25,7 +25,7 @@ export function PanelLinkToggle({ id, link }: { id: PanelId; link: PanelLink | u
   const order = panelOrder(ws);
   const side = order.indexOf(link.to) < order.indexOf(id) ? "start" : "end";
   const adjacent = Math.abs(order.indexOf(link.to) - order.indexOf(id)) === 1;
-  const title = parseHumanRef(other.ref).title;
+  const title = other.kind === "text" ? parseHumanRef(other.ref).title : he ? "הדף" : "the page";
   const linked = !link.away;
   const label = he ? (linked ? `ביטול הקישור אל ${title}` : `קישור מחדש אל ${title}`) : linked ? `Unlink from ${title}` : `Link to ${title} again`;
   return (

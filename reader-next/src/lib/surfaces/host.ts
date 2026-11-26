@@ -8,6 +8,7 @@
  */
 import type { ReaderStateApi } from "~/lib/reader-state/core/types";
 import type { WorkspaceCommands } from "~/lib/workspace/commands";
+import { surfaceCommands } from "./workspace-view";
 import type { SocialEnv } from "~/lib/config";
 import { ctxOf } from "~/lib/reader/ctx";
 import { acceptsUrl } from "~/lib/reader-state/sefaria/safe-url";
@@ -171,7 +172,8 @@ export function createSurfaceHost(d: SurfaceHostDeps): SurfaceHost {
     },
     reader: {
       state: d.state,
-      commands: d.commands,
+      // text panels only: asset panels are not part of contract 1.x (lib/surfaces/workspace-view.ts)
+      commands: surfaceCommands(d.commands),
       context: {
         get: () => ctxOf(loc().search),
         subscribe(cb) {

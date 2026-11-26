@@ -21,7 +21,7 @@ import { leaf, row } from "~/lib/layout/tree";
 import { refToUrl, urlToRef } from "~/lib/ref/url";
 import { decodeVtitle, encodeVtitle, versionParamToApi } from "~/lib/reader/url-state";
 import { CTX_PARAM, parseCtx } from "~/lib/reader/ctx";
-import type { AsideState, PanelId, TextPanelState, Workspace } from "./types";
+import type { AsideState, PanelId, PanelState, TextPanelState, Workspace } from "./types";
 import { panelOrder } from "./ops";
 
 export type RawSearch = Record<string, string | number | undefined>;
@@ -67,18 +67,25 @@ export const MAX_PANELS = 6;
 
 /** Read a workspace from the path's ref (already in human form, e.g. "Genesis 1:3") and the query. */
 export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace {
-  const extra = Object.keys(search)
-    .map((k) => /^p(\d+)$/.exec(k))
-    .filter((m): m is RegExpExecArray => !!m && Number(m[1]) >= 2 && !!str(search[m[0]]))
-    .map((m) => Number(m[1]))
+  // a slot holds a text (p<n>) or an asset panel (a<n>, not sefaria.org's grammar: only the new reader writes it); a text wins a tie
+  const extra = [
+    ...new Set(
+      Object.keys(search)
+        .map((k) => /^[pa](\d+)$/.exec(k))
+        .filter((m): m is RegExpExecArray => !!m && Number(m[1]) >= 2 && !!str(search[m[0]]))
+        .map((m) => Number(m[1])),
+    ),
+  ]
     .sort((a, b) => a - b)
     .slice(0, MAX_PANELS - 1);
   // A panel's sidebar language is lang<k+1> when no panel is numbered k+1 (the sidebar took that slot)
   const sideLang = (k: number) => (extra.includes(k + 1) ? undefined : asSideLang(search[`lang${k + 1}`]));
-  const panels: TextPanelState[] = [panelFrom("p1", firstRef, search, "", sideLang(1))];
+  const panels: PanelState[] = [panelFrom("p1", firstRef, search, "", sideLang(1))];
   extra.forEach((n, i) => {
     const id = `p${i + 2}` as PanelId;
-    panels.push(panelFrom(id, urlToRef(String(search[`p${n}`])), search, String(n), sideLang(n)));
+    const asset = str(search[`a${n}`]);
+    if (!str(search[`p${n}`]) && asset) panels.push({ id, kind: "asset", asset, asides: [] });
+    else panels.push(panelFrom(id, urlToRef(String(search[`p${n}`])), search, String(n), sideLang(n)));
   });
   for (const l of parseLinks(search[LINK_PARAM], panels.length)) {
     const p = panels[l.follower - 1]!;
@@ -143,7 +150,8 @@ const isOnkelos = (ref: string) => /^Onkelos (Genesis|Exodus|Leviticus|Numbers|D
 /** One entry of the old client's flat panel list. */
 type Hist =
   | { mode: "Text"; url: string; versions: [string, string][]; lang: string; aliyot?: 0 | 1 }
-  | { mode: "Connections"; url: string; sources: string; lang: string; vside?: string; lookup?: string; sbsq?: string; entity?: { slug: string; text: string } };
+  | { mode: "Connections"; url: string; sources: string; lang: string; vside?: string; lookup?: string; sbsq?: string; entity?: { slug: string; text: string } }
+  | { mode: "Asset"; asset: string };
 
 /** "family|Title" (API) per side → the old `&v<lang><n>=family|Title_With_Underscores` pairs, English first (currVersions order). */
 function versionPairs(p: TextPanelState): [string, string][] {
@@ -158,7 +166,12 @@ function histories(ws: Workspace, d: UrlDefaults): Hist[] {
   const out: Hist[] = [];
   for (const id of panelOrder(ws)) {
     const p = ws.panels[id];
-    if (!p || p.kind !== "text") continue;
+    if (!p) continue;
+    if (p.kind === "asset") {
+      // an asset is never the first panel: the address's path is a text (an asset panel left first is dropped from the address)
+      if (out.length) out.push({ mode: "Asset", asset: p.asset });
+      continue;
+    }
     const url = refToUrl(p.ref);
     // An Onkelos panel keeps an `aliyot` its URL set: the old client applies it to the panel but drops it from the address, which
     // here (the URL is the state) would turn the aliyot off again at the first rewrite. One it never had is not written, as before.
@@ -217,6 +230,10 @@ function workspaceParams(ws: Workspace, d: UrlDefaults): { path: string; params:
   let params: Param[] = [...vparams(first.versions, 0), raw("lang", first.lang), ...("aliyot" in first ? [raw("aliyot", first.aliyot!)] : [])];
   for (let i = 1; i < h.length; i++) {
     const cur = h[i]!, prev = h[i - 1]!;
+    if (cur.mode === "Asset") {
+      params.push(text(`a${i + 1}`, cur.asset));
+      continue;
+    }
     if (cur.mode === "Connections" && prev.mode === "Text") {
       const tail = cur.vside ? [version(`vside${i === 1 ? "" : i}`, encodeVtitle(cur.vside))] : [];
       if (i === 1) {

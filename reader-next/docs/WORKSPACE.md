@@ -112,6 +112,11 @@ Two panels can follow each other segment by segment (atlas SHL-090–092; lab `l
   The other panel's address update waits for the moved panel's own, so the two replaces never read the same old address.
 - **Pausing.** The link symbol (`PanelLinkToggle`) on the dividing line pauses or resumes; a move the other side cannot map pauses
   the link. Resuming brings the other panel to the one the reader moved last, realigning books if they went apart.
+- **Asset panels** (SHL-093/094): `PanelState` kind `"asset"`, written `a<n>=<asset>` in its slot; rendered by
+  `features/assets/AssetPanel.tsx` in a `sandbox="allow-scripts"` frame. The asset talks over a MessagePort (protocol in
+  `src/lib/assets/protocol.ts`, shim in `src/lib/assets/shim.ts`). The bus sends an asset every focus change of its text
+  (`links.focused`, a replay's too) and treats the asset's own reports as the reader's movement (`links.moved`, `links.open`).
+  Surfaces see text panels only (`src/lib/surfaces/workspace-view.ts`); closing a text closes its assets.
 - **Replay and Follow Me** need nothing extra: the link is in the address and every panel's place is in the `sefaria.scroll` slice,
   so a replay puts both panels back; nothing it applies is the reader's movement, so the bus stays quiet.
 

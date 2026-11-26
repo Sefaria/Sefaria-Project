@@ -176,3 +176,71 @@ describe("auto-link on Open", () => {
     expect(h.ws().panels.p2!.link).toBeUndefined();
   });
 });
+
+// @feature SHL-094 Asset protocol
+describe("an asset linked to a text", () => {
+  function assetHarness() {
+    const ws = linkPanels(openAtEnd(openOnly(EMPTY_WORKSPACE, text("Genesis 1:1")), { kind: "asset", asset: "sample:seven-days" }), "p2", "p1");
+    let state = ws;
+    const navs: { ws: Workspace; replace?: boolean; state?: NavState }[] = [];
+    const bus = createLinkBus({
+      current: () => state,
+      go: async (next, opts) => {
+        state = next;
+        navs.push({ ws: next, replace: opts.replace, state: opts.state });
+      },
+      meta: async (t) => META[t],
+      links: async () => [],
+    });
+    const toAsset: string[] = [];
+    const textAt: string[] = [];
+    let textPlace = "Genesis 1:1";
+    bus.register("p1", { indexTitle: () => "Genesis", place: () => textPlace, scrollTo: (r) => (r.startsWith("Genesis 1:") ? (textAt.push(r), (textPlace = r), true) : false) });
+    bus.register("p2", { kind: "asset", indexTitle: () => "asset:sample:seven-days", place: () => undefined, scrollTo: (r) => (toAsset.push(r), true) });
+    return { bus, navs, toAsset, textAt, ws: () => state };
+  }
+
+  it("hears every move of its text (a replay's too: D9), not only the reader's", () => {
+    const h = assetHarness();
+    h.bus.focused("p1", "Genesis 1:6");
+    h.bus.focused("p1", "Genesis 1:9");
+    expect(h.toAsset).toEqual(["Genesis 1:6", "Genesis 1:9"]);
+  });
+
+  it("is not sent a mapped move (it maps refs itself)", async () => {
+    const h = assetHarness();
+    h.bus.moved("p1", "Genesis 1:6");
+    await h.bus.idle();
+    expect(h.toAsset).toEqual([]);
+  });
+
+  it("its place moves the text: a range scrolls to its first verse, and only the address catches up", async () => {
+    const h = assetHarness();
+    h.bus.moved("p2", "Genesis 1:6-8");
+    await h.bus.idle();
+    expect(h.textAt).toEqual(["Genesis 1:6"]);
+    expect(h.navs.at(-1)).toMatchObject({ replace: true, state: { nav: "scroll", panel: "p1", link: true } });
+  });
+
+  it("open takes the text to another book, with a history entry of its own", async () => {
+    const h = assetHarness();
+    h.bus.open("p2", "Psalms 104:19");
+    await h.bus.idle();
+    expect((h.ws().panels.p1 as TextPanelState).ref).toBe("Psalms 104:19");
+    expect(h.navs.at(-1)).toMatchObject({ replace: false, state: { nav: "go", panel: "p1", link: true } });
+  });
+
+  it("a paused link carries nothing either way", async () => {
+    const h = assetHarness();
+    const paused = setLinkAway(h.ws(), "p2", true);
+    await h.bus.toggle("p2"); // pause through the symbol
+    await h.bus.idle();
+    expect(h.ws().panels.p2!.link?.away).toBe(true);
+    void paused;
+    h.bus.focused("p1", "Genesis 1:6");
+    h.bus.moved("p2", "Genesis 1:9");
+    await h.bus.idle();
+    expect(h.toAsset).toEqual([]);
+    expect(h.textAt).toEqual([]);
+  });
+});

@@ -3273,6 +3273,44 @@
   "refs": []
  },
  {
+  "id": "SHL-093",
+  "area": "reader-shell",
+  "group": "Linked panels",
+  "name": "Asset panel",
+  "summary": "An interactive page (a Claude asset: one self-contained HTML file) shown beside a text in a sandboxed frame and linked to it both ways. Opened from an address (a<n>=<asset>), from a file (display menu: Open an interactive page…), or, once stored, from the sidebar. Behind the linked_panels lab.",
+  "details": [
+   "PanelState gains kind \"asset\" {asset}: sample:<name> (public/assets/samples), local:<key> (a file opened in this tab, sessionStorage), or a stored asset id served by Sefaria Social (GET /api/v1/claude-assets/<id> → contentUrl).",
+   "The frame is sandbox=\"allow-scripts\" only (opaque origin: no cookies, storage, forms, popups or top navigation). A previewed file gets a Content-Security-Policy meta tag at the top of its head: no network beyond the trusted script CDNs. A stored asset is framed by URL so its server's CSP applies.",
+   "Address: a<n> in the panel's slot of sefaria.org's numbering; the loader loads only p<n> texts. Closing the text closes the assets linked to it.",
+   "Surfaces (SurfaceHost 1.x) see text panels only (src/lib/surfaces/workspace-view.ts); a surface's navigation keeps the assets beside their texts."
+  ],
+  "src": "reader-next: src/features/assets/AssetPanel.tsx, src/features/assets/source.ts, src/lib/workspace/types.ts, src/lib/workspace/url.ts, src/lib/surfaces/workspace-view.ts, public/assets/samples/seven-days.html",
+  "audience": "all",
+  "platform": "desktop",
+  "tier": "optional",
+  "status": "rebuild-only",
+  "refs": []
+ },
+ {
+  "id": "SHL-094",
+  "area": "reader-shell",
+  "group": "Linked panels",
+  "name": "Asset protocol",
+  "summary": "How an asset and the reader talk: the asset posts sefaria:ready to its parent; the reader answers sefaria:connect with a MessagePort; then init and place go to the asset, place and open come back. The asset inlines a ~1 kB shim (SefariaLink.onPlace / setPlace / open) that does nothing outside the reader.",
+  "details": [
+   "Manifest inside the file: <script type=\"application/json\" id=\"sefaria-asset\"> {v:1, title, description?, lang?, refs:[{ref,label?}]} (src/lib/assets/manifest.ts).",
+   "Reader side (src/features/assets/use-asset-channel.ts): hello accepted only from its own frame's window; messages validated with zod, at most 10 a second; the asset's place reports are ignored for 400 ms after the reader sent it one and while a replay drives the reader.",
+   "Linked text → asset: every focus change of the text (reading, a link, a replay: owner decision D9 needs no new slice). Asset → text: place scrolls the text (another book: sends it there, replaced); open takes it to another text with a history entry of its own.",
+   "The shim (src/lib/assets/shim.ts) is the reference copy; the MCP skill ships the same text."
+  ],
+  "src": "reader-next: src/lib/assets/protocol.ts, src/lib/assets/shim.ts, src/lib/assets/manifest.ts, src/features/assets/use-asset-channel.ts, src/features/workspace/links.tsx",
+  "audience": "all",
+  "platform": "desktop",
+  "tier": "optional",
+  "status": "rebuild-only",
+  "refs": []
+ },
+ {
   "id": "TXD-001",
   "area": "text-display",
   "group": "Copy and paste",

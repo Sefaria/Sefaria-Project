@@ -65,8 +65,23 @@ export interface TextPanelState extends PanelBase {
   aliyot?: 0 | 1;
 }
 
-export type PanelState = TextPanelState;
+/**
+ * An interactive page (a Claude asset) shown beside a text, in a sandboxed frame, following the text it is linked to and moving it
+ * (LINKED_PANELS_AND_ASSETS_PLAN.md §5). `asset` names where its HTML comes from: `sample:<name>` (shipped with the reader),
+ * `local:<key>` (a file the reader opened in this tab), or a stored asset's id (`<uuid>` or `<uuid>@<version>`).
+ *
+ * @feature SHL-093 Asset panel
+ */
+export interface AssetPanelState extends PanelBase {
+  kind: "asset";
+  asset: string;
+}
+
+export type PanelState = TextPanelState | AssetPanelState;
 export type PanelKind = PanelState["kind"];
+
+/** The panel's text ref, for a text panel. */
+export const panelRef = (p: PanelState | undefined): string | undefined => (p?.kind === "text" ? p.ref : undefined);
 
 export interface Workspace {
   panels: Record<PanelId, PanelState>;

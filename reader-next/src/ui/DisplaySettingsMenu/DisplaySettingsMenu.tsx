@@ -29,6 +29,8 @@ export interface DisplaySettingsMenuProps {
   onRecordSession?: () => void;
   /** "Load recording…", shown beside it: open a recording file to replay. */
   onLoadRecording?: () => void;
+  /** Open an interactive page (a Claude asset file) beside this text, linked to it (lab `linked_panels`, SHL-093). */
+  onOpenAsset?: () => void;
 }
 
 type LayoutOption = Layout | BiLayout;
@@ -63,7 +65,7 @@ const t = (en: string, he: string): ReactNode => <InterfaceText en={en} he={he} 
  * @feature SHL-017 @feature TXD-031 @feature TXD-033 @feature TXD-034 @feature TXD-036 @feature TXD-037 @feature TXD-038
  * @feature TXD-041 @feature SHL-019 @feature SHL-020
  */
-export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onChange, directions, onRecordSession, onLoadRecording }: DisplaySettingsMenuProps) {
+export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onChange, directions, onRecordSession, onLoadRecording, onOpenAsset }: DisplaySettingsMenuProps) {
   const bilingual = settings.language === "bilingual";
   const layoutValue: Layout | BiLayout = bilingual ? settings.biLayout : settings[layoutKey];
 
@@ -158,6 +160,16 @@ export function DisplaySettingsMenu({ settings, availability: a, layoutKey, onCh
                 {t("Load recording…", "טעינת הקלטה…")}
               </button>
             ) : null}
+          </section>
+        </>
+      ) : null}
+      {onOpenAsset ? (
+        <>
+          <hr className={styles.divider} />
+          <section className={styles.session} aria-label="Interactive page">
+            <button type="button" className={styles.sessionLink} onClick={onOpenAsset}>
+              {t("Open an interactive page…", "פתיחת דף אינטראקטיבי…")}
+            </button>
           </section>
         </>
       ) : null}

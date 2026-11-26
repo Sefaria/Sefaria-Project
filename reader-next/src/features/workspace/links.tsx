@@ -20,10 +20,10 @@ import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { linksQueryOptions } from "~/lib/connections/queries";
 import { indexMetaQueryOptions, type CommentaryMeta } from "~/lib/text/commentary";
-import { baseToDependent, dependentToBase, isDependentOn, relationOf, sectionOf, type LinkRelation } from "~/lib/text/link-map";
+import { baseToDependent, dependentToBase, firstSegment, isDependentOn, relationOf, sectionOf, type LinkRelation } from "~/lib/text/link-map";
 import { parseHumanRef } from "~/lib/ref/url";
 import { linkedTo, linkPanels, setLinkAway, updatePanel } from "~/lib/workspace/ops";
-import type { PanelId, Workspace } from "~/lib/workspace/types";
+import { panelRef, type PanelId, type Workspace } from "~/lib/workspace/types";
 import { useLab } from "~/features/reader-state/labs";
 import { useWorkspaceNav, type NavState } from "./navigation";
 
@@ -35,6 +35,11 @@ export interface LinkEndpoint {
   place: () => string | undefined;
   /** Bring a segment to the reading line without counting as the reader's movement; false when that segment is not loaded. */
   scrollTo: (segmentRef: string) => boolean;
+  /**
+   * An asset panel (SHL-093): it maps refs itself, hears every move of its text (`focused`, a replay's too: D9) and reports its own
+   * places with `moved`. Default: a text panel.
+   */
+  kind?: "text" | "asset";
 }
 
 /** Why a panel moved, as the bus is told. */
@@ -50,9 +55,15 @@ export interface PanelLinks {
   toggle: (follower: PanelId) => void;
   /** A panel was just opened from `leader` (a sidebar's Open): link the two if the texts can be linked. */
   autoLink: (leader: PanelId, opened: PanelId, openedRef: string) => void;
+  /** A text panel's current segment changed, for any reason (reading, a link, a replay): its linked assets hear it. */
+  focused: (id: PanelId, segmentRef: string) => void;
+  /** An asset asked to take its linked text panel to another text (`open`): a navigation of its own, with a history entry. */
+  open: (id: PanelId, ref: string) => void;
+  /** The segment a panel is on (an asset asks its text's place when it connects). */
+  placeOf: (id: PanelId) => string | undefined;
 }
 
-const DISABLED: PanelLinks = { enabled: false, register: () => () => {}, moved: () => {}, toggle: () => {}, autoLink: () => {} };
+const DISABLED: PanelLinks = { enabled: false, register: () => () => {}, moved: () => {}, toggle: () => {}, autoLink: () => {}, focused: () => {}, open: () => {}, placeOf: () => undefined };
 const Ctx = createContext<PanelLinks>(DISABLED);
 
 /** The bus's dependencies, so it can be tested without React or a router. */
@@ -74,7 +85,7 @@ export function createLinkBus(deps: LinkBusDeps): Omit<PanelLinks, "enabled"> & 
     pending = pending.then(() => p).catch(() => undefined);
   };
 
-  const titleOf = (id: PanelId, ws: Workspace): string | undefined => endpoints.get(id)?.indexTitle() ?? refTitle(ws.panels[id]?.ref);
+  const titleOf = (id: PanelId, ws: Workspace): string | undefined => endpoints.get(id)?.indexTitle() ?? refTitle(panelRef(ws.panels[id]));
 
   async function relation(aTitle: string, bTitle: string): Promise<LinkRelation | null> {
     if (aTitle === bTitle) return { mode: "same" };
@@ -96,6 +107,10 @@ export function createLinkBus(deps: LinkBusDeps): Omit<PanelLinks, "enabled"> & 
     const gen = (generation.get(to) ?? 0) + 1;
     generation.set(to, gen);
     const ws0 = deps.current();
+    // an asset hears its text through `focused`, never through a mapped move
+    if (endpoints.get(to)?.kind === "asset") return;
+    // an asset's place is a ref of whatever text it names: the same book scrolls the text panel there, another book takes it there
+    if (endpoints.get(from)?.kind === "asset") return assetLeads(ref, to, gen, written);
     const fromTitle = titleOf(from, ws0) ?? refTitle(ref);
     const toTitle = titleOf(to, ws0);
     if (!fromTitle || !toTitle) return;
@@ -124,6 +139,48 @@ export function createLinkBus(deps: LinkBusDeps): Omit<PanelLinks, "enabled"> & 
     await deps.go(updatePanel(ws, to, { ref: target }), { replace: true, state: scrolled ? { nav: "scroll", panel: to, link: true } : { nav: "go", panel: to, link: true } });
   }
 
+  /** The asset said where it is: its linked text panel goes there (scrolled in its own book, sent there in another). */
+  async function assetLeads(ref: string, to: PanelId, gen: number, written?: Promise<unknown>, push = false): Promise<void> {
+    const ws = deps.current();
+    const panel = ws.panels[to];
+    if (!panel || panel.kind !== "text") return;
+    const segment = firstSegment(ref);
+    const sameBook = refTitle(segment) === (titleOf(to, ws) ?? refTitle(panel.ref));
+    const ep = endpoints.get(to);
+    if (!push && sameBook && ep?.place() === segment) return;
+    const scrolled = !push && sameBook && (ep?.scrollTo(segment) ?? false);
+    await written;
+    if (generation.get(to) !== gen) return;
+    const now = deps.current();
+    if (!now.panels[to]) return;
+    await deps.go(updatePanel(now, to, { ref: scrolled ? segment : ref }), {
+      replace: !push,
+      state: scrolled ? { nav: "scroll", panel: to, link: true } : { nav: "go", panel: to, link: true },
+    });
+  }
+
+  const focused: PanelLinks["focused"] = (id, segmentRef) => {
+    const ws = deps.current();
+    for (const l of linkedTo(ws, id)) {
+      if (l.away) continue;
+      const ep = endpoints.get(l.other);
+      if (ep?.kind === "asset") ep.scrollTo(segmentRef);
+    }
+  };
+
+  const open: PanelLinks["open"] = (id, ref) => {
+    const ws = deps.current();
+    for (const l of linkedTo(ws, id)) {
+      if (l.away || endpoints.get(l.other)?.kind === "asset") continue;
+      lastTouched.set(l.follower, id);
+      const gen = (generation.get(l.other) ?? 0) + 1;
+      generation.set(l.other, gen);
+      track(assetLeads(ref, l.other, gen, undefined, true));
+    }
+  };
+
+  const placeOf: PanelLinks["placeOf"] = (id) => endpoints.get(id)?.place();
+
   const moved: PanelLinks["moved"] = (id, segmentRef, written) => {
     const ws = deps.current();
     for (const l of linkedTo(ws, id)) {
@@ -144,9 +201,21 @@ export function createLinkBus(deps: LinkBusDeps): Omit<PanelLinks, "enabled"> & 
     // Link again: the panel the reader moved last leads; the other comes to it (P1).
     const leader = lastTouched.get(follower) ?? link.to;
     const other = leader === follower ? link.to : follower;
+    if (endpoints.get(follower)?.kind === "asset" || endpoints.get(link.to)?.kind === "asset") {
+      track(
+        (async () => {
+          await deps.go(setLinkAway(deps.current(), follower, false), { replace: true, state: { nav: "stay", link: true } });
+          const place = endpoints.get(leader)?.place();
+          if (place) follow(leader, place, other, follower).catch(() => undefined);
+          const text = endpoints.get(leader)?.kind === "asset" ? undefined : place;
+          if (text) endpoints.get(other)?.scrollTo(text);
+        })(),
+      );
+      return;
+    }
     track(
       (async () => {
-        const place = endpoints.get(leader)?.place() ?? ws.panels[leader]?.ref;
+        const place = endpoints.get(leader)?.place() ?? panelRef(ws.panels[leader]);
         const leaderTitle = titleOf(leader, ws);
         const otherTitle = titleOf(other, ws);
         if (!place || !leaderTitle || !otherTitle) return;
@@ -195,7 +264,7 @@ export function createLinkBus(deps: LinkBusDeps): Omit<PanelLinks, "enabled"> & 
         if (!rel) return;
         const ws = deps.current();
         // still the panels it was asked about (the reader may have closed or moved one meanwhile)
-        if (ws.panels[opened]?.ref !== openedRef || !ws.panels[leader] || ws.panels[opened]!.link) return;
+        if (panelRef(ws.panels[opened]) !== openedRef || !ws.panels[leader] || ws.panels[opened]!.link) return;
         await deps.go(linkPanels(ws, opened, leader), { replace: true, state: { nav: "stay", link: true } });
       })(),
     );
@@ -208,7 +277,7 @@ export function createLinkBus(deps: LinkBusDeps): Omit<PanelLinks, "enabled"> & 
     };
   };
 
-  return { register, moved, toggle, autoLink, endpoints, idle: () => pending };
+  return { register, moved, toggle, autoLink, focused, open, placeOf, endpoints, idle: () => pending };
 }
 
 /** The book a ref names ("Rashi on Genesis 1:3:1" → "Rashi on Genesis"). */
@@ -232,7 +301,10 @@ export function PanelLinksProvider({ children }: { children: ReactNode }) {
       }),
     [qc],
   );
-  const value = useMemo<PanelLinks>(() => (enabled ? { enabled, register: bus.register, moved: bus.moved, toggle: bus.toggle, autoLink: bus.autoLink } : DISABLED), [enabled, bus]);
+  const value = useMemo<PanelLinks>(
+    () => (enabled ? { enabled, register: bus.register, moved: bus.moved, toggle: bus.toggle, autoLink: bus.autoLink, focused: bus.focused, open: bus.open, placeOf: bus.placeOf } : DISABLED),
+    [enabled, bus],
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
@@ -245,7 +317,7 @@ export function useLinkEndpoint(id: PanelId, endpoint: LinkEndpoint) {
   const links = usePanelLinks();
   const ref = useRef(endpoint);
   ref.current = endpoint;
-  const stable = useMemo<LinkEndpoint>(() => ({ indexTitle: () => ref.current.indexTitle(), place: () => ref.current.place(), scrollTo: (r) => ref.current.scrollTo(r) }), []);
+  const stable = useMemo<LinkEndpoint>(() => ({ indexTitle: () => ref.current.indexTitle(), place: () => ref.current.place(), scrollTo: (r) => ref.current.scrollTo(r), kind: endpoint.kind }), []); // eslint-disable-line react-hooks/exhaustive-deps -- a panel's kind never changes
   useEffect(() => (links.enabled ? links.register(id, stable) : undefined), [links, id, stable]);
 }
 

@@ -11,6 +11,7 @@
 import type * as Real from "~/lib/reader-state/core/types";
 import type { WorkspaceCommands as RealCommands, NavState as RealNavState } from "~/lib/workspace/commands";
 import type { Workspace as RealWorkspace } from "~/lib/workspace/types";
+import type { SurfaceCommands, SurfaceWorkspace } from "./workspace-view";
 import type * as Contract from "../../../contract/surface-host.v1";
 
 export const readerStateApiFits = (api: Real.ReaderStateApi): Contract.ReaderStateApi => api;
@@ -21,8 +22,10 @@ export const applyContextToReader = (c: Contract.ApplyContext): Real.ApplyContex
 export const filterToReader = (f: Contract.SliceFilter): Real.SliceFilter => f;
 export const applyResultFromReader = (r: Real.ApplyResult): Contract.ApplyResult => r;
 
-export const commandsFit = (c: RealCommands): Contract.WorkspaceCommands => c;
-export const workspaceFromReader = (w: RealWorkspace): Contract.Workspace => w;
+// surfaces get the text-only view of the workspace (asset panels are not in contract 1.x: ./workspace-view.ts)
+export const commandsFit = (c: SurfaceCommands): Contract.WorkspaceCommands => c;
+export const workspaceFromReader = (w: SurfaceWorkspace): Contract.Workspace => w;
+export const readerCommandsKeepTheirShape = (c: RealCommands): Omit<Contract.WorkspaceCommands, "current"> => c;
 export const workspaceToReader = (w: Contract.Workspace): RealWorkspace => w;
 export const navStateToReader = (n: Contract.NavState): RealNavState => n;
 export const navStateFromReader = (n: RealNavState): Contract.NavState => n;

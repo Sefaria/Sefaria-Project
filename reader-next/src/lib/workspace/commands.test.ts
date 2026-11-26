@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createWorkspaceCommands, withPanelKeys, type WorkspaceRouter } from "./commands";
 import { close } from "./ops";
 import { decodeWorkspace } from "./url";
+import type { TextPanelState } from "./types";
 
 const fakeRouter = (pathname: string, search: Record<string, string>, state: unknown = {}, routeId = "/$") => {
   const navigate = vi.fn(async (_opts: Record<string, unknown>) => undefined);
@@ -54,7 +55,7 @@ describe("workspace commands (outside React)", () => {
     const ws = cmd.current();
     expect([ws.panels.p1!.key, ws.panels.p2!.key]).toEqual(["kA", "kB"]);
     const after = close(ws, "p1");
-    expect(after.panels.p1!.ref).toBe("Exodus 1");
+    expect((after.panels.p1 as TextPanelState).ref).toBe("Exodus 1");
     expect(after.panels.p1!.key).toBe("kB");
     await cmd.go(after);
     expect((navigate.mock.calls[0]![0] as { state: { panelKeys: string[] } }).state.panelKeys).toEqual(["kB"]);

@@ -17,8 +17,10 @@ import { versionKey, type TranslationVersion } from "~/lib/versions/translations
 import { isHighlighted } from "~/lib/text/plan";
 import { highlightOf, keepsRange as rangeIsKept, selectionAddress, wholeSectionRange } from "~/lib/text/range-selection";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
-import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
-import type { AsideId, TextPanelState, Workspace } from "~/lib/workspace/types";
+import { close, closeAside, linkPanels, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { MAX_ASSET_BYTES } from "~/lib/assets/manifest";
+import { keepLocal } from "../assets/source";
+import { panelRef, type AsideId, type TextPanelState, type Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
 import { CloseTextButton, DisplayOptionsButton, SaveTextButton } from "~/ui/ReaderControls/ReaderControls";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
@@ -239,8 +241,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     (ref: string, passage: TextPassage) => {
       setCurrent((c) => (c.ref === ref && c.passage === passage ? c : { ref, passage }));
       nav.panelMoved();
+      // linked assets hear every move of this panel, a replay's too (D9)
+      links.focused(id, ref);
     },
-    [nav],
+    [nav, links, id],
   );
   // The scroll slice also hears scrolling inside one long segment (no focus change); panelMoved throttles to a frame.
   useEffect(() => {
@@ -409,6 +413,27 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [apply, nav, id, settings.language, links],
   );
   const openTextHere = useCallback((ref: string) => openFromSidebar(ref), [openFromSidebar]);
+
+  /** An interactive page from a file (a Claude asset saved as HTML) opens beside this text, linked to it; kept in this tab only. SHL-093 */
+  const assetFile = useRef<HTMLInputElement>(null);
+  const uiHebrew = useInterfaceLang() === "hebrew";
+  const openAssetFile = useCallback(
+    async (file: File) => {
+      if (file.size > MAX_ASSET_BYTES) {
+        window.alert(uiHebrew ? "הקובץ גדול מדי (עד 5MB)." : "That file is too large (5 MB at most).");
+        return;
+      }
+      const key = keepLocal(await file.text());
+      if (!key) {
+        window.alert(uiHebrew ? "הדפדפן לא שמר את הקובץ." : "The browser would not keep that file for this tab.");
+        return;
+      }
+      const before = nav.current();
+      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "asset", asset: key });
+      void nav.go(linkPanels(after, opened, id), { state: { nav: "go", panel: opened } });
+    },
+    [nav, id, uiHebrew],
+  );
 
   /** Search in this text: a new query replaces the last (no history entry), and opening a hit sends this panel to it in the
    *  version it was found in, the sidebar staying on the results (SRC-094, SRC-096). */
@@ -794,6 +819,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
             trigger={(p) => <DisplayOptionsButton {...p} label={displayOptionsLabel} />}
           >
             <DisplaySettingsMenu settings={settings} availability={availability} layoutKey={layoutKeyFor(section.primaryCategory)} onChange={onChange} directions={{ primary: section.primaryVersion?.direction, translation: section.translationVersion?.direction }}
+              onOpenAsset={links.enabled ? () => (setMenuOpen(false), assetFile.current?.click()) : undefined}
               onRecordSession={sessionEntry ? () => (setMenuOpen(false), sessionEntry.onRecordSession()) : undefined}
               onLoadRecording={sessionEntry ? () => (setMenuOpen(false), sessionEntry.onLoadRecording()) : undefined} />
           </Popover>
@@ -801,6 +827,13 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
       />
       <VisuallyHidden role="status" aria-live="polite" aria-atomic="true" data-testid="reader-announcer">{announced}</VisuallyHidden>
+      {links.enabled ? (
+        <input ref={assetFile} type="file" accept=".html,.htm,text/html" hidden data-testid="open-asset-file" onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void openAssetFile(file);
+        }} />
+      ) : null}
       <SignUpModal kind={saveAsked ? "save" : undefined} onClose={() => setSaveAsked(false)} next={typeof window === "undefined" ? "/" : window.location.href} />
       <div ref={bannerBox} className={styles.bannerBox}>
       {transBanner ? (
@@ -902,7 +935,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
                 onSelectTranslation={onSelectTranslation}
                 onOpenTranslation={onOpenTranslation}
                 onOpenSource={onOpenSource}
-                allOpenRefs={panelOrder(nav.current()).map((pid) => nav.current().panels[pid]?.ref).filter((r): r is string => !!r)}
+                allOpenRefs={panelOrder(nav.current()).map((pid) => panelRef(nav.current().panels[pid])).filter((r): r is string => !!r)}
                 onClose={closeSidebar}
                 // a bilingual sidebar (an old link's lang2=bi) shows as the text's language for now
                 lang={aside?.lang === "bi" ? undefined : aside?.lang}

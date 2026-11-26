@@ -11,7 +11,9 @@ import type { AsideId, AsideState, PanelId, PanelState, Workspace } from "./type
 
 /** A panel as the caller describes it: ids are assigned by the workspace. */
 export type NewPanel = DistributiveOmit<PanelState, "id" | "asides"> & { asides?: Omit<AsideState, "id">[] };
-type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K & keyof T> : never;
+/** Fields a panel may change (its kind's own, plus the shared ones). */
+export type PanelPatch = Partial<DistributiveOmit<PanelState, "id" | "kind" | "asides">>;
 
 export const panelOrder = (ws: Workspace): PanelId[] => leaves(ws.layout);
 export const panelAt = (ws: Workspace, index: number): PanelState | undefined => {
@@ -149,15 +151,22 @@ export function replace(ws: Workspace, target: PanelId, p: NewPanel): Workspace 
   return { panels: { ...(others as Record<PanelId, PanelState>), [target]: materialise(target, p) }, layout: ws.layout, ...ctxOf(ws) };
 }
 
-/** Close a panel; its side panels close with it. Closing the last panel leaves an empty workspace (→ home). */
+/**
+ * Close a panel; its side panels close with it, and so do the asset panels linked to it (an asset is shown beside its text, never on
+ * its own). Closing the last panel leaves an empty workspace (→ home).
+ */
 export function close(ws: Workspace, target: PanelId): Workspace {
   if (!ws.layout || !ws.panels[target]) return ws;
-  const { [target]: _gone, ...rest } = ws.panels;
-  return renumber({ panels: rest, layout: remove(ws.layout, target), ...ctxOf(ws) });
+  const gone = new Set<PanelId>([target]);
+  for (const [id, p] of Object.entries(ws.panels) as [PanelId, PanelState][]) if (p.kind === "asset" && p.link?.to === target) gone.add(id);
+  const panels = Object.fromEntries(Object.entries(ws.panels).filter(([id]) => !gone.has(id as PanelId))) as Record<PanelId, PanelState>;
+  let layout: LayoutNode<PanelId> | null = ws.layout;
+  for (const id of gone) layout = layout ? remove(layout, id) : null;
+  return renumber({ panels, layout, ...ctxOf(ws) });
 }
 
 /** Change a panel's own fields (ref, versions, language…). */
-export function updatePanel(ws: Workspace, target: PanelId, patch: Partial<Omit<PanelState, "id" | "kind" | "asides">>): Workspace {
+export function updatePanel(ws: Workspace, target: PanelId, patch: PanelPatch): Workspace {
   const p = ws.panels[target];
   if (!p) return ws;
   return { ...ws, panels: { ...ws.panels, [target]: { ...p, ...patch } as PanelState } };
