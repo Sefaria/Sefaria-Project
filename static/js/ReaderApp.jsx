@@ -262,6 +262,7 @@ class ReaderApp extends Component {
     window.addEventListener('popstate', this.handlePopState);
     window.addEventListener('resize', this.setPanelCap);
     window.addEventListener('beforeprint', this.handlePrint);
+    window.addEventListener('pagehide', this.flushPendingHistorySavesOnPageHide);
     document.addEventListener('copy', this.handleCopyEvent);
     this.setPanelCap();
     if (this.props.headerMode) {
@@ -310,6 +311,7 @@ class ReaderApp extends Component {
     window.removeEventListener('popstate', this.handlePopState);
     window.removeEventListener('resize', this.setPanelCap);
     window.removeEventListener('beforeprint', this.handlePrint);
+    window.removeEventListener('pagehide', this.flushPendingHistorySavesOnPageHide);
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
@@ -1111,16 +1113,46 @@ class ReaderApp extends Component {
     });
   }
   checkPanelScrollIntentAndSaveRecent(state, n) {
-    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    // Saves the place panel `n` moved to (`state`) once the reader has stayed on it for a few seconds, so places
+    // scrolled past aren't saved. A place still waiting is saved right away when the reader moves on to another
+    // book or sheet, or leaves the page (flushPendingHistorySaves).
     this.panelScrollIntentTimer = this.panelScrollIntentTimer || [];
-    this.panelScrollIntentTimer[n] = this.checkIntentTimer(this.panelScrollIntentTimer[n], () => {
-      if (!this.didPanelRefChange(state, this.state.panels[n])) {
-        //const ref  = (state.highlightedRefs && state.highlightedRefs.length) ? Sefaria.normRef(state.highlightedRefs) : (state.currentlyVisibleRef || state.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
-        //console.log("Firing last viewed " + ref + " in panel " + n);
-        this.saveLastPlace(this.state.panels[n], n);
-      }
-      this.panelScrollIntentTimer[n] = null;
-    });
+    this.pendingHistoryPanels = this.pendingHistoryPanels || [];
+    const pending = this.pendingHistoryPanels[n];
+    if (pending && this.historyBookKey(pending) !== this.historyBookKey(state)) {
+      this.savePendingHistory(n);
+    }
+    this.pendingHistoryPanels[n] = state;
+    this.panelScrollIntentTimer[n] = this.checkIntentTimer(this.panelScrollIntentTimer[n], () =>
+      this.savePendingHistory(n)
+    );
+  }
+  historyBookKey(panel) {
+    // The book or sheet `panel` is in, to tell when the reader moves to another one.
+    if (panel.mode === 'Sheet') {
+      return `Sheet ${panel.sheetID}`;
+    }
+    return panel.refs?.length ? Sefaria.parseRef(panel.refs[0]).index : null;
+  }
+  savePendingHistory(n, { beacon = false } = {}) {
+    // Saves panel `n`'s place that is waiting out its intent delay, if any. The panel may have moved on since
+    // (e.g. to the homepage), so the place saved is the one recorded when the delay started.
+    const panel = this.pendingHistoryPanels?.[n];
+    if (!panel) {
+      return;
+    }
+    clearTimeout(this.panelScrollIntentTimer[n]);
+    this.panelScrollIntentTimer[n] = null;
+    this.pendingHistoryPanels[n] = null;
+    this.saveLastPlace(panel, n, false, { beacon });
+  }
+  flushPendingHistorySaves({ beacon = false } = {}) {
+    // Saves every place still waiting out its intent delay. On pagehide, with a beacon so the request survives the
+    // unload.
+    (this.pendingHistoryPanels || []).forEach((panel, n) => this.savePendingHistory(n, { beacon }));
+  }
+  flushPendingHistorySavesOnPageHide() {
+    this.flushPendingHistorySaves({ beacon: true });
   }
   checkIntentTimer(timer, cb, intentDelay) {
     intentDelay = intentDelay || 3000; // Number of milliseconds to demonstrate intent
@@ -2412,14 +2444,14 @@ class ReaderApp extends Component {
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n + 1 && this.state.panels[n + 1].mode == 'Connections';
   }
-  saveLastPlace(panel, n, openingSidebar) {
-    //openingSidebar is true when you call `saveLastPlace` at the time you're opening the sidebar. In this case, `doesPanelHaveSidebar` will be false
-    const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
+  saveLastPlace(panel, n, openingSidebar, { beacon = false } = {}) {
     // if panel is sheet, panel.refs isn't set
     if ((panel.mode !== 'Sheet' && !panel.refs.length) || panel.mode === 'Connections') {
       return;
     }
-    Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
+    // History records the segment at the reading line, which TextColumn keeps in highlightedRefs whether or not
+    // the sidebar is open, so it's read as if the sidebar were open.
+    Sefaria.saveUserHistory(this.getHistoryObject(panel, true), { beacon });
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open

@@ -98,6 +98,7 @@ if not hasattr(sys, "_doc_build"):
 
 import structlog
 from django.utils import translation
+from pymongo.errors import DuplicateKeyError
 
 from sefaria.model.blocking import BlockeesSet, BlockersSet
 from sefaria.model.following import FolloweesSet, FollowersSet, general_follow_recommendations
@@ -124,7 +125,9 @@ class UserHistory(abst.AbstractMongoRecord):
         "versions",  # dict: {en: str, he: str}
         "time_stamp",  # int: time this ref was read in epoch time
         "server_time_stamp",  # int: time this was saved on the server in epoch time
-        "last_place",  # bool: True if this is the last ref read for this user in this book
+        # bool: legacy. Was True on the last ref read in each book. No longer maintained: the last place in each
+        # book is now kept in UserLastPlace (the `user_last_place` collection)
+        "last_place",
         "book",  # str: index title
         "saved",  # bool: True if saved
         "secondary",  # bool: True when view is from sidebar
@@ -144,7 +147,7 @@ class UserHistory(abst.AbstractMongoRecord):
         "delete_saved",  # bool: True if this item was saved and but then was deleted
     ]
 
-    def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
+    def __init__(self, attrs=None, load_existing=False, field_updates=None):
         """
         :param attrs:
         :param load_existing: True if you want to load an existing mongo record if it exists to avoid duplicates
@@ -179,13 +182,6 @@ class UserHistory(abst.AbstractMongoRecord):
             # in the race-condition case where you're creating the saved item before the history item, do the update outside the previous if
             if field_updates:
                 attrs.update(field_updates)
-        if update_last_place:
-            temp = UserHistory().load({"uid": attrs["uid"], "book": attrs["book"], "last_place": True})
-            if temp is not None:
-                temp.last_place = False
-                temp.save()
-            attrs["last_place"] = True
-
         super().__init__(attrs=attrs)
 
     def _validate(self):
@@ -271,6 +267,12 @@ class UserHistory(abst.AbstractMongoRecord):
         if time_stamp is None:
             time_stamp = epoch_time()
         hist["uid"] = uid
+        if action is None:
+            # A read of a whole section is a read of its start: history is kept per segment.
+            start = UserHistory.section_start(hist["ref"])
+            if start != hist["ref"]:
+                hist["ref"] = start
+                hist.pop("he_ref", None)  # recomputed below for the new ref
         if "he_ref" not in hist or "book" not in hist:
             oref = Ref(hist["ref"])
             hist["he_ref"] = oref.he_normal()
@@ -283,7 +285,6 @@ class UserHistory(abst.AbstractMongoRecord):
         uh = UserHistory(
             hist,
             load_existing=(action is not None),
-            update_last_place=(action is None),
             field_updates={
                 "saved": saved,
                 "server_time_stamp": hist["server_time_stamp"],
@@ -292,6 +293,22 @@ class UserHistory(abst.AbstractMongoRecord):
         )
         uh.save()
         return uh
+
+    @staticmethod
+    def section_start(tref):
+        """
+        The first segment of `tref` when `tref` is a whole section (or a range of sections), else `tref`.
+        The web reader saves a section only when nothing is highlighted, i.e. when the reader is at its top. The app
+        still saves a section wherever the reader is in it (until it saves segments too), and its start is where
+        continuing that section opens anyway.
+        """
+        try:
+            oref = Ref(tref)
+        except InputError:
+            return tref
+        if oref.is_sheet() or not oref.is_section_level():
+            return tref
+        return oref.first_segment_ref().normal()
 
     @staticmethod
     def remove_history_item(uid, hist):
@@ -354,14 +371,14 @@ class UserHistory(abst.AbstractMongoRecord):
     def get_sync_items(uid, last_sync, limit=MAX_SYNC_RESPONSE_HISTORY):
         """
         History items to return to a syncing client: the newest `limit` items changed since `last_sync`,
-        plus every saved / unsaved / last_place item in that window, so saved and last place stay complete.
+        plus every saved / unsaved item in that window, so saved stays complete.
         A full pull (last_sync == 0) would otherwise return a user's entire history.
+        Last places come from UserLastPlace (UserProfile.get_sync_history).
         """
         user_query = {"uid": uid}
         changed_query = user_query | {"server_time_stamp": {"$gt": last_sync}}
         saved_filter = {"saved": True}
         unsaved_filter = {"delete_saved": True}
-        last_place_filter = {"last_place": True}
 
         by_time_index = "uid_1_server_time_stamp_1"
         recent_items = UserHistorySet(changed_query, sort=[("server_time_stamp", -1)], limit=limit, hint=by_time_index)
@@ -369,15 +386,18 @@ class UserHistory(abst.AbstractMongoRecord):
             flagged_items = UserHistorySet(
                 {
                     **changed_query,
-                    "$or": [saved_filter, unsaved_filter, last_place_filter],
+                    "$or": [saved_filter, unsaved_filter],
                 },  # client has saved items, so it needs unsaved to remove them
                 hint=by_time_index,
             )  # changed window is usually small. It's slow only if the user read a lot on the site between two uses of the app
-        else:  # full pull: the time index doesn't narrow anything - query separately to use the saved and last_place indexes
-            saved_items = UserHistorySet(user_query | saved_filter)
-            last_place_items = UserHistorySet(user_query | last_place_filter)
-            flagged_items = [*saved_items, *last_place_items]
-        items_by_id = {uh._id: uh for uh in [*recent_items, *flagged_items]}
+        else:  # full pull: the time index doesn't narrow anything - query separately to use the saved index
+            flagged_items = UserHistorySet(user_query | saved_filter)
+        return UserHistory.dedupe_and_sort_for_sync([*recent_items, *flagged_items])
+
+    @staticmethod
+    def dedupe_and_sort_for_sync(items):
+        """`items` (UserHistory records, some possibly repeated) once each, oldest change first."""
+        items_by_id = {uh._id: uh for uh in items}
         return sorted(items_by_id.values(), key=lambda uh: uh.server_time_stamp)
 
     @staticmethod
@@ -408,6 +428,84 @@ class UserHistorySet(abst.AbstractMongoSet):
         # documents changes the total by ~0.57%, so it's not worth fetching and hydrating every
         # matching document to account for. count() already handles skip/limit/hint correctly.
         return self.count()
+
+
+class UserLastPlace(abst.AbstractMongoRecord):
+    """
+    A user's last place in a book: one record per (uid, book).
+
+    Serves "Continue reading" and the sync's last places without scanning user_history, and points at
+    the user_history record of that place (`history_id`), which the sync returns.
+    Sheets and sidebar (secondary) reads aren't tracked.
+    Written only by update_for_read(), an upsert that keeps the newest read when two requests race.
+    """
+
+    collection = "user_last_place"
+
+    required_attrs = [
+        "uid",
+        "book",  # str: index title
+        "ref",  # str: the last segment read
+        "he_ref",
+        "versions",
+        "time_stamp",  # int: epoch time of the read, from the client
+        "server_time_stamp",  # int: epoch time the read reached the server
+        "history_id",  # ObjectId: the user_history record of this read
+    ]
+
+    optional_attrs = [
+        "language",  # None when the read's user_history record has none (records from before the field existed)
+    ]
+
+    @staticmethod
+    def tracks(uh):
+        return not uh.secondary and uh.book != "Sheet"
+
+    @classmethod
+    def update_for_read(cls, uh):
+        """Make the saved UserHistory `uh` its book's last place, unless a newer read of the book is already recorded."""
+        place = {
+            "ref": uh.ref,
+            "he_ref": uh.he_ref,
+            "versions": uh.versions,
+            "time_stamp": uh.time_stamp,
+            "server_time_stamp": uh.server_time_stamp,
+            "history_id": uh._id,
+            "language": getattr(uh, "language", None),  # sent by both the web and the app, but optional on UserHistory
+        }
+        try:
+            getattr(db, cls.collection).update_one(
+                {"uid": uh.uid, "book": uh.book, "time_stamp": {"$lte": uh.time_stamp}}, {"$set": place}, upsert=True
+            )
+        except DuplicateKeyError:
+            pass  # the filter missed because a newer read is recorded, and the upsert hit the unique (uid, book) index
+
+    def as_history_item(self):
+        """An unsaved UserHistory standing in for this place when its user_history record is gone."""
+        attrs = {
+            "_id": self.history_id,
+            "uid": self.uid,
+            "book": self.book,
+            "ref": self.ref,
+            "he_ref": self.he_ref,
+            "versions": self.versions,
+            "time_stamp": self.time_stamp,
+            "server_time_stamp": self.server_time_stamp,
+            "language": getattr(self, "language", None),
+        }
+        return UserHistory(attrs)
+
+    @staticmethod
+    def as_history_items(last_places):
+        """The user_history records of `last_places`, in the same order."""
+        if not last_places:
+            return []
+        by_id = {uh._id: uh for uh in UserHistorySet({"_id": {"$in": [lp.history_id for lp in last_places]}})}
+        return [by_id.get(lp.history_id) or lp.as_history_item() for lp in last_places]
+
+
+class UserLastPlaceSet(abst.AbstractMongoSet):
+    recordClass = UserLastPlace
 
 
 """
@@ -858,7 +956,10 @@ class UserProfile:
         if (
             self.settings.get("reading_history", True) or action == "add_saved"
         ):  # regular case where history enabled, save/unsave saved item etc. or save history in either case
-            return UserHistory.save_history_item(self.id, hist, action, time_stamp)
+            uh = UserHistory.save_history_item(self.id, hist, action, time_stamp)
+            if action is None and UserLastPlace.tracks(uh):  # a plain read, not a save/unsave
+                UserLastPlace.update_for_read(uh)
+            return uh
         if action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
             UserHistory.remove_history_item(self.id, hist)
             return None
@@ -906,8 +1007,40 @@ class UserProfile:
             book=book,
         )
 
+    def get_last_places(self, book=None):
+        """
+        The user's last place in each book (or in `book`), newest first, as UserHistory records.
+
+        Books read since UserLastPlace was introduced come from it. Until
+        scripts/migrations/backfill_user_last_place.py has run, other books fall back to the legacy
+        `last_place` flag in user_history, which is still right for them: they haven't been read since it
+        stopped being maintained. Remove the fallback once the backfill has run everywhere.
+        """
+        if not self.settings.get("reading_history", True):
+            return []
+        book_query = {} if book is None else {"book": book}
+        last_places = UserLastPlaceSet({"uid": self.id, **book_query})
+        places = UserLastPlace.as_history_items(last_places)
+        recorded_books = {lp.book for lp in last_places}
+        legacy_places = UserHistory.get_user_history(uid=self.id, book=book, last_place=True, secondary=False)
+        places += [uh for uh in legacy_places if uh.book not in recorded_books]
+        return sorted(places, key=lambda uh: uh.time_stamp, reverse=True)
+
+    def get_sync_history(self, last_sync, limit=MAX_SYNC_RESPONSE_HISTORY):
+        """History items for a syncing client (UserHistory.get_sync_items) plus the last places changed since `last_sync`."""
+        items = UserHistory.get_sync_items(self.id, last_sync, limit=limit)
+        if last_sync:
+            # A legacy last_place flag can't be in the window: nothing has changed it since UserLastPlace took over.
+            changed = UserLastPlaceSet({"uid": self.id, "server_time_stamp": {"$gt": last_sync}})
+            last_places = UserLastPlace.as_history_items(changed)
+        else:
+            last_places = self.get_last_places()
+        return UserHistory.dedupe_and_sort_for_sync([*items, *last_places])
+
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
+        if not exclude_last_place:
+            UserLastPlaceSet({"uid": self.id}).delete(bulk_delete=True)
 
     def follow_recommendations(self, lang="english", n=4):
         """
@@ -1214,3 +1347,8 @@ def process_index_title_change_in_user_history(indx, **kwargs):
             o.save()
         except InputError:
             logger.warning("Failed to convert user history from: {} to {}".format(kwargs["old"], kwargs["new"]))
+    for lp in UserLastPlaceSet({"$or": queries}):
+        lp.ref = lp.ref.replace(kwargs["old"], kwargs["new"], 1)
+        if lp.book == kwargs["old"]:
+            lp.book = kwargs["new"]
+        lp.save()

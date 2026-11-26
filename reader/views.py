@@ -5085,7 +5085,7 @@ def profile_sync_api(request):
                             "error": f"Length of user history sync too large. Maximum supported is {MAX_LEN_USER_HISTORY}."
                         }
                     )
-                # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
+                # oldest first (clients send newest first), so each book's newest item becomes its UserLastPlace
                 for hist in reversed(field_data):
                     if "ref" not in hist:
                         logger.warning(f"Ref not in hist. History item: {hist}. User ID: {request.user.id}")
@@ -5108,7 +5108,7 @@ def profile_sync_api(request):
             else:
                 last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
 
-            uhs = UserHistory.get_sync_items(request.user.id, last_sync)
+            uhs = profile.get_sync_history(last_sync)
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True, annotate=False) for uh in uhs]
             ret["settings"] = profile.settings
@@ -5214,6 +5214,9 @@ def user_history_api(request):
         limit = int(request.GET.get("limit", 100))
         annotate = bool(int(request.GET.get("annotate", 0)))
         sheets_only = bool(int(request.GET.get("sheets_only", 0)))
+        if last_place:
+            places = user.get_last_places(book=book)[skip : skip + limit]
+            return jsonResponse([uh.contents(for_api=True, annotate=annotate) for uh in places])
         return jsonResponse(
             user.get_history(
                 oref=oref,
