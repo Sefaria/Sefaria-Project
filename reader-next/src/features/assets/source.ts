@@ -94,8 +94,13 @@ async function loadStoredAsset(asset: string, signal?: AbortSignal): Promise<Ass
   if (!id || !/^[0-9a-f-]{8,64}$/i.test(id)) throw new Error("Not a page name the reader knows.");
   const res = await fetch(`${api}/api/v1/claude-assets/${encodeURIComponent(id)}`, { signal, headers: { accept: "application/json" } });
   if (!res.ok) throw new Error(res.status === 404 ? "This page was removed or never existed." : `The page could not be loaded (${res.status}).`);
-  const body = (await res.json()) as StoredAsset;
-  const v = version ? body.versions?.find((x) => String(x.n) === version || x.id === version) : undefined;
+  const raw = (await res.json()) as StoredAsset & { asset?: StoredAsset };
+  const body = raw.asset ?? raw;
+  // the version asked for (by id or number), else the current one, else the newest the answer lists
+  const v =
+    (version ? body.versions?.find((x) => String(x.n) === version || x.id === version) : undefined) ??
+    body.versions?.find((x) => x.id === body.currentVersionId) ??
+    body.versions?.at(-1);
   const url = v?.contentUrl ?? body.contentUrl ?? body.currentVersion?.contentUrl;
   if (!url || !/^https?:\/\//.test(url)) throw new Error("The page has no content to show.");
   // the content URL is the server's, policy and all (its context is signed there: never widened or rewritten here)
@@ -104,6 +109,7 @@ async function loadStoredAsset(asset: string, signal?: AbortSignal): Promise<Ass
 
 interface StoredAsset {
   title?: string;
+  currentVersionId?: string;
   contentUrl?: string;
   currentVersion?: { contentUrl?: string };
   versions?: { id?: string; n?: number; contentUrl?: string }[];

@@ -7127,6 +7127,24 @@
   "src": "admin inventory 2026-10-29"
  },
  {
+  "id": "CON-075",
+  "area": "connections",
+  "group": "Resources",
+  "name": "Interactive pages on a passage",
+  "summary": "An \"Interactive Pages (n)\" row under Resources lists the published Claude assets of verified authors that cover the selected segments (with=Assets); each opens beside the text, linked. Behind the linked_panels lab, and only where a Sefaria Social server is configured.",
+  "details": [
+   "One request per section to Social's public read GET {social api}/api/v1/claude-assets/ref/<section> (Social spec 062), 4-second timeout; any failure shows nothing (src/lib/connections/assets.ts).",
+   "The list shows title, author with a check mark when verified, description and declared refs; Open beside the text closes the sidebar and opens an asset panel (a<n>=<id>@<version>) linked to the text (SHL-093).",
+   "with=Assets where the feature is off shows Resources."
+  ],
+  "src": "reader-next: src/lib/connections/assets.ts, src/ui/AssetsView/AssetsView.tsx, src/features/reader/ConnectionsPane.tsx, src/ui/ConnectionsPanel/ResourcesView.tsx",
+  "audience": "all",
+  "platform": "desktop",
+  "tier": "optional",
+  "status": "rebuild-only",
+  "refs": []
+ },
+ {
   "id": "VER-001",
   "area": "versions",
   "group": "Translation preferences",

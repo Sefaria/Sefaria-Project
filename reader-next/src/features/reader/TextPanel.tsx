@@ -414,6 +414,17 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   );
   const openTextHere = useCallback((ref: string) => openFromSidebar(ref), [openFromSidebar]);
 
+  /** A stored interactive page from the sidebar opens beside this text, linked to it (the sidebar closes, as Open does). CON-075 */
+  const openAssetBeside = useCallback(
+    (asset: string) => {
+      const before = nav.current();
+      if (isSinglePanel()) return; // one panel at a time: an asset needs its text beside it
+      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "asset", asset });
+      void nav.go(linkPanels(after, opened, id), { state: { nav: "go", panel: opened } });
+    },
+    [nav, id],
+  );
+
   /** An interactive page from a file (a Claude asset saved as HTML) opens beside this text, linked to it; kept in this tab only. SHL-093 */
   const assetFile = useRef<HTMLInputElement>(null);
   const uiHebrew = useInterfaceLang() === "hebrew";
@@ -917,6 +928,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
                 shownVersions={shownVersions}
                 onNavigate={goSidebarView}
                 onOpenText={openTextHere}
+                onOpenAsset={links.enabled ? (a) => openAssetBeside(a.versionId ? `${a.id}@${a.versionId}` : a.id) : undefined}
                 onGoToRef={goToRef}
                 versions={versions}
                 searchQuery={aside?.sbsq}

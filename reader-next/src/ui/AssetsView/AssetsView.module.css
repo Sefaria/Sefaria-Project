@@ -1,0 +1,23 @@
+.message { margin: 0; padding: 16px 0; color: var(--sefaria-color-text-secondary); font-size: 16px; }
+.list { list-style: none; margin: 0; padding: 0; }
+.item { padding: 16px 0; border-block-end: 1px solid var(--sefaria-color-border); }
+.title { margin: 0 0 4px; font-size: 18px; font-weight: normal; color: var(--sefaria-color-text-strong); }
+.author { margin: 0 0 6px; font-size: 14px; color: var(--sefaria-color-text-secondary); display: flex; align-items: center; gap: 4px; }
+.check { display: inline-flex; color: var(--sefaria-color-brand); }
+.description { margin: 0 0 6px; font-size: 15px; line-height: 1.4; color: var(--sefaria-color-text); }
+.refs { margin: 0 0 10px; font-size: 13px; color: var(--sefaria-color-text-muted); }
+.open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--sefaria-color-brand);
+  background: var(--sefaria-color-surface);
+  color: var(--sefaria-color-brand);
+  cursor: pointer;
+}
+.open:hover { background: var(--sefaria-color-brand); color: var(--sefaria-color-on-brand); }
+.open:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }

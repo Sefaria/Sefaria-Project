@@ -42,6 +42,8 @@ export interface ResourcesViewProps {
   signedIn?: boolean;
   /** A moderator (is_staff): the Resources section and its Topics row always show, so topics can be added anywhere. */
   moderator?: boolean;
+  /** Interactive pages on the selection (CON-075): undefined leaves the row out (the lab is off, or no Social server); 0 hides it. */
+  assetsCount?: number;
 }
 
 interface ToolRow {
@@ -73,7 +75,7 @@ const visible = (r: ToolRow) => r.count === undefined || r.count === null || r.c
  * @feature CON-023 Top-level summary: Quoting Commentary merged, collapse to 4
  * @feature CON-024 Essay links in summary
  */
-export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false, lang }: ResourcesViewProps) {
+export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false, moderator = false, lang, assetsCount }: ResourcesViewProps) {
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   const [expanded, setExpanded] = useState(false);
   // section names in the interface's language, the old client's words
@@ -96,6 +98,7 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
         { key: "topics", label: { en: "Topics", he: "נושאים" }, icon: "hash", view: mode("Topics"), count: counts.topics, alwaysShow: moderator },
         { key: "manuscripts", label: { en: "Manuscripts", he: "כתבי יד" }, icon: "scroll", view: mode("manuscripts"), count: counts.manuscripts },
         { key: "readings", label: { en: "Torah Readings", he: "קריאה בתורה" }, icon: "audio", view: mode("Torah Readings"), count: counts.audio },
+        ...(assetsCount ? [{ key: "assets", label: { en: "Interactive Pages", he: "דפים אינטראקטיביים" }, icon: "layers" as const, view: mode("Assets"), count: assetsCount }] : []),
       ]
     : [];
   const tools: ToolRow[] = [
