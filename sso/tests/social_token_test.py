@@ -11,6 +11,7 @@ from jwt.algorithms import RSAAlgorithm
 
 sys._called_from_test = True
 
+from sefaria.utils.chatbot import MCP_LOGIN_TOKEN_AUDIENCE, MCP_TOKEN_AUDIENCE, build_chatbot_user_token
 from sso import social_token, views
 
 TOKEN_URL = "/api/social/token"
@@ -33,6 +34,14 @@ LOCMEM_CACHE = {
     alias: {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": f"social-token-tests-{alias}"}
     for alias in ("default", "shared")
 }
+
+CHATBOT_SECRET = "test-chatbot-secret"
+MCP_SECRET = "test-user-mcp-secret"
+
+
+def _mcp_token(user_id, aud=MCP_TOKEN_AUDIENCE, ttl_hours=5 / 60):
+    return build_chatbot_user_token(user_id, MCP_SECRET, ttl_hours=ttl_hours, aud=aud)
+
 
 FAKE_PROFILE = {"name": "Test Person", "imageUrl": "https://images.example.test/u/1.png"}
 
@@ -80,12 +89,53 @@ class SocialTokenViewTest(TestCase):
         self.client.force_login(self.user)
         self.assertEqual(self.client.get(TOKEN_URL).status_code, 405)
 
-    def test_x_session_id_auth_is_not_enough(self, _profile):
-        # A user set by SessionIDAuthMiddleware has no session login, so it can't mint.
-        client = Client()
-        with patch("sefaria.system.middleware.get_user_id_from_chatbot_user_token", return_value=self.user.id):
-            res = client.post(TOKEN_URL, HTTP_X_SESSION_ID="anything")
+    def test_chatbot_x_session_id_auth_is_not_enough(self, _profile):
+        # A user set from the chatbot's own X-Session-ID token has no session login, so it can't mint.
+        token = build_chatbot_user_token(self.user.id, CHATBOT_SECRET)
+        with override_settings(CHATBOT_USER_ID_SECRET=CHATBOT_SECRET, MCP_TOKEN_SECRET=MCP_SECRET):
+            res = Client().post(TOKEN_URL, HTTP_X_SESSION_ID=token)
         self.assertEqual(res.status_code, 401)
+
+    def _mcp_post(self, token, path=TOKEN_URL):
+        # enforce_csrf_checks: the mcp route must not need a CSRF token.
+        with override_settings(CHATBOT_USER_ID_SECRET=CHATBOT_SECRET, MCP_TOKEN_SECRET=MCP_SECRET):
+            return Client(enforce_csrf_checks=True).post(path, HTTP_X_SESSION_ID=token)
+
+    def test_mcp_token_mints_a_token_marked_via_mcp(self, _profile):
+        res = self._mcp_post(_mcp_token(self.user.id))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res["Cache-Control"], "no-store")
+        claims = jwt.decode(res.json()["token"], verify=False)
+        self.assertEqual(claims["via"], "mcp")
+        self.assertEqual(claims["sub"], str(self.user.id))
+        self.assertEqual(claims["aud"], "sefaria-social")
+
+    def test_session_token_has_no_via_claim(self, _profile):
+        claims = jwt.decode(self._mint().json()["token"], verify=False)
+        self.assertNotIn("via", claims)
+
+    # A token the middleware does not accept leaves the request signed out, so CSRF applies again
+    # and the request is refused (403) before the view; with CSRF off the view answers 401.
+    def _assert_refused(self, token):
+        self.assertEqual(self._mcp_post(token).status_code, 403)
+        with override_settings(CHATBOT_USER_ID_SECRET=CHATBOT_SECRET, MCP_TOKEN_SECRET=MCP_SECRET):
+            self.assertEqual(Client().post(TOKEN_URL, HTTP_X_SESSION_ID=token).status_code, 401)
+
+    def test_mcp_login_token_is_refused(self, _profile):
+        self._assert_refused(_mcp_token(self.user.id, aud=MCP_LOGIN_TOKEN_AUDIENCE))
+
+    def test_expired_mcp_token_is_refused(self, _profile):
+        self._assert_refused(_mcp_token(self.user.id, ttl_hours=-1))
+
+    def test_mcp_token_for_inactive_user_is_refused(self, _profile):
+        self.user.is_active = False
+        self.user.save()
+        self._assert_refused(_mcp_token(self.user.id))
+
+    def test_mcp_token_counts_against_the_rate_limit(self, _profile):
+        with patch.object(views, "SOCIAL_TOKEN_RATE_LIMIT", 1):
+            statuses = [self._mcp_post(_mcp_token(self.user.id)).status_code for _ in range(2)]
+        self.assertEqual(statuses, [200, 429])
 
     def test_token_verifies_with_published_jwks_and_has_claims(self, _profile):
         res = self._mint()

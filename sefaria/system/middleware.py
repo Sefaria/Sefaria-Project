@@ -424,7 +424,8 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
       ADMIN_PATH_PREFIX. CSRF is still enforced.
     - MCP tokens (audience MCP_TOKEN_AUDIENCE, MCP_TOKEN_SECRET): minted per tool call by the AI
       chatbot's MCP server for a user who signed in at /api/mcp/authorize. Accepted only on
-      MCP_ROUTES, the sheet API calls its tools make, and on MCP_ADMIN_ROUTES for staff only.
+      MCP_ROUTES (the sheet API calls its tools make, and POST /api/social/token for save_asset),
+      and on MCP_ADMIN_ROUTES for staff only.
       CSRF is skipped, since a browser never attaches this header on its own.
     """
 
@@ -433,6 +434,8 @@ class SessionIDAuthMiddleware(MiddlewareMixin):
         ("GET", re.compile(r"^/api/sheets/user/\d+(/.*)?$")),
         ("GET", re.compile(r"^/api/sheets/\d+/?$")),
         ("POST", re.compile(r"^/api/sheets/?$")),
+        # The MCP's save_asset tool trades its mcp token for a Social identity token (marked via="mcp").
+        ("POST", re.compile(r"^/api/social/token$")),
     )
     MCP_ADMIN_ROUTES = (
         ("GET", re.compile(r"^/api/admin/topic-prompts/?$")),

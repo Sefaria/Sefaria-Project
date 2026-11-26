@@ -24,6 +24,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from emailusernames.utils import get_user
 from sefaria.forms import SefariaPasswordResetForm
 from sefaria.model.user_profile import public_user_data
+from sefaria.utils.chatbot import MCP_TOKEN_AUDIENCE
 from sso.social_token import SocialTokenNotConfigured, mint_social_token, public_jwks
 
 logger = structlog.get_logger(__name__)
@@ -381,18 +382,23 @@ def social_token(request):
     """
     POST /api/social/token -- a short-lived identity token for Sefaria Social.
 
-    Session cookie only, CSRF-protected by Django's middleware (send X-CSRFToken). A request
-    authenticated any other way (the X-Session-ID header) is treated as signed out, so only a
-    signed-in browser session can get one.
+    Two callers may mint:
+    - A signed-in browser session, CSRF-protected by Django's middleware (send X-CSRFToken).
+    - The AI chatbot's MCP server, with a 5-minute `mcp` token in X-Session-ID (SessionIDAuthMiddleware
+      accepts it on this route only and skips CSRF). Its token carries the claim via="mcp", and Social
+      accepts such a token only on its asset write routes.
+    Any other X-Session-ID token (the chatbot's own) is treated as signed out.
 
     Returns:
       200 { token, expires_at }  -- RS256 JWT; expires_at is its `exp`, in Unix seconds
-      401 { error }              -- not signed in with a session
+      401 { error }              -- not signed in with a session or an mcp token
       429 { error }              -- over the per-user limit; Retry-After is set
       503 { error }              -- no signing key configured
     """
     user = request.user
-    if not user.is_authenticated or request.session.get(SESSION_KEY) is None:
+    via_mcp = getattr(request, "auth_via", None) == MCP_TOKEN_AUDIENCE
+    has_session = request.session.get(SESSION_KEY) is not None
+    if not user.is_authenticated or not (has_session or via_mcp):
         return JsonResponse({"error": "auth.not_authenticated"}, status=401)
 
     if not _reserve_social_token_mint(user.pk):
@@ -403,7 +409,10 @@ def social_token(request):
     profile = public_user_data(user.pk)
     try:
         token, expires_at = mint_social_token(
-            user, name=(profile.get("name") or "").strip(), picture=profile.get("imageUrl")
+            user,
+            name=(profile.get("name") or "").strip(),
+            picture=profile.get("imageUrl"),
+            via=MCP_TOKEN_AUDIENCE if via_mcp else None,
         )
     except SocialTokenNotConfigured:
         logger.warning("social_token_not_configured")

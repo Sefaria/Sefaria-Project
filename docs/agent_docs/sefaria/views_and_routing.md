@@ -74,6 +74,7 @@ The bulk of the URL patterns live here. Included by both `urls_library` and `url
 - `/api/library-assistant` -> `reader_views.library_assistant_api` (private, no-store)
 - `/api/topics-toc` -> `reader_views.topics_toc_api`; `/api/topics/library-count` -> `reader_views.num_library_topics_api` (placed before `api/topics/<topic>`, which used to swallow it)
 - `/api/activity/<tref>/<lang>/<version>` -> `reader_views.segment_history_api` (signed-in only)
+- `/api/refs/expand` (POST) -> `api.ref_expand.refs_expand_api`: validates up to 200 refs and expands each to section and segment refs (for Sefaria Social; anonymous, CSRF-exempt)
 
 **Sheets API** (`sheets_views`):
 
