@@ -14,6 +14,7 @@ from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model.webpage import WebPage
 from sefaria.model.webpage_text import WebPageText
 from sefaria.system.cache import django_cache
+from sefaria.system.exceptions import ComplexBookLevelRefError
 
 logger = structlog.get_logger(__name__)
 
@@ -288,8 +289,13 @@ def _make_ref_response_for_linker(oref: text.Ref, options: _FindRefsTextOptions)
         "primaryCategory": oref.primary_category,
     }
     if options.with_text:
-        he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
-        en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
+        try:
+            he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
+            en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
+        except ComplexBookLevelRefError:
+            # A complex book-level ref (e.g. "Derekh Hashem, Part Four") has no text of its own.
+            # Return the resolved ref without text instead of failing the whole find-refs response.
+            return res
         res.update(
             {
                 "he": he,
