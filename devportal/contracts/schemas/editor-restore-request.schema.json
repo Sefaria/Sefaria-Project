@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-restore-request.schema.json",
+  "title": "Editor: restore",
+  "description": "POST /_portal/editor/pages/<id>/revisions/<n>/restore -> editor-draft-save-response (a new draft with source restore; history is never rewritten), or 409. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "baseRevision": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": ["baseRevision"],
+  "additionalProperties": false
+}

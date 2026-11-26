@@ -1,0 +1,14 @@
+/* Shared primitives (src/ui). */
+
+/* Hidden from sight, kept for assistive technology and for the clipboard fallback's textarea. */
+.dp-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}

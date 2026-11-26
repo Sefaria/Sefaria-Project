@@ -1,0 +1,108 @@
+{
+  "contractVersion": 1,
+  "specSha": "5cc7d2681fdfb61136149892cb6dc63924614912a08fac63bbab22416a54a40a",
+  "operationId": "get-calendars",
+  "method": "get",
+  "path": "/api/calendars",
+  "server": "https://www.sefaria.org",
+  "tags": ["Calendars"],
+  "title": "Calendars",
+  "description": "Returns the daily or weekly learning schedule for a given date.",
+  "deprecated": false,
+  "parameters": [
+    {
+      "name": "diaspora",
+      "in": "query",
+      "required": false,
+      "description": "When this value is set to `diaspora=1`, the text returned is the weekly Torah reading for the diaspora. When this value is set to `diaspora=0`, the text returned is the Torah reading for Israel. ",
+      "deprecated": false,
+      "schema": {
+        "enum": ["0", "1"],
+        "type": "string"
+      }
+    },
+    {
+      "name": "custom",
+      "in": "query",
+      "required": false,
+      "description": "If available, the weekly _Haftarah_ will be returned for one of the selected customs.",
+      "deprecated": false,
+      "schema": {
+        "enum": ["ashkenazi", "sephardi", "edot%20hamizrach"],
+        "type": "string"
+      }
+    },
+    {
+      "name": "year",
+      "in": "query",
+      "required": false,
+      "description": "By default, the API returns learning for the current date. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fall back to the default.",
+      "deprecated": false,
+      "schema": {
+        "type": "number"
+      }
+    },
+    {
+      "name": "month",
+      "in": "query",
+      "required": false,
+      "description": "By default, the API returns learning for the current date. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fall back to the default.",
+      "deprecated": false,
+      "schema": {
+        "type": "number"
+      }
+    },
+    {
+      "name": "day",
+      "in": "query",
+      "required": false,
+      "description": "By default, the API returns learning for the current date. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fall back to the default.",
+      "deprecated": false,
+      "schema": {
+        "type": "number"
+      }
+    },
+    {
+      "name": "timezone",
+      "in": "query",
+      "required": false,
+      "description": "By default, the API attempts to return the calendar for the client's timezone. If you want the timezone for another region, you can override it. Timezone names are in accordance with [IANA Standards](https://www.iana.org/time-zones)",
+      "deprecated": false,
+      "schema": {}
+    }
+  ],
+  "requestBody": null,
+  "responses": [
+    {
+      "status": 200,
+      "description": "Successful Response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "title": "Root Type for CalendarAPIResponse",
+            "description": "A response from the Calendar API",
+            "type": "object",
+            "properties": {
+              "date": {
+                "format": "date",
+                "description": "The datestring for the calendars shown. It should match the values submitted in `year` `month` `day` or should be the current date.",
+                "type": "string"
+              },
+              "timezone": {
+                "description": "An IANA timezone name",
+                "type": "string"
+              },
+              "calendar_items": {
+                "type": "array",
+                "items": {
+                  "description": "A single learning schedule for the selected date",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

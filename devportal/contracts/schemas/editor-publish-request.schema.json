@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-publish-request.schema.json",
+  "title": "Editor: publish",
+  "description": "POST /_portal/editor/pages/<id>/publish -> editor-publish-response; 409 when `revision` is not the newest. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": ["revision"],
+  "additionalProperties": false
+}

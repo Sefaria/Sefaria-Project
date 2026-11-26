@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-page.schema.json",
+  "title": "Editor page",
+  "description": "GET /_portal/editor/pages/<id>; also the answer of POST /_portal/editor/pages (201) and PATCH /_portal/editor/pages/<id>. `content` is the newest revision's (the draft when there is one). Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "page": {
+      "$ref": "editor-common.schema.json#/$defs/pageSummary"
+    },
+    "revision": {
+      "anyOf": [
+        {
+          "$ref": "editor-common.schema.json#/$defs/revisionSummary"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "content": {
+      "$ref": "editor-common.schema.json#/$defs/revisionContent"
+    },
+    "spec": {
+      "anyOf": [
+        {
+          "type": "object",
+          "description": "Endpoints only: what the spec says, shown read-only.",
+          "properties": {
+            "method": {
+              "$ref": "common.schema.json#/$defs/httpMethod"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "deprecated": {
+              "type": "boolean"
+            }
+          },
+          "required": ["method", "path", "title", "description", "tags", "deprecated"],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": ["contractVersion", "page", "revision", "content", "spec"],
+  "additionalProperties": false
+}

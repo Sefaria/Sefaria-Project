@@ -1,0 +1,11 @@
+- get-sheet
+- get-sheets-trending-tags
+- get-sheet-modified
+- get-user-sheets
+- get-user-sheets-paginated
+- get-sheets-bulk
+- get-sheets-tag-list
+- get-sheets-tag-list-sorted
+- get-user-sheet-tags
+- get-sheets-by-ref
+- get-all-sheets

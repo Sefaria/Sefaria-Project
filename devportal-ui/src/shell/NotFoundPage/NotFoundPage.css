@@ -1,0 +1,67 @@
+/*
+ * Live's 404 body (`.PageNotFound`), measured at 1440 and 390: a column centred in a box 80vh tall under the
+ * header (720px at 900, 675.2px at 844), 20px padding; the title 390px wide at most, the suggestions 330px.
+ * Global classes: devportal/templates/devportal/404.html renders the same markup on the server.
+ */
+.dp-notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 80vh;
+  padding: 20px;
+  color: #32343a;
+  font-size: 16px;
+  text-align: center;
+}
+
+.dp-notfound-title {
+  width: 100%;
+  max-width: 390px;
+  margin: 0;
+  color: #32343a;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 34.6658px;
+}
+
+.dp-notfound-suggestions {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 330px;
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 22.5px;
+}
+
+.dp-notfound-prompt {
+  margin: 0 0 16px;
+  color: #484c58;
+}
+
+.dp-notfound-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dp-notfound-list li + li {
+  margin-top: 8px;
+}
+
+.dp-notfound-link {
+  display: block;
+  color: var(--rm-color-link-primary, #666);
+  text-decoration: none;
+}
+
+.dp-notfound-link:hover {
+  color: #333;
+}
+
+.dp-notfound-link:focus-visible {
+  outline: 2px solid var(--functional-focus-blue, #1976d2);
+  outline-offset: 2px;
+}

@@ -55,6 +55,11 @@ RULES = [
      rf"({BLANK}|\s*#.*|\s*try:|\s*except Exception:|\s*pass|\s*if os\.path\.exists\(.*\):|\s*logger_class = .*)"),
     ("DEVELOPER_SETTINGS_* entries", ENVS, "ConfigMap", r"^local-settings-",
      rf"({BLANK}|\s*DEVELOPER_SETTINGS_(ENABLED|STAFF_ONLY)\b.*)"),
+    # Developer portal settings (docs/dev-portal/PLAN.md §2.15). The env files do not add the developers module
+    # yet (H-1), so these entries are the portal's only change to staging, preprod and prod renders.
+    ("DEVPORTAL_* entries", ENVS, "ConfigMap", r"^local-settings-",
+     rf"({BLANK}|\s*# (Developer portal|sefaria/settings\.py holds the defaults|absent or empty leaves)\b.*"
+     r"|\s*DEVPORTAL_[A-Z0-9_]+(: .*| = .*)|\s*if os\.getenv\(\"DEVPORTAL_[A-Z0-9_]+\"\):)"),
     ("nginx log_format and scrub maps", ENVS, "ConfigMap", r"^nginx-conf-",
      rf"({BLANK}|\s*#.*|\s*map \$\S+ \$(uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d|request_uri_scrubbed|referer_scrubbed) \{{"
      r"|\s*\"~\*.*\" .*;|\s*default \$(request_uri|http_referer|uri_scrub_\d|referer_scrub_\d|uri_key_\d|referer_key_\d);|\s*\}|\s*log_format structured .*)"),

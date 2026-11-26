@@ -1,0 +1,60 @@
+{
+  "contractVersion": 1,
+  "sha": "3f9a2c41d0b7",
+  "generation": 42,
+  "documents": [
+    {
+      "id": "page:101",
+      "section": "docs",
+      "kind": "page",
+      "title": "Welcome to Sefaria's Technical Documentation",
+      "path": "/docs/welcome",
+      "method": null,
+      "excerpt": "",
+      "headings": ["What is Sefaria?", "The Sefaria Library"],
+      "body": "Please note: For our API Documentation, see Getting Started With The Sefaria API.",
+      "params": [],
+      "responses": []
+    },
+    {
+      "id": "page:301",
+      "section": "page",
+      "kind": "page",
+      "title": "Get in Touch",
+      "path": "/page/contact-us",
+      "method": null,
+      "excerpt": "",
+      "headings": [],
+      "body": "Use this form to contact Sefaria's engineering team with engineering-related questions.",
+      "params": [],
+      "responses": []
+    },
+    {
+      "id": "op:get-v3-texts",
+      "section": "reference",
+      "kind": "endpoint",
+      "title": "Texts (v3)",
+      "path": "/reference/get-v3-texts",
+      "method": null,
+      "excerpt": "The most up-to-date way to retrieve texts from Sefaria via the API.",
+      "headings": [],
+      "body": "",
+      "params": [
+        {
+          "name": "tref",
+          "description": "A Sefaria-specific reference, Ref."
+        },
+        {
+          "name": "version",
+          "description": "There are two possible forms for the string passed as the version."
+        }
+      ],
+      "responses": [
+        {
+          "status": "200",
+          "description": "Successful Response"
+        }
+      ]
+    }
+  ]
+}

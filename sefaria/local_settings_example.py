@@ -56,13 +56,15 @@ DOMAIN_MODULES = {
     "en": {
         "library": "http://localhost:8000",
         "voices": "http://voices.localhost:8000",
+        # The developer portal exists under "en" only; never add it under "he" (PLAN.md §2.2).
+        "developers": "http://developers.localhost:8000",
     },
     "he": {
         "library": "http://localhost:8000",
         "voices": "http://voices.localhost:8000",
     },
 }
-ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0", "[::1]", "localhost", "voices.localhost"]
+ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0", "[::1]", "localhost", "voices.localhost", "developers.localhost"]
 CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 
 ADMINS = ("you@example.com",)

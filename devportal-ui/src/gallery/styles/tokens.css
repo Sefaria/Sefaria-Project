@@ -1,0 +1,67 @@
+/* The gallery's tokens: only what the shared file (src/styles/tokens.css, contract C5) lacks (PLAN §2.14 item 4).
+   Colours, spacing, shadows and fonts come from the shared tokens: --text-*, --surface-*, --border-default,
+   --border-strong, --action-primary*, --icon-*, --feedback-warning, --shadow-*, --spacing-*,
+   --functional-focus-blue, --font-en-content (serif), --font-en-system (sans) and --font-he-content (Hebrew).
+   Values here are aliases of the shared primitives where one matches. Scoped to the gallery's wrapper,
+   .dp-gallery, so nothing here reaches other portal pages. */
+.dp-gallery {
+  /* Brand purple. The portal header and live developers.sefaria.org use purple-800; the design system's
+     DevPortal theme maps module-primary to purple-700 (#7c416f), which is lighter, so the gallery keeps
+     purple-800 for its own module-primary, as it did before the move. */
+  --brand-devportal: var(--purple-800);
+  --brand-devportal-hover: var(--purple-900);
+  --module-primary: var(--brand-devportal);
+  --text-inverse-soft: rgb(255 255 255 / 85%);
+  --border-card-hover: #c9d5e6;
+  --divider: var(--gray-300);
+  --divider-inverse: rgb(255 255 255 / 20%);
+  --scrim: rgb(15 34 59 / 60%);
+
+  /* Category tile colors: white on each is >= 3:1 (graphic). Reused from Sefaria's library
+     category palette; they don't carry the library's section meanings here. */
+  --category-learn: var(--teal-200);
+  --category-ai: var(--purple-700);
+  --category-community: #ab4e66;
+  --category-viz: var(--blue-tbr-500);
+  --category-ext: var(--green-tbr-600);
+
+  /* Category-colored text on white needs 4.5:1; the ext green is only 3.5:1, so text uses this. */
+  --category-ext-text: #3f7653;
+  --category-none: var(--gray-700);
+
+  /* Chart ramps (charts only) */
+  --chart-purple-1: var(--purple-300);
+  --chart-purple-2: var(--purple-500);
+  --chart-purple-3: var(--brand-devportal);
+  --chart-purple-4: var(--purple-1000);
+  --chart-neutral: var(--gray-400);
+
+  /* Code. The shared file has no monospace token. */
+  --font-mono: 'Roboto Mono', ui-monospace, menlo, monospace;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 18px;
+
+  /* Sizing */
+  --target-min: 44px;
+  --control-height: 48px;
+  --container-max: 1280px;
+  --container-pad: var(--spacing-large);
+  --header-height: 56px;
+}
+
+@media (width >= 640px) {
+  .dp-gallery {
+    --container-pad: var(--spacing-2xlarge);
+  }
+}
+
+@media (width >= 1024px) {
+  .dp-gallery {
+    --header-height: 64px;
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-revisions.schema.json",
+  "title": "Editor: revision history",
+  "description": "GET /_portal/editor/pages/<id>/revisions, newest first. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "pageId": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "revisions": {
+      "type": "array",
+      "items": {
+        "$ref": "editor-common.schema.json#/$defs/revisionSummary"
+      }
+    }
+  },
+  "required": ["contractVersion", "pageId", "revisions"],
+  "additionalProperties": false
+}

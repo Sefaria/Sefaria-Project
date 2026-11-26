@@ -6,10 +6,52 @@ from django.conf import settings
 from django.dispatch import receiver
 from django.test.signals import setting_changed
 
-from sefaria.constants.model import LIBRARY_MODULE
+from sefaria.constants.model import DEVELOPERS_MODULE, LIBRARY_MODULE, VOICES_MODULE
 from sefaria.utils.util import get_short_lang, short_to_long_lang_code
 
 IPV4_ADDRESS_PATTERN = r"^\d+\.\d+\.\d+\.\d+$"
+
+# The modules the React app knows about (module quarantine, rule Q2, PLAN.md §2.2).
+CLIENT_DOMAIN_MODULES = (LIBRARY_MODULE, VOICES_MODULE)
+DEFAULT_DEVELOPERS_URL = "https://developers.sefaria.org"
+LEGACY_POWERED_BY_URL = "https://powered-by.sefaria.org"
+
+
+def client_domain_modules():
+    """DOMAIN_MODULES as the React app receives it (`domainModules`): only the library and voices
+    keys of each language. The developers module stays out so that every JS loop over
+    domainModules behaves as it did before that module existed (rule Q2, PLAN.md §2.2).
+    """
+    domain_modules = getattr(settings, "DOMAIN_MODULES", None) or {}
+    return {
+        lang: {module: url for module, url in modules.items() if module in CLIENT_DOMAIN_MODULES}
+        for lang, modules in domain_modules.items()
+    }
+
+
+def developers_url():
+    """The developer portal's URL (`developersURL` prop): the "en" developers module, or the
+    production portal when this environment does not configure one."""
+    domain_modules = getattr(settings, "DOMAIN_MODULES", None) or {}
+    url = domain_modules.get("en", {}).get(DEVELOPERS_MODULE)
+    return (url or DEFAULT_DEVELOPERS_URL).rstrip("/")
+
+
+def has_own_developer_portal():
+    """Whether this environment serves its own developer portal: a developers module whose host is not
+    production's (a cauldron, staging). Production's portal is ReadMe's until the cutover."""
+    domain_modules = getattr(settings, "DOMAIN_MODULES", None) or {}
+    url = domain_modules.get("en", {}).get(DEVELOPERS_MODULE)
+    return bool(url) and urlparse(url).hostname != urlparse(DEFAULT_DEVELOPERS_URL).hostname
+
+
+def powered_by_url():
+    """The powered-by gallery's URL (`poweredByURL` prop): on the developer portal once
+    DEVPORTAL_CUTOVER_DONE is set, or always in an environment with its own portal (a cauldron's /powered-by is that
+    cauldron's gallery); otherwise today's standalone site."""
+    if getattr(settings, "DEVPORTAL_CUTOVER_DONE", False) or has_own_developer_portal():
+        return f"{developers_url()}/powered-by"
+    return LEGACY_POWERED_BY_URL
 
 
 def get_hostname_without_port(request):
@@ -67,8 +109,17 @@ def _known_domain_hostnames():
     # this is computed once and reused for the life of the process. The only thing that
     # changes it at all is override_settings in tests, which is why the cache is cleared
     # below on setting_changed rather than just computed once forever.
+    #
+    # The developers host is left out (module quarantine, rule Q3, PLAN.md §2.2): it is a separate
+    # site, so a redirect to it (e.g. /wiki, /developers) stays an external redirect with no
+    # no_applink, as before the developers module was configured.
     domain_modules = getattr(settings, "DOMAIN_MODULES", None) or {}
-    return frozenset(urlparse(url).hostname for modules in domain_modules.values() for url in modules.values())
+    return frozenset(
+        urlparse(url).hostname
+        for modules in domain_modules.values()
+        for module, url in modules.items()
+        if module != DEVELOPERS_MODULE
+    )
 
 
 @receiver(setting_changed)

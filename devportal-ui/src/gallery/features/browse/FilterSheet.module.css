@@ -1,0 +1,44 @@
+.handle {
+  flex: none;
+  width: 40px;
+  height: 4px;
+  margin: var(--spacing-small) auto 0;
+  border-radius: 2px;
+  background: var(--divider);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  padding: var(--spacing-small) var(--spacing-large) var(--spacing-small) var(--spacing-xlarge);
+}
+
+.title {
+  font-family: var(--font-en-content);
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-small) var(--spacing-large) var(--spacing-large);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+  flex: none;
+  padding: var(--spacing-medium) var(--spacing-large);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-page);
+}
+
+.show {
+  flex: 1;
+}

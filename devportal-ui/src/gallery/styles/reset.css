@@ -1,0 +1,57 @@
+/* The gallery's reset, scoped to its wrapper (.dp-gallery). :where() gives every rule zero specificity
+   from the scope, so the rules weigh what the plain element selectors did before the move. */
+:where(.dp-gallery),
+:where(.dp-gallery) *,
+:where(.dp-gallery) *::before,
+:where(.dp-gallery) *::after {
+  box-sizing: border-box;
+}
+
+html:has(.dp-gallery) {
+  text-size-adjust: 100%;
+}
+
+body:has(.dp-gallery) {
+  margin: 0;
+}
+
+:where(.dp-gallery) :where(h1, h2, h3, h4, p, figure, blockquote, dl, dd, ul, ol, fieldset, legend) {
+  margin: 0;
+  padding: 0;
+}
+
+:where(.dp-gallery) :where(ul, ol) {
+  list-style: none;
+}
+
+:where(.dp-gallery) :where(img, svg) {
+  display: block;
+  max-width: 100%;
+}
+
+:where(.dp-gallery) :where(button, input, select) {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+:where(.dp-gallery) button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: inherit;
+}
+
+:where(.dp-gallery) a {
+  color: inherit;
+}
+
+:where(.dp-gallery) fieldset {
+  border: 0;
+  min-width: 0;
+}
+
+:where(.dp-gallery) table {
+  border-collapse: collapse;
+}

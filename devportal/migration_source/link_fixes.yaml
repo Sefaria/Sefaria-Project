@@ -1,0 +1,121 @@
+# Link fixes applied by devportal_import (docs/dev-portal/PLAN.md §7.4, I-7).
+#
+# Each fix: `file` (relative to this directory), `field` (`body`: the Markdown after the front
+# matter; `next_pages_slug`: a `slug:` entry of the front matter's next.pages), `pattern` (a
+# literal substring, matched on content, never on line numbers), `replacement`, and `expected`
+# (the exact number of occurrences in that file and field). The import fails when a count
+# differs, so a change in the source is noticed; update this file deliberately when it does.
+#
+# Fixes apply to the source text before the generic rewrites of §7.2 step 3 (doc:/ref:/page:
+# destinations and https://developers.sefaria.org/<path>), so patterns are written as the source
+# has them. Counts verified against commit b661899 (SOURCE.json).
+#
+# Left as they are and reported to the product owner (I-7): the placeholder links `](🔗)` in
+# docs/Dev Digest Archive/june-2024.md (1) and
+# docs/Dev Digest Archive/linear-programming-topic-curation-and-api-tips.md (1).
+
+fixes:
+  - file: docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/index.md
+    field: body
+    pattern: '](doc:each-book-is-an-index)'
+    replacement: '](/docs/index-and-versions)'
+    expected: 1
+
+  - file: docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/index.md
+    field: next_pages_slug
+    pattern: 'each-book-is-an-index'
+    replacement: 'index-and-versions'
+    expected: 1
+
+  - file: docs/TECHNICAL DOCS/welcome.md
+    field: body
+    pattern: '](doc:each-book-is-an-index)'
+    replacement: '](/docs/index-and-versions)'
+    expected: 1
+
+  - file: docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/the-structure-of-a-complex-text.md
+    field: body
+    pattern: '](doc:default-nodes)'
+    # The id live gives the "## 3. Default Nodes" heading of /docs/node-titles.
+    replacement: '](/docs/node-titles#3-default-nodes)'
+    expected: 1
+
+  - file: docs/Dev Digest Archive/september-2024.md
+    field: body
+    pattern: '](doc:the-schema-of-a-complex-text)'
+    replacement: '](/docs/the-structure-of-a-complex-text)'
+    expected: 1
+
+  - file: docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/node-titles.md
+    field: body
+    pattern: '](doc:the-schema-of-a-complex-text)'
+    replacement: '](/docs/the-structure-of-a-complex-text)'
+    expected: 1
+
+  - file: docs/local installation/technical-notes/index.md
+    field: body
+    pattern: '](doc:terms-for-internal-use)'
+    replacement: '](/docs/term-creation)'
+    expected: 1
+
+  - file: reference/welcome/tutorials/tutorial-tanakh-trivia-game.md
+    field: body
+    pattern: '](ref:get_api-shape-title)'
+    replacement: '](/reference/get-shape)'
+    expected: 4
+
+  - file: reference/welcome/tutorials/tutorial-dvar-torah-outliner.md
+    field: body
+    pattern: '](ref:get_api-v3-texts-tref-1)'
+    replacement: '](/reference/get-v3-texts)'
+    expected: 1
+
+  - file: docs/TECHNICAL DOCS/api-wiki/index.md
+    field: body
+    pattern: '](<doc: shape-api>)'
+    replacement: '](/docs/shape-api)'
+    expected: 1
+
+  - file: docs/Dev Digest Archive/june-2024.md
+    field: body
+    pattern: '](https://developers.sefaria.org/docs/the-schema-of-a-complex-text)'
+    replacement: '](/docs/the-structure-of-a-complex-text)'
+    expected: 1
+
+  - file: docs/Dev Digest Archive/june-2024.md
+    field: body
+    pattern: '](https://developers.sefaria.org/docs/the-schema-of-a-simple-text)'
+    replacement: '](/docs/the-structure-of-a-simple-text)'
+    expected: 1
+
+  - file: docs/TECHNICAL DOCS/linker/linker-v2.md
+    field: body
+    pattern: '](https://developers.sefaria.org/update/docs/linker-v3)'
+    replacement: '](/docs/linker-v3)'
+    expected: 1
+
+  - file: docs/TECHNICAL DOCS/linker/linker-api.md
+    field: body
+    pattern: '](sefaria.org/texts)'
+    replacement: '](https://www.sefaria.org/texts)'
+    expected: 1
+
+  - file: docs/TECHNICAL DOCS/the-structure-of-a-text-on-sefaria/the-index-schema/node-titles.md
+    field: next_pages_slug
+    pattern: 'in-progress-alternate-structures'
+    replacement: 'alternate-structures'
+    expected: 1
+
+  - file: docs/about Sefaria/general-faq.md
+    field: next_pages_slug
+    pattern: 'guide-to-contributing-1'
+    replacement: 'guide-to-contributing'
+    expected: 1
+
+reported_not_fixed:
+  - file: docs/Dev Digest Archive/june-2024.md
+    pattern: '](🔗)'
+    count: 1
+  - file: docs/Dev Digest Archive/linear-programming-topic-curation-and-api-tips.md
+    pattern: '](🔗)'
+    count: 1

@@ -1,0 +1,1394 @@
+{
+  "styles": {
+    "library-1440": {
+      "url": "https://www.sefaria.org/texts",
+      "title": "Sefaria: a Living Library of Jewish Texts Online",
+      "header": {
+        "selector": "div.headerInner.desktopHeaderInner.boxShadow",
+        "w": 1440,
+        "h": 60,
+        "top": 0,
+        "height": "60px",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "rgba(0, 0, 0, 0.2) 0px 1px 3px 0px",
+        "border-bottom": "0px none rgb(0, 0, 0)",
+        "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+        "position": "absolute",
+        "padding-left": "30px",
+        "padding-right": "30px"
+      },
+      "logo": {
+        "selector": "a.home",
+        "w": 154,
+        "h": 25,
+        "top": 18,
+        "background-image": "url(\"https://www.sefaria.org/static/img/library-logo-english.svg\")",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(0, 0, 0)",
+        "src": null,
+        "aria": "Sefaria library logo"
+      },
+      "links": [
+        {
+          "selector": "a.textLink",
+          "w": 41,
+          "h": 20,
+          "top": 20,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "16px",
+          "font-weight": "500",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Texts"
+        },
+        {
+          "selector": "a.textLink",
+          "w": 51,
+          "h": 20,
+          "top": 20,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "16px",
+          "font-weight": "500",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Topics"
+        },
+        {
+          "selector": "a.textLink.donate",
+          "w": 55,
+          "h": 20,
+          "top": 20,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "16px",
+          "font-weight": "500",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Donate"
+        },
+        {
+          "selector": "a.textLink.libraryAssistantLink.libraryAssistantPill",
+          "w": 163,
+          "h": 30,
+          "top": 15,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "14px",
+          "font-weight": "500",
+          "color": "rgb(255, 255, 255)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Library Assistant"
+        }
+      ],
+      "bodyFont": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": true,
+      "tokens": {
+        "--sefaria-blue": "#18345D",
+        "--sefaria-purple": "#7C416F",
+        "--devportal-purple": "#7C416F",
+        "--sheets-green": "#518159",
+        "--header-height": "60px"
+      }
+    },
+    "voices-sim-1440": {
+      "url": "https://www.sefaria.org/topics",
+      "title": "Topics | Voices on Sefaria",
+      "header": {
+        "selector": "div.headerInner.desktopHeaderInner.boxShadow",
+        "w": 1440,
+        "h": 60,
+        "top": 0,
+        "height": "60px",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "rgba(0, 0, 0, 0.2) 0px 1px 3px 0px",
+        "border-bottom": "0px none rgb(0, 0, 0)",
+        "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+        "position": "absolute",
+        "padding-left": "30px",
+        "padding-right": "30px"
+      },
+      "logo": {
+        "selector": "a.home",
+        "w": 174,
+        "h": 25,
+        "top": 18,
+        "background-image": "url(\"https://www.sefaria.org/static/img/voices-logo-english.svg\")",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(0, 0, 0)",
+        "src": null,
+        "aria": "Sefaria library logo"
+      },
+      "links": [
+        {
+          "selector": "a.textLink",
+          "w": 51,
+          "h": 20,
+          "top": 20,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "16px",
+          "font-weight": "500",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Topics"
+        },
+        {
+          "selector": "a.textLink",
+          "w": 85,
+          "h": 20,
+          "top": 20,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "16px",
+          "font-weight": "500",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Collections"
+        },
+        {
+          "selector": "a.textLink.donate",
+          "w": 55,
+          "h": 20,
+          "top": 20,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "16px",
+          "font-weight": "500",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Donate"
+        }
+      ],
+      "bodyFont": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": true,
+      "tokens": {
+        "--sefaria-blue": "#18345D",
+        "--sefaria-purple": "#7C416F",
+        "--devportal-purple": "#7C416F",
+        "--sheets-green": "#518159",
+        "--header-height": "60px"
+      }
+    },
+    "developers-1440": {
+      "url": "https://developers.sefaria.org/",
+      "title": "Sefaria",
+      "header": {
+        "selector": "header.Header3zzata9F_ZPQ.rm-Header_compact.Header_collapsible3n0YXfOvb_Al.rm-Header.rm-Header_landing",
+        "w": 1424,
+        "h": 237,
+        "top": 8,
+        "height": "237px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "box-shadow": "none",
+        "border-bottom": "0px none rgb(0, 0, 0)",
+        "font-family": "\"Times New Roman\"",
+        "position": "static",
+        "padding-left": "0px",
+        "padding-right": "0px"
+      },
+      "logo": {
+        "selector": "img.rm-Logo-img.rm-Logo-img_lg.Header-logo-img3YvV4lcGKkeb",
+        "w": 61,
+        "h": 18,
+        "top": 26,
+        "background-image": "none",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(102, 102, 102)",
+        "src": "https://files.readme.io/97150ac8cece586829bd91d5ea1b2f41e94cd03ec2d9455dfc2c0e0c4bee9807-Frame_2609333.svg",
+        "aria": null
+      },
+      "links": [
+        {
+          "selector": "a.Button.Button_md.rm-JumpTo.Header-jumpTo3IWKQXmhSI5D.Button_primary",
+          "w": 106,
+          "h": 17,
+          "top": 8,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Jump to Content"
+        },
+        {
+          "selector": "a.rm-Logo.Header-logo1Xy41PtkzbdG",
+          "w": 61,
+          "h": 17,
+          "top": 26,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": ""
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-.active",
+          "w": 39,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Home"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 33,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Docs"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 95,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "API Reference"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 48,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "GitHub"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 46,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Donate"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 83,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Get in Touch"
+        }
+      ],
+      "bodyFont": "\"Times New Roman\"",
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": false,
+      "tokens": {
+        "--project-color-primary": "#612854",
+        "--primary": "#612854"
+      }
+    },
+    "developers-docs-1440": {
+      "url": "https://developers.sefaria.org/docs/welcome",
+      "title": "Welcome to Sefaria's Technical Documentation",
+      "header": {
+        "selector": "header.Header3zzata9F_ZPQ.rm-Header_compact.Header_collapsible3n0YXfOvb_Al.rm-Header",
+        "w": 1424,
+        "h": 539,
+        "top": 8,
+        "height": "538.641px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "box-shadow": "none",
+        "border-bottom": "0px none rgb(0, 0, 0)",
+        "font-family": "\"Times New Roman\"",
+        "position": "static",
+        "padding-left": "0px",
+        "padding-right": "0px"
+      },
+      "logo": {
+        "selector": "img.rm-Logo-img.rm-Logo-img_lg.Header-logo-img3YvV4lcGKkeb",
+        "w": 61,
+        "h": 18,
+        "top": 26,
+        "background-image": "none",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(102, 102, 102)",
+        "src": "https://files.readme.io/97150ac8cece586829bd91d5ea1b2f41e94cd03ec2d9455dfc2c0e0c4bee9807-Frame_2609333.svg",
+        "aria": null
+      },
+      "links": [
+        {
+          "selector": "a.Button.Button_md.rm-JumpTo.Header-jumpTo3IWKQXmhSI5D.Button_primary",
+          "w": 106,
+          "h": 17,
+          "top": 8,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Jump to Content"
+        },
+        {
+          "selector": "a.rm-Logo.Header-logo1Xy41PtkzbdG",
+          "w": 61,
+          "h": 17,
+          "top": 26,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": ""
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 39,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Home"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-.active",
+          "w": 33,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Docs"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 95,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "API Reference"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 48,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "GitHub"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 46,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Donate"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 83,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Get in Touch"
+        }
+      ],
+      "bodyFont": "\"Times New Roman\"",
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": false,
+      "tokens": {
+        "--project-color-primary": "#612854",
+        "--primary": "#612854"
+      }
+    },
+    "poweredby-1440": {
+      "url": "https://powered-by.sefaria.org/",
+      "title": "Powered by Sefaria: projects built on the open Jewish library",
+      "header": {
+        "selector": "header._header_122j1_1",
+        "w": 1440,
+        "h": 65,
+        "top": 0,
+        "height": "65px",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "none",
+        "border-bottom": "1px solid rgb(237, 237, 236)",
+        "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+        "position": "static",
+        "padding-left": "0px",
+        "padding-right": "0px"
+      },
+      "logo": {
+        "selector": "svg",
+        "w": 17,
+        "h": 22,
+        "top": 21,
+        "background-image": "none",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(255, 255, 255)",
+        "src": null,
+        "aria": null
+      },
+      "links": [
+        {
+          "selector": "a._link_9cvky_1",
+          "w": 44,
+          "h": 44,
+          "top": 10,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(18, 18, 18)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "(opens in a new tab)"
+        },
+        {
+          "selector": "a._title_122j1_27",
+          "w": 131,
+          "h": 44,
+          "top": 10,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "14px",
+          "font-weight": "600",
+          "color": "rgb(101, 50, 89)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Powered by Sefaria"
+        },
+        {
+          "selector": "a._navLink_122j1_49",
+          "w": 112,
+          "h": 44,
+          "top": 10,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "14px",
+          "font-weight": "500",
+          "color": "rgb(18, 18, 18)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Sefaria.org\n(opens in a new tab)"
+        },
+        {
+          "selector": "a._navLink_122j1_49",
+          "w": 143,
+          "h": 44,
+          "top": 10,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "14px",
+          "font-weight": "500",
+          "color": "rgb(18, 18, 18)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Developer docs\n(opens in a new tab)"
+        },
+        {
+          "selector": "a._submit_122j1_90",
+          "w": 164,
+          "h": 44,
+          "top": 10,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "14px",
+          "font-weight": "600",
+          "color": "rgb(255, 255, 255)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Submit a project\n(opens in a new tab)"
+        },
+        {
+          "selector": "a._donate_122j1_50",
+          "w": 102,
+          "h": 44,
+          "top": 10,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "14px",
+          "font-weight": "600",
+          "color": "rgb(101, 50, 89)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Donate\n(opens in a new tab)"
+        }
+      ],
+      "bodyFont": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+      "bodyBg": "rgb(255, 255, 255)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": false,
+      "tokens": {
+        "--header-height": "64px"
+      }
+    },
+    "library-390": {
+      "url": "https://www.sefaria.org/texts",
+      "title": "Sefaria: a Living Library of Jewish Texts Online",
+      "header": {
+        "selector": "div.headerInner.mobile.boxShadow",
+        "w": 390,
+        "h": 60,
+        "top": 0,
+        "height": "60px",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "rgba(0, 0, 0, 0.2) 0px 1px 3px 0px",
+        "border-bottom": "0px none rgb(0, 0, 0)",
+        "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+        "position": "fixed",
+        "padding-left": "15px",
+        "padding-right": "15px"
+      },
+      "logo": {
+        "selector": "a.home",
+        "w": 154,
+        "h": 25,
+        "top": 18,
+        "background-image": "url(\"https://www.sefaria.org/static/img/library-logo-english.svg\")",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(0, 0, 0)",
+        "src": null,
+        "aria": "Sefaria library logo"
+      },
+      "links": [
+        {
+          "selector": "a.home",
+          "w": 154,
+          "h": 25,
+          "top": 18,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(0, 0, 0)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": ""
+        },
+        {
+          "selector": "a.languageToggle",
+          "w": 34,
+          "h": 34,
+          "top": 13,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "22px",
+          "font-weight": "400",
+          "color": "rgb(204, 204, 204)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": ""
+        }
+      ],
+      "bodyFont": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": true,
+      "tokens": {
+        "--sefaria-blue": "#18345D",
+        "--sefaria-purple": "#7C416F",
+        "--devportal-purple": "#7C416F",
+        "--sheets-green": "#518159",
+        "--header-height": "60px"
+      }
+    },
+    "voices-sim-390": {
+      "url": "https://www.sefaria.org/topics",
+      "title": "Topics | Voices on Sefaria",
+      "header": {
+        "selector": "div.headerInner.mobile.boxShadow",
+        "w": 390,
+        "h": 60,
+        "top": 0,
+        "height": "60px",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "rgba(0, 0, 0, 0.2) 0px 1px 3px 0px",
+        "border-bottom": "0px none rgb(0, 0, 0)",
+        "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+        "position": "fixed",
+        "padding-left": "15px",
+        "padding-right": "15px"
+      },
+      "logo": {
+        "selector": "a.home",
+        "w": 174,
+        "h": 25,
+        "top": 18,
+        "background-image": "url(\"https://www.sefaria.org/static/img/voices-logo-english.svg\")",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(0, 0, 0)",
+        "src": null,
+        "aria": "Sefaria library logo"
+      },
+      "links": [
+        {
+          "selector": "a.home",
+          "w": 174,
+          "h": 25,
+          "top": 18,
+          "font-family": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(0, 0, 0)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": ""
+        }
+      ],
+      "bodyFont": "Roboto, \"Helvetica Neue\", Helvetica, sans-serif",
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": true,
+      "tokens": {
+        "--sefaria-blue": "#18345D",
+        "--sefaria-purple": "#7C416F",
+        "--devportal-purple": "#7C416F",
+        "--sheets-green": "#518159",
+        "--header-height": "60px"
+      }
+    },
+    "developers-390": {
+      "url": "https://developers.sefaria.org/",
+      "title": "Sefaria",
+      "header": {
+        "selector": "header.Header3zzata9F_ZPQ.rm-Header_compact.Header_collapsible3n0YXfOvb_Al.rm-Header.rm-Header_landing",
+        "w": 374,
+        "h": 291,
+        "top": 8,
+        "height": "291px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "box-shadow": "none",
+        "border-bottom": "0px none rgb(0, 0, 0)",
+        "font-family": "\"Times New Roman\"",
+        "position": "static",
+        "padding-left": "0px",
+        "padding-right": "0px"
+      },
+      "logo": {
+        "selector": "img.rm-Logo-img.rm-Logo-img_lg.Header-logo-img3YvV4lcGKkeb",
+        "w": 61,
+        "h": 18,
+        "top": 26,
+        "background-image": "none",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(102, 102, 102)",
+        "src": "https://files.readme.io/97150ac8cece586829bd91d5ea1b2f41e94cd03ec2d9455dfc2c0e0c4bee9807-Frame_2609333.svg",
+        "aria": null
+      },
+      "links": [
+        {
+          "selector": "a.Button.Button_md.rm-JumpTo.Header-jumpTo3IWKQXmhSI5D.Button_primary",
+          "w": 106,
+          "h": 17,
+          "top": 8,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Jump to Content"
+        },
+        {
+          "selector": "a.rm-Logo.Header-logo1Xy41PtkzbdG",
+          "w": 61,
+          "h": 17,
+          "top": 26,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": ""
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-.active",
+          "w": 39,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Home"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 33,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Docs"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 95,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "API Reference"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 48,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "GitHub"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 46,
+          "h": 17,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Donate"
+        },
+        {
+          "selector": "a.rm-MobileFlyout-item.NavItem-item1gDDTqaXGhm1.NavItem-item_mobile1qG3gd-Mkck-",
+          "w": 300,
+          "h": 35,
+          "top": 62,
+          "font-family": "\"Times New Roman\"",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(102, 102, 102)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Get in Touch"
+        }
+      ],
+      "bodyFont": "\"Times New Roman\"",
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": false,
+      "tokens": {
+        "--project-color-primary": "#612854",
+        "--primary": "#612854"
+      }
+    },
+    "poweredby-390": {
+      "url": "https://powered-by.sefaria.org/",
+      "title": "Powered by Sefaria: projects built on the open Jewish library",
+      "header": {
+        "selector": "header._header_122j1_1",
+        "w": 390,
+        "h": 57,
+        "top": 0,
+        "height": "57px",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "none",
+        "border-bottom": "1px solid rgb(237, 237, 236)",
+        "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+        "position": "static",
+        "padding-left": "0px",
+        "padding-right": "0px"
+      },
+      "logo": {
+        "selector": "svg",
+        "w": 15,
+        "h": 20,
+        "top": 18,
+        "background-image": "none",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "mask-image": "none",
+        "-webkit-mask-image": "none",
+        "color": "rgb(255, 255, 255)",
+        "src": null,
+        "aria": null
+      },
+      "links": [
+        {
+          "selector": "a._link_9cvky_1",
+          "w": 44,
+          "h": 44,
+          "top": 6,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "16px",
+          "font-weight": "400",
+          "color": "rgb(18, 18, 18)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "(opens in a new tab)"
+        },
+        {
+          "selector": "a._title_122j1_27",
+          "w": 131,
+          "h": 44,
+          "top": 6,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "14px",
+          "font-weight": "600",
+          "color": "rgb(101, 50, 89)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Powered by Sefaria"
+        },
+        {
+          "selector": "a._submit_122j1_90.undefined",
+          "w": 90,
+          "h": 44,
+          "top": 6,
+          "font-family": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+          "font-size": "14px",
+          "font-weight": "600",
+          "color": "rgb(255, 255, 255)",
+          "letter-spacing": "normal",
+          "text-transform": "none",
+          "text": "Submit\n(opens in a new tab)"
+        }
+      ],
+      "bodyFont": "Roboto, \"Helvetica Neue\", Arial, sans-serif",
+      "bodyBg": "rgb(255, 255, 255)",
+      "colorScheme": "normal",
+      "prefersDarkHandled": false,
+      "tokens": {
+        "--header-height": "56px"
+      }
+    }
+  },
+  "menus": {
+    "library-1440": {
+      "Toggle Interface Language Menu": [
+        {
+          "text": "English",
+          "href": "#",
+          "target": null
+        },
+        {
+          "text": "עברית",
+          "href": "#",
+          "target": null
+        }
+      ],
+      "Library": [
+        {
+          "text": "",
+          "href": "/about",
+          "target": null
+        },
+        {
+          "text": "Library",
+          "href": "https://www.sefaria.org/",
+          "target": null
+        },
+        {
+          "text": "Voices",
+          "href": "https://voices.sefaria.org/",
+          "target": "_blank"
+        },
+        {
+          "text": "Developers",
+          "href": "https://developers.sefaria.org",
+          "target": "_blank"
+        },
+        {
+          "text": "More from Sefaria ›",
+          "href": "/products",
+          "target": "_blank"
+        }
+      ],
+      "Account menu": [
+        {
+          "text": "Log in",
+          "href": "/login",
+          "target": null
+        },
+        {
+          "text": "Sign up",
+          "href": "/register",
+          "target": null
+        },
+        {
+          "text": "English",
+          "href": "#",
+          "target": null
+        },
+        {
+          "text": "עברית",
+          "href": "#",
+          "target": null
+        },
+        {
+          "text": "New Additions",
+          "href": "/updates",
+          "target": null
+        },
+        {
+          "text": "Help",
+          "href": "https://help.sefaria.org/hc/en-us",
+          "target": "_blank"
+        }
+      ]
+    },
+    "voices-sim-1440": {
+      "Toggle Interface Language Menu": [
+        {
+          "text": "English",
+          "href": "#",
+          "target": null
+        },
+        {
+          "text": "עברית",
+          "href": "#",
+          "target": null
+        }
+      ],
+      "Library": [
+        {
+          "text": "",
+          "href": "/about",
+          "target": null
+        },
+        {
+          "text": "Library",
+          "href": "https://www.sefaria.org/",
+          "target": null
+        },
+        {
+          "text": "Voices",
+          "href": "https://voices.sefaria.org/",
+          "target": "_blank"
+        },
+        {
+          "text": "Developers",
+          "href": "https://developers.sefaria.org",
+          "target": "_blank"
+        },
+        {
+          "text": "More from Sefaria ›",
+          "href": "/products",
+          "target": "_blank"
+        }
+      ],
+      "Account menu": [
+        {
+          "text": "Log in",
+          "href": "/login",
+          "target": null
+        },
+        {
+          "text": "Sign up",
+          "href": "/register",
+          "target": null
+        },
+        {
+          "text": "English",
+          "href": "#",
+          "target": null
+        },
+        {
+          "text": "עברית",
+          "href": "#",
+          "target": null
+        },
+        {
+          "text": "Help",
+          "href": "/updates",
+          "target": null
+        }
+      ]
+    },
+    "static-about": [
+      {
+        "text": "Developers",
+        "href": "https://developers.sefaria.org"
+      },
+      {
+        "text": "API",
+        "href": "/developers"
+      },
+      {
+        "text": "hub for software developers",
+        "href": "https://developers.sefaria.org/"
+      }
+    ],
+    "static-products": [
+      {
+        "text": "Developers",
+        "href": "https://developers.sefaria.org"
+      }
+    ],
+    "static-linker": [
+      {
+        "text": "Developers",
+        "href": "https://developers.sefaria.org"
+      },
+      {
+        "text": "Read the details in our Developer Docs",
+        "href": "https://developers.sefaria.org/docs/linker-v3"
+      }
+    ],
+    "library-390-mobilemenu": [
+      {
+        "text": "Texts",
+        "href": "/texts",
+        "target": null
+      },
+      {
+        "text": "Topics",
+        "href": "/topics",
+        "target": null
+      },
+      {
+        "text": "Library Assistant",
+        "href": "#",
+        "target": null
+      },
+      {
+        "text": "Learning Schedules",
+        "href": "/calendars",
+        "target": null
+      },
+      {
+        "text": "Donate",
+        "href": "https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=MobileNavMenu",
+        "target": "_blank"
+      },
+      {
+        "text": "English",
+        "href": "#",
+        "target": null
+      },
+      {
+        "text": "עברית",
+        "href": "#",
+        "target": null
+      },
+      {
+        "text": "Get Help",
+        "href": "https://help.sefaria.org/hc/en-us",
+        "target": "_blank"
+      },
+      {
+        "text": "About Sefaria",
+        "href": "/mobile-about-menu",
+        "target": null
+      },
+      {
+        "text": "Voices on Sefaria",
+        "href": "/",
+        "target": null
+      },
+      {
+        "text": "Developers on Sefaria",
+        "href": "https://developers.sefaria.org",
+        "target": "_blank"
+      },
+      {
+        "text": "More from Sefaria",
+        "href": "/products",
+        "target": null
+      },
+      {
+        "text": "Sign up",
+        "href": "/register",
+        "target": null
+      },
+      {
+        "text": "Log in",
+        "href": "/login",
+        "target": null
+      }
+    ],
+    "voices-sim-390-mobilemenu": [
+      {
+        "text": "Topics",
+        "href": "/texts",
+        "target": null
+      },
+      {
+        "text": "Collections",
+        "href": "/topics",
+        "target": null
+      },
+      {
+        "text": "Donate",
+        "href": "#",
+        "target": null
+      },
+      {
+        "text": "English",
+        "href": "#",
+        "target": null
+      },
+      {
+        "text": "עברית",
+        "href": "#",
+        "target": null
+      },
+      {
+        "text": "Get Help",
+        "href": "https://help.sefaria.org/hc/en-us",
+        "target": "_blank"
+      },
+      {
+        "text": "About Sefaria",
+        "href": "/mobile-about-menu",
+        "target": null
+      },
+      {
+        "text": "The Sefaria Library",
+        "href": "/texts",
+        "target": null
+      },
+      {
+        "text": "Developers on Sefaria",
+        "href": "https://developers.sefaria.org",
+        "target": "_blank"
+      },
+      {
+        "text": "More from Sefaria",
+        "href": "/products",
+        "target": null
+      },
+      {
+        "text": "Sign up",
+        "href": "/register",
+        "target": null
+      },
+      {
+        "text": "Log in",
+        "href": "/login",
+        "target": null
+      }
+    ],
+    "developers-390-mobilemenu": [
+      {
+        "text": "Jump to Content",
+        "href": "#content"
+      },
+      {
+        "text": "",
+        "href": "/"
+      },
+      {
+        "text": "Home",
+        "href": "/"
+      },
+      {
+        "text": "Docs",
+        "href": "/docs"
+      },
+      {
+        "text": "API Reference",
+        "href": "/reference"
+      },
+      {
+        "text": "GitHub",
+        "href": "https://github.com/Sefaria/Sefaria-Project"
+      },
+      {
+        "text": "Donate",
+        "href": "https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=HeaderDev"
+      },
+      {
+        "text": "Get in Touch",
+        "href": "/page/contact-us"
+      },
+      {
+        "text": "Sefaria Library",
+        "href": "https://sefaria.org"
+      },
+      {
+        "text": "Voices on Sefaria",
+        "href": "https://voices.sefaria.org"
+      },
+      {
+        "text": "",
+        "href": "/"
+      },
+      {
+        "text": "Sefaria Library",
+        "href": "https://sefaria.org"
+      },
+      {
+        "text": "Voices at Sefaria",
+        "href": "https://voices.sefaria.org"
+      },
+      {
+        "text": "Developers",
+        "href": "https://developers.sefaria.org"
+      },
+      {
+        "text": "More from Sefaria ›",
+        "href": "https://sefaria.org/products"
+      },
+      {
+        "text": "Jump to Content",
+        "href": "#content"
+      },
+      {
+        "text": "",
+        "href": "/"
+      },
+      {
+        "text": "Home",
+        "href": "/"
+      },
+      {
+        "text": "Docs",
+        "href": "/docs"
+      },
+      {
+        "text": "API Reference",
+        "href": "/reference"
+      },
+      {
+        "text": "GitHub",
+        "href": "https://github.com/Sefaria/Sefaria-Project"
+      },
+      {
+        "text": "Donate",
+        "href": "https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=HeaderDev"
+      },
+      {
+        "text": "Get in Touch",
+        "href": "/page/contact-us"
+      },
+      {
+        "text": "Sefaria Library",
+        "href": "https://sefaria.org"
+      },
+      {
+        "text": "Voices on Sefaria",
+        "href": "https://voices.sefaria.org"
+      }
+    ],
+    "poweredby-390-mobilemenu": [
+      {
+        "text": "(opens in a new tab)",
+        "href": "https://developers.sefaria.org"
+      },
+      {
+        "text": "Powered by Sefaria",
+        "href": "/"
+      },
+      {
+        "text": "Submit (opens in a new tab)",
+        "href": "https://sefaria.formstack.com/forms/powered_by_sefaria_submission_form"
+      },
+      {
+        "text": "Sefaria.org (opens in a new tab)",
+        "href": "https://www.sefaria.org"
+      },
+      {
+        "text": "Developer docs (opens in a new tab)",
+        "href": "https://developers.sefaria.org"
+      },
+      {
+        "text": "Donate (opens in a new tab)",
+        "href": "https://www.sefaria.org/donate"
+      },
+      {
+        "text": "Sefaria.org (opens in a new tab)",
+        "href": "https://www.sefaria.org"
+      },
+      {
+        "text": "Developer Portal (opens in a new tab)",
+        "href": "https://developers.sefaria.org"
+      },
+      {
+        "text": "Sefaria on GitHub (opens in a new tab)",
+        "href": "https://github.com/Sefaria"
+      },
+      {
+        "text": "Donate (opens in a new tab)",
+        "href": "https://www.sefaria.org/donate"
+      }
+    ]
+  },
+  "notes": []
+}

@@ -1,0 +1,21 @@
+{% load devportal_assets %}<!doctype html>{% comment %}
+  The editor shell (PLAN.md §2.11, contract C9 "editor"). Staff only: devportal/views/editor_api.py
+  answers anonymous visitors with a redirect to /login and other users with 403 before this renders.
+  The bundle's editor chunk mounts on #dp-editor-root and reads #dp-editor-data. No inline style and
+  no inline script: the CSP of /editor responses differs from the public one only by
+  style-src-attr 'unsafe-inline' (ProseMirror sets style attributes).
+{% endcomment %}
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Editor · Sefaria Developers</title>
+<link rel="icon" href="/favicon.ico?v=e9b1b3beada0" sizes="32x32" type="image/x-icon">
+{% devportal_entry %}
+</head>
+<body class="dp-body dp-editor-body">
+<div id="dp-editor-root"><noscript>The editor needs JavaScript.</noscript></div>
+{{ boot_island }}
+</body>
+</html>

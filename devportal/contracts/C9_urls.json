@@ -1,0 +1,531 @@
+{
+  "$comment": "Contract C9: the URL map of the developers host (PLAN.md §2.4) as data. Routes are listed in match order; the first match wins (so /docs/llms.txt is matched before /docs/<slug>). Each route lists one or more path patterns. Placeholders: <slug> one path segment, case-sensitive Unicode, percent-encoded on the wire; <rest> any remainder; <page_path> the path of any page (/docs/<slug>, /reference/<slug>, /page/<slug>). Status 200 means the resource itself; a redirect's target is the Location header, relative to the request's host unless absolute. Change only through the Integrator.",
+  "version": 1,
+  "host": "developers",
+  "rules": {
+    "no_api_prefix": "No portal endpoint lives under /api/ (nginx sends /api/search/ to Elasticsearch, Varnish caches /api/ prefixes host-blind, ModuleMiddleware assigns /api/ to the library module). The only /api/ route on this host is the existing /api/powered-by view.",
+    "case_sensitive": "Paths are case-sensitive, as on live: /DOCS/WELCOME is a 404.",
+    "caching": "Everything except /api/ and /static/ passes through Varnish uncached, so publishing needs no purge.",
+    "static": "/static/ is served by nginx (every module server block aliases it); the portal references its bundle as same-origin /static/bundles/devportal/….",
+    "markdown_negotiation": "Every HTML page route also answers text/markdown when the request's Accept prefers text/markdown over text/html; such responses, and the HTML ones, carry Vary: Accept.",
+    "headers": "Every HTML and Markdown page response carries the Link header set of C10 (api-catalog, service-doc, agent-skills, mcp-server, alternate text/markdown) and Content-Language: en."
+  },
+  "routes": [
+    {
+      "id": "home",
+      "patterns": ["/"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Homepage. document.title is \"Sefaria\".",
+      "status": 200,
+      "content_type": "text/html",
+      "owner": "W11"
+    },
+    {
+      "id": "docs-md-index",
+      "patterns": ["/docs.md"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Redirect, as live.",
+      "status": 302,
+      "target": "/docs/llms.txt",
+      "owner": "W8"
+    },
+    {
+      "id": "llms",
+      "patterns": ["/llms.txt"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Full index in live's llms.txt format; links point at .md URLs on the request's host.",
+      "status": 200,
+      "content_type": "text/plain",
+      "owner": "W8"
+    },
+    {
+      "id": "llms-full",
+      "patterns": ["/llms-full.txt"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "New (404 on live): same order as /llms.txt with every page's Markdown inlined.",
+      "status": 200,
+      "content_type": "text/plain",
+      "owner": "W8"
+    },
+    {
+      "id": "docs-llms",
+      "patterns": ["/docs/llms.txt"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Section-scoped llms.txt for docs.",
+      "status": 200,
+      "content_type": "text/plain",
+      "owner": "W8"
+    },
+    {
+      "id": "reference-llms",
+      "patterns": ["/reference/llms.txt"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Section-scoped llms.txt for the API reference.",
+      "status": 200,
+      "content_type": "text/plain",
+      "owner": "W8"
+    },
+    {
+      "id": "docs-root",
+      "patterns": ["/docs"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "ReadMe's built-in redirect.",
+      "status": 301,
+      "target": "/docs/welcome",
+      "owner": "W1"
+    },
+    {
+      "id": "docs-root-slash",
+      "patterns": ["/docs/"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "ReadMe's built-in redirect (to /docs, which redirects again).",
+      "status": 301,
+      "target": "/docs",
+      "owner": "W1"
+    },
+    {
+      "id": "docs-getting-started",
+      "patterns": ["/docs/getting-started"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "ReadMe's built-in redirect.",
+      "status": 301,
+      "target": "/docs/welcome",
+      "owner": "W1"
+    },
+    {
+      "id": "page-markdown",
+      "patterns": ["<page_path>.md"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Markdown version of the page (front matter with updatedAt and agentTools.projectIndex, # title, excerpt, body with in-portal links made absolute on the request's host). Endpoint pages end with # OpenAPI definition and the spec slice in a json fence. Hidden pages answer as live does.",
+      "status": 200,
+      "content_type": "text/markdown",
+      "owner": "W8"
+    },
+    {
+      "id": "docs-page-slash",
+      "patterns": ["/docs/<slug>/"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Trailing slash redirects to the path without it.",
+      "status": 301,
+      "target": "/docs/<slug>",
+      "owner": "W1"
+    },
+    {
+      "id": "docs-page",
+      "patterns": ["/docs/<slug>"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Docs page (kind page or link). A page with no published revision, a soft-deleted page or an unknown slug falls through to the fallback. Hidden pages answer at their URL but are left out of navigation, sitemap, llms.txt and search (I-6).",
+      "status": 200,
+      "content_type": "text/html",
+      "owner": "W1"
+    },
+    {
+      "id": "reference-root",
+      "patterns": ["/reference"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Redirect.",
+      "status": 301,
+      "target": "/reference/getting-started",
+      "owner": "W1"
+    },
+    {
+      "id": "reference-page-slash",
+      "patterns": ["/reference/<slug>/"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Assumed to match docs (trailing slash redirects to the path without it); confirm in the URL-parity crawl (PLAN.md §6.4) and update this entry if live differs.",
+      "status": 301,
+      "target": "/reference/<slug>",
+      "verify_against_live": true,
+      "owner": "W1"
+    },
+    {
+      "id": "reference-page",
+      "patterns": ["/reference/<slug>"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Hand-written page (200), endpoint page (200), or tag group (302 to its first visible child).",
+      "status": 200,
+      "status_variants": {
+        "tag_group": {
+          "status": 302,
+          "target": "/reference/<first visible child slug>"
+        }
+      },
+      "content_type": "text/html",
+      "owner": "W4"
+    },
+    {
+      "id": "custom-page",
+      "patterns": ["/page/<slug>"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Custom page.",
+      "status": 200,
+      "content_type": "text/html",
+      "owner": "W1"
+    },
+    {
+      "id": "custom-page-slash",
+      "patterns": ["/page/<slug>/"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Trailing slash is served directly (no redirect), as on live.",
+      "status": 200,
+      "content_type": "text/html",
+      "owner": "W1"
+    },
+    {
+      "id": "versioned-root",
+      "patterns": ["/v1.0"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Versioned-URL fallback, as live.",
+      "status": 302,
+      "target": "/",
+      "owner": "W1"
+    },
+    {
+      "id": "versioned",
+      "patterns": ["/v1.0/<rest>"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Versioned-URL fallback, as live. The query string is kept.",
+      "status": 302,
+      "target": "/<rest>",
+      "owner": "W1"
+    },
+    {
+      "id": "sitemap",
+      "patterns": ["/sitemap.xml"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Visible pages only.",
+      "status": 200,
+      "content_type": "application/xml",
+      "owner": "W8"
+    },
+    {
+      "id": "robots",
+      "patterns": ["/robots.txt"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Live's content (research/site/machine/robots.txt, plus Disallow: /_portal/ and /editor) when DEVPORTAL_ALLOW_INDEXING is true; 'User-agent: *' + 'Disallow: /' otherwise. Served by Django: the chart's appRobots flag skips nginx's shared robots.txt for this module.",
+      "status": 200,
+      "content_type": "text/plain",
+      "owner": "W1"
+    },
+    {
+      "id": "openapi",
+      "patterns": ["/openapi/sefaria-api.json"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "docs/openAPI.json as deployed.",
+      "status": 200,
+      "content_type": "application/json",
+      "owner": "W8"
+    },
+    {
+      "id": "wk-api-catalog",
+      "patterns": ["/.well-known/api-catalog"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Copied from research/site/machine/wk_.well-known_api-catalog with the host taken from the request.",
+      "status": 200,
+      "content_type": "application/linkset+json",
+      "owner": "W8"
+    },
+    {
+      "id": "wk-agent-skills-index",
+      "patterns": ["/.well-known/agent-skills/index.json"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Copied from research/site/machine/; the skill digest is recomputed from our SKILL.md; host from the request.",
+      "status": 200,
+      "content_type": "application/json",
+      "owner": "W8"
+    },
+    {
+      "id": "wk-agent-skill",
+      "patterns": ["/.well-known/agent-skills/read-the-docs/SKILL.md"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Copied from research/site/machine/read-the-docs-SKILL.md with the host taken from the request.",
+      "status": 200,
+      "content_type": "text/markdown",
+      "owner": "W8"
+    },
+    {
+      "id": "wk-mcp-server-card",
+      "patterns": ["/.well-known/mcp/server-card.json"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Copied from research/site/machine/mcp-server-card.json with name org.sefaria/developers and the host taken from the request.",
+      "status": 200,
+      "content_type": "application/json",
+      "owner": "W8"
+    },
+    {
+      "id": "mcp",
+      "patterns": ["/mcp"],
+      "methods": ["GET", "POST", "OPTIONS"],
+      "behavior": "MCP server (PLAN.md §2.10). POST: one JSON-RPC message, answered with application/json. GET without Accept: text/event-stream: live's 48-byte HTML notice (200). GET with it: 405. OPTIONS: CORS preflight. csrf_exempt; never reads request.user or the session.",
+      "status": 200,
+      "status_variants": {
+        "GET with Accept: text/event-stream": {
+          "status": 405
+        }
+      },
+      "content_type": "application/json",
+      "owner": "W9"
+    },
+    {
+      "id": "gallery",
+      "patterns": ["/powered-by"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Gallery home. The Django template lists the real projects; the gallery React app replaces it.",
+      "status": 200,
+      "content_type": "text/html",
+      "owner": "W12"
+    },
+    {
+      "id": "gallery-project",
+      "patterns": ["/powered-by/projects/<id>-<name>"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Project page. A non-canonical <name> for a known id redirects 301 to the canonical slug. An unknown or unpublished id is a real 404.",
+      "status": 200,
+      "status_variants": {
+        "non-canonical slug": {
+          "status": 301,
+          "target": "/powered-by/projects/<id>-<canonical name>"
+        },
+        "unknown id": {
+          "status": 404
+        }
+      },
+      "content_type": "text/html",
+      "owner": "W12"
+    },
+    {
+      "id": "gallery-charts",
+      "patterns": ["/powered-by/charts"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Unlisted; <meta name=\"robots\" content=\"noindex\"> and not in the sitemap.",
+      "status": 200,
+      "content_type": "text/html",
+      "owner": "W12"
+    },
+    {
+      "id": "powered-by-api",
+      "patterns": ["/api/powered-by"],
+      "methods": ["GET"],
+      "behavior": "The existing powered_by.views.powered_by_api, now also on this host. The standalone dev server answers from the gallery's fixture file.",
+      "status": 200,
+      "content_type": "application/json",
+      "owner": "Integrator"
+    },
+    {
+      "id": "favicons",
+      "patterns": ["/favicon.ico", "/apple-touch-icon.png", "/icon-192.png", "/icon-512.png", "/site.webmanifest"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Copied from live.",
+      "status": 200,
+      "owner": "W1"
+    },
+    {
+      "id": "health",
+      "patterns": ["/healthz", "/health-check"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "The existing health views.",
+      "status": 200,
+      "owner": "Integrator"
+    },
+    {
+      "id": "login",
+      "patterns": ["/login"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Redirect to the library host's login. A next query parameter, when present, is passed on only if it is a path on the developers host.",
+      "status": 302,
+      "target": "<library host>/login",
+      "owner": "W1"
+    },
+    {
+      "id": "editor",
+      "patterns": ["/editor", "/editor/<section>/<slug>"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "Staff-only editor shell. Anonymous: 302 to /login?next=<path>. Signed in but not staff: 403.",
+      "status": 200,
+      "status_variants": {
+        "anonymous": {
+          "status": 302,
+          "target": "/login?next=<path>"
+        },
+        "not staff": {
+          "status": 403
+        }
+      },
+      "content_type": "text/html",
+      "owner": "W13"
+    },
+    {
+      "id": "portal-page-json",
+      "patterns": ["/_portal/page.json"],
+      "query": {
+        "path": "a portal path, e.g. /docs/welcome"
+      },
+      "methods": ["GET"],
+      "behavior": "The page payload of C3 for a path (kind page, redirect or notfound), the same data the server embeds in #dp-data.",
+      "status": 200,
+      "content_type": "application/json",
+      "internal": true,
+      "owner": "W1"
+    },
+    {
+      "id": "portal-nav",
+      "patterns": ["/_portal/nav/<section>.json"],
+      "methods": ["GET"],
+      "behavior": "The sidebar tree of a section (docs, reference, page), C3 shape.",
+      "status": 200,
+      "content_type": "application/json",
+      "internal": true,
+      "owner": "W6"
+    },
+    {
+      "id": "portal-search-docs",
+      "patterns": ["/_portal/search-docs.<sha>.json"],
+      "methods": ["GET"],
+      "behavior": "The search documents (C3), from the PortalArtifact. Long cache lifetime; the current <sha> is in every page payload. A stale <sha> is a 404.",
+      "status": 200,
+      "content_type": "application/json",
+      "internal": true,
+      "owner": "W10"
+    },
+    {
+      "id": "portal-csrf",
+      "patterns": ["/_portal/csrf"],
+      "methods": ["GET"],
+      "behavior": "Sets and returns the CSRF token, on demand (the first use of the feedback widget or the editor). The only portal GET that may set a cookie.",
+      "status": 200,
+      "content_type": "application/json",
+      "internal": true,
+      "owner": "W1"
+    },
+    {
+      "id": "portal-feedback",
+      "patterns": ["/_portal/feedback"],
+      "methods": ["POST"],
+      "behavior": "Records a Feedback row (C3 request shape). CSRF-protected; rate-limited by visitor_hash.",
+      "status": 201,
+      "content_type": "application/json",
+      "internal": true,
+      "owner": "W1"
+    },
+    {
+      "id": "portal-htmlblock",
+      "patterns": ["/_portal/htmlblock/<revision>/<n>"],
+      "methods": ["GET"],
+      "behavior": "The n-th HTMLBlock of a revision in a minimal document, with the frame CSP of C10.",
+      "status": 200,
+      "content_type": "text/html",
+      "internal": true,
+      "owner": "W7"
+    },
+    {
+      "id": "portal-editor-api",
+      "patterns": ["/_portal/editor/<rest>"],
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      "behavior": "Editor API (C3 shapes). Every view is wrapped by devportal.security.permissions.staff_api: 401 JSON anonymous, 403 non-staff, CSRF required (403 without a token). No csrf_exempt.",
+      "status": 200,
+      "content_type": "application/json",
+      "internal": true,
+      "owner": "W13"
+    },
+    {
+      "id": "fallback",
+      "patterns": ["<anything else>"],
+      "methods": ["GET", "HEAD"],
+      "behavior": "1. The Redirect table (exact from_path match; its status and to_path). 2. Otherwise upsert NotFoundLog (rate-limited) and render the 404 page (\"Page Not Found\" with three suggestions by slug similarity, I-14; document.title \"404 Not Found\").",
+      "status": 404,
+      "content_type": "text/html",
+      "owner": "W1"
+    }
+  ],
+  "robots_disallow": ["/_portal/", "/editor"],
+  "parity_examples": {
+    "$comment": "Requests from research/site/SITE_ATLAS.md §6 that must answer as listed. ReadMe-only routes (/logout, /suggested-edits/) are not carried over and answer through the fallback.",
+    "cases": [
+      {
+        "request": "/docs",
+        "status": 301,
+        "location": "/docs/welcome"
+      },
+      {
+        "request": "/docs/",
+        "status": 301,
+        "location": "/docs"
+      },
+      {
+        "request": "/docs/welcome/",
+        "status": 301,
+        "location": "/docs/welcome"
+      },
+      {
+        "request": "/docs/getting-started",
+        "status": 301,
+        "location": "/docs/welcome"
+      },
+      {
+        "request": "/reference",
+        "status": 301,
+        "location": "/reference/getting-started"
+      },
+      {
+        "request": "/v1.0",
+        "status": 302,
+        "location": "/"
+      },
+      {
+        "request": "/v1.0/docs/welcome",
+        "status": 302,
+        "location": "/docs/welcome"
+      },
+      {
+        "request": "/page/contact-us/",
+        "status": 200
+      },
+      {
+        "request": "/docs.md",
+        "status": 302,
+        "location": "/docs/llms.txt"
+      },
+      {
+        "request": "/DOCS/WELCOME",
+        "status": 404
+      },
+      {
+        "request": "/docs/api",
+        "status": 404
+      },
+      {
+        "request": "/docs/the-sefaria-mcps",
+        "status": 404
+      },
+      {
+        "request": "/page/contact",
+        "status": 404
+      },
+      {
+        "request": "/contact-us",
+        "status": 404
+      },
+      {
+        "request": "/mcp/",
+        "status": 404
+      },
+      {
+        "request": "/openapi.json",
+        "status": 404
+      },
+      {
+        "request": "/docs/welcome.json",
+        "status": 404
+      },
+      {
+        "request": "/changelog",
+        "status": 404
+      }
+    ]
+  },
+  "integrator_notes": [
+    "/reference/ answers 301 to /reference (live; W17 crawl).",
+    "/v1.0/<x>.md answers 302 to /<x> without the .md (live; overrides the generic /v1.0/<rest> rule for .md paths).",
+    "Hidden api_config pages (/reference/authentication, /reference/intro-getting-started, /reference/my-requests) answer 200 as on live (I-6)."
+  ]
+}

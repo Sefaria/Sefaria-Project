@@ -1,0 +1,32 @@
+{
+  "section": "docs",
+  "kind": "page",
+  "pageId": 101,
+  "content": {
+    "title": "Welcome to Sefaria's Technical Documentation",
+    "excerpt": "",
+    "bodyMd": "## Hello\n\n<Callout icon=\"🚧\" theme=\"warn\">\nCareful.\n</Callout>\n",
+    "hidden": false,
+    "deprecated": false,
+    "metadata": {
+      "title": "",
+      "description": "",
+      "robots": "index"
+    },
+    "next": {
+      "description": "",
+      "pages": [
+        {
+          "type": "basic",
+          "slug": "the-structure-of-a-text-on-sefaria",
+          "title": "The Structure of a Text on Sefaria"
+        }
+      ]
+    },
+    "linkUrl": null,
+    "linkNewTab": false,
+    "fullscreen": false,
+    "apiConfig": null,
+    "endpoint": null
+  }
+}

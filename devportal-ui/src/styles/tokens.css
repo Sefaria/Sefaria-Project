@@ -1,0 +1,440 @@
+/*
+ * tokens.css: the Sefaria design system's tokens (contract C5, PLAN §2.8).
+ *
+ * VENDORED. Do not edit by hand; Prettier and Stylelint skip this file so it stays byte-exact.
+ * Source:  docs/dev-portal/research/design/design-system/tokens.css (repo commit 1c5cc8158f,
+ *          sha256 29ce4d5a567d4b64c02ec25af5d584b92122b9b1f46e3693e7b4c6fb0f300131), itself a copy of
+ *          the design-system artifact https://claude.ai/artifact/YHFAd6iicPGAUPcyEosR77.
+ * Taken:   lines 1-422, every custom-property block: Library (default), Sheets, DevPortal, and the
+ *          shared spacing, dimension, border-width, font and text tokens.
+ * Left out: lines 423-786, the unprefixed typography classes (.en-system-body-strong …) and the
+ *          @font-face rules pointing at the artifact's private blob URLs. Use the --text-* shorthand
+ *          tokens instead of the classes (font: var(--text-en-system-body-strong)). Roboto and Heebo
+ *          are self-hosted from public/fonts/ by the shell (PLAN §2.8).
+ * Why not the package: @sefaria/design-system v1.1.0 (the tag the root package.json pins) ships
+ *          core.css and semantic.css with --core-* primitives and no DevPortal theme, so it does not
+ *          provide these token names (checked 2026-11-18). Switch when it does.
+ * Theme:   the portal sets data-theme="devportal" on <html>.
+ */
+/* Sefaria — generated from tokens.json */
+:root, [data-theme="library"] {
+  --brand-primary-light: var(--navy-200); /* Core primitive. Alias of navy-200. Do not use directly in designs; use a semantic token. */
+  --teal-200: #004e5f; /* Core Brand/Teal 200. Source for category-tanakh-teal. */
+  --purple-100: #f7eef5; /* Core Brand/Purple 100. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-200: #eedbea; /* Core Brand/Purple 200. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-300: #e1bed8; /* Core Brand/Purple 300. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-400: #cc97be; /* Core Brand/Purple 400. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-500: #b36fa2; /* Core Brand/Purple 500. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-600: #965386; /* Core Brand/Purple 600. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-700: #7c416f; /* Core Brand/Purple 700. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-800: #653259; /* Core Brand/Purple 800. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-900: #4e2544; /* Core Brand/Purple 900. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-1000: #38192f; /* Core Brand/Purple 1000. Primitive; DevPortal theming and category colors alias into this scale. */
+  --purple-1100: #24101e; /* Core Brand/Purple 1100. Primitive; DevPortal theming and category colors alias into this scale. */
+  --pink-100: #c6a7b4; /* Core Brand/Pink 100. Source for category-apocrypha-pink. */
+  --pink-200: #ab4e66; /* Core Brand/Pink 200. Source for category-liturgy-rose. */
+  --coral-100: #cb6158; /* Core Brand/Coral 100. Source for category-responsa-red. */
+  --coral-200: #802f3e; /* Core Brand/Coral 200. Source for category-halakhah-red. */
+  --orange-100: #d4896c; /* Core Brand/Orange 100. Source for category-reference-orange. */
+  --gold-100: #ccb479; /* Core Brand/Gold 100. Source for category-talmud-gold. */
+  --white: #ffffff; /* Core Base/White. */
+  --black: #000000; /* Core Base/Black. */
+  --navy-100: #f2f5fa; /* Core Navy 100. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-200: #e4eaf3; /* Core Navy 200. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-300: #c9d5e6; /* Core Navy 300. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-400: #aabbd4; /* Core Navy 400. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-500: #7f97b9; /* Core Navy 500. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-600: #4f6f9a; /* Core Navy 600. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-700: #18345d; /* Core Navy 700. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-800: #132b4c; /* Core Navy 800. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-900: #0f223b; /* Core Navy 900. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-1000: #0b1a2d; /* Core Navy 1000. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --navy-1100: #07121f; /* Core Navy 1100. Primitive; the Library (default) action, link and module colors alias into this scale. */
+  --red-100: #f9ebe9; /* Core Validation/Red 100. Primitive behind feedback-error-*. */
+  --red-200: #f5ddda; /* Core Validation/Red 200. Primitive behind feedback-error-*. */
+  --red-300: #eabcb5; /* Core Validation/Red 300. Primitive behind feedback-error-*. */
+  --red-400: #e09a91; /* Core Validation/Red 400. Primitive behind feedback-error-*. */
+  --red-500: #d5786c; /* Core Validation/Red 500. Primitive behind feedback-error-*. */
+  --red-600: #ca5747; /* Core Validation/Red 600. Primitive behind feedback-error-*. */
+  --red-700: #c03522; /* Core Validation/Red 700. Primitive behind feedback-error-*. */
+  --red-800: #a02c1c; /* Core Validation/Red 800. Primitive behind feedback-error-*. */
+  --red-900: #802317; /* Core Validation/Red 900. Primitive behind feedback-error-*. */
+  --red-1000: #601b11; /* Core Validation/Red 1000. Primitive behind feedback-error-*. */
+  --red-1100: #40120b; /* Core Validation/Red 1100. Primitive behind feedback-error-*. */
+  --red-1200: #300d09; /* Core Validation/Red 1200. Primitive behind feedback-error-*. */
+  --yellow-100: #fdf8e9; /* Core Validation/Yellow 100. Primitive behind feedback-warning. */
+  --yellow-200: #fbf3db; /* Core Validation/Yellow 200. Primitive behind feedback-warning. */
+  --yellow-300: #f7e7b6; /* Core Validation/Yellow 300. Primitive behind feedback-warning. */
+  --yellow-400: #f3db92; /* Core Validation/Yellow 400. Primitive behind feedback-warning. */
+  --yellow-500: #eece6d; /* Core Validation/Yellow 500. Primitive behind feedback-warning. */
+  --yellow-600: #eac248; /* Core Validation/Yellow 600. Primitive behind feedback-warning. */
+  --yellow-700: #e6b624; /* Core Validation/Yellow 700. Primitive behind feedback-warning. */
+  --yellow-800: #ca9d16; /* Core Validation/Yellow 800. Primitive behind feedback-warning. */
+  --yellow-900: #a17d12; /* Core Validation/Yellow 900. Primitive behind feedback-warning. */
+  --yellow-1000: #775d0d; /* Core Validation/Yellow 1000. Primitive behind feedback-warning. */
+  --yellow-1100: #4d3d0c; /* Core Validation/Yellow 1100. Primitive behind feedback-warning. */
+  --yellow-1200: #300d09; /* Core Validation/Yellow 1200. Primitive behind feedback-warning. Note: the export gives this the same value as red-1200 (#300d09), which looks like a copy error in Figma. */
+  --green-100: #f3f7f4; /* Core Validation/Green 100. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-200: #eaf2ed; /* Core Validation/Green 200. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-300: #d3e4d9; /* Core Validation/Green 300. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-400: #bad6c3; /* Core Validation/Green 400. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-500: #9cc6ab; /* Core Validation/Green 500. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-600: #77b58e; /* Core Validation/Green 600. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-700: #3fa26a; /* Core Validation/Green 700. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-800: #3a9461; /* Core Validation/Green 800. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-900: #338457; /* Core Validation/Green 900. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-1000: #2d734b; /* Core Validation/Green 1000. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-1100: #245e3d; /* Core Validation/Green 1100. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --green-1200: #1a422b; /* Core Validation/Green 1200. Primitive. Note: feedback-success currently points at green-tbr-700, not this scale. */
+  --gray-50: #fafafa; /* Core Neutral/Gray 50. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-100: #eeeeee; /* Core Neutral/Gray 100. Primitive; use text-*, border-* and surface-* tokens instead. Note: 100 (#eeeeee) and 200 (#ededec) are nearly identical. */
+  --gray-200: #ededec; /* Core Neutral/Gray 200. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-250: #e6e6e6; /* Core Neutral/Gray 250. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-275: #dfdfdf; /* Core Neutral/Gray 275. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-300: #cccccc; /* Core Neutral/Gray 300. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-400: #999999; /* Core Neutral/Gray 400. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-500: #6f6f6f; /* Core Neutral/Gray 500. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-550: #707070; /* Core Neutral/Gray 550. Primitive; use text-*, border-* and surface-* tokens instead. Note: 550 (#707070) is a hair lighter than 500 (#6f6f6f), so this step is out of order. */
+  --gray-600: #666666; /* Core Neutral/Gray 600. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-700: #575757; /* Core Neutral/Gray 700. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-800: #333333; /* Core Neutral/Gray 800. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-900: #1f1f1f; /* Core Neutral/Gray 900. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --gray-1000: #121212; /* Core Neutral/Gray 1000. Primitive; use text-*, border-* and surface-* tokens instead. */
+  --blue-tbr-50: #f2f8ff; /* Core blue TBR 50. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-100: #f0f7ff; /* Core blue TBR 100. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-200: #ddeeff; /* Core blue TBR 200. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-250: #d2dcff; /* Core blue TBR 250. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-300: #b8d4d3; /* Core blue TBR 300. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-400: #5a99b7; /* Core blue TBR 400. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-500: #4b71b7; /* Core blue TBR 500. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-600: #4871bf; /* Core blue TBR 600. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-700: #1976d2; /* Core blue TBR 700. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-800: #0b71e7; /* Core blue TBR 800. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-850: #0056b3; /* Core blue TBR 850. To be reviewed; legacy blues behind category, highlight and focus tokens. */
+  --blue-tbr-900: #18345d; /* Core blue TBR 900. To be reviewed; legacy blues behind category, highlight and focus tokens. Same value as navy-700. */
+  --green-tbr-100: #f1fcf5; /* Core green TBR 100. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --green-tbr-200: #d1eada; /* Core green TBR 200. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --green-tbr-300: #b2b272; /* Core green TBR 300. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --green-tbr-400: #97b386; /* Core green TBR 400. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --green-tbr-500: #5c946d; /* Core green TBR 500. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --green-tbr-600: #5d956f; /* Core green TBR 600. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --green-tbr-700: #518159; /* Core green TBR 700. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --green-tbr-800: #00827f; /* Core green TBR 800. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --green-tbr-900: #3b5849; /* Core green TBR 900. To be reviewed; legacy greens behind Sheets theming, category and highlight tokens. */
+  --action-primary: var(--navy-700); /* Primary interactive color for main calls to action and high-emphasis controls. Pair with text-inverse (12.2:1 Library, 4.53:1 Sheets). Themed: green in Sheets. */
+  --action-primary-hover: var(--navy-800); /* Hover state for primary interactive elements; also used for pressed unless a spec calls for action-primary-pressed. */
+  --action-primary-pressed: var(--navy-1000); /* Pressed or active state for primary interactive elements. Only when a component spec asks for a distinct pressed state. */
+  --action-secondary: var(--gray-700); /* Secondary interactive color. */
+  --action-secondary-hover: var(--gray-800); /* Hover (and default pressed) state for secondary interactive elements. */
+  --action-secondary-pressed: var(--gray-1000); /* Distinct pressed state for secondary elements, only when a spec calls for it. */
+  --border-default: var(--gray-200); /* Standard border for inputs, containers and separators. 1.17:1 on surface-page: fine for separators, below the 3:1 WCAG floor for input borders. */
+  --border-subtle: var(--gray-100); /* Low-emphasis divider for soft separation. Named 'Subttle' in Figma. Visually almost identical to border-default. */
+  --border-focus: var(--gray-300); /* Named Border/Focus in Figma, but 1.61:1 on white, so it cannot serve as a focus indicator. The focus ring spec uses functional-focus-blue. */
+  --border-strong: var(--navy-600); /* Higher-emphasis border for stronger separation. Themed per product. */
+  --border-transparent: rgba(255, 255, 255, 0); /* Transparent border that keeps layout stable across states. */
+  --feedback-error-text: var(--red-700); /* Error message text on surface-page (5.6:1) or feedback-error-background (4.79:1). */
+  --feedback-error-background: var(--red-100); /* Background for error messages and invalid-field fills. */
+  --feedback-error-border: var(--red-700); /* Border on invalid inputs and error containers. */
+  --feedback-warning: var(--yellow-700); /* Warning accent for fills and marks. 1.9:1 on white: never use as text or as the only warning signal; pair with an icon and text-primary copy. */
+  --feedback-success: var(--green-tbr-700); /* Success color; 4.53:1 on white, passes for text. Always pair with a word or icon, not color alone. */
+  --feedback-info: var(--navy-600); /* Informational messages and marks; 5.16:1 on white. */
+  --icon-default: var(--gray-1000); /* Default icon stroke on light surfaces. */
+  --icon-muted: var(--gray-500); /* Low-emphasis icon stroke; 5.02:1 on white. */
+  --icon-inverse: var(--white); /* Icon stroke on action-primary and surface-inverse. */
+  --icon-disabled: var(--gray-400); /* Icon stroke for the disabled state. */
+  --module-primary: var(--navy-700); /* Primary module/brand color for contextual branding and key module-specific actions or highlights. Themed per product. */
+  --module-accent: var(--navy-100); /* Module accent for module-specific highlights. In DevPortal it equals module-background (white). */
+  --module-background: var(--white); /* Module background. */
+  --text-primary: var(--gray-1000); /* Primary content and core reading text, on every surface-* token. */
+  --text-secondary: var(--gray-700); /* Supporting content, metadata and secondary UI copy; 7.1:1 on surface-page, 6.2:1 on surface-hover. */
+  --text-muted: var(--gray-550); /* Subtle metadata, placeholders and supporting UI; 4.95:1 on surface-page, 4.74:1 on surface-subtle. Avoid on surface-hover or darker. */
+  --text-disabled: var(--gray-400); /* Disabled or inactive text (2.85:1; exempt from contrast minimums as inactive UI). */
+  --text-inverse: var(--white); /* Text on action-primary, module-primary and surface-inverse. */
+  --text-link: var(--navy-700); /* Default inline link color in content and interface text. */
+  --text-link-hovered: var(--navy-800); /* Hover state for inline links and interactive text. */
+  --surface-page: var(--white); /* Default application background. */
+  --surface-subtle: var(--gray-50); /* Quiet panels such as the side nav. */
+  --surface-hover: var(--gray-100); /* Hover fill for rows, menu items and list results. */
+  --surface-selected: var(--navy-100); /* Selected row or option fill. */
+  --surface-highlighted: var(--navy-200); /* Highlighted content fill. */
+  --surface-inverse: var(--navy-900); /* Dark surfaces; pair with text-inverse. */
+  --category-beit-midrash-grey: var(--gray-800); /* Text-category color for Beit Midrash: category bars, rules and markers. Decorative, not a text color. */
+  --category-commentary-blue: var(--blue-tbr-500); /* Text-category color for Commentary: category bars, rules and markers. Decorative, not a text color. */
+  --category-modern-works-blue: var(--blue-tbr-300); /* Text-category color for Modern Works: category bars, rules and markers. Decorative, not a text color. */
+  --category-mishnah-blue: var(--blue-tbr-400); /* Text-category color for Mishnah: category bars, rules and markers. Decorative, not a text color. */
+  --category-chasidut-green: var(--green-tbr-400); /* Text-category color for Chasidut: category bars, rules and markers. Decorative, not a text color. */
+  --category-midrash-green: var(--green-tbr-600); /* Text-category color for Midrash: category bars, rules and markers. Decorative, not a text color. */
+  --category-taanitic-green: var(--green-tbr-800); /* Text-category color for Taanitic: category bars, rules and markers. Decorative, not a text color. Name kept as exported. */
+  --category-tanakh-teal: var(--teal-200); /* Text-category color for Tanakh: category bars, rules and markers. Decorative, not a text color. */
+  --category-philosophy-purple: var(--purple-100); /* Text-category color for Philosophy: category bars, rules and markers. Decorative, not a text color. Note: resolves to purple-100 (near white), almost invisible on white; likely the wrong step. */
+  --category-mussar-purple: var(--purple-700); /* Text-category color for Mussar: category bars, rules and markers. Decorative, not a text color. */
+  --category-kabbalah-purple: var(--purple-800); /* Text-category color for Kabbalah: category bars, rules and markers. Decorative, not a text color. */
+  --category-apocrypha-pink: var(--pink-100); /* Text-category color for Apocrypha: category bars, rules and markers. Decorative, not a text color. */
+  --category-liturgy-rose: var(--pink-200); /* Text-category color for Liturgy: category bars, rules and markers. Decorative, not a text color. */
+  --category-responsa-red: var(--coral-100); /* Text-category color for Responsa: category bars, rules and markers. Decorative, not a text color. */
+  --category-halakhah-red: var(--coral-200); /* Text-category color for Halakhah: category bars, rules and markers. Decorative, not a text color. */
+  --category-talmud-gold: var(--gold-100); /* Text-category color for Talmud: category bars, rules and markers. Decorative, not a text color. */
+  --category-reference-orange: var(--orange-100); /* Text-category color for Reference: category bars, rules and markers. Decorative, not a text color. */
+  --category-essay-links-green: var(--green-tbr-900); /* Text-category color for Essay Links: category bars, rules and markers. Decorative, not a text color. */
+  --brand-sheets-green: var(--green-tbr-700); /* Brand color of Sheets. */
+  --brand-sefaria-blue: var(--navy-700); /* Brand color of the Sefaria library. */
+  --brand-devportal-purple: var(--purple-700); /* Brand color of DevPortal. */
+  --functional-highlight-blue-light: var(--blue-tbr-100); /* Light highlight fill. */
+  --functional-highlight-blue: var(--blue-tbr-200); /* Highlight fill. */
+  --functional-highlight-text-blue: var(--blue-tbr-250); /* Text highlight fill. */
+  --functional-select-blue: var(--blue-tbr-850); /* Selection color. */
+  --functional-select-green: var(--green-tbr-800); /* Selection color in green contexts. */
+  --functional-highlight-text-green: var(--green-tbr-200); /* Text highlight fill in green contexts. */
+  --functional-highlight-text-green-light: var(--green-tbr-100); /* Light text highlight in green contexts. */
+  --functional-inline-link-blue: var(--blue-tbr-600); /* Inline link color in legacy contexts. */
+  --functional-focus-blue: var(--blue-tbr-700); /* The focus ring: outline 2px solid, offset 2px, no white gap. 4.6:1 on surface-page. */
+  --functional-selected-option: var(--black); /* Selected option marker. */
+  --functional-background-page: var(--white); /* Page background (functional). */
+  --functional-background-sidenavbar: var(--gray-50); /* Side nav bar background. */
+  --functional-background-readerheader: var(--gray-100); /* Reader header background. */
+  --functional-background-dedication: var(--gray-50); /* Dedication block background. */
+  --functional-background-searchbar: var(--gray-200); /* Search bar background. */
+  --functional-background-color: var(--white); /* Exported as functional/background/Color; plain white. */
+  --functional-tab-grey: var(--gray-300); /* Inactive tab color. */
+  --functional-chapter-underline-legacy: var(--gray-250); /* Legacy chapter underline. */
+  --functional-divider-grey: var(--gray-200); /* Divider lines. */
+  --shadow-small: 0px 8px 16px 0px rgba(31, 31, 31, 0.05), 0px 1px 2px 0px rgba(31, 31, 31, 0.04), 0px 0px 10px -1px rgba(83, 83, 83, 0.04); /* Resting cards and small raised elements. */
+  --shadow-medium: 0px 10px 20px 0px rgba(0, 0, 0, 0.08), 0px 1px 2px 0px rgba(0, 0, 0, 0.08); /* Menus and popovers. */
+  --shadow-large: 0px 16px 32px 0px rgba(13, 3, 32, 0.16), 0px 1px 2px 0px rgba(0, 0, 0, 0.08); /* Floating panels. */
+  --shadow-xlarge: 0px 40px 80px 0px rgba(0, 0, 0, 0.18), 0px 1px 2px 0px rgba(0, 0, 0, 0.08); /* Modals and dialogs. */
+  --shadow-xxlarge: 0px 0px 10px -1px rgba(83, 83, 83, 0.4), 0px 8px 16px 0px rgba(31, 31, 31, 0.05), 0px 1px 2px 0px rgba(31, 31, 31, 0.04); /* Search result card hover state. */
+}
+[data-theme="sheets"] {
+  --brand-primary-light: var(--navy-200);
+  --action-primary: var(--green-tbr-700);
+  --action-primary-hover: var(--navy-800);
+  --action-primary-pressed: var(--navy-1000);
+  --action-secondary: var(--gray-700);
+  --action-secondary-hover: var(--gray-800);
+  --action-secondary-pressed: var(--gray-1000);
+  --border-default: var(--gray-200);
+  --border-subtle: var(--gray-100);
+  --border-focus: var(--gray-300);
+  --border-strong: var(--green-tbr-600);
+  --feedback-error-text: var(--red-700);
+  --feedback-error-background: var(--red-100);
+  --feedback-error-border: var(--red-700);
+  --feedback-warning: var(--yellow-700);
+  --feedback-success: var(--green-tbr-700);
+  --feedback-info: var(--navy-600);
+  --icon-default: var(--gray-1000);
+  --icon-muted: var(--gray-500);
+  --icon-inverse: var(--white);
+  --icon-disabled: var(--gray-400);
+  --module-primary: var(--green-tbr-700);
+  --module-accent: var(--green-tbr-100);
+  --module-background: var(--white);
+  --text-primary: var(--gray-1000);
+  --text-secondary: var(--gray-700);
+  --text-muted: var(--gray-550);
+  --text-disabled: var(--gray-400);
+  --text-inverse: var(--white);
+  --text-link: var(--navy-700);
+  --text-link-hovered: var(--navy-800);
+  --surface-page: var(--white);
+  --surface-subtle: var(--gray-50);
+  --surface-hover: var(--gray-100);
+  --surface-selected: var(--navy-100);
+  --surface-highlighted: var(--navy-200);
+  --surface-inverse: var(--navy-900);
+  --category-beit-midrash-grey: var(--gray-800);
+  --category-commentary-blue: var(--blue-tbr-500);
+  --category-modern-works-blue: var(--blue-tbr-300);
+  --category-mishnah-blue: var(--blue-tbr-400);
+  --category-chasidut-green: var(--green-tbr-400);
+  --category-midrash-green: var(--green-tbr-600);
+  --category-taanitic-green: var(--green-tbr-800);
+  --category-tanakh-teal: var(--teal-200);
+  --category-philosophy-purple: var(--purple-100);
+  --category-mussar-purple: var(--purple-700);
+  --category-kabbalah-purple: var(--purple-800);
+  --category-apocrypha-pink: var(--pink-100);
+  --category-liturgy-rose: var(--pink-200);
+  --category-responsa-red: var(--coral-100);
+  --category-halakhah-red: var(--coral-200);
+  --category-talmud-gold: var(--gold-100);
+  --category-reference-orange: var(--orange-100);
+  --category-essay-links-green: var(--green-tbr-900);
+  --brand-sheets-green: var(--green-tbr-700);
+  --brand-sefaria-blue: var(--navy-700);
+  --brand-devportal-purple: var(--purple-700);
+  --functional-highlight-blue-light: var(--blue-tbr-100);
+  --functional-highlight-blue: var(--blue-tbr-200);
+  --functional-highlight-text-blue: var(--blue-tbr-250);
+  --functional-select-blue: var(--blue-tbr-850);
+  --functional-select-green: var(--green-tbr-800);
+  --functional-highlight-text-green: var(--green-tbr-200);
+  --functional-highlight-text-green-light: var(--green-tbr-100);
+  --functional-inline-link-blue: var(--blue-tbr-600);
+  --functional-focus-blue: var(--blue-tbr-700);
+  --functional-selected-option: var(--black);
+  --functional-background-page: var(--white);
+  --functional-background-sidenavbar: var(--gray-50);
+  --functional-background-readerheader: var(--gray-100);
+  --functional-background-dedication: var(--gray-50);
+  --functional-background-searchbar: var(--gray-200);
+  --functional-background-color: var(--white);
+  --functional-tab-grey: var(--gray-300);
+  --functional-chapter-underline-legacy: var(--gray-250);
+  --functional-divider-grey: var(--gray-200);
+}
+[data-theme="devportal"] {
+  --brand-primary-light: var(--navy-200);
+  --action-primary: var(--navy-700);
+  --action-primary-hover: var(--navy-800);
+  --action-primary-pressed: var(--navy-1000);
+  --action-secondary: var(--gray-700);
+  --action-secondary-hover: var(--gray-800);
+  --action-secondary-pressed: var(--gray-1000);
+  --border-default: var(--gray-200);
+  --border-subtle: var(--gray-100);
+  --border-focus: var(--gray-300);
+  --border-strong: var(--purple-800);
+  --feedback-error-text: var(--red-700);
+  --feedback-error-background: var(--red-100);
+  --feedback-error-border: var(--red-700);
+  --feedback-warning: var(--yellow-700);
+  --feedback-success: var(--green-tbr-700);
+  --feedback-info: var(--navy-600);
+  --icon-default: var(--gray-1000);
+  --icon-muted: var(--gray-500);
+  --icon-inverse: var(--white);
+  --icon-disabled: var(--gray-400);
+  --module-primary: var(--purple-700);
+  --module-accent: var(--white);
+  --module-background: var(--white);
+  --text-primary: var(--gray-1000);
+  --text-secondary: var(--gray-700);
+  --text-muted: var(--gray-550);
+  --text-disabled: var(--gray-400);
+  --text-inverse: var(--white);
+  --text-link: var(--navy-700);
+  --text-link-hovered: var(--navy-800);
+  --surface-page: var(--white);
+  --surface-subtle: var(--gray-50);
+  --surface-hover: var(--gray-100);
+  --surface-selected: var(--navy-100);
+  --surface-highlighted: var(--navy-200);
+  --surface-inverse: var(--navy-900);
+  --category-beit-midrash-grey: var(--gray-800);
+  --category-commentary-blue: var(--blue-tbr-500);
+  --category-modern-works-blue: var(--blue-tbr-300);
+  --category-mishnah-blue: var(--blue-tbr-400);
+  --category-chasidut-green: var(--green-tbr-400);
+  --category-midrash-green: var(--green-tbr-600);
+  --category-taanitic-green: var(--green-tbr-800);
+  --category-tanakh-teal: var(--teal-200);
+  --category-philosophy-purple: var(--purple-100);
+  --category-mussar-purple: var(--purple-700);
+  --category-kabbalah-purple: var(--purple-800);
+  --category-apocrypha-pink: var(--pink-100);
+  --category-liturgy-rose: var(--pink-200);
+  --category-responsa-red: var(--coral-100);
+  --category-halakhah-red: var(--coral-200);
+  --category-talmud-gold: var(--gold-100);
+  --category-reference-orange: var(--orange-100);
+  --category-essay-links-green: var(--green-tbr-900);
+  --brand-sheets-green: var(--green-tbr-700);
+  --brand-sefaria-blue: var(--navy-700);
+  --brand-devportal-purple: var(--purple-700);
+  --functional-highlight-blue-light: var(--blue-tbr-100);
+  --functional-highlight-blue: var(--blue-tbr-200);
+  --functional-highlight-text-blue: var(--blue-tbr-250);
+  --functional-select-blue: var(--blue-tbr-850);
+  --functional-select-green: var(--green-tbr-800);
+  --functional-highlight-text-green: var(--green-tbr-200);
+  --functional-highlight-text-green-light: var(--green-tbr-100);
+  --functional-inline-link-blue: var(--blue-tbr-600);
+  --functional-focus-blue: var(--blue-tbr-700);
+  --functional-selected-option: var(--black);
+  --functional-background-page: var(--white);
+  --functional-background-sidenavbar: var(--gray-50);
+  --functional-background-readerheader: var(--gray-100);
+  --functional-background-dedication: var(--gray-50);
+  --functional-background-searchbar: var(--gray-200);
+  --functional-background-color: var(--white);
+  --functional-tab-grey: var(--gray-300);
+  --functional-chapter-underline-legacy: var(--gray-250);
+  --functional-divider-grey: var(--gray-200);
+}
+:root {
+  --spacing-null: 0px; /* Alias of dimension-0. */
+  --spacing-2xsmall: 2px; /* Alias of dimension-25. */
+  --spacing-xsmall: 4px; /* Alias of dimension-50. */
+  --spacing-small: 8px; /* Alias of dimension-100. */
+  --spacing-medium: 12px; /* Alias of dimension-150. */
+  --spacing-large: 16px; /* Alias of dimension-200. */
+  --spacing-xlarge: 20px; /* Alias of dimension-250. */
+  --spacing-2xlarge: 24px; /* Alias of dimension-300. */
+  --spacing-3xlarge: 32px; /* Alias of dimension-350. */
+  --spacing-4xlarge: 40px; /* Alias of dimension-400. */
+  --spacing-5xlarge: 48px; /* Alias of dimension-600. */
+  --spacing-6xlarge: 64px; /* Alias of dimension-800. */
+  --spacing-7xlarge: 96px; /* Alias of dimension-1200. */
+  --dimension-0: 0px; /* Global scale step; also the source for corner radii. */
+  --dimension-25: 2px; /* Global scale step; also the source for corner radii. */
+  --dimension-50: 4px; /* Hairline spacing, icon nudges. */
+  --dimension-100: 8px; /* Tight internal spacing. */
+  --dimension-150: 12px; /* Global scale step; also the source for corner radii. */
+  --dimension-200: 16px; /* Global scale step; also the source for corner radii. */
+  --dimension-250: 20px; /* Global scale step; also the source for corner radii. */
+  --dimension-300: 24px; /* Global scale step; also the source for corner radii. */
+  --dimension-350: 32px; /* Global scale step; also the source for corner radii. */
+  --dimension-400: 40px; /* Global scale step; also the source for corner radii. */
+  --dimension-600: 48px; /* Global scale step; also the source for corner radii. */
+  --dimension-700: 56px; /* Global scale step; also the source for corner radii. */
+  --dimension-800: 64px; /* Major separation. */
+  --dimension-1200: 96px; /* Global scale step; also the source for corner radii. */
+  --dimension-1600: 128px; /* Global scale step; also the source for corner radii. */
+  --border-width-0: 0px; /* Global. */
+  --border-width-100: 1px; /* Global. */
+  --border-width-150: 1.5px; /* Global. */
+  --border-width-200: 2px; /* Global. Focus ring width. */
+  --border-width-400: 4px; /* Global. */
+  --border-width-null: 0px; /* Alias of border-width-0. */
+  --border-width-thin: 1px; /* Alias of border-width-100. Default borders and dividers. */
+  --border-width-medium: 1.5px; /* Alias of border-width-150. */
+  --border-width-thick: 2px; /* Alias of border-width-200. */
+  --font-en-content: "Adobe Garamond Pro", Garamond, Georgia, serif;
+  --font-en-system: Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-he-content: "Taamey Frank CLM", "Times New Roman", serif;
+  --font-he-system: Heebo, Arial, sans-serif;
+  --text-en-content-h1: 400 48px/1.4 var(--font-en-content); /* Largest heading for English text content. */
+  --text-en-content-h2: 400 30px/1.4 var(--font-en-content);
+  --text-en-content-h3: 400 24px/1.4 var(--font-en-content);
+  --text-en-content-body: 400 18px/1.4 var(--font-en-content); /* English text content in the reader. */
+  --text-en-content-small: 400 15px/18px var(--font-en-content);
+  --text-en-system-h1: 400 40px/1.4 var(--font-en-system);
+  --text-en-system-h2: 400 30px/1.4 var(--font-en-system);
+  --text-en-system-h3: 400 22px/1.4 var(--font-en-system);
+  --text-en-system-h3-strong: 400 22px/1.4 var(--font-en-system); /* Exported at weight 400, the same as en-system-h3; likely should be heavier. */
+  --text-en-system-body-regular: 400 16px/1.4 var(--font-en-system); /* Default UI copy. */
+  --text-en-system-body-strong: 600 16px/1.4 var(--font-en-system); /* CTA buttons and linked text. */
+  --text-en-system-caption: 400 12px/20px var(--font-en-system);
+  --text-en-system-small-compact: 400 14px/18px var(--font-en-system);
+  --text-en-system-small-comfortable: 400 14px/21px var(--font-en-system); /* Assistant responses and other places that need improved readability. */
+  --text-en-system-small-strong: 600 14px/18px var(--font-en-system); /* CTA buttons and link text. */
+  --text-he-content-h1: 400 58px/1.4 var(--font-he-content);
+  --text-he-content-h2: 400 36px/1.4 var(--font-he-content);
+  --text-he-content-h3: 400 29px/1.4 var(--font-he-content);
+  --text-he-content-body: 400 22px/1.4 var(--font-he-content); /* Hebrew text content in the reader. */
+  --text-he-content-body-small: 500 18px/1.4 var(--font-he-content);
+  --text-he-content-small: 500 15px/1.4 var(--font-he-content);
+  --text-he-system-h1: 400 40px/1.4 var(--font-he-system);
+  --text-he-system-h2: 400 30px/1.4 var(--font-he-system);
+  --text-he-system-h3: 400 22px/1.4 var(--font-he-system);
+  --text-he-system-caption: 400 12px/1.4 var(--font-he-system);
+  --text-he-system-body-regular: 400 16px/1.4 var(--font-he-system); /* Default Hebrew UI copy. */
+  --text-he-system-body-strong: 700 16px/1.4 var(--font-he-system);
+  --text-he-system-small-strong: 700 14px/1.4 var(--font-he-system);
+  --text-he-system-small-regular: 400 14px/1.4 var(--font-he-system);
+  --text-en-dedication-message: 400 18px/1.4 var(--font-en-content); /* Dedication text inside the product, e.g. in book TOCs. */
+  --text-en-dedication-content: 400 18px/27px var(--font-en-system);
+  --text-he-dedication-message: 500 22px/1.4 var(--font-he-content); /* Dedication text inside the product, e.g. in book TOCs. */
+  --text-he-dedication-content: 400 18px/27px var(--font-he-system);
+}

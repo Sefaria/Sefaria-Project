@@ -1,0 +1,42 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+  min-height: var(--target-min);
+  padding-top: var(--spacing-large);
+}
+
+.back {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--spacing-small);
+  min-height: var(--target-min);
+  color: var(--text-link);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--text-link-hovered);
+}
+
+.current {
+  display: flex;
+  min-width: 0;
+  gap: var(--spacing-medium);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.current [aria-current] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (width <= 599px) {
+  .current {
+    display: none;
+  }
+}

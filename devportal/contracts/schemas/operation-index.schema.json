@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/operation-index.schema.json",
+  "title": "Operation index",
+  "description": "Index of the per-operation spec files: /static/bundles/devportal/spec/index.json, written by build-spec.ts.",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "specSha": {
+      "$ref": "common.schema.json#/$defs/sha"
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "$ref": "common.schema.json#/$defs/operationId"
+          },
+          "method": {
+            "$ref": "common.schema.json#/$defs/httpMethod"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "file": {
+            "type": "string",
+            "description": "Spec file name, relative to the index.",
+            "pattern": "^[A-Za-z0-9._-]+\\.json$"
+          }
+        },
+        "required": ["operationId", "method", "path", "tags", "title", "deprecated", "file"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["contractVersion", "specSha", "operations"],
+  "additionalProperties": false
+}

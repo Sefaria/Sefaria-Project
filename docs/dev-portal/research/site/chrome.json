@@ -1,0 +1,71 @@
+{
+ "htmlattrs-desktop-light": "lang=en style= data-color-mode=light class= useReactApp  ",
+ "htmlattrs-desktop-dark": "lang=en style= data-color-mode=light class= useReactApp  ",
+ "htmlattrs-mobile-light": "lang=en style= data-color-mode=light class= useReactApp  ",
+ "mobileButtons": [
+  "Toggle navigation menu",
+  "Search ⌘k",
+  "Welcome to Sefaria's Technical Documentation",
+  "Open links menu",
+  "Show subpages for Projects Powered By Sefaria",
+  "Show subpages for The Structure of a Book in the Sefaria Library",
+  "Show subpages for The Index Schema",
+  "Show subpages for Topic Ontology",
+  "Show subpages for Additional API Endpoints",
+  "Show subpages for The Sefaria Linker",
+  "Deprecated Doc",
+  "Show subpages for Local Installation Instructions",
+  "Show subpages for Technical Notes",
+  "Show subpages for Guide to Contributing",
+  "Hide sidebar navigation",
+  "Yes, this page helped me",
+  "No, this page did not help me",
+  "Copy Page"
+ ],
+ "htmlattrs-mobile-dark": "lang=en style= data-color-mode=light class= useReactApp  ",
+ "fonts": {
+  "body": "\"Times New Roman\"",
+  "h1": "\"Times New Roman\"",
+  "code": "monospace"
+ },
+ "fontsLoaded": [],
+ "themeToggle": [],
+ "headerButtons": [
+  {
+   "aria": "Toggle navigation menu",
+   "t": ""
+  },
+  {
+   "aria": "Search ⌘k",
+   "t": ""
+  },
+  {
+   "aria": null,
+   "t": "Embed Linker v3 on Your Site"
+  },
+  {
+   "aria": "Open links menu",
+   "t": ""
+  }
+ ],
+ "aiButtons": [
+  "Copy Page",
+  ""
+ ],
+ "aiMenu": [],
+ "searchEmpty": null,
+ "searchModal": null,
+ "searchReqs": [
+  "GET https://developers.sefaria.org/sefaria/api-next/v2/search/not_found_suggestions?pathname=%2Fdocs%2Fthis-does-not-exist-xyz&version=1.0"
+ ],
+ "hosts": {
+  "developers.sefaria.org": 8,
+  "cdn.readme.io": 69,
+  "files.readme.io": 3,
+  "www.googletagmanager.com": 2
+ },
+ "notFound": {
+  "status": 404,
+  "text": "Jump to Content\nHome\nDocs\nAPI Reference\nGitHub\nDonate\nGet in Touch\nSearch\nCTRL-K\nPage Not Found\n\nMaybe you were looking for one of these:\n\nGet a lexicon entry\nTopic Ontology\nCategory Creation"
+ }
+}

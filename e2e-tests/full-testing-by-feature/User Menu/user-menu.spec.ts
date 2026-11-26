@@ -20,7 +20,7 @@ import {
 } from '../../utils';
 import { LANGUAGES, testUser, BROWSER_SETTINGS, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
-import { MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS } from '../../constants';
+import { MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS, MODULE_TEXTS } from '../../constants';
 
 test.describe.serial('User Menu', () => {
 
@@ -54,7 +54,7 @@ test.describe.serial('User Menu', () => {
   // =================================================================
   // TEST 2: PROFILE VIEW
   // =================================================================
-  test('UMN-002: User can view profile with correct artifacts', { tag: '@sanity' }, async ({ context }) => {
+  test('UMN-002: User can view profile with correct artifacts', { tag: ['@sanity', '@pr'] }, async ({ context }) => {
     // Start logged in on Voices (Profile menu only available on Voices)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -174,7 +174,7 @@ test.describe.serial('User Menu', () => {
 
     // Verify language changed to Hebrew
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
-    await expect(page.getByRole('link', { name: 'מקורות' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: MODULE_TEXTS.LIBRARY.HE.TEXTS_LINK })).toBeVisible();
 
     // Switch back to English (uses dropdown with cookie fallback)
     await changeLanguage(page, LANGUAGES.EN);

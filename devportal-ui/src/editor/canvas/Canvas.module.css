@@ -1,0 +1,222 @@
+/* The editing canvas. The article itself is styled by article.css (.dp-markdown); these rules add the editor's
+   chrome: toolbars, block settings and the "/" menu. */
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toolbar {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--dp-color-border, #e5e7eb);
+  background: var(--dp-color-bg, #fff);
+}
+
+.toolbar button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--dp-color-border, #d1d5db);
+  border-radius: 4px;
+  background: var(--dp-color-bg, #fff);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.toolbar button[aria-pressed='true'] {
+  border-color: var(--dp-color-primary, #2563eb);
+  background: var(--dp-color-primary-soft, #eff6ff);
+}
+
+.tableTools {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.hint {
+  margin-left: auto;
+  color: var(--dp-color-text-muted, #6b7280);
+  font-size: 0.75rem;
+}
+
+.surface {
+  position: relative;
+}
+
+.prose {
+  min-height: 12rem;
+  outline: none;
+}
+
+.prose:focus-visible {
+  outline: 2px solid var(--dp-color-primary, #2563eb);
+  outline-offset: 4px;
+}
+
+.blockToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.375rem 0;
+  padding: 0.375rem 0.5rem;
+  border: 1px dashed var(--dp-color-border, #d1d5db);
+  border-radius: 4px;
+  background: var(--dp-color-bg-subtle, #f9fafb);
+  font-size: 0.8125rem;
+}
+
+.field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.field input[type='text'],
+.field select {
+  min-width: 6rem;
+  padding: 0.125rem 0.25rem;
+  font: inherit;
+}
+
+/* WCAG 2.2 target size (24px) for the block forms' controls (DEV-EDIT-038). */
+.field input,
+.field select,
+.blockToolbar button {
+  min-height: 24px;
+}
+
+.field input[type='checkbox'] {
+  min-width: 24px;
+}
+
+.fieldWide {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fieldWide textarea {
+  width: 100%;
+  font-family: var(--dp-font-mono, monospace);
+  font-size: 0.8125rem;
+}
+
+.remove {
+  margin-left: auto;
+}
+
+.status {
+  color: var(--dp-color-text-muted, #6b7280);
+}
+
+.callout {
+  position: relative;
+}
+
+.calloutContent > h3 {
+  margin-top: 0;
+  color: var(--dp-callout-title);
+}
+
+.codeBlock,
+.image,
+.embed,
+.htmlBlock,
+.raw {
+  position: relative;
+}
+
+.image[data-selected] img {
+  outline: 2px solid var(--dp-color-primary, #2563eb);
+}
+
+.emptyImage {
+  display: inline-block;
+  padding: 1rem;
+  border: 1px dashed var(--dp-color-border, #d1d5db);
+  color: var(--dp-color-text-muted, #6b7280);
+}
+
+.rawPreview {
+  border-left: 2px solid var(--dp-color-border, #d1d5db);
+  padding-left: 0.5rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.slash {
+  position: absolute;
+  z-index: 10;
+  width: 18rem;
+  max-height: 20rem;
+  overflow: auto;
+  border: 1px solid var(--dp-color-border, #d1d5db);
+  border-radius: 6px;
+  background: var(--dp-color-bg, #fff);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
+}
+
+.slash ul {
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+}
+
+.slash li {
+  display: flex;
+  flex-direction: column;
+  padding: 0.375rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.slashActive {
+  background: var(--dp-color-primary-soft, #eff6ff);
+}
+
+.slashLabel {
+  font-weight: 500;
+}
+
+.slashDescription {
+  color: var(--dp-color-text-muted, #6b7280);
+  font-size: 0.75rem;
+}
+
+.slashEmpty {
+  margin: 0;
+  padding: 0.5rem;
+  color: var(--dp-color-text-muted, #6b7280);
+}
+
+/* A callout's and a code block's settings float above the block while it is hovered or being edited. */
+.callout > .blockToolbar,
+.codeBlock > .blockToolbar {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 100%;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+
+.callout:hover > .blockToolbar,
+.callout:focus-within > .blockToolbar,
+.codeBlock:hover > .blockToolbar,
+.codeBlock:focus-within > .blockToolbar {
+  opacity: 1;
+  pointer-events: auto;
+}

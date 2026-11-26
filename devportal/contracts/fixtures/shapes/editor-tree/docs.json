@@ -1,0 +1,60 @@
+{
+  "contractVersion": 1,
+  "section": "docs",
+  "generation": 42,
+  "nodes": [
+    {
+      "id": 100,
+      "kind": "category",
+      "title": "TECHNICAL DOCS",
+      "slug": null,
+      "hidden": false,
+      "deprecated": false,
+      "hasDraft": false,
+      "isPublished": false,
+      "method": null,
+      "operationId": null,
+      "children": [
+        {
+          "id": 101,
+          "kind": "page",
+          "title": "Welcome to Sefaria's Technical Documentation",
+          "slug": "welcome",
+          "hidden": false,
+          "deprecated": false,
+          "hasDraft": true,
+          "isPublished": true,
+          "method": null,
+          "operationId": null,
+          "children": []
+        },
+        {
+          "id": 106,
+          "kind": "link",
+          "title": "Sefaria GitHub",
+          "slug": "helpful-link-somewhere-else",
+          "hidden": false,
+          "deprecated": false,
+          "hasDraft": false,
+          "isPublished": true,
+          "method": null,
+          "operationId": null,
+          "children": []
+        },
+        {
+          "id": 120,
+          "kind": "page",
+          "title": "News from the Sefaria developer team",
+          "slug": "news",
+          "hidden": true,
+          "deprecated": false,
+          "hasDraft": false,
+          "isPublished": true,
+          "method": null,
+          "operationId": null,
+          "children": []
+        }
+      ]
+    }
+  ]
+}

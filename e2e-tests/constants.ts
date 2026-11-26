@@ -80,25 +80,66 @@ const localBase = (raw: string | undefined, voicesHost?: string) => {
   return `${u.protocol}//${host}`
 }
 
-export const MODULE_URLS = isLocalSandbox ? {
+// Explicit per-module URLs win over the derivations below. CI's per-PR sandboxes
+// (https://sandbox-<sha>.cauldron.sefaria.org, Voices on sheets.sandbox-<sha>...)
+// don't follow the www./voices. pattern, so the PR e2e job sets these.
+// Keep this in sync with the same override in ../playwright.config.ts.
+const EXPLICIT_LIBRARY_URL = process.env.E2E_LIBRARY_URL
+const EXPLICIT_VOICES_URL = process.env.E2E_VOICES_URL
+
+// The developer portal (developers.<domain>) is the third module. It is English only, so
+// EN and HE carry the same value. Resolution order: E2E_DEVELOPERS_URL; for a local
+// SANDBOX_URL, the developers. sub-host of the local base (127.0.0.1 becomes localhost,
+// because Chromium only resolves *.localhost); otherwise https://developers.<SANDBOX_DOMAIN>.
+// It does not follow E2E_LIBRARY_URL: a per-PR sandbox serves the portal on its own host.
+// Keep this in sync with ../playwright.config.ts and ../playwright.mobileweb.config.ts.
+const DEVELOPERS_URL =
+  process.env.E2E_DEVELOPERS_URL ??
+  (isLocalSandbox
+    ? localBase(process.env.SANDBOX_URL?.replace('127.0.0.1', 'localhost'), 'developers')
+    : `https://developers.${SANDBOX_DOMAIN}`)
+
+// The developers host as the main site links to it (`Sefaria.developersURL`, which has no trailing
+// slash), and a pattern for a page on it. The main site's links follow its DOMAIN_MODULES, so on a
+// sandbox they go to the sandbox's developers host, not production's (PLAN.md Phase 8).
+const DEVELOPERS_ORIGIN = new URL(DEVELOPERS_URL).origin
+const DEVELOPERS_URL_PATTERN = new RegExp(`^${DEVELOPERS_ORIGIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(/|$)`)
+
+export const MODULE_URLS = EXPLICIT_LIBRARY_URL ? {
+  EN : {
+    LIBRARY: EXPLICIT_LIBRARY_URL,
+    VOICES:  EXPLICIT_VOICES_URL ?? EXPLICIT_LIBRARY_URL,
+    DEVELOPERS: DEVELOPERS_URL
+  },
+  // No Hebrew-domain sandbox exists per PR; Hebrew runs use the interfaceLang cookie.
+  HE : {
+    LIBRARY: EXPLICIT_LIBRARY_URL,
+    VOICES:  EXPLICIT_VOICES_URL ?? EXPLICIT_LIBRARY_URL,
+    DEVELOPERS: DEVELOPERS_URL
+  }
+} as const : isLocalSandbox ? {
   EN : {
     LIBRARY: localBase(process.env.SANDBOX_URL),
-    VOICES:  localBase(process.env.SANDBOX_URL, 'voices')
+    VOICES:  localBase(process.env.SANDBOX_URL, 'voices'),
+    DEVELOPERS: DEVELOPERS_URL
   },
   HE : {
     LIBRARY: localBase(process.env.SANDBOX_URL_IL),
     // Locally there is no chiburim. host (it isn't in ALLOWED_HOSTS): Hebrew
     // Voices is the voices. host with the interfaceLang=hebrew cookie.
-    VOICES:  localBase(process.env.SANDBOX_URL_IL, 'voices')
+    VOICES:  localBase(process.env.SANDBOX_URL_IL, 'voices'),
+    DEVELOPERS: DEVELOPERS_URL
   }
 } as const : {
   EN : {
     LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
-    VOICES:  `https://voices.${SANDBOX_DOMAIN}`
+    VOICES:  `https://voices.${SANDBOX_DOMAIN}`,
+    DEVELOPERS: DEVELOPERS_URL
   },
   HE : {
     LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
-    VOICES:  `https://chiburim.${SANDBOX_DOMAIN_IL}`
+    VOICES:  `https://chiburim.${SANDBOX_DOMAIN_IL}`,
+    DEVELOPERS: DEVELOPERS_URL
   }
 } as const;
 
@@ -246,7 +287,7 @@ export const TOPIC_SELECTORS = {
 export const EXTERNAL_URLS = {
   DONATE: /donate\.sefaria\.org/,
   HELP: /help\.sefaria\.org/,
-  DEVELOPERS: /developers\.sefaria\.org/
+  DEVELOPERS: DEVELOPERS_URL_PATTERN
 } as const;
 
 // ==============================================================================
@@ -281,7 +322,7 @@ export const MOBILE_HAMBURGER = {
     LEARNING_SCHEDULES: '/calendars',
     ABOUT: '/mobile-about-menu',
     MORE_FROM_SEFARIA: '/products',
-    DEVELOPERS: 'https://developers.sefaria.org',
+    DEVELOPERS: DEVELOPERS_ORIGIN,
     INTERFACE_EN: '/interface/english',
     INTERFACE_HE: '/interface/hebrew',
   },
@@ -492,7 +533,7 @@ export const MODULE_TEXTS = {
       SIGN_UP_BUTTON: 'Sign Up'
     },
     HE: {
-      TEXTS_LINK: 'מקורות',
+      TEXTS_LINK: 'טקסטים', // was 'מקורות' until the header label changed
       TOPICS_LINK: 'נושאים',
       SIGN_UP_BUTTON: 'הרשמה'
     }
@@ -569,7 +610,7 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
 } as const;
 
 // Type definitions
-export type ModuleType = 'library' | 'voices';
+export type ModuleType = 'library' | 'voices' | 'developers';
 export type TabOrderItem = { readonly selector: string; readonly description: string };
 export type SearchDropdownSection = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS[number] | typeof SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_SECTIONS[number];
 export type SearchDropdownIcon = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS[number] | typeof SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_ICONS[number];

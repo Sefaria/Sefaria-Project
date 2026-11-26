@@ -1,0 +1,82 @@
+# welcome
+- Getting Started With the Sefaria API | /reference/getting-started | type=basic method=None dep=False hidden=False bodyEmpty=False
+- Tutorials | /reference/tutorials | type=basic method=None dep=False hidden=False bodyEmpty=False
+  - Tutorial: The Dvar Torah Outliner | /reference/tutorial-dvar-torah-outliner | type=basic method=None dep=False hidden=False bodyEmpty=False
+  - Tutorial: Tanakh Trivia Game | /reference/tutorial-tanakh-trivia-game | type=basic method=None dep=False hidden=False bodyEmpty=False
+  - Tutorial: Data Visualization | /reference/data-visualization | type=basic method=None dep=False hidden=False bodyEmpty=False
+  - Writing Playwright Tests for Sefaria | /reference/playwright-tests-for-sefaria | type=basic method=None dep=False hidden=False bodyEmpty=False
+- Frequently Asked Questions | /reference/others-have-asked | type=basic method=None dep=False hidden=False bodyEmpty=False
+# Sefaria API
+- Text | /reference/text | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Texts (v3) | /reference/get-v3-texts | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Text
+  - Texts (v1) | /reference/get-v1-texts | type=endpoint method=None dep=True hidden=False bodyEmpty=True tag=Text
+  - Versions | /reference/get-versions | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Text
+  - Languages | /reference/get-translations | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Text
+  - Translations | /reference/get-translations-lang | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Text
+  - Manuscripts | /reference/get-manuscripts | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Text
+  - Random Text | /reference/get-texts-random | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Text
+  - Bulk Text | /reference/get-bulktext | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Text
+  - Passages | /reference/get-passages | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Text
+- Index | /reference/index | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Index (v2) | /reference/get-v2-index | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Index
+  - Table of Contents | /reference/get-index | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Index
+  - Shape | /reference/get-shape | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Index
+- Related | /reference/related | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Related | /reference/get-related | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Related
+  - Links | /reference/get-links | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Related
+  - Ref-Topic-Links | /reference/get-ref-topic-links | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Related
+  - Related Web Pages | /reference/get-related-websites | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Related
+  - Link Summary | /reference/get-link-summary | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Related
+- Calendars | /reference/calendars | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Calendars | /reference/get-calendars | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Calendars
+  - Next Read | /reference/get-next-read | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Calendars
+  - Aliyot for Parasha | /reference/get-aliyot-by-parasha | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Calendars
+  - Parasha Topic | /reference/get-calendar-parasha-topic | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Calendars
+  - Holiday Topic | /reference/get-calendar-holiday-topic | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Calendars
+- Lexicon | /reference/lexicon | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Lexicon | /reference/get-words | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Lexicon
+  - Word Completion | /reference/get-words-completion | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Lexicon
+  - Get a lexicon entry | /reference/get-lexicon-entry | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Lexicon
+- Topic | /reference/topic | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Topic (v2) | /reference/get-v2-topics | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Topic
+  - Topic (v1) | /reference/get-topic-slug | type=endpoint method=None dep=True hidden=False bodyEmpty=True tag=Topic
+  - All Topics | /reference/get-all-topics | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Topic
+  - Topic Graph | /reference/get-topics-graph | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Topic
+  - Recommended Topics | /reference/get-recommend-topics | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Topic
+  - Random By Topic | /reference/get-random-by-topic | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Topic
+- Term | /reference/term | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Terms | /reference/get-terms | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Term
+  - Name | /reference/get-name | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Term
+- Sheets | /reference/sheets | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Sheet | /reference/get-sheet | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - Trending Sheet Tags | /reference/get-sheets-trending-tags | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - Sheet Modified Check | /reference/get-sheet-modified | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - User's Sheets | /reference/get-user-sheets | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - User's Sheets (Paginated) | /reference/get-user-sheets-paginated | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - Bulk Sheets | /reference/get-sheets-bulk | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - Sheet Tag List | /reference/get-sheets-tag-list | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - Sheet Tag List (Sorted) | /reference/get-sheets-tag-list-sorted | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - User's Sheet Tags | /reference/get-user-sheet-tags | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - Sheets by Ref | /reference/get-sheets-by-ref | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+  - All Public Sheets | /reference/get-all-sheets | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Sheets
+- Index | /reference/index-1 | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Author Indexes | /reference/get-author-indexes | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Index
+  - Index Titles | /reference/get-index-titles | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Index
+  - Index Metadata | /reference/get-index-by-title | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Index
+  - Index Metadata (v2) | /reference/get-index-v2 | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Index
+  - Counts | /reference/get-counts | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Index
+  - Link Counts Between Categories | /reference/get-counts-links | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Index
+  - Word Count for Version | /reference/get-counts-words | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Index
+- Collections | /reference/collections | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Collections | /reference/get-collections | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Collections
+  - Collection | /reference/get-collection | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Collections
+  - User's Collections | /reference/get-user-collections | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Collections
+- Ref | /reference/ref | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Ref | /reference/get-ref | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Ref
+- Misc | /reference/misc | type=basic method=None dep=False hidden=False bodyEmpty=True
+  - Find Refs | /reference/post-find-refs | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Misc
+  - Search | /reference/post-search-wrapper | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Misc
+  - Social Media Image | /reference/get-img-gen | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Misc
+  - Category | /reference/get-category | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Misc
+  - Public Profile | /reference/get-profile | type=endpoint method=None dep=False hidden=False bodyEmpty=True [TITLE!=spec summary None] tag=Misc
+  - Get Async Task Status | /reference/get-async-task-status | type=endpoint method=None dep=False hidden=False bodyEmpty=True tag=Misc

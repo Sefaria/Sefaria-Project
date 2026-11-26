@@ -1,0 +1,444 @@
+/*
+ * The search modal. Values measured on live's `.rm-SearchModal_classic` (developers.sefaria.org, 2026-11-18,
+ * 1440x900 and 390x844): a 1000x600 panel centred in a 20px-padded, blurred backdrop.
+ */
+
+/* The native <dialog> is the full-viewport backdrop area (live's .modal-backdrop). */
+.dialog {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 20px;
+  border: 0;
+  background: transparent;
+  color: var(--rm-color-text-default);
+  font-family: var(--font-en-system);
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 10%);
+  backdrop-filter: blur(5px);
+}
+
+.panel {
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1000px;
+  height: 600px;
+  max-height: 100%;
+  overflow: hidden;
+  border-radius: var(--rm-border-radius-xl);
+  background: var(--rm-color-bg-page);
+  box-shadow:
+    0 0 0 1px transparent,
+    var(--rm-shadow-lg);
+}
+
+/* Input row */
+.box {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 40px;
+  margin: 20px;
+}
+
+.input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding: 1px 36px;
+  border: 1px solid var(--rm-color-input-border);
+  border-radius: var(--rm-border-radius-md);
+  background: var(--rm-color-input-background);
+  color: var(--rm-color-input-text);
+  font: inherit;
+  font-size: 15px;
+  appearance: none;
+}
+
+.input::-webkit-search-cancel-button,
+.input::-webkit-search-decoration {
+  appearance: none;
+}
+
+.input:focus,
+.input:focus-visible {
+  border-color: var(--rm-color-input-border-active);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--rm-color-input-border-focus);
+}
+
+.inputIcon {
+  position: absolute;
+  top: 12px;
+  left: 10px;
+  width: 16px;
+  height: 16px;
+  color: rgb(147 158 174);
+  pointer-events: none;
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rm-border-radius);
+  background: transparent;
+  color: var(--rm-color-input-border-active);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.close[data-visible='true'],
+.close:focus-visible {
+  opacity: 1;
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 2px;
+}
+
+.closeIcon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 3;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  flex: none;
+  padding: 0 20px;
+  overflow: auto hidden;
+  border-bottom: 1px solid var(--rm-color-border-default);
+  color: var(--rm-color-text-muted);
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.tab {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 40px;
+  margin: 0;
+  padding: 0 10px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--rm-color-text-muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+  cursor: pointer;
+}
+
+.tab:hover,
+.tab[aria-selected='true'] {
+  color: var(--rm-color-text-default);
+}
+
+.tab[aria-selected='true'] {
+  box-shadow: inset 0 -2px 0 0 var(--rm-color-text-default);
+}
+
+.tab[data-empty='true'] {
+  color: var(--rm-color-text-minimum);
+  cursor: default;
+  opacity: 0.6;
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: -2px;
+}
+
+.tabIcon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+}
+
+.count {
+  margin-left: 4px;
+  color: var(--rm-color-text-minimum);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Results */
+.results {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px 20px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+}
+
+.row {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: 16px minmax(0, 1fr);
+  column-gap: 12px;
+  min-width: 0;
+  margin: 0 0 4px;
+  padding: 12px;
+  border-radius: var(--rm-border-radius-lg);
+  color: var(--rm-color-text-default);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.row:hover,
+.row[data-active='true'] {
+  background: var(--rm-color-bg-hover);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: -2px;
+}
+
+.rowIcon {
+  width: 16px;
+  height: 16px;
+  margin: 4px 0;
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowHeader {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  line-height: 20px;
+}
+
+.method {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 20px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--rm-green30);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: var(--rm-box-shadow-pill);
+}
+
+.method[data-method='post'] {
+  background: var(--rm-blue40);
+}
+
+.method[data-method='put'],
+.method[data-method='patch'] {
+  background: var(--rm-purple40);
+}
+
+.method[data-method='delete'] {
+  background: var(--rm-red40);
+}
+
+.title {
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.excerpt {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--rm-color-text-muted);
+  line-height: 20px;
+}
+
+.excerptText {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.excerptLabel,
+.separator {
+  flex: none;
+}
+
+.status {
+  flex: none;
+  padding: 0 4px;
+  border-radius: var(--rm-border-radius);
+  background: var(--rm-color-bg-success-muted);
+  color: var(--rm-color-text-success);
+  font-family: var(--rm-font-family-mono);
+}
+
+.paramName {
+  flex: none;
+  font-family: var(--rm-font-family-mono);
+  font-size: 13px;
+}
+
+.match {
+  background: transparent;
+  color: inherit;
+  font-weight: 600;
+}
+
+/* Pager: "Back · 1 of N · Next" */
+.pager {
+  display: grid;
+  flex: none;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 20px 0 0;
+  border-top: 1px solid #eee;
+}
+
+.pagerButton {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-self: start;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--rm-border-radius-md);
+  background: transparent;
+  color: var(--rm-color-text-muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pagerButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.pagerButton:focus-visible {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 2px;
+}
+
+.pagerButton:hover:not(:disabled) {
+  background: var(--rm-color-bg-hover);
+}
+
+.pagerNext {
+  justify-self: end;
+}
+
+.pagerIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.pagerState {
+  color: var(--rm-color-text-minimum);
+  line-height: 20px;
+}
+
+/* Empty, loading and no-results states */
+.empty {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: -10px -20px -20px;
+  padding: 80px 40px 100px; /* 10px above centre, as live: text top 502.3 at 1440x900, 474.3 at 390x844 */
+  color: var(--rm-color-text-minimum);
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 16px;
+  height: 16px;
+  margin: 0 0 10px;
+  color: var(--rm-project-color-primary);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22.5px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}

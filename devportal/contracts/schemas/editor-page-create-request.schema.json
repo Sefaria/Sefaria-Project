@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-page-create-request.schema.json",
+  "title": "Editor: create page",
+  "description": "POST /_portal/editor/pages (\"+ New\", \"+ add child\") -> 201 editor-page. Endpoint pages are created only by devportal_sync_spec. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "section": {
+      "$ref": "common.schema.json#/$defs/section"
+    },
+    "kind": {
+      "enum": ["category", "page", "link"]
+    },
+    "parentId": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "position": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "description": "Null appends at the end.",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "slug": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/slug"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": ["section", "kind", "parentId", "position", "title", "slug"],
+  "additionalProperties": false
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-publish-response.schema.json",
+  "title": "Editor: published",
+  "description": "200 answer of a publish. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "contractVersion": {
+      "$ref": "common.schema.json#/$defs/contractVersion"
+    },
+    "page": {
+      "$ref": "editor-common.schema.json#/$defs/pageSummary"
+    },
+    "revision": {
+      "$ref": "editor-common.schema.json#/$defs/revisionSummary"
+    },
+    "generation": {
+      "type": "integer",
+      "description": "PortalState.generation after the publish.",
+      "minimum": 0
+    },
+    "url": {
+      "$ref": "common.schema.json#/$defs/absoluteUrl"
+    }
+  },
+  "required": ["contractVersion", "page", "revision", "generation", "url"],
+  "additionalProperties": false
+}

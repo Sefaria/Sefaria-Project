@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/Sefaria/developer-docs",
+  "ref": "v1.0",
+  "commit": "b661899ca89899aa500e191bb612c8fe63994949",
+  "date": "2026-11-12T11:52:55+00:00",
+  "vendored_at": "2026-11-18",
+  "trees": ["docs", "reference", "custom_pages", "custom_blocks"],
+  "excluded": [
+    {
+      "path": "reference/sefaria-api.json",
+      "sha256": "18ad08d84223e0f9bd04ac69d4f86cc4b94ac4d8eb8e18843192c75ecaeb38c0",
+      "bytes": 1223646,
+      "replaced_by": "docs/openAPI.json",
+      "comparison": "Not byte-identical to docs/openAPI.json (sha256 ae477027ea7d147ed5149687d49b1e11d724a73d286833f6bde40abd0f4f803d at vendoring). Parsed, the two are equal except four numeric literals in the 'Genesis counts' response example of GET /api/counts/{title} (100 here, 100.0 in docs/openAPI.json): same 61 paths and operations."
+    }
+  ],
+  "live": {
+    "path": "live/",
+    "files": ["sidebar-docs.json", "sidebar-reference.json", "sidebar-custom_pages.json"],
+    "source": "docs/dev-portal/research/site/machine/sidebar-*.json (GET captures of live's sidebar API; the source of each page's updatedAt)"
+  }
+}

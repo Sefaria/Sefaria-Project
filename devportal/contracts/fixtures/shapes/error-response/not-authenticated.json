@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "not_authenticated",
+    "message": "Log in as a staff member to use the editor."
+  }
+}

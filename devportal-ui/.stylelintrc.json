@@ -1,0 +1,21 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "selector-class-pattern": [
+      "^dp-[a-z0-9]+(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)?$",
+      { "message": "Global class names start with dp- (contract C5)" }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.module.css"],
+      "rules": {
+        "selector-class-pattern": [
+          "^[a-z][a-zA-Z0-9]*$",
+          { "message": "CSS Module class names are camelCase; the build scopes them (contract C5)" }
+        ]
+      }
+    }
+  ],
+  "ignoreFiles": ["node_modules/**", "dist/**", "src/styles/tokens.css", "src/styles/readme-tokens.css"]
+}

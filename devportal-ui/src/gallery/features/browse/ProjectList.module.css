@@ -1,0 +1,140 @@
+/* table (>= 640px) */
+.scroller {
+  position: relative; /* contains the visually-hidden spans so they can't widen the page */
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.table {
+  width: 100%;
+  min-width: 760px;
+  table-layout: fixed;
+}
+
+.table th {
+  padding: var(--spacing-medium) var(--spacing-large);
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: left;
+}
+
+.projectCol {
+  width: 38%;
+}
+
+.visitCol {
+  width: 64px;
+}
+
+.table td {
+  padding: var(--spacing-medium) var(--spacing-large);
+  border-top: 1px solid var(--border-default);
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.table tbody tr:hover {
+  background: var(--surface-subtle);
+}
+
+.projectCell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+  min-width: 0;
+}
+
+.projectText {
+  min-width: 0;
+}
+
+.nameLine,
+.rowNameLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-small);
+  min-width: 0;
+}
+
+.name {
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--target-min);
+  min-height: var(--target-min);
+  max-width: 100%;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+}
+
+.name:hover {
+  text-decoration: underline;
+}
+
+.oneLine {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category,
+.date {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* rows (< 640px) */
+.rows {
+  border-top: 1px solid var(--border-default);
+}
+
+.rows > li {
+  border-bottom: 1px solid var(--border-default);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+  width: 100%;
+  min-height: 72px;
+  padding: var(--spacing-small) 0;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.row:hover {
+  background: var(--surface-subtle);
+}
+
+.rowText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rowName {
+  font-family: var(--font-en-content);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.rowSub {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

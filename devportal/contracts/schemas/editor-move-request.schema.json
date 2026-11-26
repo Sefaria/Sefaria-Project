@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-move-request.schema.json",
+  "title": "Editor: move",
+  "description": "POST /_portal/editor/pages/<id>/move -> editor-tree; 409 tree_conflict when baseGeneration is stale; 422 invalid_move (other section, disallowed parent kind, depth limit). Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "parentId": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "position": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "baseGeneration": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": ["parentId", "position", "baseGeneration"],
+  "additionalProperties": false
+}

@@ -1,0 +1,87 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-large);
+  padding: var(--spacing-xlarge);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-page);
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
+}
+
+.card:hover {
+  border-color: var(--border-card-hover);
+  box-shadow: var(--shadow-small);
+}
+
+.card:has(.title:focus-visible) {
+  outline: 2px solid var(--functional-focus-blue);
+  outline-offset: 2px;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+}
+
+.categoryLabel {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.heading {
+  font-family: var(--font-en-content);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+/* The button is not positioned, so its ::after covers the whole card. */
+.title {
+  text-decoration: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: left;
+  color: var(--text-primary);
+
+  /* a 44px-tall target without changing the heading's layout */
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--target-min);
+  min-height: var(--target-min);
+  margin-block: -7px;
+}
+
+.title::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+
+.title:focus-visible {
+  outline: none;
+}
+
+.description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  color: var(--text-secondary);
+}
+
+@media (width >= 640px) {
+  .card {
+    padding: var(--spacing-2xlarge);
+  }
+}

@@ -1,0 +1,44 @@
+.scroller {
+  position: relative;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.table {
+  width: 100%;
+  font-size: 14px;
+}
+
+.caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-small) var(--spacing-medium);
+  border-bottom: 1px solid var(--border-default);
+  text-align: left;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.table tbody th {
+  font-weight: 400;
+}
+
+.table td {
+  font-variant-numeric: tabular-nums;
+}

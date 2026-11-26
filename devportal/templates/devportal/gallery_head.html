@@ -1,0 +1,19 @@
+{% comment %}
+  Head tags of every gallery page (included by gallery_list.html and gallery_project.html; view:
+  devportal/views/gallery.py). The social URLs are the request origin plus /powered-by (PLAN.md §2.14 item 3).
+{% endcomment %}
+<meta name="description" content="{{ meta.description }}">
+<meta name="robots" content="{% if noindex %}noindex, nofollow{% else %}index, follow{% endif %}">
+<link rel="canonical" href="{{ meta.canonicalUrl }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ social.site_name }}">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ social_description|default:meta.description }}">
+<meta property="og:url" content="{{ social.url }}">
+<meta property="og:image" content="{{ social.image }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ title }}">
+<meta name="twitter:description" content="{{ social_description|default:meta.description }}">
+<meta name="twitter:image" content="{{ social.image }}">

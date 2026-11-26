@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-conflict-response.schema.json",
+  "title": "Editor: conflict (409)",
+  "description": "409 answer of save, publish, restore (revision_conflict: someone saved first) and move (tree_conflict: the tree changed). Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "enum": ["revision_conflict", "tree_conflict"]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["code", "message"],
+      "additionalProperties": false
+    },
+    "latest": {
+      "anyOf": [
+        {
+          "$ref": "editor-common.schema.json#/$defs/revisionSummary"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": ["error", "latest", "generation"],
+  "additionalProperties": false
+}

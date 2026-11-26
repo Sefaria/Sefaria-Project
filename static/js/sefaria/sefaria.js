@@ -4481,6 +4481,8 @@ Sefaria.unpackBaseProps = function (props) {
     'numLibraryTopics',
     '_siteSettings',
     'domainModules',
+    'developersURL',
+    'poweredByURL',
     '_debug',
     '_debug_mode',
     'remoteConfig',

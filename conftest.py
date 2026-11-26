@@ -20,6 +20,10 @@ def pytest_plugin_registered(plugin, manager):
     """
     if getattr(plugin, "__file__", None) != __file__:
         return
+    # `-p no:sefaria_conftest` opts out: the developer portal's tests (devportal/tests) run without the library,
+    # on standalone settings with no MongoDB, or with no Django at all (devportal/tests/pure).
+    if manager.is_blocked("sefaria_conftest"):
+        return
     mod = importlib.import_module("sefaria.conftest")
     if manager.get_plugin(mod.__file__) is None and not manager.is_registered(mod):
         manager.register(mod, name=mod.__file__)

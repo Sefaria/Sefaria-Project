@@ -1,0 +1,23 @@
+<!doctype html>{% comment %}
+  One HTMLBlock in its own document (devportal/views/htmlblock.py, PLAN.md §2.6). Served with the frame
+  CSP of contracts/security.json: no scripts can run here. The block keeps its own <style>; the portal's
+  stylesheet (which holds article.css) gives it the article's typography, as live shows blocks inside
+  the article body. The block sits in its own box (.dp-htmlblock-html, live's `.rdmd-html`), so the article's
+  `.dp-markdown > *` spacing and its first/last-child margin resets apply to that box, not to the block's own
+  elements (live keeps the "Powered by" call-to-action's 32px bottom margin). <base target="_blank"> makes the block's links open in a new tab, which the frame's
+  sandbox allows (allow-popups, allow-popups-to-escape-sandbox) instead of navigating the frame.
+{% endcomment %}
+<html lang="en" data-theme="devportal">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>HTML block</title>
+    <base target="_blank" />
+    {% for href in stylesheets %}<link rel="stylesheet" href="{{ href }}" />
+    {% endfor %}
+  </head>
+  <body class="dp-htmlblock-body">
+    <div class="dp-markdown dp-htmlblock-document"><div class="dp-htmlblock-html">{{ block_html|safe }}</div></div>
+  </body>
+</html>

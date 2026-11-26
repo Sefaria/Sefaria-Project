@@ -354,11 +354,17 @@ http {
       return 200 "healthy\n";
     }
 
+    {{- if not .appRobots }}
+
     location /robots.txt {
       access_log off;
       autoindex on;
       alias /app/robots.txt;
     }
+    {{- else }}
+
+    # appRobots: this module's app serves its own /robots.txt (through location / below).
+    {{- end }}
 
     location ~ ^/data\.\d+\.js$ {
       proxy_set_header Host $host;

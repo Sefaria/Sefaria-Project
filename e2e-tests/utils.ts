@@ -856,10 +856,14 @@ export const waitForSegment = async (page: Page, selector: string) => {
 /**
  * Get module name from URL
  * @param url - Page URL
- * @returns 'library' | 'voices' | 'unknown'
+ * @returns 'library' | 'voices' | 'developers' | 'unknown'
  */
-export const getModuleFromUrl = (url: string): 'library' | 'voices' | 'unknown' => {
-  if (url.includes(MODULE_URLS.EN.LIBRARY) || url.includes('www.')) {
+export const getModuleFromUrl = (url: string): 'library' | 'voices' | 'developers' | 'unknown' => {
+  // Developers first: its host is the only one that is not a prefix-match candidate for the
+  // other two (www., voices.), and under E2E_LIBRARY_URL Library and Voices share one URL.
+  if (url.includes(MODULE_URLS.EN.DEVELOPERS) || /^(https?:\/\/)?developers\./i.test(url)) {
+    return 'developers';
+  } else if (url.includes(MODULE_URLS.EN.LIBRARY) || url.includes('www.')) {
     return 'library';
   } else if (url.includes(MODULE_URLS.EN.VOICES) || url.includes('voices.')) {
     return 'voices';

@@ -1,0 +1,144 @@
+/*
+ * The frame under the header, measured on live (REFERENCE_SPEC.md §1.2, §1.4, §1.6). Breakpoints from
+ * contract C5: 1065 (playground stacks), 768 (mobile: sidebar becomes the sub-nav panel), 700 (article
+ * padding), 414 (panel repositioned).
+ */
+.main {
+  display: block;
+  color: var(--rm-color-text-default, #32343a);
+  font-family: var(--font-en-system, Roboto, 'Helvetica Neue', Arial, sans-serif);
+}
+
+/*
+ * Live scrolls an inner container whose classic 10px scrollbar always takes width from the reference layout
+ * (article 292px at 1070; columns stacked at 1065, where 1065 - 10 - 288 < 770). The portal scrolls the window, so
+ * where the browser draws no classic scrollbar (overlay scrollbars, headless), the same 10px is reserved here:
+ * `100vw - 100%` is the window scrollbar's width, and the padding makes up the difference.
+ */
+@media (width > 768px) {
+  [data-layout='reference'].main {
+    padding-right: max(0px, calc(10px - (100vw - 100%)));
+  }
+}
+
+.container {
+  position: relative;
+  display: flex;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
+.article {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--rm-hub-content-max-width, 1280px);
+  padding: 32px;
+}
+
+.article:focus {
+  outline: none;
+}
+
+[data-layout='plain'] .article {
+  max-width: none;
+}
+
+/*
+ * Reference: article (max 800px) and the playground column (480px), in live's 1280px wrapper, which centres itself
+ * when the collapsed sidebar leaves it room (article at x=101 at 1440). The wrapper is a size container: live stacks
+ * the playground under the article when the wrapper, not the viewport, is narrow (1065 stacks and 1070 does not with
+ * the sidebar shown; at 1024 with the sidebar collapsed the columns stay side by side, v3_sidebar_collapsed).
+ */
+.columnsHost {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--rm-hub-content-max-width, 1280px);
+  margin: 0 auto;
+  container: dp-reference-columns / inline-size;
+}
+
+.columns {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.columns > .article {
+  max-width: var(--rm-hub-main-max-width, 800px);
+}
+
+.playground {
+  flex: 0 0 auto;
+  width: var(--rm-hub-playground-width, 480px);
+}
+
+/* Docs: the body and the right rail share the article. */
+.docsColumns {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.docsBody {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--rm-hub-main-max-width, 800px);
+}
+
+.docsRail {
+  position: sticky;
+  top: 32px;
+  flex: 0 0 auto;
+}
+
+/* 1065px viewport - 10px scrollbar - 288px sidebar = 767px. */
+@container dp-reference-columns (width < 770px) {
+  .columns {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .columns > .article {
+    max-width: none;
+  }
+
+  .playground {
+    width: auto;
+  }
+}
+
+@media (width <= 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  /* The sidebar draws the fixed sub-nav panel itself (src/shell/Sidebar/sidebar.css). */
+  .sidebar[data-open='true'] {
+    position: static;
+    display: block;
+  }
+
+  .docsColumns {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .docsRail {
+    position: static;
+    order: -1;
+    align-self: flex-end;
+  }
+}
+
+@media (width <= 700px) {
+  .article {
+    padding: 32px 20px;
+  }
+}

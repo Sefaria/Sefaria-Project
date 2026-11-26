@@ -1,0 +1,29 @@
+{
+  "contractVersion": 1,
+  "kind": "gallery",
+  "path": "/powered-by/projects/12-koveah",
+  "title": "Koveah | Powered by Sefaria",
+  "meta": {
+    "description": "A project built with Sefaria's texts and API.",
+    "robots": "index",
+    "canonicalUrl": "https://developers.sefaria.org/powered-by/projects/12-koveah",
+    "markdownUrl": null
+  },
+  "header": {
+    "activeTab": null
+  },
+  "site": {
+    "apiOrigin": "https://www.sefaria.org",
+    "ga4": {
+      "default": "G-6SXQFSB219",
+      "gallery": "G-44RHV2ZWQ1"
+    },
+    "analyticsSection": "gallery",
+    "demoApiKey": null,
+    "searchDocsUrl": "/_portal/search-docs.3f9a2c41d0b7.json",
+    "mcpUrl": "https://developers.sefaria.org/mcp",
+    "generation": 42
+  },
+  "view": "project",
+  "projectId": 12
+}

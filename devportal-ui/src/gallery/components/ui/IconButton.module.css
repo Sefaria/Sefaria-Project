@@ -1,0 +1,22 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height);
+  height: var(--control-height);
+  flex: none;
+  border-radius: var(--radius-md);
+  color: var(--icon-default);
+}
+
+.root:hover {
+  background: var(--surface-hover);
+}
+
+.filled {
+  background: var(--surface-hover);
+}
+
+.filled:hover {
+  background: var(--divider);
+}

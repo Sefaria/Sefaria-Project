@@ -5,6 +5,7 @@ from django.views.generic.base import RedirectView
 import dedications.views as dedications_views
 import reader.views as reader_views
 from sefaria.settings import STATIC_URL
+from sefaria.utils.domains_and_languages import developers_url, powered_by_url
 from sites.sefaria.site_settings import SITE_SETTINGS
 
 static_pages = [
@@ -99,12 +100,11 @@ site_urlpatterns += [
             "https://donate.sefaria.org/english" if x.interfaceLang == "english" else "https://donate.sefaria.org/he"
         ),
     ),
-    re_path(
-        r"^powered-by/?$",
-        lambda x: HttpResponsePermanentRedirect("https://powered-by.sefaria.org"),
-    ),
-    re_path(r"^wiki/?$", lambda x: HttpResponseRedirect("https://developers.sefaria.org/docs/welcome")),
-    re_path(r"^developers/?$", lambda x: HttpResponseRedirect("https://developers.sefaria.org")),
+    # The developer portal and its gallery (PLAN.md Phase 8): the developers host of DOMAIN_MODULES, and the
+    # gallery on it once DEVPORTAL_CUTOVER_DONE is set (today's powered-by.sefaria.org until then).
+    re_path(r"^powered-by/?$", lambda x: HttpResponsePermanentRedirect(powered_by_url())),
+    re_path(r"^wiki/?$", lambda x: HttpResponseRedirect(f"{developers_url()}/docs/welcome")),
+    re_path(r"^developers/?$", lambda x: HttpResponseRedirect(developers_url())),
     re_path(r"^request-a-text/?$", lambda x: HttpResponseRedirect("https://goo.gl/forms/ru33ivawo7EllQxa2")),
     re_path(
         r"^request-a-training/?$",

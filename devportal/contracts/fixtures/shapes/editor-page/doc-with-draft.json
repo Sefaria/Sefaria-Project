@@ -1,0 +1,56 @@
+{
+  "contractVersion": 1,
+  "page": {
+    "id": 101,
+    "section": "docs",
+    "kind": "page",
+    "slug": "welcome",
+    "parentId": 100,
+    "position": 0,
+    "operationId": null,
+    "path": "/docs/welcome",
+    "publishedRevision": 3,
+    "draftRevision": 4,
+    "contentUpdatedAt": "2026-05-12T14:03:22Z"
+  },
+  "revision": {
+    "number": 4,
+    "source": "editor",
+    "author": {
+      "id": 7,
+      "name": "Staff Editor"
+    },
+    "createdAt": "2026-11-18T10:15:00Z",
+    "title": "Welcome to Sefaria's Technical Documentation",
+    "isPublished": false,
+    "isDraft": true
+  },
+  "content": {
+    "title": "Welcome to Sefaria's Technical Documentation",
+    "excerpt": "",
+    "bodyMd": "Please note: For our API Documentation, see [Getting Started With The Sefaria API](ref:getting-started).\n\n## What is Sefaria?\n",
+    "hidden": false,
+    "deprecated": false,
+    "metadata": {
+      "title": "",
+      "description": "",
+      "robots": "index"
+    },
+    "next": {
+      "description": "",
+      "pages": [
+        {
+          "type": "basic",
+          "slug": "the-structure-of-a-text-on-sefaria",
+          "title": "The Structure of a Text on Sefaria"
+        }
+      ]
+    },
+    "linkUrl": null,
+    "linkNewTab": false,
+    "fullscreen": false,
+    "apiConfig": null,
+    "endpoint": null
+  },
+  "spec": null
+}

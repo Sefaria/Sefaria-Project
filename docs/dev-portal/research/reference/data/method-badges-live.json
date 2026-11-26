@@ -1,0 +1,12 @@
+{
+ "_source": "ui-styles.*.css .APIMethod token block + computed styles on live sidebar/headline badges (methodBadgeStyle=classic => solid '-bg-active' bg + white text). get/post verified on live elements; others resolved from tokens.",
+ "get":    {"bg": "#008756 (--green30)", "fg": "#fff", "verified_live": "rgb(0,135,86)"},
+ "post":   {"bg": "#0222c6 (--blue40)",  "fg": "#fff", "verified_live": "rgb(2,34,198)"},
+ "put":    {"bg": "#6d5ba6 (--purple40)", "fg": "#fff"},
+ "patch":  {"bg": "#df7d03", "fg": "#fff"},
+ "delete": {"bg": "#cb4452 (--red40)", "fg": "#fff"},
+ "options":{"bg": "--yellow40", "fg": "#fff"},
+ "head/trace/default": {"bg": "#484c58 (--gray30)", "fg": "#fff"},
+ "sidebar_badge": {"class": "APIMethod_fixedWidth_md", "size": "40x16", "font": "600 10px/16px system stack", "letterSpacing": "0.1px", "textTransform": "uppercase", "radius": "8px (--border-radius-lg)", "boxShadow": "var(--box-shadow-pill): rgba(255,255,255,.2) 0 1px 1px 0 inset, ...", "textShadow": "1px 1px 0 color-mix(bg 97% black) x3"},
+ "headline_badge": {"class": "APIMethod_lg", "size": "40x20", "font": "600 12px/16px", "padding": "2px 8px", "radius": "9999px"}
+}

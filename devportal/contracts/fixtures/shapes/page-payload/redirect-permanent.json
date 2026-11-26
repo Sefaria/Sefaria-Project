@@ -1,0 +1,7 @@
+{
+  "contractVersion": 1,
+  "kind": "redirect",
+  "path": "/docs",
+  "status": 301,
+  "location": "/docs/welcome"
+}

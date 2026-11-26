@@ -1,0 +1,52 @@
+{% extends base_template %}
+{% comment %}
+  The gallery's browse page (/powered-by) and its unlisted charts page (/powered-by/charts) (PLAN.md §2.14;
+  view: devportal/views/gallery.py).
+
+  Django lists the real published projects, so search engines and visitors without JavaScript see them. The
+  gallery's React app (devportal-ui/src/gallery) replaces this markup in one commit (createRoot on #dp-root),
+  reading the projects from /api/powered-by and the page from the #dp-data island. The charts are drawn only
+  client-side; the server copy of that page says what it is and is noindex.
+{% endcomment %}
+{% block title %}{{ title }}{% endblock %}
+{% block head %}{% include "devportal/gallery_head.html" %}{% endblock %}
+{% block content %}
+<div class="dp-gallery-ssr" data-gallery-view="{{ payload.view }}">
+  <nav class="dp-gallery-ssr__bar" aria-label="Powered by Sefaria">
+    <a href="{{ gallery_url }}">Powered by Sefaria</a>
+    <a href="https://sefaria.formstack.com/forms/powered_by_sefaria_submission_form" target="_blank" rel="noopener noreferrer">Submit a project</a>
+    <a href="https://www.sefaria.org/donate" target="_blank" rel="noopener noreferrer">Donate</a>
+  </nav>
+  {% if charts %}
+  <h1>Powered by Sefaria in numbers</h1>
+  <p>Charts of the projects built with Sefaria&rsquo;s texts, API and data. They need JavaScript.</p>
+  <p><a href="{{ gallery_url }}">All projects</a></p>
+  {% else %}
+  <section aria-labelledby="dp-gallery-ssr-title">
+    <h1 id="dp-gallery-ssr-title">Apps built on Sefaria&rsquo;s open Jewish library.</h1>
+    <p>{{ meta.description }}</p>
+  </section>
+  <section aria-labelledby="dp-gallery-ssr-projects">
+    <h2 id="dp-gallery-ssr-projects">Browse projects</h2>
+    <p>{{ projects|length }} project{{ projects|length|pluralize }}</p>
+    <ul class="dp-gallery-ssr__list">
+      {% for project in projects %}
+      <li>
+        <h3><a href="{{ project.path }}">{{ project.name }}</a></h3>
+        {% if project.description %}<p>{{ project.description }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% if buggy_projects %}
+    <h2>Projects with known issues</h2>
+    <ul class="dp-gallery-ssr__list">
+      {% for project in buggy_projects %}
+      <li><a href="{{ project.path }}">{{ project.name }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+{% block data %}{{ payload|json_script:"dp-data" }}{% endblock %}

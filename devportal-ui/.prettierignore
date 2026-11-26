@@ -1,0 +1,7 @@
+node_modules/
+dist/
+package-lock.json
+# Vendored and generated token files stay byte-exact (devportal/contracts/C5_tokens.md)
+src/styles/tokens.css
+src/styles/readme-tokens.css
+public/spec/

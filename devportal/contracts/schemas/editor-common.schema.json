@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-common.schema.json",
+  "title": "Editor shared definitions",
+  "description": "Definitions shared by the editor API schemas. No fixtures of its own.",
+  "$defs": {
+    "revisionContent": {
+      "type": "object",
+      "description": "The versioned content of a page: PageRevision without bookkeeping and cached renderings.",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "bodyMd": {
+          "type": "string",
+          "description": "Markdown in the C4 dialect. Endpoints: the free Markdown after the description."
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/pageMetadata"
+        },
+        "next": {
+          "$ref": "common.schema.json#/$defs/nextPages"
+        },
+        "linkUrl": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(https?://|mailto:|/)"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "linkNewTab": {
+          "type": "boolean"
+        },
+        "fullscreen": {
+          "type": "boolean"
+        },
+        "apiConfig": {
+          "anyOf": [
+            {
+              "enum": ["getting-started", "authentication", "my-requests"]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "endpoint": {
+          "anyOf": [
+            {
+              "type": "object",
+              "description": "The endpoint overlay (PLAN §2.3.3).",
+              "properties": {
+                "sidebarLabel": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "titleOverride": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "descriptionOverrideMd": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": ["sidebarLabel", "titleOverride", "descriptionOverrideMd"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "excerpt",
+        "bodyMd",
+        "hidden",
+        "deprecated",
+        "metadata",
+        "next",
+        "linkUrl",
+        "linkNewTab",
+        "fullscreen",
+        "apiConfig",
+        "endpoint"
+      ],
+      "additionalProperties": false
+    },
+    "revisionSummary": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source": {
+          "enum": ["import", "editor", "restore"]
+        },
+        "author": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/userRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "createdAt": {
+          "$ref": "common.schema.json#/$defs/dateTime"
+        },
+        "title": {
+          "type": "string"
+        },
+        "isPublished": {
+          "type": "boolean"
+        },
+        "isDraft": {
+          "type": "boolean"
+        }
+      },
+      "required": ["number", "source", "author", "createdAt", "title", "isPublished", "isDraft"],
+      "additionalProperties": false
+    },
+    "pageSummary": {
+      "type": "object",
+      "description": "A Page row as the editor sees it.",
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "section": {
+          "$ref": "common.schema.json#/$defs/section"
+        },
+        "kind": {
+          "$ref": "common.schema.json#/$defs/pageKind"
+        },
+        "slug": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/slug"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parentId": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/operationId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "path": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/portalPath"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "publishedRevision": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "draftRevision": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "contentUpdatedAt": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/dateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "section",
+        "kind",
+        "slug",
+        "parentId",
+        "position",
+        "operationId",
+        "path",
+        "publishedRevision",
+        "draftRevision",
+        "contentUpdatedAt"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

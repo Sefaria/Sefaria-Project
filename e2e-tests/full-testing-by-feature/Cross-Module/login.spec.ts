@@ -17,7 +17,7 @@ import { PageManager } from '../../pages/pageManager';
 
 test.describe('Cross-Module — Login & auth persistence', () => {
 
-  test('XMOD-L01: Login on Library, verify logged in state and remain on Library', { tag: '@sanity' }, async ({ context }) => {
+  test('XMOD-L01: Login on Library, verify logged in state and remain on Library', { tag: ['@sanity', '@pr'] }, async ({ context }) => {
     // Start as not logged in
     let page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -57,7 +57,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await expect(logoutOption).toBeVisible();
   });
 
-  test('XMOD-L02: Login on Library, switch to Voices via Module Switcher, verify logged in on Voices', { tag: '@sanity' }, async ({ context }) => {
+  test('XMOD-L02: Login on Library, switch to Voices via Module Switcher, verify logged in on Voices', { tag: ['@sanity', '@pr'] }, async ({ context }) => {
     // Start already logged in on Library (using auth state)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
 

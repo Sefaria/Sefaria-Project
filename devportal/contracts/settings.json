@@ -1,0 +1,101 @@
+{
+  "$comment": "Contract C1: every DEVPORTAL_* setting with its default. The defaults live in sefaria/settings.py before the local-settings import, and are repeated in devportal/dev/settings_standalone.py. Change only through the Integrator (PLAN.md §4.3).",
+  "settings": [
+    {
+      "name": "DEVPORTAL_API_ORIGIN",
+      "type": "string",
+      "default": "https://www.sefaria.org",
+      "helm": false,
+      "description": "Origin of the Sefaria API. Try It and the code samples call it; it is the CSP connect-src entry for the API; the MCP execute-request tool accepts only this host. Has no visitor-facing input.",
+      "used_by": ["devportal/security/csp.py", "devportal/mcp/execute.py", "page payload (C3)"]
+    },
+    {
+      "name": "DEVPORTAL_GA4",
+      "type": "object<string, string>",
+      "default": {},
+      "helm": true,
+      "description": "GA4 measurement ids by section, e.g. {\"default\": \"G-6SXQFSB219\", \"gallery\": \"G-44RHV2ZWQ1\"}. Empty (the default outside production) loads no analytics.",
+      "used_by": ["page payload (C3)", "devportal-ui/src/analytics/"]
+    },
+    {
+      "name": "DEVPORTAL_DEMO_API_KEY",
+      "type": "string",
+      "default": "",
+      "helm": true,
+      "description": "Public demo API key. Empty: Try It sends no key and code samples contain none, exactly as live. Set: Try It sends X-API-Key and the samples include it (PLAN.md §2.12).",
+      "used_by": ["page payload (C3)", "devportal-ui/src/reference/"]
+    },
+    {
+      "name": "DEVPORTAL_MEDIA_BUCKET",
+      "type": "string",
+      "default": "",
+      "helm": true,
+      "description": "Google Cloud Storage bucket for editor uploads and mirrored images (prefix developers/). Empty means SITE_SETTINGS[\"TOPICS_BUCKET\"] (I-11, H-4).",
+      "used_by": ["devportal/adapters/storage.py", "devportal/services/images.py"]
+    },
+    {
+      "name": "DEVPORTAL_ALLOW_INDEXING",
+      "type": "boolean",
+      "default": false,
+      "helm": true,
+      "description": "robots.txt serves live's content when true (production; the inverse of nginx.disableScraping) and 'Disallow: /' otherwise.",
+      "used_by": ["devportal/views/machine.py (robots.txt)"]
+    },
+    {
+      "name": "DEVPORTAL_ALLOW_README_IMAGES",
+      "type": "boolean",
+      "default": true,
+      "helm": false,
+      "description": "Adds https://files.readme.io to the CSP img-src so imported pages show their images until devportal_mirror_images has run. Cutover requires false (PLAN.md §8.2).",
+      "used_by": ["devportal/security/csp.py"]
+    },
+    {
+      "name": "DEVPORTAL_AUTO_SEED",
+      "type": "boolean",
+      "default": true,
+      "helm": true,
+      "description": "The post_migrate receiver imports the vendored content snapshot, syncs the spec and rebuilds when either hash differs from PortalState (PLAN.md §7.6). Forced false under pytest by devportal/tests/conftest.py. Set false in production after cutover.",
+      "used_by": ["devportal/apps.py", "devportal/services/seed.py"]
+    },
+    {
+      "name": "DEVPORTAL_CUTOVER_DONE",
+      "type": "boolean",
+      "default": false,
+      "helm": true,
+      "description": "True once developers.sefaria.org is served from here. The main site's poweredByURL prop becomes <developersURL>/powered-by (PLAN.md §2.2, Q2).",
+      "used_by": ["reader/views.py (base_props)"]
+    },
+    {
+      "name": "DEVPORTAL_VITE_DEV_SERVER",
+      "type": "string",
+      "default": "",
+      "helm": false,
+      "description": "Local development only, e.g. \"http://localhost:5173\". When set, {% devportal_entry %} emits the Vite dev client instead of the built bundle, and the CSP allows that origin (C10 dev_only).",
+      "used_by": ["devportal/templatetags/devportal_assets.py", "devportal/security/csp.py"]
+    },
+    {
+      "name": "DEVPORTAL_TRUST_GATEWAY_CLIENT_IP",
+      "type": "bool",
+      "default": false,
+      "helm": true,
+      "description": "When true, per-visitor rate limits (feedback, MCP, 404 log) take the client address from the gateway's X-Original-Forwarded-For header instead of REMOTE_ADDR (the proxy). Helm sets it from gateway.enabled. Never enable it without that gateway in front: the header would be client-controlled.",
+      "used_by": ["devportal/security/client_ip.py"]
+    }
+  ],
+  "standalone_only": [
+    {
+      "name": "DEVPORTAL_STANDALONE_POWERED_BY_FIXTURE",
+      "type": "string (path)",
+      "default": "<repo>/devportal-ui/src/gallery/lib/__fixtures__/projects.json",
+      "description": "The JSON file that answers GET /api/powered-by on the standalone dev server. A missing file answers {\"projects\": []}.",
+      "used_by": ["devportal/dev/urls_standalone.py"]
+    },
+    {
+      "name": "DEVPORTAL_SQLITE_PATH",
+      "type": "environment variable (path)",
+      "default": "<repo>/.devportal-run/standalone.sqlite3",
+      "description": "SQLite database of the standalone dev server.",
+      "used_by": ["devportal/dev/settings_standalone.py"]
+    }
+  ]
+}

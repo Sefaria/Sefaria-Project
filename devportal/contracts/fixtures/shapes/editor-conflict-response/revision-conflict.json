@@ -1,0 +1,19 @@
+{
+  "error": {
+    "code": "revision_conflict",
+    "message": "Someone else saved this page after you opened it."
+  },
+  "latest": {
+    "number": 5,
+    "source": "editor",
+    "author": {
+      "id": 9,
+      "name": "Another Editor"
+    },
+    "createdAt": "2026-11-18T10:15:00Z",
+    "title": "Welcome to Sefaria's Technical Documentation",
+    "isPublished": false,
+    "isDraft": true
+  },
+  "generation": 42
+}

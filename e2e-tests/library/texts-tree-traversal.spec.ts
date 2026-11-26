@@ -13,7 +13,7 @@ const clickFirstAvailableVersion = async (page: Page) => {
 test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' }, () => {
 
     // Test: Tanach > Genesis > Clicking a chapter in Contents tab
-    test('Tanach - Genesis Contents Tab', async ({ context }) => {
+    test('Tanach - Genesis Contents Tab', { tag: '@pr' }, async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
 
 
@@ -30,7 +30,7 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' },
     });
 
     // Test: Tanach > Genesis > Clicking the Versions tab > Clicking a version
-    test('Tanach - Genesis Versions Tab', async ({ context }) => {
+    test('Tanach - Genesis Versions Tab', { tag: '@pr' }, async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
 
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
@@ -97,7 +97,7 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' },
     });
 
     // Test: Tanach > Rashi
-    test('Tanach - Rashi', async ({ context }) => {
+    test('Tanach - Rashi', { tag: '@pr' }, async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Rashi', exact: true }).click();
@@ -183,7 +183,7 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' },
     // ==================== TALMUD tests ====================
 
     // Test: Talmud > Jerusalem > Berakhot > Alt TOC > Chapter
-    test('Talmud - Jerusalem - Berakhot - Chapter', async ({ context }) => {
+    test('Talmud - Jerusalem - Berakhot - Chapter', { tag: '@pr' }, async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
         await page.locator('.navBlockTitle').filter({ hasText: 'Talmud' }).first().click();
         await page.locator('.navToggle:has-text("Jerusalem")').click();
@@ -224,7 +224,7 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' },
     // ==================== KABBALAH tests ====================
 
     // Test: Kabbalah > Zohar > Daf
-    test('Kabbalah - Zohar - Daf', async ({ context }) => {
+    test('Kabbalah - Zohar - Daf', { tag: '@pr' }, async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
         await page.locator('.navBlockTitle').filter({ hasText: 'Kabbalah' }).first().click();
         await page.getByRole('link', { name: 'Zohar', exact: true }).click();
@@ -314,7 +314,8 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' },
         await page.getByRole('link', { name: 'מילונים וספרי יעץ' }).click();
         await page.getByRole('link', { name: 'סדר הדורות' }).click();
 
-        await page.getByRole('link', { name: 'מחברים' }).click();
+        // The Hebrew label comes from the index's alt-structure title ("אישים" today); the tab id is stable.
+        await page.locator('a[href*="tab=Authors"]').first().click();
         const item = page.locator('.schema-node-toc').first();
         await item.click();
         await expect(page).toHaveURL(/Seder_HaDorot%2C_Authors/);

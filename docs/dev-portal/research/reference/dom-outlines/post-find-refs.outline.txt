@@ -1,0 +1,919 @@
+<body class="body-none theme-solid header-solid header-bg-size-auto header-bg-pos-tl header-overlay-tri">
+  <div aria-hidden="true"> "For AI agents: the docs index is at https://developers.sefaria.org/llms.txt. App"
+  <div id="ssr-top">
+  <div id="ssr-main">
+    <div class="App ThemeContext ThemeContext_dark ThemeContext_compact ThemeContext_spacing_legacy ThemeC">
+      <div class="SuperHub2RNxzk6HzHiJ rm-ReadMe">
+        <div class="ContentWithOwlbotx4PaFDoA1KMz">
+          <div class="ContentWithOwlbot-content2X1XexaN8Lf2">
+            <header class="Header3zzata9F_ZPQ rm-Header_compact Header_collapsible3n0YXfOvb_Al rm-Header">
+              <div class="rm-Header-top Header-topuTMpygDG4e1V Header-top_compact2QxpUjyZpLPZ">
+                <div class="rm-Container rm-Container_flex">
+                  <div tabindex="-1">
+                    <a href="#content" class="Button Button_md rm-JumpTo Header-jumpTo3IWKQXmhSI5D Button_primary"> "Jump to Content"
+                  <div class="rm-Header-left Header-leftADQdGVqx1wqU">
+                    <a class="rm-Logo Header-logo1Xy41PtkzbdG" href="/">
+                      <img class="rm-Logo-img rm-Logo-img_lg Header-logo-img3YvV4lcGKkeb">
+                  <div class="rm-Header-left Header-leftADQdGVqx1wqU Header-left_mobile1RG-X93lx6PF">
+                    <div>
+                      <button aria-label="Toggle navigation menu" class="icon-menu menu3d6DYNDa3tk5" type="button">
+                      <div class="">
+                        <div class="Flyout95xhYIIoTKtc undefined rm-Flyout" data-testid="flyout">
+                          <div class="MobileFlyout1hHJpUd-nYkd">
+                            <a class="rm-MobileFlyout-item NavItem-item1gDDTqaXGhm1 NavItem-item_mobile1qG3gd-Mkck- " href="/">
+                              <span class="NavItem-textSlZuuL489uiw"> "Home"
+                            <a class="rm-MobileFlyout-item NavItem-item1gDDTqaXGhm1 NavItem-item_mobile1qG3gd-Mkck- " href="/docs">
+                              <span class="NavItem-textSlZuuL489uiw"> "Docs"
+                            <a aria-current="page" class="rm-MobileFlyout-item NavItem-item1gDDTqaXGhm1 NavItem-item_mobile1qG3gd-Mkck-  active" href="/reference">
+                              <span class="NavItem-textSlZuuL489uiw"> "API Reference"
+                            <a class="rm-MobileFlyout-item NavItem-item1gDDTqaXGhm1 NavItem-item_mobile1qG3gd-Mkck- " href="https://github.com/Sefaria/Sefaria-Project">
+                              <span class="NavItem-textSlZuuL489uiw"> "GitHub"
+                            <a class="rm-MobileFlyout-item NavItem-item1gDDTqaXGhm1 NavItem-item_mobile1qG3gd-Mkck- " href="https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=HeaderDev">
+                              <span class="NavItem-textSlZuuL489uiw"> "Donate"
+                            <a class="rm-MobileFlyout-item NavItem-item1gDDTqaXGhm1 NavItem-item_mobile1qG3gd-Mkck- " href="/page/contact-us">
+                              <span class="NavItem-textSlZuuL489uiw"> "Get in Touch"
+                            <a class="rm-MobileFlyout-item NavItem-item1gDDTqaXGhm1 NavItem-item_mobile1qG3gd-Mkck- " href="https://sefaria.org">
+                              <span class="NavItem-textSlZuuL489uiw"> "Sefaria Library"
+                            <a class="rm-MobileFlyout-item NavItem-item1gDDTqaXGhm1 NavItem-item_mobile1qG3gd-Mkck- " href="https://voices.sefaria.org">
+                              <span class="NavItem-textSlZuuL489uiw"> "Voices on Sefaria"
+                            <hr class="MobileFlyout-divider10xf7R2X1MeW">
+                            <a class="MobileFlyout-logo3Lq1eTlk1K76 Header-logo1Xy41PtkzbdG rm-Logo" href="/">
+                              <img class="Header-logo-img3YvV4lcGKkeb rm-Logo-img">
+                    <div class="Header-left-nav2xWPWMNHOGf_"> "API Reference"
+                  <div class="rm-Header-right Header-right21PC2XTT6aMg">
+                    <span class="Header-right_desktop14ja01RUQ7HE">
+                      <a class="Button Button_md rm-Header-link rm-Header-top-link Button_slate_text Header-link2tXYTgXq85" href="https://sefaria.org"> "Sefaria Library"
+                      <a class="Button Button_md rm-Header-link rm-Header-top-link Button_slate_text Header-link2tXYTgXq85" href="https://voices.sefaria.org"> "Voices at Sefaria"
+                      <a class="Button Button_md rm-Header-link rm-Header-top-link Button_slate_text Header-link2tXYTgXq85" href="https://developers.sefaria.org"> "Developers"
+                      <a class="Button Button_md rm-Header-link rm-Header-top-link Button_slate_text Header-link2tXYTgXq85" href="https://sefaria.org/products"> "More from Sefaria ›"
+                    <div class="Header-searchtb6Foi0-D9Vx">
+                      <button aria-label="Search ⌘k" class="rm-SearchToggle" data-symbol="⌘">
+                        <div class="rm-SearchToggle-icon icon-search1">
+              <div class="Header-bottom2eLKOFXMEmh5 Header-bottom_compact rm-Header-bottom">
+                <div class="rm-Container rm-Container_flex">
+                  <div tabindex="-1">
+                    <a href="#content" class="Button Button_md rm-JumpTo Header-jumpTo3IWKQXmhSI5D Button_primary"> "Jump to Content"
+                  <div class="rm-Header-left rm-Header-left_logo Header-leftADQdGVqx1wqU Header-left_compact3VLkb6FDGwKW">
+                    <a class="rm-Logo Header-logo1Xy41PtkzbdG" href="/">
+                      <img class="rm-Logo-img rm-Logo-img_lg Header-logo-img3YvV4lcGKkeb">
+                  <nav aria-label="Primary navigation" class="Header-leftADQdGVqx1wqU Header-subnavnVH8URdkgvEl Header-subnav_links1fSsYMNRxHdu" role="navigation">
+                    <a class="Button Button_md rm-Header-link rm-Header-bottom-link Button_slate_text Header-bottom-link" href="/">
+                      <span> "Home"
+                    <a class="Button Button_md rm-Header-link rm-Header-bottom-link Button_slate_text Header-bottom-link" href="/docs">
+                      <span> "Docs"
+                    <a aria-current="page" class="Button Button_md rm-Header-link rm-Header-bottom-link Button_slate_text Header-bottom-link" href="/reference">
+                      <span> "API Reference"
+                    <a class="Button Button_md rm-Header-link rm-Header-bottom-link Button_slate_text Header-bottom-link" href="https://github.com/Sefaria/Sefaria-Project">
+                      <span> "GitHub"
+                    <a class="Button Button_md rm-Header-link rm-Header-bottom-link Button_slate_text Header-bottom-link" href="https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=HeaderDev">
+                      <span> "Donate"
+                    <a class="Button Button_md rm-Header-link rm-Header-bottom-link Button_slate_text Header-bottom-link" href="/page/contact-us">
+                      <span> "Get in Touch"
+                    <a class="Button Button_md rm-Header-link rm-Header-bottom-link Button_slate_text Header-bottom-link" href="https://sefaria.org">
+                      <span> "Sefaria Library"
+                    <a class="Button Button_md rm-Header-link rm-Header-bottom-link Button_slate_text Header-bottom-link" href="https://voices.sefaria.org">
+                      <span> "Voices on Sefaria"
+                    <div class="Header-subnav-tabyNLkcOA6xAra">
+                  <button class="Button Button_sm Flex Flex_row MobileSubnav1DsTfasXloM2 Button_secondary Button_secondary_" type="button">
+                    <span class="Button-label"> "Find Refs"
+                    <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                      <svg>
+                  <div class="rm-Header-right Header-right21PC2XTT6aMg Header-right_desktop14ja01RUQ7HE">
+                    <div class="Dropdown Dropdown_closed" data-testid="dropdown-container">
+                      <button aria-label="Open links menu" aria-haspopup="dialog" class="Button Button_md Header-link2tXYTgXq85zW NavItem2xSfFaVqfRjy NavItem_mdrYO3ChA2kYvP rm-Hea" type="button">
+                        <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                          <svg>
+              <div class="hub-search-results--reactApp " id="hub-search-results">
+                <div class="hub-container">
+                  <div class="modal-backdrop rm-SearchModal rm-SearchModal_classic" role="button" tabindex="0">
+            <main class="SuperHubReference3_1nwDyq5sO3 rm-ReferenceMain rm-ReferenceMain-SuperHub rm-Container rm-C" id="Explorer">
+              <nav aria-label="Secondary navigation" class="rm-Sidebar hub-sidebar reference-redesign Nav3C5f8FcjkaHj" id="reference-sidebar" role="navigation">
+                <div class="SidebarFilter1PLUQrK3Aw0A rm-JumpTo">
+                  <div class="InputParent InputParent_sm InputParent_isClearable SidebarFilter-input3ZoWLNrwYDvn rm-Jump">
+                    <input aria-keyshortcuts="Control+/ Meta+/" aria-label="Filter pages" placeholder="Filter" aria-required="false" class="Input Input_sm Input_fullWidth" type="search" value="">
+                <div class="Sidebar1t2G1ZJq-vU1 rm-Sidebar hub-sidebar-content">
+                  <section class="Sidebar-listWrapper6Q9_yUrG906C rm-Sidebar-section">
+                    <h2 class="Sidebar-headingTRQyOa2pk0gh rm-Sidebar-heading"> "welcome"
+                    <ul class="Sidebar-list_sidebarLayout3RaX72iQNOEI Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 childless text-wrap rm-Sidebar-link" href="/reference/getting-started">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Getting Started With the Sefaria API"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/tutorials">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Tutorials"
+                          <button aria-expanded="false" aria-label="Show subpages for Tutorials" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/tutorial-dvar-torah-outliner">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Tutorial: The Dvar Torah Outliner"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/tutorial-tanakh-trivia-game">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Tutorial: Tanakh Trivia Game"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/data-visualization">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Tutorial: Data Visualization"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/playwright-tests-for-sefaria">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Writing Playwright Tests for Sefaria"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 childless text-wrap rm-Sidebar-link" href="/reference/others-have-asked">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Frequently Asked Questions"
+                  <section class="Sidebar-listWrapper6Q9_yUrG906C Sidebar-listWrapper_expandedvCieTVZJcoub rm-Sidebar-sectio">
+                    <h2 class="Sidebar-headingTRQyOa2pk0gh rm-Sidebar-heading"> "Sefaria API"
+                    <ul class="Sidebar-list_sidebarLayout3RaX72iQNOEI Sidebar-list3cZWQLaBf9k8 Sidebar-list_expandedWy9fQ">
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-v3-texts">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Text"
+                          <button aria-expanded="false" aria-label="Show subpages for Text" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-v3-texts">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Texts (v3)"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_deprecated2xLRLrwYS-C8 childless subpage text-wrap r" href="/reference/get-v1-texts">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Texts (v1)"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <button aria-label="Deprecated Endpoint" class="Sidebar-link-deprecated3sPW_eEHvANR" type="button">
+                                  <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy Sidebar-link_deprecated-icon">
+                                    <svg>
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-versions">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Versions"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-translations">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Languages"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-translations-lang">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Translations"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-manuscripts">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Manuscripts"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-texts-random">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Random Text"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-bulktext">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Bulk Text"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-passages">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Passages"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-v2-index">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Index"
+                          <button aria-expanded="false" aria-label="Show subpages for Index" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-v2-index">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Index (v2)"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-index">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Table of Contents"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-shape">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Shape"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-related">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Related"
+                          <button aria-expanded="false" aria-label="Show subpages for Related" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-related">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Related"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-links">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Links"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-ref-topic-links">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Ref-Topic-Links"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-related-websites">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Related Web Pages"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-link-summary">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Link Summary"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-calendars">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Calendars"
+                          <button aria-expanded="false" aria-label="Show subpages for Calendars" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-calendars">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Calendars"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-next-read">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Next Read"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-aliyot-by-parasha">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Aliyot for Parasha"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-calendar-parasha-topic">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Parasha Topic"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-calendar-holiday-topic">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Holiday Topic"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-words">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Lexicon"
+                          <button aria-expanded="false" aria-label="Show subpages for Lexicon" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-words">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Lexicon"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-words-completion">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Word Completion"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-lexicon-entry">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Get a lexicon entry"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-v2-topics">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Topic"
+                          <button aria-expanded="false" aria-label="Show subpages for Topic" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-v2-topics">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Topic (v2)"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_deprecated2xLRLrwYS-C8 childless subpage text-wrap r" href="/reference/get-topic-slug">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Topic (v1)"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <button aria-label="Deprecated Endpoint" class="Sidebar-link-deprecated3sPW_eEHvANR" type="button">
+                                  <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy Sidebar-link_deprecated-icon">
+                                    <svg>
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-all-topics">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "All Topics"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-topics-graph">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Topic Graph"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-recommend-topics">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Recommended Topics"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-random-by-topic">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Random By Topic"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-terms">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Term"
+                          <button aria-expanded="false" aria-label="Show subpages for Term" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-terms">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Terms"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-name">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Name"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-sheet">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Sheets"
+                          <button aria-expanded="false" aria-label="Show subpages for Sheets" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-sheet">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Sheet"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-sheets-trending-tags">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Trending Sheet Tags"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-sheet-modified">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Sheet Modified Check"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-user-sheets">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "User's Sheets"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-user-sheets-paginated">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "User's Sheets (Paginated)"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-sheets-bulk">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Bulk Sheets"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-sheets-tag-list">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Sheet Tag List"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-sheets-tag-list-sorted">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Sheet Tag List (Sorted)"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-user-sheet-tags">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "User's Sheet Tags"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-sheets-by-ref">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Sheets by Ref"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-all-sheets">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "All Public Sheets"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-author-indexes">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Index"
+                          <button aria-expanded="false" aria-label="Show subpages for Index" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-author-indexes">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Author Indexes"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-index-titles">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Index Titles"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-index-by-title">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Index Metadata"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-index-v2">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Index Metadata (v2)"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-counts">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Counts"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-counts-links">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Link Counts Between Categories"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-counts-words">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Word Count for Version"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-collections">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Collections"
+                          <button aria-expanded="false" aria-label="Show subpages for Collections" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-collections">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Collections"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-collection">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Collection"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-user-collections">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "User's Collections"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/get-ref">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Ref"
+                          <button aria-expanded="false" aria-label="Show subpages for Ref" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-ref">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Ref"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                      <li class="Sidebar-item23D-2Kd61_k3 subnav-expanded">
+                        <a class="Sidebar-link2Dsha-r-GKh2 Sidebar-link_parent text-wrap rm-Sidebar-link" href="/reference/post-find-refs">
+                          <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                            <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Misc"
+                          <button aria-expanded="true" aria-label="Hide subpages for Misc" class="Sidebar-link-buttonWrapper3hnFHNku8_BJ" type="button">
+                            <i aria-hidden="true" class="Sidebar-link-iconnjiqEiZlPn0W Sidebar-link-expandIcon2yVH6SarI6NW icon-chevron-rightward">
+                        <ul class="subpages Sidebar-list3cZWQLaBf9k8 rm-Sidebar-list">
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a aria-current="page" class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link active" href="/reference/post-find-refs">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Find Refs"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_post APIMeth" data-testid="http-method"> "post"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/post-search-wrapper">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Search"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_post APIMeth" data-testid="http-method"> "post"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-img-gen">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Social Media Image"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-category">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Category"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-profile">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Public Profile"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                          <li class="Sidebar-item23D-2Kd61_k3">
+                            <a class="Sidebar-link2Dsha-r-GKh2 childless subpage text-wrap rm-Sidebar-link" href="/reference/get-async-task-status">
+                              <span class="Sidebar-link-textLuTE1ySm4Kqn">
+                                <span class="Sidebar-link-text_label1gCT_uPnx7Gu"> "Get Async Task Status"
+                              <span class="Sidebar-link-metaLhOiyAaGZrkY">
+                                <span class="rm-APIMethod APIMethod APIMethod_fixedWidth APIMethod_fixedWidth_md APIMethod_get APIMetho" data-testid="http-method"> "get"
+                  <div class="readme-logo" id="readmeLogo"> "Powered by "
+                    <a aria-label="ReadMe" href="https://readme.com?ref_src=hub&project=sefaria">
+                      <svg>
+                <button aria-label="Hide sidebar navigation" class="Nav-toggle-collapse39KxgTH727KL" type="button">
+              <div class="SuperHubReference-article-wrapper3MpzTHD_pHxT">
+                <div class="Flex Flex_row SuperHubReference-article-container3-0_Qiq3UBH5">
+                  <article class="rm-Article" id="content">
+                    <header class="headline-container21aRBSn8Bqg6" data-raycast-oas="/branches/1.0/apis/sefaria-api.json">
+                      <div class="Flex Flex_row headline-container-breadcrumbContainer3dNTdA3YF4aV">
+                        <div class="Flex Flex_row headline-container-breadcrumbContainer-actions1ScQpKPsYewb">
+                          <div class="AIDropdownzmvdRdsNayZl headline-container-ai-dropdown1q98-Ie9cpfI rm-AIDropdown">
+                            <button class="Button Button_sm AIDropdown-splitButton2KQ9N2VEvBcT AIDropdown-splitButton_left2tTf2UmhJFy" type="button">
+                              <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                                <svg>
+                              <span> "Copy Page"
+                            <div class="Dropdown Dropdown_closed" data-testid="dropdown-container">
+                              <button aria-haspopup="dialog" class="Button Button_sm AIDropdown-splitButton2KQ9N2VEvBcT AIDropdown-splitButton_rightW_JEw7Q1_y" type="button">
+                                <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                                  <svg>
+                      <div class="headline-container-grid-itemGdPV-VbhShYs headline-container-button-containerdoRPmNS7iaB3">
+                        <div class="rm-PageHeader" id="content-head">
+                          <h1 class="Title Title1 rm-PageHeader-title"> "Find Refs"
+                            <div class="rm-TagTooltip TagTooltip Dropdown Dropdown_closed" data-testid="dropdown-container">
+                              <button aria-label="View tags" aria-haspopup="dialog" class="Button Button_xs TagTooltip-tag-button3cBXYBcMrKlM TagTooltip-tag-button_inline3kZK7Qmy_Bx" type="button">
+                                <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                                  <svg>
+                      <div class="headline-container-article-info2GaOf2jMpV0r">
+                        <span class="rm-APIMethod APIMethod APIMethod_post APIMethod_lg headline-container-api-method" data-testid="http-method"> "post"
+                        <div class="headline-container-article-info-url-container3uJjmBcfpYBE">
+                          <span class="headline-container-article-info-url2nV_XrjpFuVQ
+                false
+                fals" data-testid="serverurl" title="https://www.sefaria.org/api/find-refs"> "https://www.sefaria.org /api/find-refs"
+                        <button aria-label="Copy to clipboard" class="Button Button_xs CopyToClipboard1605sk0q8t0p headline-container-article-info-buttonA6rhTTt" type="button">
+                          <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                            <svg>
+                      <div class="rm-Markdown markdown-body grid-item excerptT2m-MzSJGRK7" data-testid="RDMD">
+                        <p> "Initially designed to find links on websites using , the Find Refs API can ident"
+                          <a href="https://www.sefaria.org/linker"> "Sefaria's Linker"
+                        <p> "The endpoint immediately returns a with HTTP 202. You must poll to retrieve the "
+                          <strong> "This is an asynchronous API."
+                          <button aria-label="Copy Code" class="rdmd-code-copy fa">
+                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "task_id"
+                          <button aria-label="Copy Code" class="rdmd-code-copy fa">
+                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "GET /api/async/{task_id}"
+                          <button aria-label="Copy Code" class="rdmd-code-copy fa">
+                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "/api/async/{task_id}"
+                          <button aria-label="Copy Code" class="rdmd-code-copy fa">
+                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "result"
+                          <button aria-label="Copy Code" class="rdmd-code-copy fa">
+                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "FindRefsAPIResponse"
+                    <div class="Reference-section">
+                      <header class="Flex Flex_row APISectionHeader3LN_-QIR0m7x APISectionHeader_title2JS7xZ_m-HAv rm-APISectio">
+                        <div class="APISectionHeader-heading4MUMLbp4_nLs APISectionHeader-heading_title15Zd6rYplxPq"> "Recent Requests"
+                        <div class="Flex Flex_row APISectionHeader_subheadingLHm6xrZdHirJ"> "Log in to see full request history"
+                          <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                            <svg aria-label=Key>
+                      <div class=" APILogsTableLPQrRACaPJqQ rm-APILogsTable">
+                        <table class="Table Table_bordered Table_condensed Table_dataGrid LogsTable2S0MxFi2egGw LogsTable_empty1">
+                          <colgroup>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                          <thead class="">
+                            <tr>
+                              <th> "Time"
+                              <th> "Status"
+                              <th> "User Agent"
+                              <th>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <div class="APILogsTable_emptyzsZXbUHstELO"> "Retrieving recent requests…"
+                        <div class="APILogsTable_loading35SPlUznCvSp">
+                          <div class="Spinner Spinner_sm" role="progressbar">
+                            <svg>
+                            <span class="Spinner-label"> "Loading…"
+                    <form class="param-type rm-APISchema" id="api-request-form" name="Parameters">
+                      <header id="body-params" data-testid="APISchema-SectionHeader" class="Flex Flex_row APISectionHeader3LN_-QIR0m7x APISectionHeader_title2JS7xZ_m-HAv rm-APISectio">
+                        <div class="APISectionHeader-heading4MUMLbp4_nLs APISectionHeader-heading_title15Zd6rYplxPq"> "Body Params"
+                          <a aria-label="Skip link to Body Params" class="APISectionHeader-anchor1T_cUKoAPu1z" href="#body-params">
+                            <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                              <svg>
+                      <div class="rm-ParamContainer  " data-request-body="true">
+                        <div class="rjsf" data-testid="form-body-postFindRefs">
+                          <div class="Param1QyvwHroaCgH Param_topLevel3D0ZGlu38rkq Param-description1hAF_4T81MF0">
+                            <p class="field-description" data-testid="body-postFindRefs__description">
+                            <div class="rm-Markdown markdown-body" data-testid="RDMD">
+                              <p> "A properly formatted POST request for the Find Refs API"
+                            <p>
+                          <div class="Param1QyvwHroaCgH Param_topLevel3D0ZGlu38rkq">
+                            <div class="Fieldset2vG8BhSgq0S6" id="body-postFindRefs">
+                              <div class="Param1QyvwHroaCgH ">
+                                <div class="Param-left7tTo9KK0E0kY">
+                                  <div class="Param-header3wXBpbDTP1O6" id="body-params-text">
+                                    <span class="Param-nameU7CntAa90Wvb"> "text"
+                                    <div class="Param-type3QlaE1nrKh1D"> "object"
+                                    <div class="Param-required2cYbu9SjF2YX"> "required"
+                                    <a aria-label="Skip link to text" class="Param-anchor3M8YA5-7DMIo" href="#body-params-text">
+                                      <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                                        <svg>
+                                  <div class="Param-description1hAF_4T81MF0">
+                                    <div class="field-description markdown-body" id="body-postFindRefs_text__description">
+                                      <div class="rm-Markdown markdown-body" data-testid="RDMD">
+                                        <p> "Initially designed for websites, this API expects the field to contain both a an"
+                                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "text"
+                                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "body"
+                                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "title"
+                                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "body"
+                                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "''"
+                                          <code class="rdmd-code lang- theme-undefined" data-lang=""> "title"
+                                  <section class="Param-expand33S7_GjvrvPv  odd">
+                                    <button aria-expanded="false" class="Flex Param-expand-button1ktY2S68FWc_ " type="button">
+                                      <div class="Param-expand-label4ycK3GLSAQ9k"> "text  object"
+                                      <i class="icon-plus1 Param-expand-button-icon1NFKYiweB5qm">
+                              <div class="form-group field field-string Param1QyvwHroaCgH ">
+                                <div class="Param-contentWrapperSyEvmlFFCPfu">
+                                  <div class="Param-left7tTo9KK0E0kY">
+                                    <div class="Param-header3wXBpbDTP1O6" id="body-params-lang">
+                                      <label class="Param-nameU7CntAa90Wvb" for="body-postFindRefs_lang"> "lang"
+                                      <div class="Param-type3QlaE1nrKh1D"> "string"
+                                      <div class="Param-is-enum2n9v5ucvI61L"> "enum"
+                                      <div class="Param-required2cYbu9SjF2YX"> "required"
+                                      <a aria-label="Skip link to lang" class="Param-anchor3M8YA5-7DMIo" href="#body-params-lang">
+                                        <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                                          <svg>
+                                    <div class="Param-description1hAF_4T81MF0">
+                                      <div class="field-description markdown-body" id="body-postFindRefs_lang__description">
+                                        <div class="rm-Markdown markdown-body" data-testid="RDMD">
+                                          <p> "Either or . If not included, it will default to one based on the number of Hebre"
+                                            <code class="rdmd-code lang- theme-undefined" data-lang=""> "he"
+                                            <code class="rdmd-code lang- theme-undefined" data-lang=""> "en"
+                                            <code class="rdmd-code lang- theme-undefined" data-lang=""> "body"
+                                            <code class="rdmd-code lang- theme-undefined" data-lang=""> "text"
+                                  <div class="Param-form1SoAutupIaz3">
+                                    <select class="Select Select_sm Param-select3zpmIPk4ibrt rm-ParamSelect Select_placeholderShown" id="body-postFindRefs_lang">
+                                      <option value="placeholder"> "en"
+                                      <option value="">
+                                      <option value="he"> "he"
+                                      <option value="en"> "en"
+                                <div class="Param-enum-section3WXAuBKZANeR">
+                                  <div class="Flex Flex_row Param-enum-section_compact">
+                                    <span class="Param-enum-section_compact-label2ssR6JGk5fry"> "Allowed:"
+                                    <div class="Flex Flex_row Param-enum-section_compact-valuesMEoYUJw5UgoP">
+                                      <button class="Button Button_md Param-enum-section-item2ZnSprX3ic96 Button_secondary Button_secondary_out" type="button">
+                                        <code class="Param-enum-section-item-valueD6D-aIF2_UME" title="he"> "he"
+                                      <button class="Button Button_md Param-enum-section-item2ZnSprX3ic96 Button_secondary Button_secondary_out" type="button">
+                                        <code class="Param-enum-section-item-valueD6D-aIF2_UME" title="en"> "en"
+                    <header id="response-schemas" class="Flex Flex_row APISectionHeader3LN_-QIR0m7x APISectionHeader_title2JS7xZ_m-HAv rm-APISectio">
+                      <div class="APISectionHeader-heading4MUMLbp4_nLs APISectionHeader-heading_title15Zd6rYplxPq"> "Responses"
+                        <a aria-label="Skip link to Responses" class="APISectionHeader-anchor1T_cUKoAPu1z" href="#response-schemas">
+                          <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                            <svg>
+                    <section class="Accordion3R5o2qiZX3S6 APIResponseSchemaPicker2ehjUsNOSwdc rm-APIResponseSchemaPicker" data-testid="accordion">
+                      <div class="AccordionPanel1J5OIdBTwbL6 APIResponseSchemaPicker-option3CU8y1saVb8O rm-APIResponseSchema">
+                        <h1 class="AccordionToggle2c6jPP7vVvLS APIResponseSchemaPicker-option-toggle1Rk-RliJASLl ">
+                          <button aria-controls="AccordionPanel-Rckpahcla" aria-expanded="false" id="AccordionPanel-Rckpahcla-toggle" type="button">
+                            <div class="APIResponseSchemaPicker-option-toggle-contentVkCQbEFF2yO0">
+                              <div class="APIResponseSchemaPicker-label3XMQ9E-slNcS"> " 200"
+                                <code class="APIResponseSchemaPicker-label-text3bDdrQX1B-h4 HTTPStatus HTTPStatus_2">
+                                  <span aria-hidden="false" aria-label="200" class="HTTPStatus-chit" role="img">
+                              <div class="rm-Markdown markdown-body APIResponseSchemaPicker-description19iNatTizvwb" data-testid="RDMD">
+                                <p> "Shape of the field returned by on successful completion."
+                                  <code class="rdmd-code lang- theme-undefined" data-lang=""> "result"
+                                  <code class="rdmd-code lang- theme-undefined" data-lang=""> "GET /api/async/{task_id}"
+                            <div class="AccordionToggle-icon-slot1bf45OBGkGPr">
+                              <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                                <svg aria-label=Chevron>
+                      <div class="AccordionPanel1J5OIdBTwbL6 APIResponseSchemaPicker-option3CU8y1saVb8O rm-APIResponseSchema">
+                        <h1 class="AccordionToggle2c6jPP7vVvLS APIResponseSchemaPicker-option-toggle1Rk-RliJASLl ">
+                          <button aria-controls="AccordionPanel-Rkkpahcla" aria-expanded="false" id="AccordionPanel-Rkkpahcla-toggle" type="button">
+                            <div class="APIResponseSchemaPicker-option-toggle-contentVkCQbEFF2yO0">
+                              <div class="APIResponseSchemaPicker-label3XMQ9E-slNcS"> " 202"
+                                <code class="APIResponseSchemaPicker-label-text3bDdrQX1B-h4 HTTPStatus HTTPStatus_2">
+                                  <span aria-hidden="false" aria-label="202" class="HTTPStatus-chit" role="img">
+                              <div class="rm-Markdown markdown-body APIResponseSchemaPicker-description19iNatTizvwb" data-testid="RDMD">
+                                <p> "Task enqueued. Poll to retrieve results. When the task completes successfully, t"
+                                  <code class="rdmd-code lang- theme-undefined" data-lang=""> "GET /api/async/{task_id}"
+                                  <code class="rdmd-code lang- theme-undefined" data-lang=""> "FindRefsAPIResponse"
+                            <div class="AccordionToggle-icon-slot1bf45OBGkGPr">
+                              <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                                <svg aria-label=Chevron>
+                    <div class="ModalWrapper" id="response-schema-modal-target">
+                    <div class="Footer-desktop1Hf-2fUBeoe2">
+                      <div class="Flex Flex_row ">
+                        <div class="UpdatedAt">
+                          <p class="DateLine "> "Updated  6 months ago "
+                            <i class="icon icon-watch">
+                      <hr class="NextStepsDivider">
+                      <nav aria-label="Pagination Controls" class="PaginationControlsjDYuqu8pBMUy rm-Pagination">
+                        <a class="PaginationControls-link254uPEbaP92i PaginationControls-link_left1G58BmNHDbVm" aria-label="Previous Page: Ref" href="/reference/get-ref">
+                          <span class="PaginationControls-iconZbaZ3tgyhNmI icon-arrow-left2">
+                          <div class="PaginationControls-text3qEXHZU00znD PaginationControls-text_left3wBkn4C9R0W_"> "Ref"
+                        <a class="PaginationControls-link254uPEbaP92i PaginationControls-link_right5lsfuICZqXYk" aria-label="Next Page: Search" href="/reference/post-search-wrapper">
+                          <div class="PaginationControls-text3qEXHZU00znD PaginationControls-text_right3EIfWubgRVVP"> "Search"
+                          <span class="PaginationControls-iconZbaZ3tgyhNmI icon-arrow-right2">
+                      <div class="rm-PageThumbs PageThumbs">
+                        <div class="PageThumbs-helpful"> "Did this page help you?"
+                          <div class="PageThumbs-cta">
+                            <div class="Dropdown Dropdown_closed" data-testid="dropdown-container">
+                              <button aria-label="Yes, this page helped me" aria-haspopup="dialog" class="Button Button_sm PageThumbs-button Dropdown-toggle Button_secondary Button_secondary_text" type="button">
+                                <i class="icon icon-thumbs-up-2">
+                                <span> "Yes"
+                            <div class="Dropdown Dropdown_closed" data-testid="dropdown-container">
+                              <button aria-label="No, this page did not help me" aria-haspopup="dialog" class="Button Button_sm PageThumbs-button Dropdown-toggle Button_secondary Button_secondary_text" type="button">
+                                <i class="icon icon-thumbs-down1">
+                                <span> "No"
+                  <div id="ReferencePlayground" class="rm-Playground PlaygroundC7DInM9NFvBg ">
+                    <section class="Playground-section3VTXuaYZivJK  " data-notranslate="true">
+                      <header class="Flex Flex_row APISectionHeader3LN_-QIR0m7x APISectionHeader_subheading rm-APISectionHeader">
+                        <div class="APISectionHeader-heading4MUMLbp4_nLs"> "Language"
+                      <div class="LanguagePickerSIxXDuYmeYsW rm-LanguagePicker">
+                        <div class="LanguagePicker-languages1qVVo_v6AlP9">
+                          <button aria-pressed="true" class="LanguagePicker-button1E91woqg9Y0e rm-LanguageButton_active rm-LanguageButton" type="button"> "Shell"
+                            <i class="LanguagePicker-button-icon1vy2AqvvY7se icon-curl">
+                              <span class="path1">
+                              <span class="path2">
+                              <span class="path3">
+                              <span class="path4">
+                              <span class="path5">
+                              <span class="path6">
+                              <span class="path7">
+                              <span class="path8">
+                          <button aria-pressed="false" class="LanguagePicker-button1E91woqg9Y0e rm-LanguageButton" type="button"> "Node"
+                            <i class="LanguagePicker-button-icon1vy2AqvvY7se icon-node">
+                              <span class="path1">
+                              <span class="path2">
+                              <span class="path3">
+                              <span class="path4">
+                              <span class="path5">
+                              <span class="path6">
+                              <span class="path7">
+                              <span class="path8">
+                          <button aria-pressed="false" class="LanguagePicker-button1E91woqg9Y0e rm-LanguageButton" type="button"> "Ruby"
+                            <i class="LanguagePicker-button-icon1vy2AqvvY7se icon-ruby">
+                              <span class="path1">
+                              <span class="path2">
+                              <span class="path3">
+                              <span class="path4">
+                              <span class="path5">
+                              <span class="path6">
+                              <span class="path7">
+                              <span class="path8">
+                          <button aria-pressed="false" class="LanguagePicker-button1E91woqg9Y0e rm-LanguageButton" type="button"> "PHP"
+                            <i class="LanguagePicker-button-icon1vy2AqvvY7se icon-php">
+                              <span class="path1">
+                              <span class="path2">
+                              <span class="path3">
+                              <span class="path4">
+                              <span class="path5">
+                              <span class="path6">
+                              <span class="path7">
+                              <span class="path8">
+                          <button aria-pressed="false" class="LanguagePicker-button1E91woqg9Y0e rm-LanguageButton" type="button"> "Python"
+                            <i class="LanguagePicker-button-icon1vy2AqvvY7se icon-python">
+                              <span class="path1">
+                              <span class="path2">
+                              <span class="path3">
+                              <span class="path4">
+                              <span class="path5">
+                              <span class="path6">
+                              <span class="path7">
+                              <span class="path8">
+                          <div class="LanguagePicker-divider Dropdown Dropdown_closed" data-testid="dropdown-container">
+                            <button aria-label="More Languages" aria-haspopup="dialog" class="Button Button_md LanguagePicker-more2w3Eqm0IH_K7 rm-LanguageButton-more Dropdown-toggle Bu" type="button">
+                              <span class="IconWrapper Icon-wrapper2z2wVIeGsiUy">
+                                <svg aria-label=More ellipsis>
+                    <section class="Playground-section3VTXuaYZivJK  " data-notranslate="true">
+                    <section class="Playground-section3VTXuaYZivJK Playground-section_sticky_fBLN0qIkmEd " data-notranslate="true">
+                      <div class="rm-PlaygroundRequest" role="none">
+                        <pre class="CodeSnippet">
+                          <div class="CodeEditor cm-s-material-palenight">
+                            <div class="Spinner" role="progressbar">
+                              <svg>
+                              <span class="Spinner-label"> "Loading…"
+                      <section class="APIResponse3FBSi0-qfTQs rm-PlaygroundResponse" data-color-mode="light">
+                        <header class="Flex Flex_row APIResponse-header3Y3zkft15LCF">
+                          <div class="APIResponse-header-title1t9Ud0xUwU_k"> "Response "
+                        <div class="APIResponse-empty3Qdzfpq_JjNF">
+                          <div class="APIResponse-empty-promptJJRO6bhpQ19V"> "Click to start a request and see the response here! Or choose an example:"
+                            <code class="APIResponse-empty-tryit2H55vIRfRhS3"> "Try It!"
+                          <div class="APIResponse-empty-examples31R-lIqoi1VN">
+                            <div class="Flex Flex_col APIResponse-empty-examples-list">
+                              <div class="APIResponse-empty-examples-header3TsaXZxKJS3C"> "application/json"
+                              <div class="Flex Flex_row APIResponse-empty-examples-content">
+                                <button class="Button Button_sm APIResponse-empty-examples-button19BFAck-efx6 Button_full-width Button_se" type="button">
+                                  <code class=" HTTPStatus HTTPStatus_2">
+                                    <span aria-hidden="false" aria-label="200" class="HTTPStatus-chit" role="img">
+                                  <span class="APIResponse-menu-status APIResponse-empty-examples-button-label2PSfvM6i4NUd">
+                                    <span class="APIResponse-status-code3P_6g-mcLB3V"> "200"
+                                <button class="Button Button_sm APIResponse-empty-examples-button19BFAck-efx6 Button_full-width Button_se" type="button">
+                                  <code class=" HTTPStatus HTTPStatus_2">
+                                    <span aria-hidden="false" aria-label="202" class="HTTPStatus-chit" role="img">
+                                  <span class="APIResponse-menu-status APIResponse-empty-examples-button-label2PSfvM6i4NUd">
+                                    <span class="APIResponse-status-code3P_6g-mcLB3V"> "202"
+                                    <span> "- Example"
+                  <div class="Footer-mobileOGO_ewpg_gOk">
+                    <div class="Flex Flex_row ">
+                      <div class="UpdatedAt">
+                        <p class="DateLine "> "Updated  6 months ago "
+                          <i class="icon icon-watch">
+                    <hr class="NextStepsDivider">
+                    <nav aria-label="Pagination Controls" class="PaginationControlsjDYuqu8pBMUy rm-Pagination">
+                      <a class="PaginationControls-link254uPEbaP92i PaginationControls-link_left1G58BmNHDbVm" aria-label="Previous Page: Ref" href="/reference/get-ref">
+                        <span class="PaginationControls-iconZbaZ3tgyhNmI icon-arrow-left2">
+                        <div class="PaginationControls-text3qEXHZU00znD PaginationControls-text_left3wBkn4C9R0W_"> "Ref"
+                      <a class="PaginationControls-link254uPEbaP92i PaginationControls-link_right5lsfuICZqXYk" aria-label="Next Page: Search" href="/reference/post-search-wrapper">
+                        <div class="PaginationControls-text3qEXHZU00znD PaginationControls-text_right3EIfWubgRVVP"> "Search"
+                        <span class="PaginationControls-iconZbaZ3tgyhNmI icon-arrow-right2">
+                    <div class="rm-PageThumbs PageThumbs">
+                      <div class="PageThumbs-helpful"> "Did this page help you?"
+                        <div class="PageThumbs-cta">
+                          <div class="Dropdown Dropdown_closed" data-testid="dropdown-container">
+                            <button aria-label="Yes, this page helped me" aria-haspopup="dialog" class="Button Button_sm PageThumbs-button Dropdown-toggle Button_secondary Button_secondary_text" type="button">
+                              <i class="icon icon-thumbs-up-2">
+                              <span> "Yes"
+                          <div class="Dropdown Dropdown_closed" data-testid="dropdown-container">
+                            <button aria-label="No, this page did not help me" aria-haspopup="dialog" class="Button Button_sm PageThumbs-button Dropdown-toggle Button_secondary Button_secondary_text" type="button">
+                              <i class="icon icon-thumbs-down1">
+                              <span> "No"
+              <div class="ModalWrapper" id="response-headers-modal-root">
+              <div class="ModalWrapper QuickNav-modal QuickNav-modal-desktop" id="QuickNav-modal-root">
+              <div class="ModalWrapper QuickNav-modal QuickNav-modal-mobile" id="QuickNav-mobile-modal-root">
+            <footer aria-label="Status banner" class="Footer2U8XAPoGhlgO AppFooter rm-Banners">
+            <div class="ModalWrapper" id="ChatGPT-modal">
+      <div class="ModalWrapper" id="tutorialmodal-root">
+  <div class="ng-non-bindable">
+  <div id="hub-container">
+    <div class="hub-container">
+      <div>
+        <div id="replace-view">
+  <div id="ssr-end">

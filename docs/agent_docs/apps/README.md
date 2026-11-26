@@ -8,6 +8,13 @@ These are the smaller Django apps that sit alongside the main `reader/` and `sef
 
 ## Apps
 
+### devportal/
+
+> Source: `devportal/`, `devportal-ui/`. Full guide: [`devportal.md`](./devportal.md)
+
+- **Purpose**: Serves developers.sefaria.org (homepage, Markdown docs, interactive OpenAPI reference, agent surface and MCP server, the Powered by Sefaria gallery, a staff editor) as a third django-hosts host, replacing ReadMe.io.
+- **Non-obvious**: Its URLconf (`sefaria/urls_developers.py`) includes no main-site view, and the React 16 app never sees the module. The frontend is a separate Vite + React 19 package. Content lives in Postgres with revisions; endpoint content always comes from `docs/openAPI.json`.
+
 ### api/
 
 > Source: `api/`

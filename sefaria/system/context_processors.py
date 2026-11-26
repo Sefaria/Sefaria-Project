@@ -18,6 +18,7 @@ from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.chatbot import CLEAR_STORAGE_COOKIE
 from sefaria.utils.design_system import design_system_preview
+from sefaria.utils.domains_and_languages import developers_url
 from sefaria.utils.util import is_int
 
 logger = structlog.get_logger(__name__)
@@ -85,6 +86,8 @@ def global_settings(request):
         "CLIENT_SENTRY_DSN": CLIENT_SENTRY_DSN,
         "GOOGLE_SSO_CLIENT_ID": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
         "APPLE_SSO_CLIENT_ID": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        # The developer portal of this environment, for templates' links to it (developers.sefaria.org in production).
+        "DEVELOPERS_URL": developers_url(),
         "RECAPTCHA_PUBLIC_KEY": getattr(
             settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None
         ),

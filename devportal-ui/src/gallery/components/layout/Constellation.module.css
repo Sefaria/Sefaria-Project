@@ -1,0 +1,15 @@
+.root {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 420px;
+  height: 320px;
+  pointer-events: none;
+}
+
+@media (width >= 640px) {
+  .root {
+    width: 64%;
+    height: 100%;
+  }
+}

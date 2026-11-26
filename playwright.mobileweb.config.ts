@@ -9,16 +9,54 @@ if (!process.env.CI) {
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '');
 const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '');
 
+// The developer portal (third module, English only). Same resolution as
+// e2e-tests/constants.ts and playwright.config.ts: E2E_DEVELOPERS_URL; for a local
+// SANDBOX_URL, its developers. sub-host (127.0.0.1 becomes localhost); otherwise
+// https://developers.<SANDBOX_DOMAIN>. Library and Voices keep their derivation unchanged.
+const IS_LOCAL_SANDBOX = /^(https?:\/\/)?(localhost|127\.0\.0\.1)/.test(process.env.SANDBOX_URL ?? '');
+const localDevelopersBase = (raw: string) => {
+  const local = raw.replace('127.0.0.1', 'localhost');
+  const u = new URL(/^https?:\/\//.test(local) ? local : `http://${local}`);
+  return `${u.protocol}//developers.${u.host}`;
+};
+const DEVELOPERS_URL =
+  process.env.E2E_DEVELOPERS_URL ??
+  (IS_LOCAL_SANDBOX ? localDevelopersBase(process.env.SANDBOX_URL!) : `https://developers.${SANDBOX_DOMAIN}`);
+
 const MODULE_URLS = {
   EN: {
     LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
     VOICES: `https://voices.${SANDBOX_DOMAIN}`,
+    DEVELOPERS: DEVELOPERS_URL,
   },
   HE: {
     LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
     VOICES: `https://chiburim.${SANDBOX_DOMAIN_IL}`,
+    DEVELOPERS: DEVELOPERS_URL,
   },
 } as const;
+
+// DC-3 (docs/dev-portal/PLAN.md §1.1), the same rule as playwright.config.ts: the
+// *-mobile-developers projects exist only when the developers host is known to be reachable
+// (E2E_DEVELOPERS_URL set, or SANDBOX_URL is localhost or a public hostname, not an
+// in-cluster service name).
+const sandboxHostname = (() => {
+  const raw = process.env.SANDBOX_URL ?? '';
+  try {
+    return new URL(/^https?:\/\//.test(raw) ? raw : `http://${raw}`).hostname;
+  } catch {
+    return '';
+  }
+})();
+const DEVELOPERS_HOST_KNOWN =
+  !!process.env.E2E_DEVELOPERS_URL || IS_LOCAL_SANDBOX || /\.(org|com|net|il)$/i.test(sandboxHostname);
+
+// Portal mobile tests live in `mobile web/developers/` and run only in the *-mobile-developers
+// projects. mobile-sanity is tag-scoped, so it takes their @sanity members only when the
+// developers host is known.
+const DEVELOPERS_DIR = '**/mobile web/developers/**';
+// testMatch replaces Playwright's default spec pattern, so it must still name spec files only.
+const DEVELOPERS_SPECS = /mobile web[\\/]developers[\\/].*\.(spec|test)\.[cm]?[jt]sx?$/;
 
 /**
  * Mobile-only Playwright config.
@@ -79,6 +117,7 @@ export default defineConfig({
     {
       name: 'chrome-mobile-library',
       testDir: './e2e-tests/mobile web',
+      testIgnore: DEVELOPERS_DIR,
       use: {
         ...devices['Pixel 5'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -87,6 +126,7 @@ export default defineConfig({
     {
       name: 'safari-mobile-library',
       testDir: './e2e-tests/mobile web',
+      testIgnore: DEVELOPERS_DIR,
       use: {
         ...devices['iPhone 13'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -100,10 +140,36 @@ export default defineConfig({
       name: 'mobile-sanity',
       testDir: './e2e-tests/mobile web',
       grep: /@sanity/,
+      testIgnore: DEVELOPERS_HOST_KNOWN ? [] : DEVELOPERS_DIR,
       use: {
         ...devices['Pixel 5'],
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Developer portal mobile suites (e2e-tests/mobile web/developers/), registered only when
+    // the developers host is known (DC-3). The portal's mobile layout starts at 768px and
+    // below, so both devices exercise it.
+    ...(DEVELOPERS_HOST_KNOWN
+      ? [
+          {
+            name: 'chrome-mobile-developers',
+            testDir: './e2e-tests/mobile web',
+            testMatch: DEVELOPERS_SPECS,
+            use: {
+              ...devices['Pixel 5'],
+              baseURL: MODULE_URLS.EN.DEVELOPERS,
+            },
+          },
+          {
+            name: 'safari-mobile-developers',
+            testDir: './e2e-tests/mobile web',
+            testMatch: DEVELOPERS_SPECS,
+            use: {
+              ...devices['iPhone 13'],
+              baseURL: MODULE_URLS.EN.DEVELOPERS,
+            },
+          },
+        ]
+      : []),
   ],
 });

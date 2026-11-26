@@ -7,6 +7,8 @@ exclude = [
     "scripts/bavli_word_count.py",
     "scripts/lexicon/adjust_laaz_rashi_add_forms.py",
     "scripts/split_commentaries.py",
+    # Developer portal Markdown fixtures: byte-exact test inputs (ruff formats code in Markdown)
+    "devportal/contracts/fixtures",
 ]
 
 [tool.ruff.lint]

@@ -1,0 +1,55 @@
+{
+  "contractVersion": 1,
+  "kind": "doc",
+  "path": "/docs/linker-v2",
+  "title": "Embed Linker v2 In Your Site",
+  "meta": {
+    "description": "How to embed version 2 of the Sefaria Linker.",
+    "robots": "index",
+    "canonicalUrl": "https://developers.sefaria.org/docs/linker-v2",
+    "markdownUrl": "https://developers.sefaria.org/docs/linker-v2.md"
+  },
+  "header": {
+    "activeTab": "docs"
+  },
+  "site": {
+    "apiOrigin": "https://www.sefaria.org",
+    "ga4": {
+      "default": "G-6SXQFSB219",
+      "gallery": "G-44RHV2ZWQ1"
+    },
+    "analyticsSection": "default",
+    "demoApiKey": null,
+    "searchDocsUrl": "/_portal/search-docs.3f9a2c41d0b7.json",
+    "mcpUrl": "https://developers.sefaria.org/mcp",
+    "generation": 42
+  },
+  "section": "docs",
+  "slug": "linker-v2",
+  "pageId": 103,
+  "layout": "standard",
+  "page": {
+    "title": "Embed Linker v2 In Your Site",
+    "excerpt": "How to embed version 2 of the Sefaria Linker.",
+    "bodyHtml": "<p>…</p>",
+    "toc": [],
+    "updatedAt": "2026-05-12T14:03:22Z",
+    "deprecated": true
+  },
+  "nav": {
+    "section": "docs",
+    "generation": 42,
+    "url": "/_portal/nav/docs.json",
+    "tree": null
+  },
+  "pager": {
+    "prev": {
+      "title": "The Sefaria Linker",
+      "path": "/docs/linker"
+    },
+    "next": {
+      "title": "Embed Linker v3 on Your Site",
+      "path": "/docs/linker-v3"
+    }
+  }
+}

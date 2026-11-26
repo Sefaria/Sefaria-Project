@@ -1,0 +1,75 @@
+/*
+ * Endpoint pages (Integrator). PortalFrame (W2) aligns its reference columns to the top; on live the playground
+ * column is as tall as the article, which is what lets its request and response cards stay sticky while the
+ * article scrolls (REFERENCE_SPEC.md §1.6). Below 1065px the columns stack and PortalFrame already stretches.
+ */
+[data-layout='reference'] .dp-rm-playground {
+  align-self: stretch;
+}
+
+/*
+ * The server's endpoint page (devportal/templates/devportal/page_endpoint.html), shown until React replaces
+ * it: the docs sidebar beside the prerendered article and playground, in PortalFrame's 1440px container.
+ */
+.dp-endpoint-layout {
+  display: flex;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* PortalFrame's 10px for live's scrollbar where the browser draws none (PortalFrame.module.css), so the server's
+   columns are as wide as the client's and nothing moves when React takes over. */
+@media (width > 768px) {
+  .dp-endpoint-layout {
+    padding-right: max(0px, calc(10px - (100vw - 100%)));
+  }
+}
+
+.dp-endpoint-layout__sidebar {
+  align-self: flex-start;
+}
+
+.dp-endpoint-layout__article {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--rm-hub-main-max-width, 800px);
+  padding: 32px;
+}
+
+@media (width <= 700px) {
+  .dp-endpoint-layout__article {
+    padding: 32px 20px;
+  }
+}
+
+/*
+ * The page footer ("Updated", prev/next, feedback) is rendered twice, as on live (`Footer-desktop` in the article,
+ * `Footer-mobile` after the playground), and CSS shows one: the article's copy while the playground is beside the
+ * article, the stacked copy, 30px in from the column's edges, once the columns stack. The stacking point is
+ * PortalFrame's container query in the client and Endpoint.module.css's media query in the server's prerendered
+ * columns (.dp-endpoint-layout), so each copy follows the layout it is in.
+ */
+.dp-endpoint-footer--stacked {
+  display: none;
+  padding: 0 30px;
+}
+
+@media (width <= 1065px) {
+  .dp-endpoint-layout .dp-endpoint-footer--article {
+    display: none;
+  }
+
+  .dp-endpoint-layout .dp-endpoint-footer--stacked {
+    display: block;
+  }
+}
+
+@container dp-reference-columns (width < 770px) {
+  .dp-endpoint-footer--article {
+    display: none;
+  }
+
+  .dp-endpoint-footer--stacked {
+    display: block;
+  }
+}

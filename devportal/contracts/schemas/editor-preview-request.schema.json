@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://developers.sefaria.org/_contracts/editor-preview-request.schema.json",
+  "title": "Editor: preview",
+  "description": "POST /_portal/editor/preview -> editor-preview-response. Renders unsaved content with the server's renderer. Staff only (401 not_authenticated, 403 forbidden), CSRF required (PLAN §2.3.5, §2.11).",
+  "type": "object",
+  "properties": {
+    "section": {
+      "$ref": "common.schema.json#/$defs/section"
+    },
+    "kind": {
+      "$ref": "common.schema.json#/$defs/pageKind"
+    },
+    "pageId": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "content": {
+      "$ref": "editor-common.schema.json#/$defs/revisionContent"
+    }
+  },
+  "required": ["section", "kind", "pageId", "content"],
+  "additionalProperties": false
+}
