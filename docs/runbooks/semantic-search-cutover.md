@@ -25,6 +25,28 @@ read -rs 'SEFARIA_KNN_AUTH_TOKEN?Semantic search API token: '
 export SEFARIA_KNN_AUTH_TOKEN
 ```
 
+### API key
+
+Where the auth service enforces API keys on `/api/knn-search` (staging today, prod after the
+switch), every authenticated request also needs a Sefaria API key (`sfr_...`). Pass it with
+`--api-key`, or export `SEFARIA_API_KEY`:
+
+```zsh
+read -rs 'SEFARIA_API_KEY?Sefaria API key: '
+export SEFARIA_API_KEY
+```
+
+The key is sent as `X-API-Key` next to the Bearer token, on every case except the
+unauthenticated one, and only to Sefaria hosts (`sefaria.org`, `sefaria.org.il`,
+`sefariastaging.org`, `sefariastaging-il.org`, `sefariapreprod.org`, `sefariapreprod-il.org`
+and their subdomains). For any other host, such as a local server, the checker prints that the
+key was not sent. The report records `api_key_sent` (true or false), never the key. With no key
+set, the checker behaves as before. Use a key from the same environment as the endpoint:
+staging keys don't work on prod.
+
+`scripts/export_knn_search_results.py` takes the same `--api-key` option and `SEFARIA_API_KEY`
+fallback. It refuses a key for any URL that isn't HTTPS on a Sefaria host.
+
 Capture a baseline **before deployment** (the old server has no backend header):
 
 ```bash
@@ -63,7 +85,7 @@ Ten sequential requests, no retries or load testing:
 | Metadata-only response                       | Required metadata present, text omitted                                                       |
 | Limit of one                                 | Exactly one semantic result                                                                   |
 | Empty query, valid auth                      | HTTP 400 and JSON error                                                                       |
-| No authentication                            | HTTP 401 and JSON error                                                                       |
+| No authentication (no Bearer, no API key)    | HTTP 401 and JSON error                                                                       |
 
 Every successful-search case requires the selected backend header. Results must respect the
 requested limit. Empty linked refs are legal and produce a coverage warning; omitted linked
@@ -78,7 +100,7 @@ kill: an in-flight response can extend the run (the timeout applies to socket op
 Adjust with `--timeout` and `--budget` if needed.
 
 JSON reports save refs, versions, languages, text hashes, backend headers and elapsed times.
-They exclude tokens, full text and embeddings; output files are never overwritten. Keep them
+They exclude tokens, API keys, full text and embeddings; output files are never overwritten. Keep them
 outside Git. Console output shows pass/fail and comparisons; inspect `warnings` and `error`
 fields in the JSON for details.
 

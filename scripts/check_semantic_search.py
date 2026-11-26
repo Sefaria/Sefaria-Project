@@ -15,6 +15,15 @@ from datetime import UTC, datetime, timezone
 from pathlib import Path
 
 BACKEND_HEADER = "X-Sefaria-Semantic-Backend"
+# The API key is only ever sent to these domains and their subdomains.
+SEFARIA_DOMAINS = (
+    "sefaria.org",
+    "sefaria.org.il",
+    "sefariastaging.org",
+    "sefariastaging-il.org",
+    "sefariapreprod.org",
+    "sefariapreprod-il.org",
+)
 CASES = [
     {"name": "english", "query": "Giving people the benefit of the doubt"},
     {"name": "hebrew", "query": "ואהבת לרעך כמוך"},
@@ -70,6 +79,11 @@ def load_token(local_settings=None):
         return None
 
 
+def is_sefaria_host(hostname):
+    host = (hostname or "").lower().rstrip(".")
+    return any(host == domain or host.endswith("." + domain) for domain in SEFARIA_DOMAINS)
+
+
 def payload_for(case):
     payload = {
         "query": case["query"],
@@ -87,7 +101,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def request_json(url, payload, token, timeout):
+def request_json(url, payload, token, timeout, api_key=None):
     headers = {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
@@ -95,6 +109,8 @@ def request_json(url, payload, token, timeout):
     }
     if token:
         headers["Authorization"] = "Bearer " + token
+    if api_key:
+        headers["X-API-Key"] = api_key
     request = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers, method="POST")
     opener = urllib.request.build_opener(NoRedirect())
     try:
@@ -169,7 +185,7 @@ def fingerprint(row):
     }
 
 
-def run_checks(url, token, expected_backend, timeout, budget, send=request_json):
+def run_checks(url, token, expected_backend, timeout, budget, send=request_json, api_key=None):
     checks = []
     started = time.monotonic()
     for case in CASES:
@@ -181,8 +197,13 @@ def run_checks(url, token, expected_backend, timeout, budget, send=request_json)
         else:
             tick = time.monotonic()
             try:
+                authenticated = case.get("authenticated", True)
                 status, backend, body = send(
-                    url, payload, token if case.get("authenticated", True) else None, min(timeout, remaining)
+                    url,
+                    payload,
+                    token if authenticated else None,
+                    min(timeout, remaining),
+                    api_key=api_key if authenticated else None,
                 )
                 result.update(http_status=status, backend=backend)
                 validate(body, payload, status, case.get("status", 200), backend, expected_backend)
@@ -252,6 +273,12 @@ def main(argv=None):
     )
     parser.add_argument("--timeout", type=float, default=30, help="Per-request socket timeout, seconds")
     parser.add_argument("--budget", type=float, default=180, help="Stop starting requests after this many seconds")
+    parser.add_argument(
+        "--api-key",
+        default=os.environ.get("SEFARIA_API_KEY"),
+        help="Sefaria API key (sfr_...) sent as X-API-Key with the Bearer token, to Sefaria hosts only. "
+        "Defaults to SEFARIA_API_KEY",
+    )
     parser.add_argument("--label", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--baseline", type=Path)
@@ -266,10 +293,15 @@ def main(argv=None):
         parser.error("Use HTTPS, or HTTP on localhost")
     if not 0 < args.timeout <= 300 or not 0 < args.budget <= 3600:
         parser.error("Timeout must be 0–300 seconds; budget must be 0–3600 seconds (exclusive of zero)")
+    api_key = (args.api_key or "").strip() or None
+    if api_key and not is_sefaria_host(parsed.hostname):
+        print(f"API key not sent: {parsed.hostname} is not a Sefaria host", flush=True)
+        api_key = None
     token = load_token()
-    if not token:
+    if not token and not api_key:
         parser.error(
-            "No token found. Set SEFARIA_KNN_AUTH_TOKEN or SEMANTIC_SEARCH_API_TOKEN; simple local_settings.py token assignments are also supported"
+            "No token found. Set SEFARIA_KNN_AUTH_TOKEN or SEMANTIC_SEARCH_API_TOKEN (simple local_settings.py "
+            "token assignments are also supported), or pass an API key"
         )
     if args.output.exists() or not args.output.parent.is_dir():
         parser.error("Output must be a new filename in an existing directory")
@@ -281,13 +313,14 @@ def main(argv=None):
                 raise ValueError("Unsupported baseline format; capture a fresh baseline with this script")
         except (OSError, ValueError) as exc:
             parser.error(str(exc))
-    checks = run_checks(args.api_url, token, args.expect_backend, args.timeout, args.budget)
+    checks = run_checks(args.api_url, token, args.expect_backend, args.timeout, args.budget, api_key=api_key)
     report = {
         "format_version": 2,
         "label": args.label,
         "timestamp": datetime.now(UTC).isoformat(),
         "api_url": args.api_url,
         "expected_backend": args.expect_backend,
+        "api_key_sent": bool(api_key),
         "ok": all(r["ok"] for r in checks),
         "checks": checks,
     }
