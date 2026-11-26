@@ -281,3 +281,66 @@ def test_dropping_an_uploaded_file_url_is_a_removal():
 def test_media_removed_at_render_may_be_left_out():
     existing = {"sources": [{"node": 1, "media": "javascript:alert(1)"}, {"node": 2, "media": UPLOAD}]}
     assert not sheet_removes_rendered_media(existing, {"sources": [{"node": 1}, {"node": 2, "media": UPLOAD}]})
+
+
+# Sheet-level options: an allowlist of the keys the editor writes, with enum values checked.
+LEGIT_SHEET_OPTIONS = {
+    "layout": "stacked",
+    "boxed": 0,
+    "language": "bilingual",
+    "numbered": 1,
+    "assignable": 0,
+    "collaboration": "anyone-can-add",
+    "highlightMode": 0,
+    "langLayout": "heRight",
+    "bsd": 1,
+    "divineNames": "noSub",
+}
+
+
+def test_sheet_options_common_values_are_unchanged():
+    from sefaria.sheets import _clean_sheet_options
+
+    assert _clean_sheet_options(copy.deepcopy(LEGIT_SHEET_OPTIONS)) == LEGIT_SHEET_OPTIONS
+    for value in ("none", "anyone-can-add", "anyone-can-edit"):
+        assert _clean_sheet_options({"collaboration": value}) == {"collaboration": value}
+    for value in ("hebrew", "bilingual", "english"):
+        assert _clean_sheet_options({"language": value}) == {"language": value}
+    for value in ("stacked", "sideBySide"):
+        assert _clean_sheet_options({"layout": value}) == {"layout": value}
+    for value in ("heLeft", "heRight", "enLeft"):
+        assert _clean_sheet_options({"langLayout": value}) == {"langLayout": value}
+    assert _clean_sheet_options({"numbered": True}) == {"numbered": True}
+
+
+def test_sheet_options_unknown_keys_are_dropped():
+    from sefaria.sheets import _clean_sheet_options
+
+    cleaned = _clean_sheet_options({"language": "english", "extra": "x", "note": "<b>MARKER</b>", "nested": {"a": 1}})
+    assert cleaned == {"language": "english"}
+
+
+def test_sheet_options_markup_values_are_dropped_not_stored():
+    from sefaria.sheets import _clean_sheet_options
+
+    marker = "</script><b>MARKER</b>"
+    for key in ("language", "layout", "langLayout", "collaboration", "divineNames"):
+        assert _clean_sheet_options({key: marker}) == {}
+        assert _clean_sheet_options({key: "<<b>b>MARKER</B>"}) == {}
+        assert _clean_sheet_options({key: ["stacked"]}) == {}
+    # A markup-bearing key never reaches the output either.
+    assert _clean_sheet_options({marker: "bilingual", "<b>language</B>": "english"}) == {}
+
+
+def test_sheet_options_bad_enum_and_flag_values_are_dropped():
+    from sefaria.sheets import _clean_sheet_options
+
+    assert _clean_sheet_options({"collaboration": "everyone", "language": "klingon", "layout": "heRight"}) == {}
+    assert _clean_sheet_options({"numbered": "<b>1</b>", "boxed": None, "bsd": [1], "assignable": {"a": 1}}) == {}
+
+
+def test_sheet_options_that_are_not_a_dict_become_empty():
+    from sefaria.sheets import _clean_sheet_options
+
+    for value in ([], None, "language", 3):
+        assert _clean_sheet_options(value) == {}

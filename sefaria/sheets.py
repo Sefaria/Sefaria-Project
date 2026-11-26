@@ -488,6 +488,8 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
     scored_by_llm = False
     sheet["dateModified"] = datetime.now().isoformat()
     clean_sheet_attribution(sheet)
+    if "options" in sheet:
+        sheet["options"] = _clean_sheet_options(sheet["options"])
     status_changed = False
     # Updating an existing sheet
     if "id" in sheet:
@@ -750,6 +752,33 @@ def _clean_source_options(options):
                 cleaned[key] = html.unescape(bleach_text(value))
         elif key in _SHEET_OPTION_FLAG_KEYS:
             if isinstance(value, (bool, int)):
+                cleaned[key] = value
+    return cleaned
+
+
+# Sheet-level options the sheet pages and editor read. Enum keys take only the values the code uses
+# (`language`, `layout` and `langLayout` also become CSS classes in make_sheet_class_string); flag keys
+# take a bool or number. Any other key is dropped. No sheet-level option holds free text.
+_SHEET_LEVEL_ENUM_OPTIONS = {
+    "language": {"hebrew", "bilingual", "english"},
+    "layout": {"stacked", "sideBySide"},
+    "langLayout": {"heLeft", "heRight", "enLeft"},
+    "collaboration": {"none", "anyone-can-add", "anyone-can-edit"},
+    "divineNames": {"noSub", "yy", "h", "ykvk"},
+}
+_SHEET_LEVEL_FLAG_OPTIONS = {"numbered", "boxed", "assignable", "bsd", "highlightMode"}
+
+
+def _clean_sheet_options(options):
+    if not isinstance(options, dict):
+        return {}
+    cleaned = {}
+    for key, value in options.items():
+        if key in _SHEET_LEVEL_ENUM_OPTIONS:
+            if isinstance(value, str) and value in _SHEET_LEVEL_ENUM_OPTIONS[key]:
+                cleaned[key] = value
+        elif key in _SHEET_LEVEL_FLAG_OPTIONS:
+            if isinstance(value, (bool, int, float)):
                 cleaned[key] = value
     return cleaned
 
