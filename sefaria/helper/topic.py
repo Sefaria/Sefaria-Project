@@ -528,6 +528,9 @@ def recommend_topics(refs: list) -> list:
     recommend_topics = []
     for slug in topic_count:
         topic = Topic.init(slug)
+        if topic is None:
+            logger.warning(f"Topic slug {slug} doesn't exist")
+            continue
         recommend_topics.append(
             {
                 "slug": slug,
