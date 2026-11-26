@@ -42,7 +42,8 @@ Node 18.18+ is required for ESLint 9 (CI lints with Node 20).
    - `static/css/**/*.scss` → `prettier --write`, then `stylelint --max-warnings=0`
    - `**/*.{json,md}` → `prettier --write`
 3. Ruff on staged `.py` files: `ruff check --fix`, `ruff format`, then re-stages the files.
-   If `ruff` is not on your `PATH` the hook prints a warning and **skips** Python linting (CI will still catch it).
+   It runs the Ruff version pinned in `requirements.txt` (the one CI uses): a `ruff` on your `PATH` only if it is that
+   version, otherwise `uvx ruff@<pinned>` via [uv](https://docs.astral.sh/uv/). With neither, the commit is refused.
 
 If the hook fails, the commit is aborted. Fix what it reports (many things are auto-fixed and re-staged), then commit
 again. Avoid `--no-verify`; CI runs the same checks and will fail the PR.
@@ -118,7 +119,7 @@ See [`docs/runbooks/linting-rollout.md`](runbooks/linting-rollout.md#updating-an
 
 | Symptom                                             | Fix                                                                          |
 | --------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `ruff not found — Python linting skipped`           | Activate your venv or `pip install ruff==0.17.0`.                            |
+| `Ruff 0.17.0 is needed to lint staged Python files` | `brew install uv`, or `pip install ruff==0.17.0` in your venv.               |
 | ESLint: `Cannot find module '@eslint/js'`           | Run `npm install` (new devDependencies).                                     |
 | ESLint requires newer Node                          | Use Node 18.18+ (`nvm install 20`).                                          |
 | Pre-commit hook doesn't run                         | `npm install` (runs `husky install`), and check `git config core.hooksPath`. |

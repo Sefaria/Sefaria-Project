@@ -239,8 +239,11 @@ class ReaderChoiceMiddleware:
         from sefaria.model.user_profile import UserProfile
 
         profile = UserProfile(id=user.id)
-        if has_social_cookie(request) and available() and not next_disabled() and not (
-            (profile.settings or {}).get(SETTING_KEY) == NEXT and _profile_via_social(profile)
+        if (
+            has_social_cookie(request)
+            and available()
+            and not next_disabled()
+            and not ((profile.settings or {}).get(SETTING_KEY) == NEXT and _profile_via_social(profile))
         ):
             # signed in holding Social's routing cookie (a Social link opened while signed out, or on another account's page):
             # Social opts them in, for good
