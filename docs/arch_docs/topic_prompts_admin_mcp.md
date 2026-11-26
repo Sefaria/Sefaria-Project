@@ -153,13 +153,13 @@ Every edit is attributed to a real person in the audit log.
 
 Both token types travel in the `X-Session-ID` header and are checked by `SessionIDAuthMiddleware`:
 
-|             | Chatbot token                        | MCP token                                                                                                                                              |
-| ----------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Payload     | `{id, user_id, expiration}`          | the same, plus `aud: "mcp"`                                                                                                                            |
-| Secret      | `CHATBOT_USER_ID_SECRET`             | `MCP_TOKEN_SECRET`, shared with the AI chatbot (unset = feature off)                                                                                   |
-| Accepted on | every path **except** `/api/admin/*` | `MCP_ROUTES` (the sheet API), and `MCP_ADMIN_ROUTES` (`GET /api/admin/topic-prompts`, `PATCH /api/admin/topic-prompts/<id>`) for `is_staff` users only |
-| CSRF        | enforced                             | skipped; a browser never sends this header on its own                                                                                                  |
-| Lifetime    | 72h                                  | 5 minutes, minted per tool call by the chatbot for the signed-in user                                                                                  |
+|             | Chatbot token                        | MCP token                                                                                                                                                                                                      |
+| ----------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Payload     | `{id, user_id, expiration}`          | the same, plus `aud: "mcp"`                                                                                                                                                                                    |
+| Secret      | `CHATBOT_USER_ID_SECRET`             | `MCP_TOKEN_SECRET`, shared with the AI chatbot (unset = feature off)                                                                                                                                           |
+| Accepted on | every path **except** `/api/admin/*` | `MCP_ROUTES` (the sheet API, and `POST /api/social/token` for the `save_asset` tool), and `MCP_ADMIN_ROUTES` (`GET /api/admin/topic-prompts`, `PATCH /api/admin/topic-prompts/<id>`) for `is_staff` users only |
+| CSRF        | enforced                             | skipped; a browser never sends this header on its own                                                                                                                                                          |
+| Lifetime    | 72h                                  | 5 minutes, minted per tool call by the chatbot for the signed-in user                                                                                                                                          |
 
 The view checks `is_staff` again. Edits are audited with `via: "mcp"` (or `"session"` for a browser).
 Revoking: a user's grant is revoked at the chatbot; rotating `MCP_TOKEN_SECRET` cuts off every MCP client at once.

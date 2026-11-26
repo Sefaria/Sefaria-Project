@@ -664,6 +664,7 @@ class TestSessionIDAuthMiddlewareUserMCP:
             ("get", "/api/sheets/715437"),
             ("post", "/api/sheets/"),
             ("post", "/api/sheets"),
+            ("post", "/api/social/token"),
         ],
     )
     def test_mcp_token_authenticates_on_sheet_routes_and_skips_csrf(self, django_user_model, method, path):
@@ -691,6 +692,54 @@ class TestSessionIDAuthMiddlewareUserMCP:
         request = self._run(self._mcp_token(user), path, method)
 
         assert not request.user.is_authenticated
+        assert not getattr(request, "_dont_enforce_csrf_checks", False)
+
+    def test_mcp_routes_are_pinned(self):
+        """MCP_ROUTES is a security boundary: widening it must be a deliberate, reviewed change."""
+        assert [(method, pattern.pattern) for method, pattern in SessionIDAuthMiddleware.MCP_ROUTES] == [
+            ("GET", r"^/api/sheets/user/\d+(/.*)?$"),
+            ("GET", r"^/api/sheets/\d+/?$"),
+            ("POST", r"^/api/sheets/?$"),
+            ("POST", r"^/api/social/token$"),
+        ]
+
+    @pytest.mark.parametrize(
+        ("method", "path"),
+        [
+            # The social token route, any other way.
+            ("get", "/api/social/token"),
+            ("post", "/api/social/token/"),
+            ("post", "/api/social/token/extra"),
+            ("post", "/api/social/tokens"),
+            # Neighbouring and sensitive routes.
+            ("get", "/.well-known/sefaria-social-jwks.json"),
+            ("get", "/api/mcp/authorize"),
+            ("post", "/api/profile"),
+            ("post", "/api/profile/upload-photo"),
+            ("get", "/api/profile/user_history"),
+            ("post", "/api/auth/login"),
+            ("post", "/api/developer/projects"),
+            ("get", "/api/developer/state"),
+            ("post", "/api/collections/"),
+            ("post", "/api/texts/Genesis_1"),
+            ("post", "/api/v2/index/Genesis"),
+            ("post", "/api/links/"),
+            ("post", "/api/notes/"),
+            ("post", "/api/follow/"),
+            ("post", "/api/sheets/715437/like"),
+            ("post", "/api/sheets/upload-image"),
+            ("post", "/api/refs/expand"),
+            ("get", "/settings/account"),
+        ],
+    )
+    def test_mcp_token_refused_on_every_other_route(self, django_user_model, method, path):
+        user = django_user_model.objects.create_user(
+            username=f"mcp-walk-{method}-{abs(hash(path))}", password="pass", is_staff=True
+        )
+        request = self._run(self._mcp_token(user), path, method)
+
+        assert not request.user.is_authenticated
+        assert getattr(request, "auth_via", None) is None
         assert not getattr(request, "_dont_enforce_csrf_checks", False)
 
     def test_login_token_is_not_an_api_credential(self, django_user_model):

@@ -107,8 +107,13 @@ def _absolute_http_url(value) -> str | None:
     return None
 
 
-def mint_social_token(user, name: str = "", picture: str | None = None) -> tuple[str, int]:
-    """Returns (token, expires_at) for `user`. expires_at is the `exp` claim, in Unix seconds."""
+def mint_social_token(user, name: str = "", picture: str | None = None, via: str | None = None) -> tuple[str, int]:
+    """
+    Returns (token, expires_at) for `user`. expires_at is the `exp` claim, in Unix seconds.
+
+    `via` marks a token minted for a non-browser caller (only "mcp" today: the MCP server's
+    save_asset tool). Social accepts a token with `via` only on the routes that caller needs.
+    """
     keys = configured_keys()
     if not keys:
         raise SocialTokenNotConfigured
@@ -129,6 +134,8 @@ def mint_social_token(user, name: str = "", picture: str | None = None) -> tuple
     picture_url = _absolute_http_url(picture)
     if picture_url:
         claims["picture"] = picture_url
+    if via:
+        claims["via"] = via
     token = jwt.encode(
         claims, signing_key.private_key, algorithm=SOCIAL_TOKEN_ALGORITHM, headers={"kid": signing_key.kid}
     )

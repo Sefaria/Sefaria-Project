@@ -8,6 +8,7 @@ import api.lexicon_admin_views as lexicon_api_views
 import api.linker_admin_views as linker_api_views
 import api.mcp_auth_views as mcp_auth_views
 import api.newsletter_views as newsletter_views
+import api.ref_expand as ref_expand_views
 import api.views as api_views
 import guides.views as guides_views
 import powered_by.views as powered_by_views
@@ -147,6 +148,8 @@ shared_patterns = [
     path("_api/linker-admin/dataset/ref", linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
     path("_api/linker-admin/dataset/ref-part", linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
     path("api/ref/<path:tref>", api_views.RefView.as_view()),
+    # Validates refs and expands ranges to section and segment refs, for Sefaria Social (POST, read-only).
+    re_path(r"^api/refs/expand/?$", ref_expand_views.refs_expand_api),
     re_path(r"^api/category/?(?P<path>.+)?$", reader_views.category_api),
     re_path(r"^api/tag-category/?(?P<path>.+)?$", reader_views.tag_category_api),
     path("api/words/completion/<path:word>/<path:lexicon>", reader_views.dictionary_completion_api),
