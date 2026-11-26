@@ -241,6 +241,10 @@ authService:
       dsn:
         ref: auth-service-registry
         key: AUTH_PG_DSN
+    # The read-only role named in that DSN. Set it only where cronJobs.syncPostgresProductionData copies production
+    # into this release's own database (staging): the copy drops the database, so the job re-grants this role's columns
+    # afterwards. Empty: no re-grant (preprod and prod read sefaria_auth, which nothing copies over).
+    readerRole: ""
   # Metered products: meter name -> path prefixes. The auth service stamps x-sefaria-meter with the meter of the
   # request path (none elsewhere), and the monthly limit of a project for that meter comes from the api_tier_meter_limit
   # table, not from here. The meter name is the same slug as api_tier_meter_limit.meter and limit_month_<meter>.

@@ -108,6 +108,8 @@ spec:
             # auth-service-registry names the cauldrons' sefaria_auth and must not be used here.
             ref: auth-service-registry-staging
             key: AUTH_PG_DSN
+        # The weekly production copy drops sefariastaging; the sync job re-grants this role afterwards (it lost them on 2026-11-22).
+        readerRole: auth_service_reader_staging
       rateLimit:
         # Needs the controller rateLimit backend (infrastructure repo) first.
         enabled: false
