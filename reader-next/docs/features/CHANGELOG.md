@@ -4,6 +4,18 @@ The atlas (`features.json`) is the source of truth for the rebuild. Whenever bui
 
 Statuses added for the rebuild: `rebuild-only` marks behaviour the new reader has that the old client did not, so the atlas also describes what we ship.
 
+## 2026-11-25 — findings in the sidebar
+
+### Built
+
+- **CON-073** (new, `rebuild-only`: the old client has no equivalent) Behind the `findings` lab (off by default; remote config
+  `feature.reader.labs.findings`), Resources lists a Findings row with the number of Library Assistant findings anchored to the
+  selected segments, and `with=Findings` lists them grouped by method. One request per section to the assistant's server
+  (`GET <CHATBOT_API_BASE_URL>/findings/ref/<ref>`), 4 s timeout, no retry; a failure is no findings, and the row never shows before
+  the answer. With the lab off nothing is requested and `with=Findings` shows Resources.
+- **CON-074** (new, `rebuild-only`) Each finding: title, conclusion (clamped, Show more), its label (the attribution, always shown),
+  the other passages it cites as reader links, Open sheet and View finding (http(s) links only).
+
 ## 2026-11-24 — a text beside the social page
 
 ### Built

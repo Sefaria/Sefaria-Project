@@ -16,6 +16,8 @@
  *                         unset = follow runs in an in-browser room shared over BroadcastChannel (tabs of one browser only).
  *  - PUBLIC_LABS          the labs on by default in this deployment, comma-separated ("follow_me,recording"); remote config
  *                         `feature.reader.labs.<name>` overrides it either way (src/lib/labs.ts). Unset = every lab off.
+ *                         The `findings` lab reads the Library Assistant's findings from its server (assistant.apiBaseUrl below,
+ *                         CHATBOT_API_BASE_URL) in the browser: src/lib/connections/findings.ts.
  *  - Analytics (src/lib/analytics), the same settings Django's templates/base.html reads; each is off when unset, so development and
  *    tests send nothing: GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, SIMPLE_ANALYTICS_HOSTNAME ("sefaria.org" in
  *    production), APP_VERSION (gtag's site_version).

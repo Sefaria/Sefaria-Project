@@ -21756,5 +21756,43 @@
   "tier": "standard",
   "refs": [],
   "src": "static/js/ReaderApp.jsx (history from highlightedRefs), static/js/TextRange.jsx (highlight), static/js/ReaderPanel.jsx (showHighlight)"
+ },
+ {
+  "id": "CON-073",
+  "area": "connections",
+  "group": "Findings",
+  "name": "Findings anchored to this text (rebuild)",
+  "summary": "Behind the findings lab (off by default), Resources lists a Findings row with the number of findings anchored to the selected segments; it opens a view of those findings grouped by method. Findings are what learners saved after running a skill (a packaged method of study) in the Library Assistant. New in this reader: the old client has no equivalent.",
+  "details": [
+   "Lab `findings` in src/lib/labs.ts: PUBLIC_LABS, or the remote-config bool feature.reader.labs.findings (the kill switch). With the lab off nothing is requested, the row is absent, and with=Findings shows Resources.",
+   "Data: GET <assistant apiBaseUrl>/findings/ref/<section ref> on the Library Assistant's server (PUBLIC_CONFIG.assistant.apiBaseUrl, CHATBOT_API_BASE_URL; default https://chat-dev.sefaria.org/api), public, no credentials, one request per section, memory only (connections class). The selected segments' findings are picked out by anchorRefs, as web pages are by anchorRefExpanded (src/lib/connections/findings.ts).",
+   "Requested while Resources or Findings is open. A 4 s timeout, no retry; a failure, a non-200 or a malformed answer is no findings: the row stays hidden (it is never shown before the answer, so it never appears and then vanishes) and the view says none are known. Other connections never wait for it.",
+   "URL: with=Findings (a sidebar mode, src/lib/connections/url.ts). Back goes to Resources.",
+   "Groups: methods with more findings first, then by title in the interface language; the newest finding first within a method. Empty: 'No findings known here.'"
+  ],
+  "tier": "optional",
+  "src": "reader-next: src/lib/connections/findings.ts, src/features/reader/ConnectionsPane.tsx, src/ui/FindingsView/",
+  "audience": "all",
+  "platform": "all",
+  "status": "rebuild-only",
+  "refs": []
+ },
+ {
+  "id": "CON-074",
+  "area": "connections",
+  "group": "Findings",
+  "name": "Finding list items (rebuild)",
+  "summary": "Each finding shows its method, its title, its conclusion (clamped to a few lines, with Show more / Show less), its label (the attribution, e.g. 'AI-assisted reading in the approach of …', always shown), the other passages it cites as reader links, and links to its source sheet (Open sheet) and to the finding (View finding), both in a new tab.",
+  "details": [
+   "The method's title follows the interface language (its Hebrew title in the Hebrew interface). The finding's own text (title, conclusion, label) is shown as the service wrote it, with dir=auto.",
+   "Cited passages: the finding's refs that are not among the selected segments, each opening in the reader (the owning panel, as a connected text).",
+   "Links come from another service and are kept only when they are http(s); a finding without a sheet or a page has no such link."
+  ],
+  "tier": "optional",
+  "src": "reader-next: src/ui/FindingsView/FindingsView.tsx",
+  "audience": "all",
+  "platform": "all",
+  "status": "rebuild-only",
+  "refs": []
  }
 ]

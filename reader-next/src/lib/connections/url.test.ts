@@ -31,6 +31,14 @@ describe("web pages views", () => {
   });
 });
 
+// @feature CON-073
+describe("findings view", () => {
+  it("with=Findings is a sidebar mode, and round-trips", () => {
+    expect(parseWith("Findings")).toEqual({ view: "mode", mode: "Findings" });
+    expect(withHref("/Genesis.1.1", { view: "mode", mode: "Findings" })).toBe("/Genesis.1.1?with=Findings");
+  });
+});
+
 describe("formatWith / withHref", () => {
   it.each([
     [{ view: "resources" } as const, "all"],

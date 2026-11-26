@@ -14,7 +14,9 @@ import { defineConfig, devices } from "@playwright/test";
  * (the cassette never forwards cookies; replay mode never reaches the network). E2E_LIVE leaves it out.
  * A fourth (E2E_SOCIAL_PORT, default E2E_PORT + 7) has the `social` lab on and a social surface configured on an origin nothing listens
  * on (E2E_SURFACE_ORIGIN, default port E2E_PORT + 8): e2e/social-surface.spec.ts serves the reference surface there with page.route.
- * The other servers leave the lab off, so no other spec loads a surface.
+ * The other servers leave the lab off, so no other spec loads a surface. It also has the `findings` lab on, with the Library
+ * Assistant's API on that same origin (CHATBOT_API_BASE_URL): e2e/findings.spec.ts answers the findings API there, so no spec ever
+ * reaches the chat service.
  */
 const PORT = Number(process.env.E2E_PORT) || 3100;
 const AUTH_PORT = Number(process.env.E2E_AUTH_PORT) || 3112;
@@ -75,7 +77,8 @@ export default defineConfig({
       env: {
         PORT: String(SOCIAL_PORT),
         ...API_ENV,
-        PUBLIC_LABS: `${API_ENV.PUBLIC_LABS},social`,
+        PUBLIC_LABS: `${API_ENV.PUBLIC_LABS},social,findings`,
+        CHATBOT_API_BASE_URL: `${process.env.E2E_SURFACE_ORIGIN}/assistant-api`,
         PUBLIC_SOCIAL_MANIFEST_URL: `${process.env.E2E_SURFACE_ORIGIN}/social-surface/manifest.json`,
         PUBLIC_SOCIAL_ORIGINS: process.env.E2E_SURFACE_ORIGIN,
         PUBLIC_SOCIAL_API_ORIGIN: process.env.E2E_SURFACE_ORIGIN,

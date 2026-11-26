@@ -53,6 +53,9 @@ import { nameQueryOptions } from "~/lib/search/autocomplete";
 import { manuscriptsForRefs, mediaForRefs } from "~/lib/connections/media";
 import { mergePages, sitesOf, sortPages, webPagesQueryOptions } from "~/lib/connections/webpages";
 import { WebPagesView } from "~/ui/WebPagesView/WebPagesView";
+import { findingsForRefs, findingsQueryOptions, groupByMethod } from "~/lib/connections/findings";
+import { FindingsView } from "~/ui/FindingsView/FindingsView";
+import { useLab } from "~/features/reader-state/labs";
 import { ManuscriptsView } from "~/ui/ManuscriptsView/ManuscriptsView";
 import { TorahReadingsView } from "~/ui/TorahReadingsView/TorahReadingsView";
 import { indexDetailsQueryOptions } from "~/lib/catalog/index-details";
@@ -164,7 +167,7 @@ const partsOf = (segs: Segment[], side: "primary" | "translation") => segs.map((
  * and — for the connected-texts view — the text of each link, grouped by containing section so all of
  * Rashi's comments on a verse arrive in one request.
  *
- * @feature CON-012 @feature CON-019 @feature CON-025 @feature CON-030 @feature CON-032 @feature CON-071
+ * @feature CON-012 @feature CON-019 @feature CON-025 @feature CON-030 @feature CON-032 @feature CON-071 @feature CON-073
  */
 function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: SignUpKind) => void; recentFilters: readonly string[]; onRecentChip: () => void }) {
   const { view, hrefFor, sectionRef, selectedRefs, settings, onNavigate, onOpenText, onClose } = props;
@@ -281,6 +284,15 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
       : undefined;
   const sheetsHref = `${hebrew ? "https://chiburim.sefaria.org.il" : VOICES}/sheets-with-ref/${refToUrl(selectionRef)}`;
 
+  // The Library Assistant's findings (findings lab): one request per section to the chat service, the selection's picked out here.
+  // Never waited for: the row shows once there is an answer with some, and a failed request is simply none.
+  const findingsLab = useLab("findings");
+  const onFindings = findingsLab && view.view === "mode" && view.mode === "Findings";
+  const findingsQ = useQuery({ ...findingsQueryOptions(sectionRef), enabled: findingsLab && (onResources || onFindings) });
+  const findingRefs = useMemo(() => (selectedRefs.length ? selectedRefs : (props.section?.segments.map((s) => s.ref) ?? [])), [selectedRefs, props.section]);
+  const selectedFindings = useMemo(() => findingsForRefs(findingsQ.data, findingRefs), [findingsQ.data, findingRefs]);
+  const findingsCount = findingsLab ? selectedFindings.length : undefined;
+
   const onTranslations = view.view === "mode" && view.mode === "Translations";
   const onTranslationOpen = view.view === "mode" && view.mode === "Translation Open";
   const translationsQ = useQuery({ ...allTranslationsQueryOptions(selectionRef), enabled: onTranslations || onTranslationOpen });
@@ -379,6 +391,20 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           siteHref={(name) => hrefFor({ view: "webpages", site: name })}
           onSite={(name) => onNavigate(hrefFor({ view: "webpages", site: name }))}
           refLabel={(r) => localizedRef(r, props.section, hebrew ? "he" : "en")}
+        />
+      </ConnectionsPanel>
+    );
+  }
+
+  if (onFindings) {
+    return (
+      <ConnectionsPanel label="Findings" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+        <FindingsView
+          groups={groupByMethod(selectedFindings, interfaceLang)}
+          loading={findingsQ.isPending}
+          selectedRefs={findingRefs}
+          refHref={(r) => `/${refToUrl(r)}`}
+          onOpenRef={(r) => onOpenText(r)}
         />
       </ConnectionsPanel>
     );
@@ -802,6 +828,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
               signedIn={!!viewer}
               moderator={!!viewer?.isStaff}
               notesCount={notesQ.data?.length ?? 0}
+              findingsCount={findingsCount}
             />
             {/* the connections above came from /api/links; a cold /api/related (sheets, topics…) can end in a 504 after 15 s */}
             <PartLoad q={resourcesQ} what={RESOURCES} />
@@ -929,13 +956,16 @@ export function ConnectionsPane(props: ConnectionsPaneProps) {
   // only a signed-out reader is asked to sign up; a signed-in reader gets the tool itself (CON-011)
   const gated = props.view.view === "mode" && !viewer ? SIGN_IN_TOOLS[props.view.mode] : undefined;
   const resources: ConnectionsView = { view: "resources" };
+  // with=Findings while the findings lab is off: Resources, as if the view did not exist
+  const findingsLab = useLab("findings");
+  const findingsOff = !findingsLab && props.view.view === "mode" && props.view.mode === "Findings";
   const kind = gated ?? asked;
   const close = () => {
     setAsked(undefined);
     if (gated) props.onNavigate(props.hrefFor(resources));
   };
   const root = useRef<HTMLDivElement>(null);
-  useSidebarScroll(root, gated ? resources : props.view);
+  useSidebarScroll(root, gated || findingsOff ? resources : props.view);
   // The filters used in this sidebar, newest first (the old panel's recentFilters: set from the address on load, each new filter put
   // in front; a recent filter's own link keeps the order: setConnectionsFilter with updateRecent false)
   const filterNow = props.view.view === "texts" ? props.view.filter : undefined;
@@ -952,7 +982,7 @@ export function ConnectionsPane(props: ConnectionsPaneProps) {
     <>
       {/* display: contents: the panel stays the flex child it was; this only gives the scroll memory its element */}
       <div ref={root} style={{ display: "contents" }}>
-        <ConnectionsPaneInner {...props} view={gated ? resources : props.view} onSignUp={setAsked} recentFilters={recentShown} onRecentChip={() => (fromChip.current = true)} />
+        <ConnectionsPaneInner {...props} view={gated || findingsOff ? resources : props.view} onSignUp={setAsked} recentFilters={recentShown} onRecentChip={() => (fromChip.current = true)} />
       </div>
       <SignUpModal kind={kind} onClose={close} next={location.href} />
     </>

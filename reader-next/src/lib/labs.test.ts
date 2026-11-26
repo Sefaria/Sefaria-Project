@@ -7,6 +7,7 @@ describe("labs", () => {
     expect(parseLabs("")).toEqual([]);
     expect(parseLabs(" recording , follow_me,nope,")).toEqual(["follow_me", "recording"]);
     expect(parseLabs("social")).toEqual(["social"]);
+    expect(parseLabs("findings,social")).toEqual(["social", "findings"]);
   });
 
   // @feature SHL-076
@@ -14,6 +15,8 @@ describe("labs", () => {
     expect(labEnabled("follow_me", undefined, undefined)).toBe(false);
     expect(labEnabled("social", undefined, undefined)).toBe(false);
     expect(labKey("social")).toBe("feature.reader.labs.social");
+    expect(labEnabled("findings", undefined, undefined)).toBe(false);
+    expect(labKey("findings")).toBe("feature.reader.labs.findings");
     expect(labEnabled("follow_me", {}, [])).toBe(false);
   });
 
@@ -27,5 +30,12 @@ describe("labs", () => {
     expect(labEnabled("follow_me", { "feature.reader.labs.follow_me": false }, ["follow_me"])).toBe(false);
     expect(labEnabled("follow_me", { "feature.reader.labs.follow_me": true }, [])).toBe(true);
     expect(labEnabled("follow_me", { "feature.reader.labs.follow_me": "true" }, [])).toBe(false);
+  });
+
+  // @feature CON-073
+  it("findings: on from PUBLIC_LABS or remote config, and remote config's false wins", () => {
+    expect(labEnabled("findings", {}, parseLabs("findings"))).toBe(true);
+    expect(labEnabled("findings", { "feature.reader.labs.findings": true }, [])).toBe(true);
+    expect(labEnabled("findings", { "feature.reader.labs.findings": false }, ["findings"])).toBe(false);
   });
 });
