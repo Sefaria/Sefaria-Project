@@ -111,6 +111,10 @@ spec:
             value: {{ randAlphaNum 8 }}
           - name: VARNISH_HOST
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          # The uncached last resort for requests that reach nginx while varnish is
+          # restarting: the same backend the varnish VCL declares as its default.
+          - name: WEB_HOST
+            value: "web-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: INTERNAL_URL
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: SEARCH_HOST
