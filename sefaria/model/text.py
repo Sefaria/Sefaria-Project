@@ -2987,22 +2987,32 @@ class Ref(metaclass=RefCacheType):
 
         ref_list = []
         for temp_ref in input_refs:
-            if temp_ref.is_segment_level():
-                ref_list.append(temp_ref)
-            elif temp_ref.is_section_level():
-                ref_list += temp_ref.all_subrefs()
-            else:  # you're higher than section level
-                if self.index_node.is_virtual:
-                    sub_refs = temp_ref.all_subrefs()
-                    ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
-                    ref_list += list(ref_list_list)
-                else:
-                    state_ja = self.get_state_ja("all")
-                    sub_ja = state_ja.subarray_with_ref(temp_ref)
-                    ref_list_sections = [temp_ref.subref([i + 1 for i in k]) for k in sub_ja.non_empty_sections()]
-                    ref_list += [
-                        ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs(state_ja=state_ja)
-                    ]
+            try:
+                if temp_ref.is_segment_level():
+                    ref_list.append(temp_ref)
+                elif temp_ref.is_section_level():
+                    ref_list += temp_ref.all_subrefs()
+                else:  # you're higher than section level
+                    if self.index_node.is_virtual:
+                        sub_refs = temp_ref.all_subrefs()
+                        ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
+                        ref_list += list(ref_list_list)
+                    else:
+                        state_ja = self.get_state_ja("all")
+                        sub_ja = state_ja.subarray_with_ref(temp_ref)
+                        ref_list_sections = [temp_ref.subref([i + 1 for i in k]) for k in sub_ja.non_empty_sections()]
+                        ref_list += [
+                            ref_seg
+                            for ref_sec in ref_list_sections
+                            for ref_seg in ref_sec.all_subrefs(state_ja=state_ja)
+                        ]
+            except KeyError as e:
+                # A complex text has no aggregate "availableTexts" state, so its refs cannot be
+                # expanded. Raise the same unsupported-ref error as the class guard above so that
+                # callers such as Ref.expand_refs skip it instead of failing.
+                raise InputError(
+                    f"all_segment_refs() doesn't support {temp_ref}: its text state has no availableTexts."
+                ) from e
 
         return ref_list
 
