@@ -51,6 +51,25 @@ VALID_USERNAME = "webhookuser1"
 VALID_PASSWORD = "supersecret"
 
 
+### Test OPTIONS dispatch decorator ###
+
+
+@d.answer_options("GET", "POST")
+def options_view(request):
+    return HttpResponse("Success")
+
+
+def test_answer_options(rf):
+    response = options_view(rf.options("/api/fake-endpoint/"))
+    assert response.status_code == 204
+    assert response["Allow"] == "OPTIONS, GET, POST"
+
+
+def test_answer_options_passes_other_methods(rf):
+    response = options_view(rf.get("/api/fake-endpoint/"))
+    assert response.content == b"Success"
+
+
 @pytest.fixture
 def rf():
     return RequestFactory()

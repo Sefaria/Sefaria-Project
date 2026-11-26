@@ -187,6 +187,31 @@ def _add_cors_headers(response):
     return response
 
 
+def answer_options(*allowed_methods):
+    """
+    Answers an OPTIONS request with 204 and an Allow header.
+
+    Django answers 500 when a view returns None. A view that branches only on the methods it
+    implements returns None for OPTIONS. The CORS preflight middleware answers a browser
+    preflight before the view runs, but a bare OPTIONS request carries no
+    Access-Control-Request-Method header and reaches the view.
+    """
+    allow_header = ", ".join(("OPTIONS",) + allowed_methods)
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(request, *args, **kwargs):
+            if request.method == "OPTIONS":
+                response = HttpResponse(status=204)
+                response["Allow"] = allow_header
+                return response
+            return func(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def cors_allow_all(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
