@@ -17,12 +17,9 @@ class TestKnnBackendHeader:
             "/api/knn-search",
             data={"query": "Sabbath"},
             content_type="application/json",
-            HTTP_AUTHORIZATION="Bearer test-token",
         )
         with (
-            override_settings(
-                SEMANTIC_SEARCH_TABLE_VERSION=backend, SEMANTIC_SEARCH_API_TOKEN="test-token", GEMINI_API_KEY="test-key"
-            ),
+            override_settings(SEMANTIC_SEARCH_TABLE_VERSION=backend, GEMINI_API_KEY="test-key"),
             patch("semantic_search.search.get_query_embedding", return_value=[0.1] * 1536),
             patch("semantic_search.search.Vector") as vector,
             patch("semantic_search.search.SemanticTextChunk") as legacy,

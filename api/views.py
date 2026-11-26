@@ -400,14 +400,6 @@ class KnnSearch(View):
         ]
 
     def post(self, request):
-        auth = request.headers.get("Authorization", "")
-        if not auth.startswith("Bearer "):
-            return jsonResponse({"error": "Unauthorized"}, status=401)
-        token = auth[len("Bearer ") :]
-        expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
-        if not expected or token != expected:
-            return jsonResponse({"error": "Unauthorized"}, status=401)
-
         body, err = _load_json_body(request)
         if err:
             return err
