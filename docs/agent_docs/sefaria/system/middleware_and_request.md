@@ -22,13 +22,16 @@ Handles the Django request/response pipeline: middleware classes that enrich req
 - **`SessionCookieDomainMiddleware`**: Dynamically sets session/CSRF cookie domains based on `DOMAIN_MODULES` configuration. Enables cross-subdomain login (e.g., `www.sefaria.org` and `voices.sefaria.org` share cookies via `.sefaria.org`). Includes legacy cookie expiration logic gated by `EXPIRE_LEGACY_COOKIES` remote config flag.
 - **`CORSDebugMiddleware`**: Adds permissive CORS headers only when `DEBUG=True` and request is from localhost.
 - **`ProfileMiddleware`**: Appending `?prof` to any URL in debug mode runs cProfile and returns profiling output as HTML.
+- **`ErrorBoundaryMiddleware`**: Applies the input-error contract to every view, decorated or not, in `process_exception`. An exception that `classify_input_error` names answers an `{"error": ...}` JSON body on `/api/` and `/_api/` paths and HTTP 404 elsewhere; any other exception returns `None` so Django keeps its 500 handling. Registered inside `django_structlog`'s `RequestMiddleware` so its warning carries the request's structlog context.
 - **`MaxRSSMiddleware`**: Measures memory (maxrss) delta per request and binds it to structlog context. Handles macOS vs Linux unit differences (bytes vs KB).
 - **`ModuleMiddleware`**: Sets `request.active_module` based on hostname lookup against `DOMAIN_MODULES`. Defaults to `LIBRARY_MODULE`. Excludes API and static paths.
 
 ### decorators.py -- View Decorators
 
-- **`catch_error_as_json`**: Catches `InputError` exceptions and returns them as `{"error": "..."}` JSON. The primary error-handling decorator for API views.
-- **`catch_error_as_http`**: Catches `InputError` as 404, other exceptions as a generic error page. Used for HTML-rendering views.
+- **`classify_input_error`**: The single definition of the project's user-input error contract. Returns `INPUT_ERROR_JSON` for `InputError` subclasses, `MissingKeyError` and `SluggedMongoRecordMissingError`, `INPUT_ERROR_NOT_FOUND` for `Http404`, and `None` for a system fault. `ErrorBoundaryMiddleware` and both error decorators read it.
+- **`input_error_json_response`**: Builds the `{"error": "..."}` body, status 200, with JSONP callback support. Both the boundary and `catch_error_as_json` return it.
+- **`catch_error_as_json`**: Catches the classified JSON errors and returns them as `{"error": "..."}` JSON, status 200. Kept for views that need the JSON body on a non-API path; the middleware covers the rest.
+- **`catch_error_as_http`**: Answers a classified input error with 404, and any other exception with a generic error page. Used for HTML-rendering views.
 - **`sanitize_get_params`**: Bleach-cleans all GET parameters and string URL args to prevent XSS.
 - **`conditional_graceful_exception`**: Catches exceptions and logs them (instead of raising) when `FAIL_GRACEFULLY=True`. Used during server startup to prevent one bad text/ref from crashing the whole server. When `FAIL_GRACEFULLY=False` (e.g., during data import), exceptions propagate normally.
 - **`memoized`**: Class-based decorator for in-memory function result caching. Supports instance methods via `__get__`. Cache is per-decorator-instance (not shared).
@@ -51,7 +54,8 @@ Handles the Django request/response pipeline: middleware classes that enrich req
   - `BookNameError`: Book title not found.
   - `DuplicateRecordError`: Would-be duplicate on save.
   - `IndexSchemaError`, `NoVersionFoundError`, `SheetNotFoundError`, `ComplexBookLevelRefError`, `DictionaryEntryNotFoundError`.
-- **Non-InputError exceptions**: `ManuscriptError`, `MissingKeyError`, `SluggedMongoRecordMissingError` -- these are NOT caught by the standard error decorators and will produce 500s unless handled explicitly.
+- **`MissingKeyError`, `SluggedMongoRecordMissingError`**: Report a request for data that is not there. `classify_input_error` names them, so the error boundary answers them instead of 500.
+- **`ManuscriptError`**: NOT in the classified set, so it still produces a 500. Add it to `INPUT_ERROR_TYPES` only if the caller can correct it.
 - **Schema validation exceptions**: `SchemaValidationException`, `SchemaRequiredFieldException`, `SchemaInvalidKeyException` -- used by model `_validate()` methods.
 - **`InvalidURLException`, `InvalidHTTPMethodException`**: Used by validators.
 
@@ -78,7 +82,7 @@ Handles the Django request/response pipeline: middleware classes that enrich req
 ## Relationships
 
 - Middleware sets request attributes (`interfaceLang`, `contentLang`, `diaspora`, `active_module`, `init_shared_cache`) that views and context processors depend on.
-- `catch_error_as_json` and `catch_error_as_http` depend on the `InputError` hierarchy from `exceptions.py`.
+- `catch_error_as_json`, `catch_error_as_http` and `ErrorBoundaryMiddleware` share `classify_input_error`, which depends on the `InputError` hierarchy from `exceptions.py`.
 - `SharedCacheMiddleware` uses `cache.py`'s shared cache functions and triggers library cache regeneration.
 - `LanguageSettingsMiddleware` depends on `UserProfile` model, `DOMAIN_MODULES` settings, and Cloudflare headers.
 - `context_processors.py` depends heavily on `sefaria.model.library` for TOC, titles, and terms data.
@@ -87,6 +91,6 @@ Handles the Django request/response pipeline: middleware classes that enrich req
 ## Common Tasks
 
 - **Add a new middleware**: Add to `MIDDLEWARE` in settings. Use `MiddlewareMixin` for class-based or implement `__init__`/`__call__` for function-based.
-- **Handle errors in a new API view**: Decorate with `@catch_error_as_json`. Raise `InputError` subclasses for user-facing errors.
+- **Handle errors in a new API view**: Raise `InputError` subclasses for user-facing errors. `ErrorBoundaryMiddleware` answers them without a decorator; decorate with `@catch_error_as_json` only when the view is not on an `/api/` path and must still answer a JSON body.
 - **Add data to all templates**: Add a context processor function to `context_processors.py` and register it in `TEMPLATES` settings. Use gating decorators to limit when it runs.
 - **Exclude a URL from middleware processing**: Add the path prefix to the middleware's exclusion set or check `request.path` early in `process_request`.
