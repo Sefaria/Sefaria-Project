@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { applyKillSwitch, backToClassic, cookieDomains, killSwitchOn, optedIn, READER_CHOICE_URL, reloadWithoutFollow } from "./reader-choice";
+import { applyKillSwitch, backToClassic, cookieDomains, killSwitchOn, optedIn, optInThroughSocial, READER_CHOICE_URL, reloadWithoutFollow } from "./reader-choice";
 
 const fakeDoc = (cookie: string) => {
   const writes: string[] = [];
@@ -40,6 +40,14 @@ describe("kill switch (remote config feature.reader.next.disabled)", () => {
     expect(applyKillSwitch({ "feature.reader.next.disabled": true }, { doc, hostname: "www.sefaria.org", reload, storage: memory() })).toBe(true);
     expect(reload).toHaveBeenCalledTimes(1);
     expect(writes).toContain("reader_follow=; max-age=0; path=/; samesite=lax");
+  });
+
+  it("on, for a reader who came in through Social (only reader_social): clears that cookie and reloads", () => {
+    const { doc, writes } = fakeDoc("a=1; reader_social=1");
+    const reload = vi.fn();
+    expect(applyKillSwitch({ "feature.reader.next.disabled": true }, { doc, hostname: "www.sefaria.org", reload, storage: memory() })).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(writes).toContain("reader_social=; max-age=0; path=/; samesite=lax");
   });
 
   it("off, or no cookie: nothing happens", () => {
@@ -84,6 +92,15 @@ describe("back to the classic reader", () => {
     expect(reload).toHaveBeenCalled();
   });
 
+  it("also clears Social's routing cookie, so nginx does not send the reload straight back", async () => {
+    const post = vi.fn(async () => ({ ok: true, status: 200, data: {}, networkError: false }));
+    const reload = vi.fn();
+    const { doc, writes } = fakeDoc("reader_version=next; reader_social=1");
+    await backToClassic({ post, reload, doc, hostname: "localhost" });
+    expect(writes).toContain("reader_social=; max-age=0; path=/; samesite=lax");
+    expect(reload).toHaveBeenCalled();
+  });
+
   it("posts {reader: legacy} to the reader-choice endpoint, clears the cookie and reloads (even if the endpoint fails)", async () => {
     const post = vi.fn(async () => ({ ok: false, status: 404, data: {}, networkError: false }));
     const reload = vi.fn();
@@ -118,5 +135,33 @@ describe("rework: interval and timeout", () => {
     expect(await backToClassic({ post: post as never, reload, doc, hostname: "localhost", timeoutMs: 20 })).toEqual({ ok: false, status: 0, timedOut: true });
     expect(writes).toEqual(["reader_version=; path=/; max-age=0; samesite=lax"]);
     expect(reload).toHaveBeenCalled();
+  });
+});
+
+// @feature ACC-003
+describe("Social opts its reader in", () => {
+  const ok = () => vi.fn(async () => ({ ok: true, status: 200, data: {}, networkError: false }));
+
+  it("posts {reader: next, via: social} for a signed-in reader who is not opted in yet", async () => {
+    const post = ok();
+    expect(await optInThroughSocial(7, { doc: fakeDoc("a=1").doc, post, storage: memory() })).toBe(true);
+    expect(post).toHaveBeenCalledWith(READER_CHOICE_URL, { reader: "next", via: "social" });
+  });
+
+  it("does nothing signed out, or when this browser is already opted in", async () => {
+    const post = ok();
+    expect(await optInThroughSocial(null, { doc: fakeDoc("").doc, post, storage: memory() })).toBe(false);
+    expect(await optInThroughSocial(7, { doc: fakeDoc("reader_version=next").doc, post, storage: memory() })).toBe(false);
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("tries once per tab session per account (a refusal is not retried on every Social page)", async () => {
+    const post = vi.fn(async () => ({ ok: false, status: 403, data: {}, networkError: false }));
+    const storage = memory();
+    const { doc } = fakeDoc("");
+    expect(await optInThroughSocial(7, { doc, post, storage })).toBe(true);
+    expect(await optInThroughSocial(7, { doc, post, storage })).toBe(false);
+    expect(await optInThroughSocial(8, { doc, post, storage })).toBe(true);
+    expect(post).toHaveBeenCalledTimes(2);
   });
 });

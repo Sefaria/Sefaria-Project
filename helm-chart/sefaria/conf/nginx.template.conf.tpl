@@ -192,11 +192,16 @@ http {
   #    or not, signed in or not; otherwise a guest outside the opt-in lands on legacy, which drops the parameter without a word;
   #  - reader_follow=1: the new reader set it while this browser is in a follow session (reader-next follow/params.ts), so a reload
   #    keeps the guest in the session once the reader has taken `follow` out of the address.
-  map "$cookie_reader_version|$cookie_reader_follow|$arg_follow" $reader_page {
-    default                  "";
-    "~^next\|"               1;
-    "~^[^|]*\|1\|"           1;
-    "~\|[0-9A-Za-z]{43}$"    1;
+  #  - /social or /social/…: Social's pages, which only the new reader has (legacy Django 404s them) — whoever opens them;
+  #  - reader_social=1: the new reader sets it on a Social page (reader-next src/features/shell/social-optin.ts), so whoever came
+  #    in through Social stays in the new reader. Django never touches it (ReaderChoiceMiddleware manages only reader_version).
+  map "$cookie_reader_version|$cookie_reader_follow|$cookie_reader_social|$uri|$arg_follow" $reader_page {
+    default                                   "";
+    "~^next\|"                                1;
+    "~^[^|]*\|1\|"                            1;
+    "~^[^|]*\|[^|]*\|1\|"                     1;
+    "~^[^|]*\|[^|]*\|[^|]*\|/social(/|\|)"    1;
+    "~\|[0-9A-Za-z]{43}$"                     1;
   }
   {{- else }}
   # reader.optin.enabled is false (the kill switch): the cookie is ignored, location / is legacy's, and the reader rollout keeps
@@ -349,7 +354,7 @@ http {
 
     location / {
       {{- if and (eq $.Values.nodejs.mode "optin") $.Values.reader.optin.enabled }}
-      # nodejs.mode optin: a visitor who chose the new reader ($reader_page, from the reader_version cookie) is handed to @reader;
+      # nodejs.mode optin: a visitor who chose the new reader ($reader_page: the reader_version cookie, follow me, Social) is handed to @reader;
       # for everyone else this location is legacy's, unchanged (no other error_page here, so recursive_error_pages only lets
       # @reader's own error_page work: nginx checks it in the location where the first error_page fired)
       recursive_error_pages on;

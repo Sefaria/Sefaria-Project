@@ -4987,7 +4987,7 @@ def profile_api(request, slug=None):
             # the new reader only for whom the audience includes (remote config feature.reader.optin.audience)
             if profileUpdate["settings"][
                 reader_choice.SETTING_KEY
-            ] == reader_choice.NEXT and not reader_choice.may_use_next(request.user):
+            ] == reader_choice.NEXT and not reader_choice.may_use_next(request.user, request):
                 profileUpdate["settings"].pop(reader_choice.SETTING_KEY)
                 reader_choice_posted = False
 
@@ -5080,11 +5080,14 @@ def reader_choice_api(request):
 
     Every answer sets the csrftoken cookie if the browser has none (ensure_csrf_cookie): GET first, then POST.
 
-    POST {"reader": "classic" | "legacy" | "next"} (JSON body, or a form field), with the CSRF token (X-CSRFToken):
+    POST {"reader": "classic" | "legacy" | "next", "via"?: "social"} (JSON body, or a form field), with the CSRF token (X-CSRFToken):
       - "classic" (alias "legacy") always works, signed in or out: the response clears the cookie, and a signed-in user's
         profile records the choice so other browsers follow at their next sign-in;
       - "next" only when available and canChooseNext (else 403; while the kill switch is on the 403 says so and carries
         "disabled": true): the response sets the cookie and the profile records it.
+      - "next" with "via": "social" (a Social page opts its reader in): for any signed-in user while available and the kill switch
+        is off, audience or not; the profile records it with ``reader_version_via: "social"``, which puts them in the audience for
+        good (sefaria/helper/reader_choice.py). Signed out: 403 (Social's own cookie, reader_social, keeps them on the new reader).
       Answers {"reader": <the choice>, "saved": <whether a profile recorded it>}; 400 for any other value.
 
     Never cached: the answer is this browser's.
@@ -5097,7 +5100,7 @@ def reader_choice_api(request):
             {
                 "available": reader_choice.available(),
                 "disabled": reader_choice.next_disabled(),
-                "canChooseNext": reader_choice.may_use_next(request.user),
+                "canChooseNext": reader_choice.may_use_next(request.user, request),
                 "reader": reader_choice.NEXT
                 if request.COOKIES.get(reader_choice.COOKIE_NAME) == reader_choice.NEXT
                 else reader_choice.CLASSIC,
@@ -5106,13 +5109,16 @@ def reader_choice_api(request):
         )
     elif request.method == "POST":
         posted = request.POST.get("reader")
+        via = request.POST.get("via")
         if posted is None and request.content_type == "application/json":
             try:
                 body = json.loads(request.body)
             except ValueError:
                 body = None
             posted = body.get("reader") if isinstance(body, dict) else None
+            via = body.get("via") if isinstance(body, dict) else None
         choice = reader_choice.parse_choice(posted)
+        via_social = choice == reader_choice.NEXT and via == reader_choice.VIA_SOCIAL
         if choice is None:
             response = jsonResponse({"error": 'Send "reader": "classic" or "next".'}, status=400)
         elif choice == reader_choice.NEXT and reader_choice.available() and reader_choice.next_disabled():
@@ -5120,7 +5126,11 @@ def reader_choice_api(request):
                 {"error": "The new reader is switched off for now. Please use the classic reader.", "disabled": True},
                 status=403,
             )
-        elif choice == reader_choice.NEXT and not reader_choice.may_use_next(request.user):
+        elif via_social and reader_choice.available() and request.user.is_authenticated:
+            reader_choice.opt_in_via_social(request.user, request)
+            response = jsonResponse({"reader": choice, "saved": True})
+            reader_choice.apply_cookie(response, request, choice)
+        elif choice == reader_choice.NEXT and not reader_choice.may_use_next(request.user, request):
             response = jsonResponse({"error": "The new reader is not open to this account."}, status=403)
         else:
             saved = False
@@ -5569,9 +5579,9 @@ def _account_settings_props(request, profile):
         "torahSpecific": SITE_SETTINGS["TORAH_SPECIFIC"],
         "diaspora": request.diaspora,
         # nodejs.mode "optin": the choice between the legacy reader and the new one, for whom the audience includes
-        "readerChoiceAvailable": reader_choice.may_use_next(request.user),
+        "readerChoiceAvailable": reader_choice.may_use_next(request.user, request),
         # the kill switch is on for someone who would otherwise see the switch: say why it is gone
-        "newReaderPaused": reader_choice.in_audience(request.user) and reader_choice.next_disabled(),
+        "newReaderPaused": reader_choice.in_audience(request.user, request) and reader_choice.next_disabled(),
         "newReaderEnabled": reader_choice.chose_next(profile),
     }
 

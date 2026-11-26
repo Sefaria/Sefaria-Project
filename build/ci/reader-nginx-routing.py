@@ -273,6 +273,30 @@ def main():
                             + ("" if ok else f" (expected {want})")
                         )
                 print(f"[{mode}] {len(follow_cases)} follow-me routes checked")
+                # Social: /social and everything under it reach the new reader without the opt-in cookie in optin mode, and so does
+                # any page once the reader has set reader_social=1; never in legacy or with the kill switch
+                social_cases = [
+                    ("/social", LIBRARY, False, "reader" if to_reader else "varnish"),
+                    ("/social/", LIBRARY, False, "reader" if to_reader else "varnish"),
+                    ("/social/rooms/abc?x=1", LIBRARY, False, "reader" if to_reader else "varnish"),
+                    ("/Genesis.1", LIBRARY, "reader_social=1", "reader" if to_reader else "varnish"),
+                    ("/Genesis.1", LIBRARY, "sessionid=x; reader_social=1", "reader" if to_reader else "varnish"),
+                    ("/socialx", LIBRARY, False, "reader" if mode == "reader" else "varnish"),
+                    ("/Genesis.1", LIBRARY, "reader_social=0", "reader" if mode == "reader" else "varnish"),
+                    ("/api/social/token", LIBRARY, "reader_social=1", "varnish"),
+                    ("/settings/account", LIBRARY, "reader_social=1", "varnish"),
+                    ("/social", VOICES, "reader_social=1", "varnish"),
+                ]
+                for path, host, cookie, want in social_cases:
+                    got = ask(path, host, cookie)
+                    ok = got == want
+                    failures += not ok
+                    if table or not ok:
+                        print(
+                            f"  {'ok ' if ok else 'BAD'} social {host:32} {path[:60]:60} cookie {cookie or '-'!s:40} → {got}"
+                            + ("" if ok else f" (expected {want})")
+                        )
+                print(f"[{mode}] {len(social_cases)} Social routes checked")
                 if mode in ("optin", "reader"):
                     # nginx sets X-Forwarded-Host itself: a value the client sends never reaches the reader
                     seen = fetch("/Genesis.1", LIBRARY, True, headers={"X-Forwarded-Host": "evil.example"})[1]

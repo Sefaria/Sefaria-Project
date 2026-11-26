@@ -31,7 +31,8 @@ Cloudflare → nginx (www server block of each root domain)
                └─ everything else (pages): location /, legacy's
                     none of the below (or kill switch) → Varnish → Django, exactly as in legacy mode
                     cookie reader_version=next,  → `return 418` → error_page → @reader → the reader (reader-<env>:3000)
-                    or a follow link (follow=<43 base62>), or cookie reader_follow=1 (follow me, below)
+                    or a follow link (follow=<43 base62>), or cookie reader_follow=1 (follow me, below),
+                    or /social, /social/…, or cookie reader_social=1 (Social, below)
                                                     ├─ reader / library page → rendered there; data read from Varnish
                                                     ├─ a page it does not render, a write, its 404 → passed to Varnish → Django
                                                     └─ nginx's own 502/504 (unreachable: 5 s connect timeout; timed out)
@@ -176,6 +177,17 @@ not access: anyone can add either to a request. The kill switch's client half an
 lever 3 (`reader.optin.enabled: false`) removes the map, so neither routes anywhere. `build/ci/reader-nginx-routing.py` asserts these
 routes in every mode.
 
+**Social opts in whoever comes through it.** Social's pages exist only in the new reader (legacy Django 404s `/social`), and its links
+(a room invite, a shiur) go to people outside the opt-in. So nginx routes `/social` and `/social/…` to the reader for everyone, and a
+Social page sets the cookie `reader_social=1` (`src/features/shell/social-optin.ts`: host-only, `Max-Age` one year), which routes
+every later page request there too; Django tidying a stale `reader_version` leaves it. A **signed-in** reader on a Social page is opted
+in for good: the page posts `/api/reader-choice` `{"reader": "next", "via": "social"}`, Django saves `reader_version: "next"` and
+`reader_version_via: "social"` on their profile and sets the opt-in cookie, and from then on they count as part of the audience
+(`sefaria/helper/reader_choice.py` `in_audience`), staff or not — so it follows them to every browser at sign-in, and account
+settings shows the switch on. Someone who opened a Social link signed out is opted in the same way when they sign in (the middleware
+sees `reader_social=1`). Only the kill switch overrides a Social opt-in. The kill switch and "back to the classic reader" (here or in
+account settings) clear `reader_social`; lever 3 removes the map. `build/ci/reader-nginx-routing.py` asserts these routes in every mode.
+
 ## Hosts and the cookie (Library hosts only)
 
 Read from the rendered chart (`helm template … -f build/ci/preprod-values.yaml --set nodejs.mode=optin`, and the default cauldron
@@ -202,7 +214,7 @@ the longest common suffix of the language's module hosts.
 - **Production's cookie reaches cauldrons.** `.sefaria.org` is also sent to `*.cauldron.sefaria.org`: a staff member opted in on
   production gets the new reader on any cauldron running `optin` (a cauldron's own cookie, `.<name>.cauldron.sefaria.org`, never reaches
   production). Harmless, but remember it when comparing readers on a cauldron.
-- **Shared static files stay out of the split.** The cookie is consulted only in the www block's `location /` (`$reader_page`, mapped from `$cookie_reader_version`, `$cookie_reader_follow` and `$arg_follow`).
+- **Shared static files stay out of the split.** The cookie is consulted only in the www block's `location /` (`$reader_page`, mapped from `$cookie_reader_version`, `$cookie_reader_follow`, `$cookie_reader_social`, `$uri` and `$arg_follow`).
   `/static/…` (nginx's files), `/static/sitemaps/` (GCS), `/robots.txt` (nginx's file), `/api/…` and `/api/search/…` have their own
   locations; `/favicon.ico`, `/site.webmanifest`, `/manifest.json`, `/llms.txt` and `/.well-known/…` go to Varnish whatever the cookie;
   `/assets/…` (the reader's bundles) to the reader whatever the cookie. `build/ci/reader-nginx-routing.py --table` asserts each of these

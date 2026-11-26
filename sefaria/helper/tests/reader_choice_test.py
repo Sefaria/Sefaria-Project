@@ -76,11 +76,20 @@ def _middleware_response(
     view_sets_cookie=False,
     module="library",
     disabled=False,
+    social_cookie=False,
+    via=None,
 ):
-    request = _request({"reader_version": cookie} if cookie else {}, module=module)
+    cookies = {"reader_version": cookie} if cookie else {}
+    if social_cookie:
+        cookies["reader_social"] = "1"
+    request = _request(cookies, module=module)
     request.user = user or _User()
     request.session = {reader_choice.SESSION_SYNCED_KEY: True} if synced else {}
-    profile = mock.Mock(settings={"reader_version": profile_choice} if profile_choice else {})
+    settings_ = {"reader_version": profile_choice} if profile_choice else {}
+    if via:
+        settings_["reader_version_via"] = via
+    profile = mock.Mock(settings=settings_)
+    profile.update.side_effect = lambda d: profile.settings.update(d.get("settings", {}))
 
     def view(r):
         response = HttpResponse()
@@ -184,6 +193,7 @@ def test_audience_reads_remote_config_and_defaults_to_staff(stored, expected):
 def test_may_use_next(user, audience, optin, expected):
     with (
         override_settings(READER_OPTIN=optin),
+        mock.patch("sefaria.model.user_profile.UserProfile", return_value=mock.Mock(settings={})),
         mock.patch.object(reader_choice, "audience", return_value=audience),
         mock.patch.object(reader_choice, "next_disabled", return_value=False),
     ):
@@ -228,6 +238,7 @@ def test_next_disabled_reads_remote_config_and_defaults_to_false(stored, expecte
 def test_the_kill_switch_closes_the_new_reader_to_everyone():
     with (
         override_settings(READER_OPTIN=True),
+        mock.patch("sefaria.model.user_profile.UserProfile", return_value=mock.Mock(settings={})),
         mock.patch.object(reader_choice, "audience", return_value="all"),
         mock.patch.object(reader_choice, "next_disabled", return_value=True),
     ):
@@ -250,3 +261,75 @@ def test_middleware_under_the_kill_switch_clears_next_and_never_sets_it():
     # Voices: untouched
     _, response = _middleware_response("next", cookie="next", disabled=True, module="voices")
     assert "reader_version" not in response.cookies
+
+
+# Social: whoever comes through /social is opted in for good
+
+
+def _social_profile(via=None):
+    return mock.Mock(settings={"reader_version": "next", "reader_version_via": via} if via else {})
+
+
+def test_a_member_opted_in_through_social_is_in_the_audience_while_it_is_staff():
+    with (
+        override_settings(READER_OPTIN=True),
+        mock.patch.object(reader_choice, "audience", return_value="staff"),
+        mock.patch.object(reader_choice, "next_disabled", return_value=False),
+    ):
+        with mock.patch("sefaria.model.user_profile.UserProfile", return_value=_social_profile("social")):
+            assert reader_choice.may_use_next(_Member())
+        with mock.patch("sefaria.model.user_profile.UserProfile", return_value=_social_profile()):
+            assert not reader_choice.may_use_next(_Member())
+        assert not reader_choice.in_audience(_Anonymous())
+
+
+def test_via_social_reads_the_profile_once_per_session():
+    request = _request()
+    request.session = {}
+    with mock.patch("sefaria.model.user_profile.UserProfile", return_value=_social_profile("social")) as P:
+        assert reader_choice.via_social(_Member(), request)
+        assert reader_choice.via_social(_Member(), request)
+    assert P.call_count == 1
+    assert request.session[reader_choice.SESSION_SOCIAL_KEY] is True
+
+
+def test_the_kill_switch_overrides_a_social_opt_in():
+    with (
+        override_settings(READER_OPTIN=True),
+        mock.patch.object(reader_choice, "next_disabled", return_value=True),
+        mock.patch("sefaria.model.user_profile.UserProfile", return_value=_social_profile("social")),
+    ):
+        assert not reader_choice.may_use_next(_Member())
+
+
+def test_middleware_keeps_the_cookie_of_a_member_who_came_through_social():
+    _, response = _middleware_response("next", cookie="next", user=_Member(), synced=True, via="social")
+    assert "reader_version" not in response.cookies
+
+
+def test_middleware_opts_in_at_sign_in_a_member_holding_socials_cookie():
+    # opened a Social link signed out (reader_social=1), then signed in: saved for good, and the cookie set
+    request, response = _middleware_response(None, user=_Member(), social_cookie=True)
+    assert response.cookies["reader_version"].value == "next"
+    assert request.session[reader_choice.SESSION_SOCIAL_KEY] is True
+    # even someone who had chosen classic before: coming through Social opts them in again
+    _, response = _middleware_response("classic", user=_Member(), social_cookie=True)
+    assert response.cookies["reader_version"].value == "next"
+    # not under the kill switch
+    _, response = _middleware_response(None, user=_Member(), social_cookie=True, disabled=True)
+    assert "reader_version" not in response.cookies
+
+
+def test_tidying_a_stale_cookie_leaves_socials_cookie_but_an_explicit_classic_clears_it():
+    # signed out with a next cookie while the audience is staff: reader_version goes, reader_social stays
+    _, response = _middleware_response(None, cookie="next", user=_Anonymous(), social_cookie=True)
+    assert _cleared(response)
+    assert "reader_social" not in response.cookies
+    # the kill switch clears both
+    _, response = _middleware_response(None, cookie="next", user=_Anonymous(), social_cookie=True, disabled=True)
+    assert response.cookies["reader_social"]["max-age"] == 0
+    # choosing classic clears both
+    request = _request({"reader_version": "next", "reader_social": "1"})
+    with mock.patch.object(reader_choice, "_cookie_domain", return_value=None):
+        off = reader_choice.apply_cookie(HttpResponse(), request, "classic")
+    assert off.cookies["reader_social"]["max-age"] == 0

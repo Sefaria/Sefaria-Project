@@ -28,6 +28,8 @@ import type { Viewer } from "~/lib/auth/session";
 import { getSurface, resetSurfaceLoader } from "~/lib/surfaces/load";
 import { SOCIAL_VERSION_PARAM, socialEnvForPage, socialVersionCookie, socialVersionFromCookie } from "~/lib/surfaces/version";
 import { Button } from "~/ui/Button/Button";
+import { setSocialCookie } from "~/features/shell/social-optin";
+import { optInThroughSocial } from "~/features/shell/reader-choice";
 import { ErrorState } from "~/ui/Feedback/Feedback";
 import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { createIdentityTokenSource } from "~/lib/surfaces/identity";
@@ -371,11 +373,29 @@ function PersistentMount() {
 
 /** The page mount: an empty, sized element (no layout shift when the surface fills it) under /social/*. */
 export function SurfacePage() {
+  // a Social page opts its reader in to the new reader: this browser by Social's routing cookie (shell/social-optin.ts), a signed-in
+  // reader's account for good (shell/reader-choice.ts optInThroughSocial)
+  const qc = useQueryClient();
+  const viewerId = useSyncedViewerId(qc);
+  useEffect(() => setSocialCookie(), []);
+  useEffect(() => {
+    void optInThroughSocial(viewerId).catch((e: unknown) => reportError("error", e));
+  }, [viewerId]);
   return (
     <ReportingBoundary name="surface-page" fallback={() => <div className={styles.page} data-surface-mount="page" data-surface-state="failed" />}>
       <PageSlot where="route" />
     </ReportingBoundary>
   );
+}
+
+/** The signed-in viewer's id, kept up to date (null while signed out or not yet known). */
+function useSyncedViewerId(qc: QueryClient): number | string | null {
+  const [id, setId] = useState(() => viewerOf(qc)?.id ?? null);
+  useEffect(() => {
+    setId(viewerOf(qc)?.id ?? null);
+    return qc.getQueryCache().subscribe(() => setId(viewerOf(qc)?.id ?? null));
+  }, [qc]);
+  return id;
 }
 
 /** The same page view in the column beside a text (SurfaceHost.openBeside): the element the /social page had, moved here. */
