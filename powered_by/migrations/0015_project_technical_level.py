@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("powered_by", "0013_project_purpose"),
+        ("powered_by", "0014_api_key_allowed_domains"),
     ]
 
     operations = [
