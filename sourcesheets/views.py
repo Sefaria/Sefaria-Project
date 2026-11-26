@@ -49,7 +49,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.cache import django_cache
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.chatbot import MCP_TOKEN_AUDIENCE
-from sefaria.utils.util import get_redirect_to_help_center, strip_tags
+from sefaria.utils.util import get_redirect_to_help_center, json_for_script, strip_tags
 
 
 def annotate_user_links(sources):
@@ -70,7 +70,7 @@ def sheet_json_for_script(sheet):
     Serializes a sheet for embedding in an inline <script> block. Markup characters are written as
     JSON unicode escapes, so no field value can close the script element.
     """
-    return json.dumps(sheet).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return json_for_script(json.dumps(sheet))
 
 
 @ensure_csrf_cookie

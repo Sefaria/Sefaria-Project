@@ -67,7 +67,7 @@
     {% endwith %}
 
     {% if ldBreadcrumbs %}{% autoescape off %}
-    <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
+    <script type="application/ld+json">{{ ldBreadcrumbs|script_json }}</script>
     {% endautoescape %}{% endif %}
 
     {% block head %}{% endblock %}
@@ -331,7 +331,7 @@
       }
 
       var DJANGO_VARS = {
-        props:         {{ propsJSON|default:"null" }},
+        props:         {{ propsJSON|default:"null"|script_json }},
         inReaderApp:   {% if renderStatic %}false{% else %}true{% endif %},
       };
 
