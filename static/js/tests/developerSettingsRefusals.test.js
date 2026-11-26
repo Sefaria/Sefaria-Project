@@ -172,6 +172,59 @@ describe('refused saves', () => {
   });
 });
 
+describe('a stale tab, after the session ended', () => {
+  const LOGIN = '/login?next=%2Fsettings%2Fdeveloper';
+  let originalLocation = null;
+
+  beforeEach(() => {
+    originalLocation = window.location;
+    delete window.location;
+    window.location = {
+      reload: jest.fn(),
+      href: 'http://localhost/settings/developer',
+      pathname: '/settings/developer',
+    };
+  });
+
+  afterEach(() => {
+    window.location = originalLocation;
+  });
+
+  it('sends the visitor to log in when a save is refused for no login (401)', async () => {
+    open({ ...READY, projects: [] });
+    server.fail('POST', 'profile', 401, 'Log in to use developer settings.');
+    await click(button('Edit profile'));
+    await click(button('Save'));
+    expect(window.location.href).toBe(LOGIN);
+    expect(screen.queryByText(/Something went wrong/)).toBeNull();
+  });
+
+  it("sends the visitor to log in when the CSRF check fails after a logout (Django's 403 page)", async () => {
+    open({ ...READY, projects: [project(1, { keys: [key(1)] })] });
+    server.fail('DELETE', 'keys/k1', 403, undefined, { html: true });
+    await click(button('Delete key, Key 1'));
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
+    expect(window.location.href).toBe(LOGIN);
+  });
+
+  it('sends the visitor to log in when showing a key is refused for no login', async () => {
+    open({ ...READY, projects: [project(1, { keys: [key(1)] })] });
+    server.fail('POST', 'keys/k1/value', 401, 'Log in to use developer settings.');
+    await click(button('Show key, Key 1'));
+    expect(window.location.href).toBe(LOGIN);
+  });
+
+  it("keeps the visitor on the page for the API's own 403, a refusal with a reason", async () => {
+    open({ ...READY, projects: [project(1)] });
+    server.fail('POST', 'projects/p1/keys', 403, 'Confirm your email first.');
+    await click(within(projectSection('Project 1')).getByRole('button', { name: 'Add key' }));
+    type(field(/API key name/), 'Key');
+    await click(button('Create API key'));
+    expect(window.location.href).toBe('http://localhost/settings/developer');
+    expect(heading('Create an API key for Project 1')).toBeTruthy();
+  });
+});
+
 describe('after the account email changes', () => {
   it('asks to confirm the new address on the Developer tab without a reload', async () => {
     const setUp = { ...READY, ssoConnected: false, emailVerified: true, projects: [project(1)] };

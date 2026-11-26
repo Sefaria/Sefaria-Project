@@ -213,7 +213,8 @@ export const project = (n, extra = {}) => ({
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
 /* Answers fetch like powered_by/developer_views.py: every call returns the whole developer state. server.fail()
-   makes the next matching call (or every one, with times: Infinity) fail with the server's error message. */
+   makes the next matching call (or every one, with times: Infinity) fail with the server's error message, or with
+   an HTML page rather than JSON ({ html: true }), as Django answers a CSRF failure. */
 export const fakeServer = (initial = {}) => {
   const state = clone({
     developerEnabled: false,
@@ -326,6 +327,13 @@ export const fakeServer = (initial = {}) => {
     const failure = failures.find((f) => f.method === method && f.path.test(path) && f.times > 0);
     if (failure) {
       failure.times -= 1;
+      if (failure.html) {
+        return Promise.resolve({
+          ok: false,
+          status: failure.status,
+          json: () => Promise.reject(new SyntaxError('HTML')),
+        });
+      }
       return answer(failure.status, failure.error === undefined ? {} : { error: failure.error });
     }
     const reveal = method === 'POST' && path.match(/^keys\/([^/]+)\/value$/);
@@ -346,13 +354,14 @@ export const fakeServer = (initial = {}) => {
     state,
     requests,
     /* path: a string for the whole path, or a RegExp. */
-    fail: (method, path, status, error, { times = 1 } = {}) => {
+    fail: (method, path, status, error, { times = 1, html = false } = {}) => {
       failures.push({
         method,
         path: path instanceof RegExp ? path : new RegExp('^' + path.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') + '$'),
         status,
         error,
         times,
+        html,
       });
     },
     /* The bodies sent to METHOD path, in order. */

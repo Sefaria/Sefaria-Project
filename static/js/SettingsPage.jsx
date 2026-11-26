@@ -19,6 +19,7 @@ import {
   readState,
   requestNewLink,
   revealKey,
+  sessionGone,
   saveProfile,
   sendConfirmation,
   setKeyRestriction,
@@ -3112,7 +3113,7 @@ const EHome = ({
   const valueOf = (id, keep) =>
     keyValues[id]
       ? Promise.resolve(keyValues[id])
-      : revealKey(id).then((v) => {
+      : run(revealKey(id), { quiet: true, keepState: true }).then((v) => {
           if (keep) {
             setKeyValues((m) => ({ ...m, [id]: v }));
           }
@@ -5140,7 +5141,11 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
           setDeveloperState(server);
         }
       },
-      () => {}
+      (err) => {
+        if (sessionGone(err)) {
+          endSession();
+        }
+      }
     );
   }, [tab]);
   /* Restored with nothing remembered, the page can't know the current settings, so it reloads them. */
@@ -5194,19 +5199,23 @@ const SettingsPage = ({ tab, projectId, accountSettings, initialDeveloper, setTa
     };
   }, []);
 
-  /* Every API call answers with the whole developer state, which replaces the page's copy. A
-     failure leaves a notice, unless the caller shows the error itself ({quiet: true}); either
-     way the promise rejects, so callers can tell. With {refresh: true} a failure also reloads
-     the state, for answers to something the server may no longer offer. */
-  const run = (request, { quiet, refresh } = {}) =>
+  /* Every API call answers with the whole developer state, which replaces the page's copy, except a key's value
+     ({keepState: true}). A failure leaves a notice, unless the caller shows the error itself ({quiet: true}); either
+     way the promise rejects, so callers can tell. A failure because the session is gone sends the visitor to log in.
+     With {refresh: true} a failure also reloads the state, for answers to something the server may no longer offer. */
+  const run = (request, { quiet, refresh, keepState } = {}) =>
     request.then(
       (data) => {
-        if (pageMounted.current) {
+        if (pageMounted.current && !keepState) {
           setDeveloperState(data);
         }
         return data;
       },
       (err) => {
+        if (sessionGone(err)) {
+          endSession();
+          throw err;
+        }
         if (!quiet && pageMounted.current) {
           setNotice(eMessage(err));
         }

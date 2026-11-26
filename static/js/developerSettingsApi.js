@@ -31,16 +31,22 @@ const call = (method, path, body) =>
   }).then((response) =>
     response
       .json()
-      .catch(() => ({}))
+      .catch(() => null)
       .then((data) => {
         if (!response.ok) {
-          const error = new Error(data.error || '');
+          const error = new Error((data && data.error) || '');
           error.status = response.status;
+          error.notJson = data === null;
           throw error;
         }
-        return data;
+        return data || {};
       })
   );
+
+/* The request failed because the visitor is no longer logged in: the API's own 401, or a 403 or 404 page that isn't
+   the API's JSON (Django's CSRF failure after a logout or login elsewhere, and staff-only mode's 404). */
+export const sessionGone = (err) =>
+  !!err && (err.status === 401 || ((err.status === 403 || err.status === 404) && !!err.notJson));
 
 export const readState = () => call('GET', 'state');
 export const enableDeveloper = () => call('POST', 'enable');
