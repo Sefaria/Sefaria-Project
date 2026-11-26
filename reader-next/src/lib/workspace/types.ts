@@ -38,6 +38,21 @@ interface PanelBase {
   asides: AsideState[];
   /** How the side panels are arranged among themselves. Absent: one column, in order. */
   asideLayout?: LayoutNode<AsideId>;
+  /** This panel follows another one, segment by segment, and the other follows it (docs/WORKSPACE.md, "Linked panels"). */
+  link?: PanelLink;
+}
+
+/**
+ * A link between two panels, kept on the panel that was opened from the other (the commentary opened beside its text). Both directions
+ * follow: scrolling either moves the other. `away`: the link is kept but paused (the reader unlinked, or one side went somewhere the
+ * other cannot follow); the link symbol turns grey and a click links them again.
+ *
+ * @feature SHL-090 Linked panels
+ */
+export interface PanelLink {
+  /** The panel this one is linked to (ids follow position; operations renumber it with the panels). */
+  to: PanelId;
+  away?: true;
 }
 
 /** A text open at a ref (section, segment or range). */

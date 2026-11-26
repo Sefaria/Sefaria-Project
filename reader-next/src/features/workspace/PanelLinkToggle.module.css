@@ -1,0 +1,36 @@
+/* The link symbol: a small round button on the panel's edge, just under its 60px header (the header's own corners hold the close and
+   display buttons). Beside the linked panel it sits on the dividing line (half over each panel); otherwise just inside this panel's
+   edge. Above the panels' sticky headers (100), below the site header (110). The text column scrolls under it. */
+.toggle {
+  position: absolute;
+  top: 72px;
+  z-index: 105;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--sefaria-color-border-strong);
+  background: var(--sefaria-color-surface);
+  color: var(--sefaria-color-text-muted);
+  cursor: pointer;
+  box-shadow: var(--sefaria-shadow-raised);
+}
+.toggle[data-side="start"] { inset-inline-start: 6px; }
+.toggle[data-side="end"] { inset-inline-end: 6px; }
+.toggle[data-side="start"][data-adjacent] { inset-inline-start: -14px; }
+.toggle[data-side="end"][data-adjacent] { inset-inline-end: -14px; }
+.toggle[data-linked="true"] {
+  background: var(--sefaria-color-brand);
+  border-color: var(--sefaria-color-brand);
+  color: var(--sefaria-color-on-brand);
+}
+.toggle:hover { border-color: var(--sefaria-color-brand); }
+.toggle:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 2px; }
+
+/* One panel at a time on a phone: nothing to be linked beside. */
+@media (max-width: 842px) {
+  .toggle { display: none; }
+}

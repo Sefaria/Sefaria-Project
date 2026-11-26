@@ -80,12 +80,49 @@ export function decodeWorkspace(firstRef: string, search: RawSearch): Workspace 
     const id = `p${i + 2}` as PanelId;
     panels.push(panelFrom(id, urlToRef(String(search[`p${n}`])), search, String(n), sideLang(n)));
   });
+  for (const l of parseLinks(search[LINK_PARAM], panels.length)) {
+    const p = panels[l.follower - 1]!;
+    p.link = { to: `p${l.leader}` as PanelId, ...(l.away ? { away: true as const } : {}) };
+  }
   const ctx = parseCtx(search[CTX_PARAM]);
   return {
     panels: Object.fromEntries(panels.map((p) => [p.id, p])),
     layout: panels.length === 1 ? leaf(panels[0]!.id) : row(...panels.map((p) => leaf(p.id))),
     ...(ctx ? { ctx } : {}),
   };
+}
+
+/**
+ * Linked panels in the address (not part of sefaria.org's grammar, so written last and only when there are links): `link=2-1`
+ * says the second panel follows the first; `2-1~` that the link is paused; several are comma-separated. Panels are counted by their
+ * place in the row (1, 2, 3…), not by the `p<n>` numbers, which skip the slots sidebars take.
+ *
+ * @feature SHL-090 Linked panels
+ */
+export const LINK_PARAM = "link";
+export function parseLinks(raw: unknown, panelCount: number): { follower: number; leader: number; away: boolean }[] {
+  const s = str(raw);
+  if (!s) return [];
+  const seen = new Set<number>();
+  const out: { follower: number; leader: number; away: boolean }[] = [];
+  for (const part of s.split(",")) {
+    const m = /^(\d{1,2})-(\d{1,2})(~?)$/.exec(part.trim());
+    if (!m) continue;
+    const follower = Number(m[1]), leader = Number(m[2]);
+    if (follower === leader || follower < 1 || leader < 1 || follower > panelCount || leader > panelCount || seen.has(follower)) continue;
+    seen.add(follower);
+    out.push({ follower, leader, away: m[3] === "~" });
+  }
+  return out;
+}
+export function formatLinks(ws: Workspace): string | undefined {
+  const order = panelOrder(ws);
+  const parts = order.flatMap((id, i) => {
+    const l = ws.panels[id]?.link;
+    const at = l ? order.indexOf(l.to) : -1;
+    return l && at >= 0 && at !== i ? [`${i + 1}-${at + 1}${l.away ? "~" : ""}`] : [];
+  });
+  return parts.length ? parts.join(",") : undefined;
 }
 
 /** What the URL says when a panel has not set its own: the reader's stored settings (the old panel settings). */
@@ -217,7 +254,10 @@ function workspaceParams(ws: Workspace, d: UrlDefaults): { path: string; params:
     if (d.singlePanel && i === 1 && cur.mode === "Connections" && prev.mode === "Text") continue;
     params.push(raw(`lang${i + 1}`, cur.lang), ...("aliyot" in cur ? [raw(`aliyot${i + 1}`, cur.aliyot!)] : []));
   }
-  // the reserved context (lib/reader/ctx.ts), last: not part of sefaria.org's grammar, so every legacy address is unchanged without it
+  // linked panels, then the reserved context (lib/reader/ctx.ts), last: neither is part of sefaria.org's grammar, so every legacy
+  // address is unchanged without them
+  const links = formatLinks(ws);
+  if (links) params.push(raw(LINK_PARAM, links));
   const ctx = parseCtx(ws.ctx);
   if (ctx) params.push(raw(CTX_PARAM, ctx));
   return { path, params };

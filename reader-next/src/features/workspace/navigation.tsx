@@ -42,7 +42,8 @@ interface WorkspaceNav {
   /** The workspace as of now (read from the router at call time, never stale). */
   current: () => Workspace;
   href: (ws: Workspace) => string;
-  go: (ws: Workspace, opts?: { replace?: boolean; state?: NavState }) => void;
+  /** Navigate to a workspace; resolves when the router has. */
+  go: (ws: Workspace, opts?: { replace?: boolean; state?: NavState }) => Promise<void>;
 }
 
 /** One panel at a time: sefaria.org's MOBILE breakpoint, as the panel's own single-panel rules (TextPanel.tsx). */
@@ -200,7 +201,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   );
   useRegisterSlice(scrollSlice);
   const restoreFor = useCallback<WorkspaceNav["restoreFor"]>((key, id) => (key && poppedKey.current === key ? store.current!.get(key)?.[id] : undefined), []);
-  const go = useCallback<WorkspaceNav["go"]>((ws, opts) => void commands.go(ws, opts), [commands]);
+  const go = useCallback<WorkspaceNav["go"]>((ws, opts) => commands.go(ws, opts), [commands]);
   // Links are written in the one form the server writes too (with the sidebar's language): a phone's form only in the address the app
   // navigates to (go, canonicalize), so a link's href never changes between the server's markup and hydration
   const href = useCallback((ws: Workspace) => workspaceHref(ws, { ...defaults, singlePanel: false }), [defaults]);

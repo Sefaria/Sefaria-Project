@@ -6,7 +6,7 @@
  *    the deployment's default either way — on for staging or production without a deploy, or off at once (the kill switch).
  * Pure, so it can be tested; useLab (src/features/reader-state/labs.ts) reads it in components.
  */
-export const LABS = ["follow_me", "recording", "social"] as const;
+export const LABS = ["follow_me", "recording", "social", "linked_panels"] as const;
 export type LabName = (typeof LABS)[number];
 
 /** The remote-config key that switches a lab: "feature.reader.labs.follow_me". */

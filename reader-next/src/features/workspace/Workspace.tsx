@@ -17,6 +17,7 @@ import type { WorkspaceRouteData } from "../reader/reader-route";
 import { TextPanel } from "../reader/TextPanel";
 import styles from "./Workspace.module.css";
 import { WorkspaceNavProvider } from "./navigation";
+import { PanelLinksProvider } from "./links";
 
 /**
  * Everything on screen for a reader URL: the panels in the URL, arranged by the workspace layout and sized by
@@ -53,6 +54,7 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
   if (!layout) return null;
   return (
     <WorkspaceNavProvider>
+      <PanelLinksProvider>
       {phoneShows && (
         // same breakpoint as Workspace.module.css's phone rules; only rendered after an apply, so never part of the server render
         <style>{`@media (max-width: 842px){[data-phone-panel="${phoneShows}"]>[data-direction]>div:first-child{display:none}[data-phone-panel="${phoneShows}"]>[data-direction]>div:has([data-leaf="${phoneShows}"]){display:block}}`}</style>
@@ -66,6 +68,7 @@ export function Workspace({ data }: { data: WorkspaceRouteData }) {
           renderLeaf={(id) => <PanelHost panel={ws.panels[id]!} data={data} innerSizes={sizes.inner[order.indexOf(id)]} alone={order.length === 1} />}
         />
       </div>
+      </PanelLinksProvider>
     </WorkspaceNavProvider>
   );
 }

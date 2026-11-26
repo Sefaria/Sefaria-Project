@@ -34,6 +34,8 @@ import { refToUrl } from "~/lib/ref/url";
 import { dismissBanner, openTransBannerApplies } from "~/lib/reader/translations-banner";
 import { rememberTranslation } from "~/lib/versions/prefs-source";
 import { entryKey, navFor, panelKeysOf, readNavState, useWorkspaceNav, type NavState } from "../workspace/navigation";
+import { useLinkEndpoint, usePanelLinks } from "../workspace/links";
+import { PanelLinkToggle } from "../workspace/PanelLinkToggle";
 import { panelForRef } from "../workspace/open-ref";
 import { toRouterLocation } from "../shared/RouterLink";
 // Not a lazy chunk (tried once to shrink the first load): a server-rendered sidebar whose chunk was still loading at hydration left a Suspense
@@ -172,9 +174,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // anchor keeping holds it through reflows); else measured on the panel's own DOM (lib/reader-state/sefaria/slices/dom-position.ts).
   const panelKey = panel.key ?? id;
   const connectionsOnScreenRef = useRef(false);
+  // the column's scroll engine, for a linked panel to move this one (features/workspace/links.tsx)
+  const engineRef = useRef<{ scrollToSegment: (ref: string) => void } | undefined>(undefined);
   const registerPosition = useCallback(
-    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void; getPosition?: () => SavedPosition | undefined }) =>
-      nav.registerPanel(id, get, {
+    (get: () => SavedPosition | undefined, engine?: { restorePosition: (pos: SavedPosition) => boolean; scrollToSegment: (ref: string) => void; getPosition?: () => SavedPosition | undefined }) => {
+      engineRef.current = engine;
+      return nav.registerPanel(id, get, {
         key: panelKey,
         getPosition: engine?.getPosition,
         restorePosition: (pos) => (engine ? engine.restorePosition(pos) : !!rootEl.current && placeSegment(rootEl.current, pos)),
@@ -184,7 +189,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           engine.scrollToSegment(ref);
           return true;
         },
-      }),
+      });
+    },
     [nav, id, panelKey],
   );
   const onSections = useCallback((refs: string[]) => void (columnSections.current = refs), []);
@@ -201,6 +207,33 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   useEffect(() => {
     prefetchNeighbours(qc, current.passage, versions);
   }, [qc, current.passage, versions]);
+
+  // ── linked panels (features/workspace/links.tsx) ────────────────────────────────────────────────────
+  const links = usePanelLinks();
+  const currentPlace = useRef(current);
+  currentPlace.current = current;
+  useLinkEndpoint(id, {
+    indexTitle: () => currentPlace.current.passage.indexTitle,
+    place: () => currentPlace.current.ref,
+    scrollTo: (ref) => {
+      const engine = engineRef.current;
+      if (!engine || !rootEl.current?.querySelector(`[data-reader-scroller] [role="group"][data-ref="${CSS.escape(ref)}"]`)) return false;
+      engine.scrollToSegment(ref);
+      return true;
+    },
+  });
+  // A navigation inside this panel that the reader made (contents, a search hit; not one a link made) moves its linked panels too.
+  // (the entry the panel opened on is not passed on: arriving is not moving)
+  const linkedNav = readNavState(location.state).link;
+  const announcedEntry = useRef(thisEntry);
+  useEffect(() => {
+    if (thisEntry === null || announcedEntry.current === thisEntry) return;
+    announcedEntry.current = thisEntry;
+    if (kind !== "go" || !navState.mine || linkedNav) return;
+    const target = entry.current.target ?? initial[0]?.segments[0]?.ref;
+    if (target) links.moved(id, target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per history entry this panel was sent to
+  }, [thisEntry]);
 
   const onFocus = useCallback(
     (ref: string, passage: TextPassage) => {
@@ -238,9 +271,11 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       if (asideRef.current.length) setSelection([ref]);
       nav.panelMoved();
       // The address bar always names the verse being read (like the old reader), without moving anything.
-      apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "scroll", panel: id } });
+      const written = apply((ws) => updatePanel(ws, id, { ref }), { replace: true, state: { nav: "scroll", panel: id } });
+      // the reader scrolled here: linked panels follow
+      links.moved(id, ref, written);
     },
-    [apply, id, nav],
+    [apply, id, nav, links],
   );
 
   // Every range of several segments stays in the address and highlighted, inside one section or across sections, sidebar open or
@@ -336,7 +371,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "select", panel: id, ref } });
         return;
       }
-      apply(
+      const written = apply(
         (ws) => {
           const existing = ws.panels[id]?.asides.find((a) => a.kind === "connections");
           // choosing another verse ends a name's card (the old closeNamedEntityInConnectionPanel)
@@ -345,8 +380,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         },
         { state: { nav: "select", panel: id, ref } },
       );
+      // choosing a verse moves linked panels to it
+      links.moved(id, ref, written);
     },
-    [apply, id, newSidebarLang],
+    [apply, id, newSidebarLang, links],
   );
 
   /**
@@ -366,9 +403,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       const aside = before.panels[id]?.asides.find((a) => a.kind === "connections");
       const lang = settings.language === "bilingual" ? "bi" : aside?.lang === "he" ? "he" : aside?.lang === "en" ? "en" : settings.language === "hebrew" ? "he" : "en";
       const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "text", ref, versions: { ...versions }, lang });
-      nav.go(after, { state: { nav: "go", panel: opened } });
+      // a commentary, targum or another version of this text opens linked to it (D1, D4)
+      void nav.go(after, { state: { nav: "go", panel: opened } }).then(() => links.autoLink(id, opened, ref));
     },
-    [apply, nav, id, settings.language],
+    [apply, nav, id, settings.language, links],
   );
   const openTextHere = useCallback((ref: string) => openFromSidebar(ref), [openFromSidebar]);
 
@@ -827,6 +865,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         void closePanel();
       }}
     >
+      <PanelLinkToggle id={id} link={panel.link} />
       <SplitView
         node={frame}
         renderLeaf={(leafId) =>
