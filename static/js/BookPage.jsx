@@ -36,6 +36,16 @@ import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from './ReaderDisplayOptionsMenu';
 import { DropdownMenu } from './common/DropdownMenu';
 import { getCsrfToken } from './sefaria/csrf';
+import SiddurCustomizeModal from './SiddurCustomizeModal';
+import {
+  buildTree,
+  firstVisibleSectionRef,
+  flattenLeaves,
+  isCustomizableSiddur,
+  pruneSchema,
+  resolveHidden,
+  subscribeCustomization,
+} from './sefaria/siddurCustomization';
 
 class BookPage extends Component {
   // Menu for the Table of Contents for a single text
@@ -53,10 +63,18 @@ class BookPage extends Component {
       dlVersionLanguage: null,
       dlVersionFormat: null,
       dlReady: false,
+      siddurHiddenRefs: [],
+      showSiddurCustomize: false,
     };
   }
   componentDidMount() {
     this.loadData();
+    this.unsubscribeSiddur = subscribeCustomization(this.props.title, (refs) =>
+      this.setState({ siddurHiddenRefs: refs })
+    );
+  }
+  componentWillUnmount() {
+    this.unsubscribeSiddur && this.unsubscribeSiddur();
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.props.settingsLanguage != prevProps.settingsLanguage) {
@@ -166,6 +184,16 @@ class BookPage extends Component {
   extendedNotesBack(event) {
     return null;
   }
+  firstSectionRef() {
+    // Customized siddurim start at their first section the reader hasn't hidden.
+    const { indexDetails, siddurHiddenRefs } = this.state;
+    const hiddenLeaves = resolveHidden(this.props.title, siddurHiddenRefs).leafRefs;
+    if (!hiddenLeaves.length) {
+      return indexDetails.firstSectionRef;
+    }
+    const leaves = flattenLeaves(buildTree(indexDetails.schema, this.props.title));
+    return firstVisibleSectionRef(leaves, hiddenLeaves) || indexDetails.firstSectionRef;
+  }
   render() {
     const title = this.props.title;
     const index = Sefaria.index(title);
@@ -202,12 +230,29 @@ class BookPage extends Component {
       ) : (
         <a
           className="button small readButton"
-          href={'/' + Sefaria.normRef(this.state.indexDetails['firstSectionRef'])}
+          href={'/' + Sefaria.normRef(this.firstSectionRef())}
           onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
         >
           <InterfaceText>book_page.start_reading</InterfaceText>
         </a>
       ));
+
+    const numHidden = this.state.siddurHiddenRefs.length;
+    const customizeButton =
+      !this.state.indexDetails || this.props.compare || !isCustomizableSiddur(title) ? null : (
+        <button
+          type="button"
+          className="button small white readButton siddurCustomizeButton"
+          onClick={() => this.setState({ showSiddurCustomize: true })}
+        >
+          <InterfaceText>siddur_customize.customize</InterfaceText>
+          {numHidden ? (
+            <span className="siddurCustomizeCount">
+              {numHidden} <InterfaceText>siddur_customize.hidden</InterfaceText>
+            </span>
+          ) : null}
+        </button>
+      );
 
     const tabs = [{ id: 'contents', title: { en: 'Contents', he: Sefaria._('common.contents') } }];
     if (this.isBookToc()) {
@@ -310,6 +355,14 @@ class BookPage extends Component {
               {this.state.indexDetails ? (
                 <div>
                   {readButton}
+                  {customizeButton}
+                  {this.state.showSiddurCustomize ? (
+                    <SiddurCustomizeModal
+                      title={title}
+                      schema={this.state.indexDetails.schema}
+                      close={() => this.setState({ showSiddurCustomize: false })}
+                    />
+                  ) : null}
 
                   {this.props.multiPanel ? null : (
                     <div className="about">
@@ -378,11 +431,18 @@ class TextTableOfContents extends Component {
     this.state = {
       tab: 'schema',
       indexDetails: Sefaria.getIndexDetailsFromCache(props.title),
+      siddurHiddenRefs: [],
     };
   }
   componentDidMount() {
     this.loadData();
     this.scrollToCurrent();
+    this.unsubscribeSiddur = subscribeCustomization(this.props.title, (refs) =>
+      this.setState({ siddurHiddenRefs: refs })
+    );
+  }
+  componentWillUnmount() {
+    this.unsubscribeSiddur && this.unsubscribeSiddur();
   }
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
@@ -516,7 +576,12 @@ class TextTableOfContents extends Component {
         } else {
           content = (
             <SchemaNode
-              schema={this.state.indexDetails.schema}
+              schema={pruneSchema(
+                this.state.indexDetails.schema,
+                this.props.title,
+                resolveHidden(this.props.title, this.state.siddurHiddenRefs).leafRefs
+              )}
+              key={this.state.siddurHiddenRefs.join('|')}
               topToggleTitles={toggleNames}
               addressTypes={this.state.indexDetails.schema.addressTypes}
               refPath={this.props.title}

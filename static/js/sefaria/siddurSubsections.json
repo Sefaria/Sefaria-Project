@@ -1,0 +1,820 @@
+{
+ "The Koren Shalem Siddur; Ashkenaz": {
+  "Weekdays, On Waking": [
+   {
+    "en": "Modeh Ani",
+    "he": "מודה אני",
+    "from": 1,
+    "to": 3
+   },
+   {
+    "en": "Washing Hands",
+    "he": "נטילת ידיים",
+    "from": 4,
+    "to": 5
+   },
+   {
+    "en": "Asher Yatzar",
+    "he": "אשר יצר",
+    "from": 6,
+    "to": 6
+   },
+   {
+    "en": "Elokai Neshama",
+    "he": "אלהי נשמה",
+    "from": 7,
+    "to": 7
+   },
+   {
+    "en": "Tzitzit",
+    "he": "לבישת ציצית",
+    "from": 8,
+    "to": 12
+   }
+  ],
+  "Weekdays, Offerings": [
+   {
+    "en": "The Basin",
+    "he": "פרשת הכיור",
+    "from": 1,
+    "to": 3
+   },
+   {
+    "en": "Taking of the Ashes",
+    "he": "פרשת תרומת הדשן",
+    "from": 4,
+    "to": 6
+   },
+   {
+    "en": "The Daily Sacrifice",
+    "he": "פרשת קרבן התמיד",
+    "from": 7,
+    "to": 11
+   },
+   {
+    "en": "The Incense",
+    "he": "פרשת הקטורת",
+    "from": 12,
+    "to": 21
+   },
+   {
+    "en": "The Order of the Priestly Functions",
+    "he": "סדר המערכה",
+    "from": 22,
+    "to": 30
+   },
+   {
+    "en": "Laws of Offerings, Mishna Zevaḥim",
+    "he": "דיני זבחים",
+    "from": 31,
+    "to": 39
+   }
+  ],
+  "Weekdays, A Psalm Before Verses of Praise": [
+   {
+    "en": "Psalm 30",
+    "he": "מזמור שיר חנוכת הבית",
+    "from": 1,
+    "to": 1
+   },
+   {
+    "en": "Mourner’s Kaddish",
+    "he": "קדיש יתום",
+    "from": 2,
+    "to": 9
+   }
+  ],
+  "Weekdays, Pesukei DeZimra": [
+   {
+    "en": "Barukh She’amar",
+    "he": "ברוך שאמר",
+    "from": 1,
+    "to": 5
+   },
+   {
+    "en": "Hodu",
+    "he": "הודו",
+    "from": 6,
+    "to": 10
+   },
+   {
+    "en": "Mizmor LeToda",
+    "he": "מזמור לתודה",
+    "from": 11,
+    "to": 12
+   },
+   {
+    "en": "Yehi Khevod",
+    "he": "יהי כבוד",
+    "from": 13,
+    "to": 13
+   },
+   {
+    "en": "Ashrei",
+    "he": "אשרי",
+    "from": 14,
+    "to": 17
+   },
+   {
+    "en": "Halleluya Psalms",
+    "he": "פסוקי הללויה",
+    "from": 18,
+    "to": 23
+   },
+   {
+    "en": "Vayvarekh David",
+    "he": "ויברך דוד",
+    "from": 24,
+    "to": 25
+   },
+   {
+    "en": "Song at the Sea",
+    "he": "שירת הים",
+    "from": 26,
+    "to": 31
+   },
+   {
+    "en": "Yishtabaḥ",
+    "he": "ישתבח",
+    "from": 32,
+    "to": 34
+   },
+   {
+    "en": "Half Kaddish",
+    "he": "חצי קדיש",
+    "from": 35,
+    "to": 38
+   }
+  ],
+  "Weekdays, The Amida": [
+   {
+    "en": "Patriarchs",
+    "he": "אבות",
+    "from": 1,
+    "to": 6
+   },
+   {
+    "en": "Divine Might",
+    "he": "גבורות",
+    "from": 7,
+    "to": 14
+   },
+   {
+    "en": "Kedusha",
+    "he": "קדושה",
+    "from": 15,
+    "to": 21
+   },
+   {
+    "en": "Holiness",
+    "he": "קדושת השם",
+    "from": 22,
+    "to": 24
+   },
+   {
+    "en": "Knowledge",
+    "he": "דעת",
+    "from": 25,
+    "to": 26
+   },
+   {
+    "en": "Repentance",
+    "he": "תשובה",
+    "from": 27,
+    "to": 28
+   },
+   {
+    "en": "Forgiveness",
+    "he": "סליחה",
+    "from": 29,
+    "to": 31
+   },
+   {
+    "en": "Redemption",
+    "he": "גאולה",
+    "from": 32,
+    "to": 34
+   },
+   {
+    "en": "Healing",
+    "he": "רפואה",
+    "from": 35,
+    "to": 38
+   },
+   {
+    "en": "Prosperity",
+    "he": "ברכת השנים",
+    "from": 39,
+    "to": 41
+   },
+   {
+    "en": "Ingathering of Exiles",
+    "he": "קבוץ גלויות",
+    "from": 42,
+    "to": 43
+   },
+   {
+    "en": "Justice",
+    "he": "השבת המשפט",
+    "from": 44,
+    "to": 45
+   },
+   {
+    "en": "Against Informers",
+    "he": "ברכת המינים",
+    "from": 46,
+    "to": 47
+   },
+   {
+    "en": "The Righteous",
+    "he": "על הצדיקים",
+    "from": 48,
+    "to": 49
+   },
+   {
+    "en": "Rebuilding Jerusalem",
+    "he": "בניין ירושלים",
+    "from": 50,
+    "to": 51
+   },
+   {
+    "en": "Kingdom of David",
+    "he": "מלכות בן דוד",
+    "from": 52,
+    "to": 53
+   },
+   {
+    "en": "Response to Prayer",
+    "he": "שומע תפילה",
+    "from": 54,
+    "to": 56
+   },
+   {
+    "en": "Temple Service",
+    "he": "עבודה",
+    "from": 57,
+    "to": 60
+   },
+   {
+    "en": "Thanksgiving",
+    "he": "הודאה",
+    "from": 61,
+    "to": 70
+   },
+   {
+    "en": "Peace",
+    "he": "ברכת שלום",
+    "from": 71,
+    "to": 75
+   },
+   {
+    "en": "Elokai Netzor",
+    "he": "אלהי נצור",
+    "from": 76,
+    "to": 87
+   }
+  ],
+  "Weekdays, Tahanun": [
+   {
+    "en": "Vehu Raḥum",
+    "he": "והוא רחום",
+    "from": 1,
+    "to": 9
+   },
+   {
+    "en": "Lowering the Head",
+    "he": "נפילת אפיים",
+    "from": 10,
+    "to": 34
+   },
+   {
+    "en": "Half Kaddish",
+    "he": "חצי קדיש",
+    "from": 35,
+    "to": 38
+   }
+  ],
+  "Weekdays, Reading of the Torah": [
+   {
+    "en": "Removing the Torah from the Ark",
+    "he": "הוצאת ספר תורה",
+    "from": 1,
+    "to": 13
+   },
+   {
+    "en": "The Torah Reading",
+    "he": "קריאת התורה",
+    "from": 14,
+    "to": 34
+   },
+   {
+    "en": "Half Kaddish",
+    "he": "חצי קדיש",
+    "from": 35,
+    "to": 39
+   },
+   {
+    "en": "Lifting the Torah",
+    "he": "הגבהה",
+    "from": 40,
+    "to": 43
+   },
+   {
+    "en": "Yehi Ratzon and Aḥeinu",
+    "he": "יהי רצון ואחינו",
+    "from": 44,
+    "to": 51
+   },
+   {
+    "en": "Returning the Torah to the Ark",
+    "he": "הכנסת ספר תורה",
+    "from": 52,
+    "to": 61
+   }
+  ],
+  "Weekdays, Conclusion of the Service": [
+   {
+    "en": "Ashrei",
+    "he": "אשרי",
+    "from": 1,
+    "to": 4
+   },
+   {
+    "en": "Lamenatze’aḥ",
+    "he": "למנצח",
+    "from": 5,
+    "to": 6
+   },
+   {
+    "en": "Uva LeTziyon",
+    "he": "ובא לציון",
+    "from": 7,
+    "to": 18
+   },
+   {
+    "en": "Full Kaddish",
+    "he": "קדיש שלם",
+    "from": 19,
+    "to": 29
+   },
+   {
+    "en": "Aleinu",
+    "he": "עלינו",
+    "from": 30,
+    "to": 34
+   },
+   {
+    "en": "Mourner’s Kaddish",
+    "he": "קדיש יתום",
+    "from": 35,
+    "to": 42
+   }
+  ],
+  "Weekdays, The Daily Psalm": [
+   {
+    "en": "Psalm of the Day",
+    "he": "שיר של יום",
+    "from": 1,
+    "to": 20
+   },
+   {
+    "en": "Rosh Ḥodesh: Barekhi Nafshi",
+    "he": "ראש חודש: ברכי נפשי",
+    "from": 21,
+    "to": 23
+   },
+   {
+    "en": "Elul: LeDavid",
+    "he": "אלול: לדוד ה׳ אורי",
+    "from": 24,
+    "to": 26
+   },
+   {
+    "en": "Ein Keloheinu",
+    "he": "אין כאלהינו",
+    "from": 27,
+    "to": 32
+   },
+   {
+    "en": "The Rabbis' Kaddish",
+    "he": "קדיש דרבנן",
+    "from": 33,
+    "to": 41
+   },
+   {
+    "en": "Barekhu",
+    "he": "ברכו",
+    "from": 42,
+    "to": 46
+   }
+  ],
+  "Weekdays, Readings after the Service": [
+   {
+    "en": "The Six Remembrances",
+    "he": "שש זכירות",
+    "from": 1,
+    "to": 14
+   },
+   {
+    "en": "The Ten Commandments",
+    "he": "עשרת הדברות",
+    "from": 15,
+    "to": 26
+   },
+   {
+    "en": "The Thirteen Principles of Jewish Faith",
+    "he": "שלושה עשר עיקרים",
+    "from": 27,
+    "to": 40
+   },
+   {
+    "en": "Verses after Prayer",
+    "he": "פסוקים לאחר התפילה",
+    "from": 41,
+    "to": 46
+   },
+   {
+    "en": "Prayer upon Leaving the Synagogue",
+    "he": "תפילה כשיוצא מבית הכנסת",
+    "from": 47,
+    "to": 57
+   }
+  ],
+  "Weekdays, Personal Supplications": [
+   {
+    "en": "The Chapter of the Manna",
+    "he": "פרשת המן",
+    "from": 1,
+    "to": 9
+   },
+   {
+    "en": "Prayer for Sustenance",
+    "he": "תפילה על הפרנסה",
+    "from": 10,
+    "to": 11
+   },
+   {
+    "en": "The Chapter of Reverence",
+    "he": "פרשת היראה",
+    "from": 12,
+    "to": 16
+   },
+   {
+    "en": "The Chapter of Repentance",
+    "he": "פרשת התשובה",
+    "from": 17,
+    "to": 20
+   },
+   {
+    "en": "For Protection from the Evil Eye",
+    "he": "שמירה נגד עין הרע",
+    "from": 21,
+    "to": 25
+   }
+  ],
+  "Weekdays, Minha for Weekdays": [
+   {
+    "en": "Ashrei",
+    "he": "אשרי",
+    "from": 1,
+    "to": 3
+   },
+   {
+    "en": "Half Kaddish",
+    "he": "חצי קדיש",
+    "from": 4,
+    "to": 8
+   },
+   {
+    "en": "The Amida",
+    "he": "עמידה",
+    "from": 9,
+    "to": 93,
+    "children": [
+     {
+      "en": "Patriarchs",
+      "he": "אבות",
+      "from": 9,
+      "to": 16
+     },
+     {
+      "en": "Divine Might",
+      "he": "גבורות",
+      "from": 17,
+      "to": 24
+     },
+     {
+      "en": "Kedusha",
+      "he": "קדושה",
+      "from": 25,
+      "to": 31
+     },
+     {
+      "en": "Holiness",
+      "he": "קדושת השם",
+      "from": 32,
+      "to": 34
+     },
+     {
+      "en": "Knowledge",
+      "he": "דעת",
+      "from": 35,
+      "to": 36
+     },
+     {
+      "en": "Repentance",
+      "he": "תשובה",
+      "from": 37,
+      "to": 38
+     },
+     {
+      "en": "Forgiveness",
+      "he": "סליחה",
+      "from": 39,
+      "to": 41
+     },
+     {
+      "en": "Redemption",
+      "he": "גאולה",
+      "from": 42,
+      "to": 44
+     },
+     {
+      "en": "Healing",
+      "he": "רפואה",
+      "from": 45,
+      "to": 48
+     },
+     {
+      "en": "Prosperity",
+      "he": "ברכת השנים",
+      "from": 49,
+      "to": 51
+     },
+     {
+      "en": "Ingathering of Exiles",
+      "he": "קבוץ גלויות",
+      "from": 52,
+      "to": 53
+     },
+     {
+      "en": "Justice",
+      "he": "השבת המשפט",
+      "from": 54,
+      "to": 55
+     },
+     {
+      "en": "Against Informers",
+      "he": "ברכת המינים",
+      "from": 56,
+      "to": 57
+     },
+     {
+      "en": "The Righteous",
+      "he": "על הצדיקים",
+      "from": 58,
+      "to": 59
+     },
+     {
+      "en": "Rebuilding Jerusalem",
+      "he": "בניין ירושלים",
+      "from": 60,
+      "to": 62
+     },
+     {
+      "en": "Kingdom of David",
+      "he": "מלכות בית דוד",
+      "from": 63,
+      "to": 64
+     },
+     {
+      "en": "Response to Prayer",
+      "he": "שומע תפילה",
+      "from": 65,
+      "to": 67
+     },
+     {
+      "en": "Temple Service",
+      "he": "עבודה",
+      "from": 68,
+      "to": 71
+     },
+     {
+      "en": "Thanksgiving",
+      "he": "הודאה",
+      "from": 72,
+      "to": 81
+     },
+     {
+      "en": "Peace",
+      "he": "ברכת שלום",
+      "from": 82,
+      "to": 86
+     },
+     {
+      "en": "Elokai Netzor",
+      "he": "אלהי נצור",
+      "from": 87,
+      "to": 93
+     }
+    ]
+   },
+   {
+    "en": "Taḥanun",
+    "he": "סדר תחנון",
+    "from": 94,
+    "to": 110
+   },
+   {
+    "en": "Full Kaddish",
+    "he": "קדיש שלם",
+    "from": 111,
+    "to": 118
+   },
+   {
+    "en": "Aleinu",
+    "he": "עלינו",
+    "from": 119,
+    "to": 123
+   },
+   {
+    "en": "Mourner’s Kaddish",
+    "he": "קדיש יתום",
+    "from": 124,
+    "to": 131
+   }
+  ],
+  "Weekdays, Ma'ariv for Weekdays": [
+   {
+    "en": "Vehu Raḥum",
+    "he": "והוא רחום",
+    "from": 1,
+    "to": 2
+   },
+   {
+    "en": "Blessings of the Shema",
+    "he": "קריאת שמע וברכותיה",
+    "from": 3,
+    "to": 31
+   },
+   {
+    "en": "Half Kaddish",
+    "he": "חצי קדיש",
+    "from": 32,
+    "to": 35
+   },
+   {
+    "en": "The Amida",
+    "he": "עמידה",
+    "from": 36,
+    "to": 107,
+    "children": [
+     {
+      "en": "Patriarchs",
+      "he": "אבות",
+      "from": 36,
+      "to": 42
+     },
+     {
+      "en": "Divine Might",
+      "he": "גבורות",
+      "from": 43,
+      "to": 49
+     },
+     {
+      "en": "Holiness",
+      "he": "קדושת השם",
+      "from": 50,
+      "to": 51
+     },
+     {
+      "en": "Knowledge",
+      "he": "דעת",
+      "from": 52,
+      "to": 55
+     },
+     {
+      "en": "Repentance",
+      "he": "תשובה",
+      "from": 56,
+      "to": 57
+     },
+     {
+      "en": "Forgiveness",
+      "he": "סליחה",
+      "from": 58,
+      "to": 60
+     },
+     {
+      "en": "Redemption",
+      "he": "גאולה",
+      "from": 61,
+      "to": 62
+     },
+     {
+      "en": "Healing",
+      "he": "רפואה",
+      "from": 63,
+      "to": 66
+     },
+     {
+      "en": "Prosperity",
+      "he": "ברכת השנים",
+      "from": 67,
+      "to": 69
+     },
+     {
+      "en": "Ingathering of Exiles",
+      "he": "קבוץ גלויות",
+      "from": 70,
+      "to": 71
+     },
+     {
+      "en": "Justice",
+      "he": "השבת המשפט",
+      "from": 72,
+      "to": 73
+     },
+     {
+      "en": "Against Informers",
+      "he": "ברכת המינים",
+      "from": 74,
+      "to": 75
+     },
+     {
+      "en": "The Righteous",
+      "he": "על הצדיקים",
+      "from": 76,
+      "to": 77
+     },
+     {
+      "en": "Rebuilding Jerusalem",
+      "he": "בניין ירושלים",
+      "from": 78,
+      "to": 79
+     },
+     {
+      "en": "Kingdom of David",
+      "he": "משיח בן דוד",
+      "from": 80,
+      "to": 81
+     },
+     {
+      "en": "Response to Prayer",
+      "he": "שומע תפילה",
+      "from": 82,
+      "to": 84
+     },
+     {
+      "en": "Temple Service",
+      "he": "עבודה",
+      "from": 85,
+      "to": 88
+     },
+     {
+      "en": "Thanksgiving",
+      "he": "הודאה",
+      "from": 89,
+      "to": 96
+     },
+     {
+      "en": "Peace",
+      "he": "ברכת שלום",
+      "from": 97,
+      "to": 101
+     },
+     {
+      "en": "Elokai Netzor",
+      "he": "אלהי נצור",
+      "from": 102,
+      "to": 107
+     }
+    ]
+   },
+   {
+    "en": "Full Kaddish",
+    "he": "קדיש שלם",
+    "from": 108,
+    "to": 117
+   },
+   {
+    "en": "Aleinu",
+    "he": "עלינו",
+    "from": 118,
+    "to": 122
+   },
+   {
+    "en": "Mourner’s Kaddish",
+    "he": "קדיש יתום",
+    "from": 123,
+    "to": 130
+   },
+   {
+    "en": "LeDavid (Elul)",
+    "he": "לדוד ה׳ אורי",
+    "from": 131,
+    "to": 134
+   }
+  ]
+ }
+}
