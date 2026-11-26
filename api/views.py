@@ -30,7 +30,7 @@ class Text(View):
 
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs["tref"])
+            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs["tref"], fallback_to_partial_match=False)
         except Exception as e:
             return jsonResponse({"error": getattr(e, "message", str(e))}, status=404)
         return super().dispatch(request, *args, **kwargs)

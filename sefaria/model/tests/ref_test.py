@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from sefaria.model import *
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, PartialRefInputError
 
 
 class Test_Ref:
@@ -1093,6 +1093,29 @@ class Test_comparisons:
         assert not Ref("Shabbat 5b:18-20").follows(Ref("Shabbat 5b:10-20"))
         assert Ref("Shabbat 5b:23-29").follows(Ref("Shabbat 5b:10-20"))
         assert not Ref("Shabbat 5b:15-29").follows(Ref("Shabbat 5b:10-20"))
+
+
+class Test_range_end_after_whole_node:
+    @pytest.mark.parametrize(
+        ("tref", "matched"),
+        [
+            ("Genesis-junk", "Genesis"),
+            ("Genesis-Exodus", "Genesis"),
+            ("Orot, Seeds-x", "Orot, Seeds"),  # numbered structure node
+            ("Pesach Haggadah, Magid-Hallel", "Pesach Haggadah, Magid"),  # schema node
+            ("Genesis, Noach-x", "Genesis 6:9-11:32"),  # alt structure node
+            ("Genesis, Noach 3-5", "Genesis 7:17-8:14"),  # alt structure node with sections
+            ("Noach-x", "Genesis 6:9-11:32"),  # term
+        ],
+    )
+    def test_raises_partial_ref_error(self, tref, matched):
+        with pytest.raises(PartialRefInputError) as e:
+            Ref(tref)
+        assert Ref(e.value.matched_part).normal() == matched
+
+    @pytest.mark.parametrize("tref", ["Genesis 1:2-27", "Genesis 25:19-28:9", "Berakhot 2a-3b", "Zohar, Shemot 2:6-8"])
+    def test_section_ranges_still_parse(self, tref):
+        assert Ref(tref).is_range()
 
 
 @pytest.mark.skip(reason="Zohar structure has been changed. We currently have no index with talmud at second place")
