@@ -4,7 +4,9 @@ sheets.py - backend core for Sefaria Source sheets
 Writes to MongoDB Collection: sheets
 """
 
+import copy
 import hashlib
+import html
 import re
 import sys
 import urllib.error
@@ -485,6 +487,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 
     scored_by_llm = False
     sheet["dateModified"] = datetime.now().isoformat()
+    clean_sheet_attribution(sheet)
     status_changed = False
     # Updating an existing sheet
     if "id" in sheet:
@@ -710,22 +713,173 @@ def bleach_text(text):
     )
 
 
-def clean_source(source):
-    if "ref" in source:
-        source["text"]["he"] = bleach_text(source["text"]["he"])
-        source["text"]["en"] = bleach_text(source["text"]["en"])
+# Source options the sheet UI reads: CSS class tokens (empty string allowed), text it prints, and flags.
+# Any other key in `options` is dropped.
+_SHEET_OPTION_CLASS_KEYS = {"indented", "refDisplayPosition", "sourceLayout", "sourceLanguage", "sourceLangLayout"}
+_SHEET_OPTION_TEXT_KEYS = {"sourcePrefix", "PrependRefWithHe", "PrependRefWithEn"}
+_SHEET_OPTION_FLAG_KEYS = {"numbered"}
+_SHEET_CLASS_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{0,64}$")
 
-    elif "outsideText" in source:
-        source["outsideText"] = bleach_text(source["outsideText"])
+from sefaria.sheet_media import _normalize_media_url, is_safe_media_url  # noqa: E402,F401
 
-    elif "comment" in source:
-        source["comment"] = bleach_text(source["comment"])
 
-    elif "outsideBiText" in source:
-        source["outsideBiText"]["he"] = bleach_text(source["outsideBiText"]["he"])
-        source["outsideBiText"]["en"] = bleach_text(source["outsideBiText"]["en"])
+def _bleach_if_str(value):
+    return bleach_text(value) if isinstance(value, str) else value
 
+
+def _bleach_lang_dict(value):
+    if isinstance(value, dict):
+        for lang in ("he", "en"):
+            if lang in value:
+                value[lang] = _bleach_if_str(value[lang])
+    return value
+
+
+def _clean_source_options(options):
+    if not isinstance(options, dict):
+        return {}
+    cleaned = {}
+    for key, value in options.items():
+        if key in _SHEET_OPTION_CLASS_KEYS:
+            if isinstance(value, str) and _SHEET_CLASS_TOKEN_RE.match(value):
+                cleaned[key] = value
+        elif key in _SHEET_OPTION_TEXT_KEYS:
+            # Tags are stripped, then entities are decoded: this is plain text that every renderer escapes
+            # where it prints it, so "&" must be stored as "&" and not as "&amp;".
+            if isinstance(value, str):
+                cleaned[key] = html.unescape(bleach_text(value))
+        elif key in _SHEET_OPTION_FLAG_KEYS:
+            if isinstance(value, (bool, int)):
+                cleaned[key] = value
+    return cleaned
+
+
+def clean_source_text(source):
+    """
+    Bleaches every text field of a source that the sheet UI prints as HTML. Each field is handled
+    independently, so a source is cleaned no matter which content keys it carries.
+    """
+    if "text" in source:
+        source["text"] = _bleach_lang_dict(source["text"])
+    if "outsideText" in source:
+        source["outsideText"] = _bleach_if_str(source["outsideText"])
+    if "comment" in source:
+        source["comment"] = _bleach_if_str(source["comment"])
+    if "outsideBiText" in source:
+        source["outsideBiText"] = _bleach_lang_dict(source["outsideBiText"])
+    # The editor stores a source's custom title as `title`; `customTitle` is kept for legacy records.
+    # Either may be a string or a {he, en} dict.
+    for key in ("title", "customTitle"):
+        if key in source:
+            source[key] = _bleach_lang_dict(_bleach_if_str(source[key]))
+    if "caption" in source:
+        source["caption"] = _bleach_lang_dict(source["caption"])
     return source
+
+
+def clean_source(source):
+    """
+    Sanitizes every field the sheet UI renders from a source. Each field is handled independently,
+    so a source is cleaned no matter which content keys it carries (including ones with no `ref`).
+    """
+    clean_source_text(source)
+    if "options" in source:
+        source["options"] = _clean_source_options(source["options"])
+    if "media" in source:
+        source["media"] = _normalize_media_url(source["media"])
+        if not is_safe_media_url(source["media"]):
+            logger.warning("Removed sheet media with disallowed URL", media=str(source["media"])[:200])
+            del source["media"]
+            source.pop("caption", None)
+    if isinstance(source.get("subsources"), list):
+        source["subsources"] = [clean_source(sub) for sub in source["subsources"] if isinstance(sub, dict)]
+    return source
+
+
+def clean_sources(sources):
+    """
+    Cleans each source for saving. Sources are kept even when they have no renderable content, so a save
+    never removes data; those are only logged for review. Entries that are not objects are dropped.
+    """
+    cleaned = []
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        source = clean_source(source)
+        if not is_valid_source(source):
+            logger.info("Saved sheet source has no renderable content", node=source.get("node"))
+        cleaned.append(source)
+    return cleaned
+
+
+def clean_sheet_attribution(sheet):
+    """
+    Bleaches the sheet-level attribution, which the sheet pages print as HTML.
+    """
+    if isinstance(sheet.get("attribution"), str):
+        sheet["attribution"] = bleach_text(sheet["attribution"])
+    return sheet
+
+
+def clean_sheet_for_render(sheet):
+    """
+    Prepares a stored sheet for the pages and APIs that output it. Sheets saved before save-time cleaning
+    existed still hold unbleached text and unchecked media, so text fields, attribution and media URLs
+    (in sources and subsources) are cleaned here as well. The result is for output only; never save it.
+    Options are left as stored: the editor reads them.
+    """
+    clean_sheet_attribution(sheet)
+    _clean_sources_for_render(sheet.get("sources"))
+    return sheet
+
+
+def _clean_source_media_for_render(source):
+    """
+    Drops media with a disallowed URL from a rendered copy of a source. The stored sheet is never
+    changed: render-time cleaning is not saved back, so the media-file cleanup that compares stored
+    media URLs on save never sees a removal.
+    """
+    if "media" not in source:
+        return
+    media = _normalize_media_url(source["media"])
+    if is_safe_media_url(media):
+        source["media"] = media
+    else:
+        del source["media"]
+        source.pop("caption", None)
+
+
+def clean_source_for_render(source):
+    """Cleans one stored source (text fields and media) for output, recursing into subsources."""
+    if not isinstance(source, dict):
+        return source
+    clean_source_text(source)
+    _clean_source_media_for_render(source)
+    _clean_sources_for_render(source.get("subsources"))
+    return source
+
+
+def _clean_sources_for_render(sources):
+    if not isinstance(sources, list):
+        return
+    for source in sources:
+        clean_source_for_render(source)
+
+
+def _media_urls(sheet):
+    return {source["media"] for source in sheet.get("sources", []) if isinstance(source, dict) and "media" in source}
+
+
+def sheet_removes_rendered_media(existing, incoming):
+    """
+    True when `incoming` (a sheet a client read from the API and posts back) drops a media URL that the
+    API shows for `existing`. Both sides are compared in the form the API returns: the stored sheet goes
+    through the render cleaner (legacy http or protocol-relative URLs upgraded, disallowed media removed),
+    and incoming URLs are normalized the same way, so an unchanged legacy sheet is not a removal.
+    """
+    shown = _media_urls(clean_sheet_for_render(copy.deepcopy(existing)))
+    sent = {_normalize_media_url(url) for url in _media_urls(incoming)}
+    return not shown <= sent
 
 
 def get_sheet_language(sheet):
@@ -758,6 +912,9 @@ def add_source_to_sheet(id, source, note=None):
     if string `note` is present, add it as a coment immediately after the source.
         pass
     """
+    if not isinstance(source, dict):
+        return {"error": "Malformed source could not be added to sheet"}
+    source = clean_source(source)
     if not is_valid_source(source):
         return {"error": "Malformed source could not be added to sheet"}
     sheet = db.sheets.find_one({"id": id})
@@ -769,7 +926,7 @@ def add_source_to_sheet(id, source, note=None):
     sheet["nextNode"] = nextNode + 1
     sheet["sources"].append(source)
     if note:
-        sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})
+        sheet["sources"].append(clean_source({"outsideText": note, "options": {"indented": "indented-1"}}))
     db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
     return {"status": "ok", "id": id, "source": source}
 

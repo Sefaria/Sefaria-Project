@@ -262,7 +262,7 @@ pyasn1-modules==0.4.1
     # via google-auth
 pygments==2.19.1
     # via ipython
-pyjwt==1.7.1
+pyjwt==2.10.1
     # via
     #   -r ./requirements.txt
     #   djangorestframework-simplejwt
@@ -411,4 +411,7 @@ langsmith==0.4.4
 setuptools==69.5.1
 Pympler==1.1
 kubernetes==31.0.0
+mongomock==4.3.0
+sentinels==1.1.1
+    # via mongomock
 ruff==0.17.0

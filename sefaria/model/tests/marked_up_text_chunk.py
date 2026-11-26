@@ -11,7 +11,8 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db as mongo_db
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 
-pytestmark = pytest.mark.django_db
+# Needs real TextChunk records from the restored dump (corpus job).
+pytestmark = [pytest.mark.django_db, pytest.mark.needs_corpus]
 
 MARKED_UP_TEXT_CHUNKS_DATA = [
     {
