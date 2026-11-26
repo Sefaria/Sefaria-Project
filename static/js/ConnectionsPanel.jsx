@@ -725,6 +725,7 @@ class ConnectionsPanel extends Component {
             baseRefs={this.props.srefs}
             setFilter={this.props.setFilter}
             closePanel={this.props.closePanel}
+            closeConnectionsInPanel={this.props.closeConectionsInPanel}
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}
             backButtonSettings={this.props.backButtonSettings}
