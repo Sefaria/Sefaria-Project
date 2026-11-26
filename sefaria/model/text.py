@@ -2718,7 +2718,9 @@ class Ref(metaclass=RefCacheType):
                     alt_struct_node = self.index.get_alt_struct_node(title, self._lang)
 
                     # Exact match alt structure node
-                    if title == base:
+                    # Only a map node resolves to a ref; an intermediate alt-struct node has none
+                    # (schema.AltStructNode.ref).
+                    if title == base and not isinstance(alt_struct_node, AltStructNode):
                         new_tref = alt_struct_node.get_ref_from_sections([])
                         if new_tref:
                             self.__reinit_tref(new_tref)
@@ -2752,7 +2754,12 @@ class Ref(metaclass=RefCacheType):
                         else:
                             alt_struct_indexes = self.__get_sections(reg, base, title, use_node=alt_struct_node)
                         try:
-                            new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                            # A numbered-structure walk can land on an intermediate alt-struct node, which has no ref.
+                            new_tref = (
+                                None
+                                if isinstance(alt_struct_node, AltStructNode)
+                                else alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                            )
                         except IndexError:
                             raise InputError(
                                 f"Sections {alt_struct_indexes} not found in {alt_struct_node.full_title()}"
@@ -4714,7 +4721,12 @@ class Ref(metaclass=RefCacheType):
                 pass
             return oref
         except PartialRefInputError as e:
-            matched_ref = Ref(e.matched_part)
+            try:
+                matched_ref = Ref(e.matched_part)
+            except InputError:
+                # `matched_part` can name an intermediate alt-struct node, which is not a ref itself
+                # (schema.AltStructNode.ref). Report the original partial-ref error for the input ref.
+                raise e
             try:
                 tref = Ref.__clean_tref(tref, matched_ref._lang)
                 # replace input title with normalized title in case input was an alt title
