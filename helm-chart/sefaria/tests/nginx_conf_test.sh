@@ -20,10 +20,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-# build/asset/Dockerfile builds FROM opentracing/nginx-opentracing:nginx-1.23.3, which is nginx 1.23.3 plus the
-# opentracing module. The chart loads that module only with instrumentation.enabled (false in every env), so the public
-# image at the same version runs the same config.
-NGINX_IMAGE="nginx:1.23.3"
+# Same image build/asset/Dockerfile builds FROM; keep the two in step.
+NGINX_IMAGE="nginx:1.31.9"
 SECRET="sfr_abc"
 # Full-length test keys (32 characters), used anywhere but as an api_key= value.
 BODY1="Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56"
