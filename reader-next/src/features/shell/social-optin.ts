@@ -6,7 +6,7 @@
  *
  * Its own cookie, not `reader_version`: Django's ReaderChoiceMiddleware clears `reader_version=next` for anyone outside the opt-in
  * audience, and leaves this one alone. Host-only (no Domain), a year. The kill switch and "back to the classic reader" clear it
- * (src/features/shell/reader-choice.ts); like the other routing cookies it is routing, not access.
+ * (./reader-choice.ts); like the other routing cookies it is routing, not access.
  *
  * @feature SHL-076 Social lab and /social routes
  */

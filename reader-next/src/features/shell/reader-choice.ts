@@ -7,7 +7,7 @@
  *    sefaria/helper/reader_choice.py), then clear the cookie here too (and reader_follow, reader_social) and reload without `follow`: the
  *    next request goes to the classic reader.
  *  - Kill switch: remote config `feature.reader.next.disabled` true clears the cookie (and the routing cookies of follow me and Social,
- *    which bring readers who never opted in; follow/params.ts, surfaces/social-optin.ts) and reloads into the classic reader, without a `follow` parameter, at most once
+ *    which bring readers who never opted in; follow/params.ts, shell/social-optin.ts) and reloads into the classic reader, without a `follow` parameter, at most once
  *    every RELOAD_INTERVAL_MS per browser session (a deployment that still serves this client must not reload forever, and a switch
  *    flipped again later still takes effect). Django must not set the cookie again meanwhile (Django's ReaderChoiceMiddleware).
  *
@@ -16,7 +16,7 @@
 import { postJson, type PostResult } from "~/lib/auth/http";
 import { clearFollowCookie, hasFollowCookie, withoutFollowParam } from "~/features/reader-state/follow/params";
 import { reportError } from "~/lib/monitoring/error-reporter";
-import { clearSocialCookie, hasSocialCookie } from "~/features/surfaces/social-optin";
+import { clearSocialCookie, hasSocialCookie } from "./social-optin";
 
 /** Django's reader-choice endpoint (one constant, so it changes in one place). */
 export const READER_CHOICE_URL = "/api/reader-choice";
@@ -107,6 +107,33 @@ function safeSession(): Storage | null {
     return null;
   }
 }
+
+/**
+ * A signed-in reader on a Social page is opted in to this client for good (sefaria/helper/reader_choice.py): POST READER_CHOICE_URL
+ * {reader: "next", via: "social"}, and Django stores it on their profile and sets the routing cookie. Skipped when this browser is
+ * already opted in (the cookie), and tried at most once per tab session per account (a refusal, e.g. under the kill switch, is not
+ * retried on every Social page). A signed-out visitor stays on this client by Social's own cookie (shell/social-optin.ts); the
+ * middleware opts them in when they sign in. Returns whether it posted.
+ */
+export async function optInThroughSocial(
+  viewerId: number | string | null | undefined,
+  deps: { doc?: Document; post?: typeof postJson; storage?: Pick<Storage, "getItem" | "setItem"> | null } = {},
+): Promise<boolean> {
+  const doc = deps.doc ?? document;
+  if (viewerId == null || optedIn(doc.cookie)) return false;
+  const storage = deps.storage === undefined ? safeSession() : deps.storage;
+  const key = `${SOCIAL_OPTIN_TRIED_KEY}:${viewerId}`;
+  try {
+    if (storage?.getItem(key)) return false;
+    storage?.setItem(key, "1");
+  } catch {
+    /* storage blocked: post anyway */
+  }
+  const res = await (deps.post ?? postJson)(READER_CHOICE_URL, { reader: "next", via: "social" });
+  if (!res.ok && res.status !== 403) reportError("error", new Error(`reader-choice: Social opt-in failed (HTTP ${res.status})`));
+  return true;
+}
+const SOCIAL_OPTIN_TRIED_KEY = "reader_social_optin_tried";
 
 /**
  * Back to the classic reader: tell Django (profile + cookie), waiting at most BACK_TIMEOUT_MS, then clear the cookie here as well and

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { applyKillSwitch, backToClassic, cookieDomains, killSwitchOn, optedIn, READER_CHOICE_URL, reloadWithoutFollow } from "./reader-choice";
+import { applyKillSwitch, backToClassic, cookieDomains, killSwitchOn, optedIn, optInThroughSocial, READER_CHOICE_URL, reloadWithoutFollow } from "./reader-choice";
 
 const fakeDoc = (cookie: string) => {
   const writes: string[] = [];
@@ -135,5 +135,33 @@ describe("rework: interval and timeout", () => {
     expect(await backToClassic({ post: post as never, reload, doc, hostname: "localhost", timeoutMs: 20 })).toEqual({ ok: false, status: 0, timedOut: true });
     expect(writes).toEqual(["reader_version=; path=/; max-age=0; samesite=lax"]);
     expect(reload).toHaveBeenCalled();
+  });
+});
+
+// @feature ACC-003
+describe("Social opts its reader in", () => {
+  const ok = () => vi.fn(async () => ({ ok: true, status: 200, data: {}, networkError: false }));
+
+  it("posts {reader: next, via: social} for a signed-in reader who is not opted in yet", async () => {
+    const post = ok();
+    expect(await optInThroughSocial(7, { doc: fakeDoc("a=1").doc, post, storage: memory() })).toBe(true);
+    expect(post).toHaveBeenCalledWith(READER_CHOICE_URL, { reader: "next", via: "social" });
+  });
+
+  it("does nothing signed out, or when this browser is already opted in", async () => {
+    const post = ok();
+    expect(await optInThroughSocial(null, { doc: fakeDoc("").doc, post, storage: memory() })).toBe(false);
+    expect(await optInThroughSocial(7, { doc: fakeDoc("reader_version=next").doc, post, storage: memory() })).toBe(false);
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("tries once per tab session per account (a refusal is not retried on every Social page)", async () => {
+    const post = vi.fn(async () => ({ ok: false, status: 403, data: {}, networkError: false }));
+    const storage = memory();
+    const { doc } = fakeDoc("");
+    expect(await optInThroughSocial(7, { doc, post, storage })).toBe(true);
+    expect(await optInThroughSocial(7, { doc, post, storage })).toBe(false);
+    expect(await optInThroughSocial(8, { doc, post, storage })).toBe(true);
+    expect(post).toHaveBeenCalledTimes(2);
   });
 });

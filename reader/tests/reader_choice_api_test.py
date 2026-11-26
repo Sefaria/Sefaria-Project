@@ -70,11 +70,12 @@ class ReaderChoiceTestCase(TestCase):
         self.assertIsNotNone(token, "no csrftoken cookie to send")
         return token.value
 
-    def post(self, reader, csrf=True, as_json=True):
+    def post(self, reader, csrf=True, as_json=True, via=None):
         headers = {"HTTP_X_CSRFTOKEN": self.csrf()} if csrf else {}
+        body = {"reader": reader, **({"via": via} if via else {})}
         if as_json:
-            return self.client.post(URL, json.dumps({"reader": reader}), content_type="application/json", **headers)
-        return self.client.post(URL, {"reader": reader}, **headers)
+            return self.client.post(URL, json.dumps(body), content_type="application/json", **headers)
+        return self.client.post(URL, body, **headers)
 
     def saved(self, user):
         return (UserProfile(id=user.id).settings or {}).get("reader_version")
@@ -381,3 +382,67 @@ class AccountSettingsKillSwitchTest(AccountSettingsSwitchTest):
         profile.settings["reader_version"] = "next"
         profile.save()
         self.assertTrue(self.context(self.staff)["newReaderEnabled"])
+
+
+class SocialOptInTest(ReaderChoiceTestCase):
+    """Whoever comes through /social is opted in to the new reader for good (sefaria/helper/reader_choice.py)."""
+
+    def via(self, user):
+        return (UserProfile(id=user.id).settings or {}).get("reader_version_via")
+
+    def test_a_member_on_a_social_page_is_opted_in_and_stays_in(self):
+        self.client.force_login(self.member)
+        res = self.post("next", via="social")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {"reader": "next", "saved": True})
+        self.assertEqual(res.cookies["reader_version"].value, "next")
+        self.assertEqual(self.saved(self.member), "next")
+        self.assertEqual(self.via(self.member), "social")
+        # the middleware keeps the cookie of a member the staff audience would otherwise exclude
+        self.client.cookies["reader_version"] = "next"
+        self.assertNotIn("reader_version", self.client.get("/api/library-assistant").cookies)
+        # and they may switch through the ordinary routes now
+        self.assertTrue(self.client.get(URL).json()["canChooseNext"])
+
+    def test_a_new_session_keeps_the_social_opt_in(self):
+        self.client.force_login(self.member)
+        self.post("next", via="social")
+        other = Client()
+        other.force_login(self.member)
+        res = other.get("/api/library-assistant")
+        self.assertEqual(res.cookies["reader_version"].value, "next")
+
+    def test_signing_in_with_socials_cookie_opts_in(self):
+        self.client.cookies["reader_social"] = "1"
+        self.client.force_login(self.member)
+        res = self.client.get("/api/library-assistant")
+        self.assertEqual(res.cookies["reader_version"].value, "next")
+        self.assertEqual(self.via(self.member), "social")
+
+    def test_signed_out_is_refused_and_keeps_socials_cookie(self):
+        self.client.cookies["reader_social"] = "1"
+        res = self.post("next", via="social")
+        self.assertEqual(res.status_code, 403)
+        self.assertNotIn("reader_social", res.cookies)
+
+    def test_switching_back_clears_both_cookies(self):
+        self.client.force_login(self.member)
+        self.post("next", via="social")
+        self.client.cookies["reader_social"] = "1"
+        res = self.post("classic")
+        self.assertTrue(_cleared(res))
+        self.assertEqual(res.cookies["reader_social"]["max-age"], 0)
+        self.assertEqual(self.saved(self.member), "classic")
+
+    def test_the_kill_switch_refuses_it(self):
+        self.set_disabled(True)
+        self.client.force_login(self.member)
+        res = self.post("next", via="social")
+        self.assertEqual(res.status_code, 403)
+        self.assertTrue(res.json()["disabled"])
+        self.assertIsNone(self.saved(self.member))
+
+    @override_settings(READER_OPTIN=False)
+    def test_nothing_where_the_choice_is_not_offered(self):
+        self.client.force_login(self.member)
+        self.assertEqual(self.post("next", via="social").status_code, 403)

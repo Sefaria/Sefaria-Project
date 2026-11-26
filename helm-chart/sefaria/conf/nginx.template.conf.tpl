@@ -193,7 +193,7 @@ http {
   #  - reader_follow=1: the new reader set it while this browser is in a follow session (reader-next follow/params.ts), so a reload
   #    keeps the guest in the session once the reader has taken `follow` out of the address.
   #  - /social or /social/…: Social's pages, which only the new reader has (legacy Django 404s them) — whoever opens them;
-  #  - reader_social=1: the new reader sets it on a Social page (reader-next src/features/surfaces/social-optin.ts), so whoever came
+  #  - reader_social=1: the new reader sets it on a Social page (reader-next src/features/shell/social-optin.ts), so whoever came
   #    in through Social stays in the new reader. Django never touches it (ReaderChoiceMiddleware manages only reader_version).
   map "$cookie_reader_version|$cookie_reader_follow|$cookie_reader_social|$uri|$arg_follow" $reader_page {
     default                                   "";

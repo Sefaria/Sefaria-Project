@@ -179,10 +179,14 @@ routes in every mode.
 
 **Social opts in whoever comes through it.** Social's pages exist only in the new reader (legacy Django 404s `/social`), and its links
 (a room invite, a shiur) go to people outside the opt-in. So nginx routes `/social` and `/social/…` to the reader for everyone, and a
-Social page sets the cookie `reader_social=1` (`src/features/surfaces/social-optin.ts`: host-only, `Max-Age` one year), which routes
-every later page request there too. It is a cookie of its own because `ReaderChoiceMiddleware` clears `reader_version=next` for anyone
-outside the audience; Django never touches `reader_social`. The kill switch's client half and "back to the classic reader" clear it;
-lever 3 removes the map. `build/ci/reader-nginx-routing.py` asserts these routes in every mode.
+Social page sets the cookie `reader_social=1` (`src/features/shell/social-optin.ts`: host-only, `Max-Age` one year), which routes
+every later page request there too; Django tidying a stale `reader_version` leaves it. A **signed-in** reader on a Social page is opted
+in for good: the page posts `/api/reader-choice` `{"reader": "next", "via": "social"}`, Django saves `reader_version: "next"` and
+`reader_version_via: "social"` on their profile and sets the opt-in cookie, and from then on they count as part of the audience
+(`sefaria/helper/reader_choice.py` `in_audience`), staff or not — so it follows them to every browser at sign-in, and account
+settings shows the switch on. Someone who opened a Social link signed out is opted in the same way when they sign in (the middleware
+sees `reader_social=1`). Only the kill switch overrides a Social opt-in. The kill switch and "back to the classic reader" (here or in
+account settings) clear `reader_social`; lever 3 removes the map. `build/ci/reader-nginx-routing.py` asserts these routes in every mode.
 
 ## Hosts and the cookie (Library hosts only)
 
