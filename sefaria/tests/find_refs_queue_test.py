@@ -3,7 +3,9 @@ import json
 from enum import Enum
 from unittest.mock import patch
 
+import kombu
 import pytest
+import redis
 from django.test import RequestFactory
 
 import sefaria.settings
@@ -60,3 +62,38 @@ def test_find_refs_api_enqueues_on_find_refs_queue_with_expiry():
     kwargs = task.apply_async.call_args.kwargs
     assert kwargs["queue"] == "test-find-refs"
     assert kwargs["expires"] == views.FIND_REFS_TASK_EXPIRES_SECONDS
+
+
+@pytest.mark.parametrize(
+    "broker_error",
+    [
+        # A demoted master refuses the write and a loading master refuses the task; both mean
+        # the broker did not accept it, at the connection and at the channel level.
+        redis.exceptions.ConnectionError("The previous master is now a slave"),
+        redis.exceptions.BusyLoadingError("Redis is loading the dataset in memory"),
+        kombu.exceptions.OperationalError("The previous master is now a slave"),
+    ],
+)
+def test_find_refs_api_answers_503_when_the_broker_refuses_the_task(broker_error):
+    from sefaria import views
+
+    post_data = {"text": {"title": "title", "body": "body"}, "version_preferences_by_corpus": {}}
+    request = RequestFactory().post("/api/find-refs", data=json.dumps(post_data), content_type="application/json")
+    with patch("sefaria.helper.linker.tasks.find_refs_api_task") as task:
+        task.apply_async.side_effect = broker_error
+        response = views.find_refs_api(request)
+
+    assert response.status_code == 503
+    assert json.loads(response.content) == {"error": "enqueue_failed"}
+    assert response["Retry-After"] == str(views.FIND_REFS_BROKER_RETRY_AFTER_SECONDS)
+
+
+def test_find_refs_api_keeps_its_own_publish_bug_out_of_the_503_answer():
+    from sefaria import views
+
+    post_data = {"text": {"title": "title", "body": "body"}, "version_preferences_by_corpus": {}}
+    request = RequestFactory().post("/api/find-refs", data=json.dumps(post_data), content_type="application/json")
+    with patch("sefaria.helper.linker.tasks.find_refs_api_task") as task:
+        task.apply_async.side_effect = TypeError("apply_async() got an unexpected keyword argument")
+        with pytest.raises(TypeError):
+            views.find_refs_api(request)
