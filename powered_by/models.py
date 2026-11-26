@@ -24,6 +24,14 @@ class TechnicalExperience(models.TextChoices):
     OVER_10 = "10+ years", "10+ years"
 
 
+class TechnicalLevel(models.TextChoices):
+    """The answer to "What best describes you?" in developer settings."""
+
+    VERY = "very", "Very technical"
+    SOMEWHAT = "somewhat", "Somewhat technical"
+    NOT = "not", "Not technical"
+
+
 class Status(models.TextChoices):
     LIVE = "live", "Live"
     DEAD = "dead", "Dead"
@@ -83,6 +91,7 @@ class Project(models.Model):
         "creator",
         "creator_email",
         "is_developer",
+        "technical_level",
         "job_title",
         "found_sefaria",
         "submitter",
@@ -125,6 +134,14 @@ class Project(models.Model):
     is_developer = models.BooleanField(
         default=False,
         help_text='"I am a software developer professionally."',
+    )
+    technical_level = models.CharField(
+        max_length=16,
+        choices=TechnicalLevel.choices,
+        null=True,
+        blank=True,
+        help_text='The owner\'s answer to "What best describes you?" in developer settings. '
+        "is_developer is true for Very technical.",
     )
     job_title = models.CharField(max_length=255, blank=True, help_text="Current role / job title.")
     found_sefaria = models.TextField(blank=True, help_text="How they heard about Sefaria's data and tools.")

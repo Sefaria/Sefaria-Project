@@ -30,7 +30,7 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project, Purpose, SubmissionSource
+from .models import KEY_DISPLAY_PREFIX, ApiKey, ApiProject, Project, Purpose, SubmissionSource, TechnicalLevel
 
 MAX_KEYS_PER_PROJECT = 5
 MAX_PROJECTS_PER_ACCOUNT = 10
@@ -351,7 +351,7 @@ def developer_state(request):
         "ssoConnected": sso_connected(request),
         "emailVerified": email_verified(user),
         "confirmationSentAt": sent_at,
-        "profile": profile.settings.get(PROFILE_SETTING),
+        "profile": serialize_profile(profile.settings.get(PROFILE_SETTING)),
         "projects": [serialize_project(p) for p in owned_projects(user)],
         "maxKeysPerProject": MAX_KEYS_PER_PROJECT,
         "maxProjects": max_projects(user),
@@ -393,6 +393,29 @@ def _text(data, field, max_length=255):
     return value
 
 
+def _technical_level(data):
+    """The answer to "What best describes you?", or None when it's left out or empty."""
+    value = data.get("technicalLevel") or None
+    if value is not None and value not in TechnicalLevel.values:
+        raise InputError("Choose what best describes you from the list.")
+    return value
+
+
+def serialize_profile(stored):
+    """
+    The stored profile, with technicalLevel read from the older yes/no notADeveloper when a profile has only that
+    (yes reads as Somewhat technical, since Somewhat and Not were both stored as yes).
+    """
+    if not stored:
+        return stored
+    profile = {k: v for k, v in stored.items() if k != "notADeveloper"}
+    if not profile.get("technicalLevel") and "notADeveloper" in stored:
+        profile["technicalLevel"] = (
+            TechnicalLevel.SOMEWHAT.value if stored["notADeveloper"] else TechnicalLevel.VERY.value
+        )
+    return profile
+
+
 def clean_profile(data):
     if not isinstance(data, dict):
         raise InputError("The profile must be a JSON object.")
@@ -402,7 +425,7 @@ def clean_profile(data):
         "additionalEmail": _text(data, "additionalEmail"),
         "termsAccepted": bool(data.get("termsAccepted")),
         "developerNews": bool(data.get("developerNews")),
-        "notADeveloper": bool(data.get("notADeveloper")),
+        "technicalLevel": _technical_level(data),
     }
     if not profile["termsAccepted"]:
         raise InputError("Accept the Terms of Use to continue.")
@@ -620,7 +643,7 @@ def clean_publish_answers(data):
     answers = {
         "showName": bool(data.get("showName")),
         "currentRole": _text(data, "currentRole"),
-        "isDeveloper": bool(data.get("isDeveloper")),
+        "technicalLevel": _technical_level(data),
         "categories": _choices(data, "categories", PUBLISH_CATEGORIES),
         "sourceCode": _text(data, "sourceCode", 200),
         "tools": _choices(data, "tools"),
@@ -646,7 +669,7 @@ def serialize_publish_answers(profile):
     return {
         "showName": profile.show_name,
         "currentRole": profile.job_title,
-        "isDeveloper": profile.is_developer,
+        "technicalLevel": profile.technical_level,
         "categories": [c for c in categories if c in PUBLISH_CATEGORIES],
         "sourceCode": profile.project_source_code or "",
         "tools": profile.sefaria_tools_used if isinstance(profile.sefaria_tools_used, list) else [],
@@ -662,7 +685,8 @@ def serialize_publish_answers(profile):
 def _apply_publish_answers(project, answers):
     project.show_name = answers["showName"]
     project.job_title = answers["currentRole"]
-    project.is_developer = answers["isDeveloper"]
+    project.technical_level = answers["technicalLevel"]
+    project.is_developer = answers["technicalLevel"] == TechnicalLevel.VERY
     project.project_category = ",".join(answers["categories"])
     project.project_source_code = answers["sourceCode"] or None
     project.sefaria_tools_used = answers["tools"]

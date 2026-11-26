@@ -599,7 +599,6 @@ const emptyProfile = () => ({
   additionalEmail: '',
   termsAccepted: false,
   developerNews: false,
-  notADeveloper: false,
 });
 
 /* The server's messages never reach people word for word (Penina, 2026-11-14; design-notes/error-copy.md). Only the
@@ -679,8 +678,10 @@ const keyFailure = (err) => {
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 
-const cleanProfile = (fields) => ({
+/* The profile as saved: the form's "What best describes you?" (role) is stored as technicalLevel. */
+const cleanProfile = ({ role, ...fields }) => ({
   ...fields,
+  technicalLevel: role,
   developerName: accountName() || fields.developerName.trim(),
   description: fields.description.trim(),
   additionalEmail: fields.additionalEmail.trim(),
@@ -693,9 +694,9 @@ const cleanProfile = (fields) => ({
 /* "Tell us about yourself": 250 characters (the server allows up to 300). */
 const E_ABOUT_MAX = 250;
 const E_ROLES = [
-  { value: 'developer', key: 'developer.about_you.role.option_01' },
-  { value: 'ai', key: 'developer.about_you.role.option_02' },
-  { value: 'none', key: 'developer.about_you.role.option_03' },
+  { value: 'very', key: 'developer.about_you.role.option_01' },
+  { value: 'somewhat', key: 'developer.about_you.role.option_02' },
+  { value: 'not', key: 'developer.about_you.role.option_03' },
 ];
 
 const ECopyIcon = ({ size = 18 }) => (
@@ -1167,7 +1168,7 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
   const [fields, setFields] = useState({
     ...emptyProfile(),
     ...(initial || {}),
-    role: initial ? (initial.notADeveloper ? 'ai' : 'developer') : '',
+    role: (initial && initial.technicalLevel) || '',
   });
   const [errors, setErrors] = useState({});
   const [banner, setBanner] = useState(null);
@@ -1199,7 +1200,6 @@ const EWelcome = ({ dots, onSave, initial, onCancel, edit }) => {
         cleanProfile({
           ...fields,
           termsAccepted: true,
-          notADeveloper: fields.role === 'ai' || fields.role === 'none',
         })
       )
     ).catch((err) => {
@@ -2523,7 +2523,7 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
   const [person, setPerson] = useState({
     ...emptyProfile(),
     ...(profile || {}),
-    role: profile ? (profile.notADeveloper ? 'ai' : 'developer') : '',
+    role: (profile && profile.technicalLevel) || '',
   });
   /* Starts from what the project was last submitted with; Show my name starts unchecked (2026-11-08). */
   const [answers, setAnswers] = useState(() => ePbAnswers(project));
@@ -2624,14 +2624,14 @@ const EShareProject = ({ project, projects, canAddNew, onPickProject, profile, d
     setBanner(null);
     Promise.resolve(
       onSubmit(
-        cleanProfile({ ...person, termsAccepted: true, notADeveloper: person.role === 'ai' || person.role === 'none' }),
+        cleanProfile({ ...person, termsAccepted: true }),
         form.projectBody({
           aiAssisted: builtWithAi ? builtWithAi === 'yes' : !!p.aiAssisted,
           visibility: 'public',
           poweredBy: {
             showName,
             currentRole: currentRole.trim(),
-            isDeveloper: person.role === 'developer',
+            technicalLevel: person.role,
             categories: cats,
             sourceCode: parseWebsite(sourceUrl).url,
             tools,
