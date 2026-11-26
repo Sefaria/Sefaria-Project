@@ -432,6 +432,7 @@ def base_props(request):
                     saved=True, secondary=False, serialized=True, annotate=False, sheets_only=sheets_only
                 ),
             },  # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
+            "bookshelf": profile.bookshelf,
         }
     else:
         user_data = {
@@ -455,6 +456,7 @@ def base_props(request):
             "notifications": [],
             "saved": {"loaded": False, "items": []},
             "last_place": [],
+            "bookshelf": [],
         }
     user_data.update(
         {
@@ -4792,6 +4794,27 @@ def user_profile(request, username):
     )
 
 
+def _clean_bookshelf(bookshelf):
+    """
+    Bookshelf POC: keep only {book, added} entries whose book is a library index, without duplicates.
+    """
+    if not isinstance(bookshelf, list):
+        raise InputError("bookshelf must be a list")
+    cleaned, seen = [], set()
+    for item in bookshelf:
+        book = item.get("book") if isinstance(item, dict) else None
+        if not isinstance(book, str) or book in seen:
+            continue
+        try:
+            library.get_index(book)
+        except BookNameError:
+            continue
+        seen.add(book)
+        added = item.get("added")
+        cleaned.append({"book": book, "added": added if isinstance(added, (int, float)) else None})
+    return cleaned
+
+
 @catch_error_as_json
 def profile_api(request, slug=None):
     """
@@ -4831,6 +4854,9 @@ def profile_api(request, slug=None):
             if la_key in profileUpdate.get("settings", {}):
                 # Public endpoint — coerce so a posted "false" can't read as truthy.
                 profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
+
+        if "bookshelf" in profileUpdate:
+            profileUpdate["bookshelf"] = _clean_bookshelf(profileUpdate["bookshelf"])
 
         profile = UserProfile(id=request.user.id)
         la_was_enabled = library_assistant.is_enabled(profile)
