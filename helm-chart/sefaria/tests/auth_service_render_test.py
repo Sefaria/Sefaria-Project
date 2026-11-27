@@ -8,6 +8,8 @@ what the auth service work must and must not render:
   nginx logs the x-sefaria-* fields that ext_authz sets; ext_authz fails open with an explicit timeout.
 - Phase 1 policy, per environment file: mode observe, ext_authz fails open, no rate limiting; the flag-on render hands
   the auth service container the same mode. A self-test proves the policy check rejects a prod copy set to enforce.
+- The upstream secret (x-sefaria-auth-secret, without which Django trusts no x-sefaria-* header) exists only with the
+  flag on, reaches the auth service and the web pods from one Secret, and is stripped from clients at the listener.
 - Both: the nginx access log records the scrubbed request URI and referer, never the raw ones, and no key header.
 
 Needs helm and PyYAML. Run from the repository root: python3 helm-chart/sefaria/tests/auth_service_render_test.py
@@ -36,7 +38,10 @@ SEFARIA_HEADERS = {
     "x-sefaria-meter",
     # nginx echoes this one to the caller, so a forged copy would be shown as the auth service's answer.
     "x-sefaria-key-status",
+    # The secret the auth service shares with Django; a client must never be able to supply it.
+    "x-sefaria-auth-secret",
 }
+UPSTREAM_SECRET = "AUTH_SERVICE_UPSTREAM_SECRET"
 NGINX_LOG_FIELDS = {
     "sefariaProject": "$http_x_sefaria_project",
     "sefariaTier": "$http_x_sefaria_tier",
@@ -119,6 +124,31 @@ def check_log_format_never_logs_a_key(where, log_format, allowed):
     check(not unexpected, f"{where}: nginx logs only reviewed variables (unexpected: {sorted(unexpected)})")
 
 
+def upstream_secrets(objects):
+    return find(objects, "Secret", r"^auth-service-upstream-")
+
+
+def pod_annotations(objects, kind, name):
+    (workload,) = find(objects, kind, name)
+    return workload["spec"]["template"]["metadata"].get("annotations") or {}
+
+
+def nginx_proxy_blocks(objects):
+    """Each nginx location that proxies outside the app (Elasticsearch, Cloud Storage), with its directives."""
+    (configmap,) = find(objects, "ConfigMap", r"^nginx-conf-")
+    conf = configmap["data"]["nginx.template.conf"]
+    return re.findall(
+        r"location [^{]*\{([^{}]*proxy_pass (?:http://elasticsearch_upstream|https://storage\.googleapis\.com)[^{}]*)\}",
+        conf,
+    )
+
+
+def web_secret_refs(objects):
+    (web,) = find(objects, "Rollout", r"-web$")
+    container = web["spec"]["template"]["spec"]["containers"][0]
+    return [e["secretRef"]["name"] for e in container.get("envFrom", []) if "secretRef" in e]
+
+
 def check_off(env, objects):
     where = f"{env} off"
     check(not find(objects, "Deployment", r"-auth-service$"), f"{where}: no auth-service Deployment")
@@ -128,6 +158,16 @@ def check_off(env, objects):
     check(
         all("headers" not in p["spec"] for p in find(objects, "ClientTrafficPolicy")),
         f"{where}: the ClientTrafficPolicy has no header rules",
+    )
+    check(not upstream_secrets(objects), f"{where}: no upstream secret")
+    blocks = nginx_proxy_blocks(objects)
+    check(
+        len(blocks) >= 4 and all('proxy_set_header x-sefaria-auth-secret "";' in b for b in blocks),
+        f"{where}: nginx never forwards the upstream secret to Elasticsearch or Cloud Storage ({len(blocks)} locations)",
+    )
+    check(
+        not any(n.startswith("auth-service-upstream-") for n in web_secret_refs(objects)),
+        f"{where}: the web pods get no upstream secret, so Django trusts no x-sefaria-* header",
     )
     log_format = nginx_log_format(objects)
     check(not any(field in log_format for field in NGINX_LOG_FIELDS), f"{where}: no x-sefaria-* nginx log fields")
@@ -156,6 +196,29 @@ def check_on(env, objects):
     (policy,) = find(objects, "ClientTrafficPolicy")
     removed = set(policy["spec"].get("headers", {}).get("earlyRequestHeaders", {}).get("remove", []))
     check(removed >= SEFARIA_HEADERS, f"{where}: the listener strips client-sent {sorted(SEFARIA_HEADERS)}")
+    secrets = upstream_secrets(objects)
+    check(
+        len(secrets) == 1
+        and UPSTREAM_SECRET in secrets[0].get("data", {})
+        and secrets[0]["metadata"].get("annotations", {}).get("helm.sh/resource-policy") == "keep",
+        f"{where}: one upstream Secret, kept when the auth service is turned off",
+    )
+    secret_name = secrets[0]["metadata"]["name"] if secrets else None
+    check(secret_name in web_secret_refs(objects), f"{where}: the web pods read the upstream secret")
+    auth_env = {
+        e["name"]: e.get("valueFrom", {}).get("secretKeyRef", {}) for e in pod.get("containers", [{}])[0].get("env", [])
+    }
+    check(
+        auth_env.get("UPSTREAM_SECRET") == {"name": secret_name, "key": UPSTREAM_SECRET},
+        f"{where}: the auth service stamps the same upstream secret",
+    )
+    checksum = "checksum/auth-service-upstream"
+    check(
+        checksum in pod_annotations(objects, "Deployment", r"-auth-service$")
+        and checksum in pod_annotations(objects, "Rollout", r"-web$"),
+        f"{where}: the auth service and web pods restart when the upstream secret changes",
+    )
+    check(not find(objects, "NetworkPolicy"), f"{where}: no NetworkPolicy unless authService.networkPolicy.enabled")
     # The strip covers a listener only if the policy names it, and Envoy Gateway rejects a policy on the shared port-80
     # listeners or the whole Gateway. So it must name exactly the Gateway's HTTPS listeners, the site must be served on
     # those alone, and port 80 must serve nothing but the redirect to HTTPS.
@@ -273,6 +336,28 @@ def check_release_rules(env, release, rendered_on):
         )
 
 
+def check_network_policy():
+    """authService.networkPolicy.enabled: gRPC only from the Envoy Gateway proxies, HTTP only from Prometheus."""
+    args = ["helm", "template", "np", str(CHART), "--set", "deployEnv=np", "--set", "authService.enabled=true"]
+    args += ["--set", "authService.image.tag=render-test", "--set", "authService.networkPolicy.enabled=true"]
+    result = subprocess.run(args, capture_output=True, text=True)
+    if result.returncode != 0:
+        sys.exit(f"helm template failed with the network policy on:\n{result.stderr}")
+    policies = find([d for d in yaml.safe_load_all(result.stdout) if d], "NetworkPolicy", r"^auth-service-")
+    rules = policies[0]["spec"].get("ingress", []) if len(policies) == 1 else []
+    by_port = {r["ports"][0]["port"]: r["from"][0] for r in rules if len(r.get("ports", [])) == 1}
+    check(
+        len(policies) == 1
+        and policies[0]["spec"]["podSelector"] == {"matchLabels": {"app": "auth-service-np"}}
+        and policies[0]["spec"]["policyTypes"] == ["Ingress"]
+        and len(rules) == 2
+        and set(by_port) == {9090, 8080}
+        and by_port[9090]["podSelector"]["matchLabels"].get("app.kubernetes.io/name") == "envoy"
+        and by_port[8080]["podSelector"]["matchLabels"].get("app.kubernetes.io/name") == "prometheus",
+        "network policy on: 9090 only from the Envoy proxies, 8080 only from Prometheus",
+    )
+
+
 def main():
     for env in ENVS:
         release = helm_release(env)
@@ -286,6 +371,7 @@ def main():
         check_on(env, rendered_on)
         check_release_rules(env, release, rendered_on)
     self_test_policy_check()
+    check_network_policy()
     if failures:
         sys.exit(f"{len(failures)} check(s) failed")
 

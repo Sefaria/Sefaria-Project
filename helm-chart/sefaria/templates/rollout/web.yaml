@@ -60,10 +60,15 @@ spec:
         tags.datadoghq.com/version: {{ .Values.web.containerImage.tag | quote }}
         admission.datadoghq.com/enabled: "true"
         {{- end }}
-      {{- if .Values.datadog.enabled }}
+      {{- if or .Values.datadog.enabled .Values.authService.enabled }}
       annotations:
+        {{- if .Values.datadog.enabled }}
         ad.datadoghq.com/web.logs_exclude: "true"
         admission.datadoghq.com/python-lib.version: "v4.7.1"
+        {{- end }}
+        {{- if .Values.authService.enabled }}
+        checksum/auth-service-upstream: {{ include "sefaria.authServiceUpstreamChecksum" . | quote }}
+        {{- end }}
       {{- end }}
     spec:
       affinity:
@@ -194,6 +199,12 @@ spec:
           - secretRef:
               name: local-settings-web-secrets-{{ .Values.deployEnv }}
               optional: true
+          {{- if .Values.authService.enabled }}
+          # AUTH_SERVICE_UPSTREAM_SECRET: Django trusts the auth service's x-sefaria-* headers only alongside it.
+          - secretRef:
+              name: auth-service-upstream-{{ .Values.deployEnv }}
+              optional: true
+          {{- end }}
         ports:
           - containerPort: 80
             protocol: TCP

@@ -313,3 +313,17 @@ the Gateway. Call with (dict "root" $ "proto" "https").
 {{- end -}}
 {{- join "," $names -}}
 {{- end -}}
+
+{{/*
+Checksum of the auth service's upstream secret for pod annotations, so the auth service and web pods restart together
+when the Secret changes (rotation: delete it, then run a Helm upgrade). "new" before the Secret exists, and in a plain
+`helm template`, where lookup returns nothing.
+*/}}
+{{- define "sefaria.authServiceUpstreamChecksum" -}}
+{{- $s := lookup "v1" "Secret" .Release.Namespace (printf "auth-service-upstream-%s" .Values.deployEnv) -}}
+{{- if and $s $s.data (index $s.data "AUTH_SERVICE_UPSTREAM_SECRET") -}}
+{{- index $s.data "AUTH_SERVICE_UPSTREAM_SECRET" | sha256sum | trunc 16 -}}
+{{- else -}}
+new
+{{- end -}}
+{{- end }}

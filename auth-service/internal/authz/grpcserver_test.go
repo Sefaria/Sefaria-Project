@@ -57,7 +57,7 @@ func TestGRPCCheckAllow(t *testing.T) {
 	if got["x-sefaria-project"] != "proj_alpha" || got["x-sefaria-tier"] != "developer" || got["x-sefaria-auth-result"] != "ok" {
 		t.Fatalf("headers=%v", got)
 	}
-	if !reflect.DeepEqual(ok.HeadersToRemove, []string{"x-sefaria-key-status"}) || !reflect.DeepEqual(ok.QueryParametersToRemove, []string{"api_key"}) {
+	if !reflect.DeepEqual(ok.HeadersToRemove, []string{UpstreamSecretHeader, "x-sefaria-key-status"}) || !reflect.DeepEqual(ok.QueryParametersToRemove, []string{"api_key"}) {
 		t.Fatalf("remove=%v qp=%v", ok.HeadersToRemove, ok.QueryParametersToRemove)
 	}
 }
@@ -82,7 +82,7 @@ func TestGRPCCheckAnonymousAllowStampsEmptyProject(t *testing.T) {
 	if len(got) != 4 || got["x-sefaria-meter"] != MeterNone {
 		t.Fatalf("expected all identity headers and the meter, got=%v", got)
 	}
-	if !reflect.DeepEqual(ok.HeadersToRemove, []string{"x-sefaria-key-status"}) || len(ok.QueryParametersToRemove) != 0 {
+	if !reflect.DeepEqual(ok.HeadersToRemove, []string{UpstreamSecretHeader, "x-sefaria-key-status"}) || len(ok.QueryParametersToRemove) != 0 {
 		t.Fatalf("remove=%v qp=%v", ok.HeadersToRemove, ok.QueryParametersToRemove)
 	}
 }
@@ -345,6 +345,64 @@ func TestNCR8NeverLoadedRegistry(t *testing.T) {
 			resp, err := s.Check(context.Background(), checkReqMethod("POST", path, map[string]string{"x-api-key": alpha}))
 			if status.Code(err) != codes.Unavailable {
 				t.Fatalf("want gRPC UNAVAILABLE so Envoy fails open, got err=%v status=%v body=%s", err, resp.GetStatus(), resp.GetDeniedResponse().GetBody())
+			}
+		})
+	}
+}
+
+// The upstream secret goes only on gated requests allowed with an active key, so the app trusts nothing else and the
+// secret never travels to other upstreams. On every other allow ext_authz removes the header, so a copy that slipped past
+// the gateway never reaches the app.
+func TestGRPCUpstreamSecret(t *testing.T) {
+	const secret = "s3cret-upstream-value"
+	cases := []struct {
+		name    string
+		cfg     Config
+		secret  string
+		method  string
+		path    string
+		headers map[string]string
+		set     bool
+	}{
+		{"valid key, gated", enforce, secret, "POST", "/api/knn-search", map[string]string{"x-api-key": alpha}, true},
+		{"valid key, observe", observe, secret, "POST", "/api/knn-search", map[string]string{"x-api-key": alpha}, true},
+		{"valid key, encoded gated path", enforce, secret, "POST", "/api/%6bnn-search", map[string]string{"x-api-key": alpha}, true},
+		{"valid key, ungated", enforce, secret, "GET", "/api/texts/Genesis.1", map[string]string{"x-api-key": alpha}, false},
+		{"valid key, search proxy", enforce, secret, "POST", "/api/search/text/_search", map[string]string{"x-api-key": alpha}, false},
+		{"valid key, sitemaps", enforce, secret, "GET", "/static/sitemaps/sitemap.xml", map[string]string{"x-api-key": alpha}, false},
+		{"no secret configured", enforce, "", "POST", "/api/knn-search", map[string]string{"x-api-key": alpha}, false},
+		{"no key, observe", observe, secret, "POST", "/api/knn-search", nil, false},
+		{"revoked key, observe", observe, secret, "POST", "/api/knn-search", map[string]string{"x-api-key": revoked}, false},
+		{"wrong origin, observe", observe, secret, "POST", "/api/knn-search", map[string]string{"x-api-key": beta, "origin": "https://evil.example.org"}, false},
+		{"bearer only", enforce, secret, "GET", "/api/texts/Genesis.1", map[string]string{"authorization": "Bearer x"}, false},
+		{"forged copy, no key", enforce, secret, "GET", "/api/texts/Genesis.1", map[string]string{UpstreamSecretHeader: secret}, false},
+		{"preflight", enforce, secret, "OPTIONS", "/api/knn-search", map[string]string{"origin": "https://embed.example.org"}, false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			s := NewGRPCServer(reg, Options{Cfg: c.cfg, UpstreamSecret: c.secret}, NopRecorder{})
+			resp, err := s.Check(context.Background(), checkReqMethod(c.method, c.path, c.headers))
+			if err != nil || resp.Status.Code != int32(codes.OK) {
+				t.Fatalf("want an allow, err=%v resp=%v", err, resp)
+			}
+			ok := resp.GetOkResponse()
+			got := ""
+			for _, h := range ok.GetHeaders() {
+				if h.Header.Key == UpstreamSecretHeader {
+					got = h.Header.Value
+				}
+			}
+			removed := false
+			for _, k := range ok.GetHeadersToRemove() {
+				if k == UpstreamSecretHeader {
+					removed = true
+				}
+			}
+			if c.set && (got != secret || removed) {
+				t.Fatalf("want the secret stamped and not removed, got %q removed=%v", got, removed)
+			}
+			if !c.set && (got != "" || !removed) {
+				t.Fatalf("want no secret and the header removed, got %q removed=%v", got, removed)
 			}
 		})
 	}
