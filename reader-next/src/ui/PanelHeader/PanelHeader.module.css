@@ -45,3 +45,9 @@
   .bar { padding-inline: 15px; }
   .end { position: relative; top: 3px; }
 }
+
+/* The Sefaria Labs skin (src/ui/tokens/labs-skin.css): the ref in the bar is the system speaking, so it is set in the Labs mono, in
+   capitals; the version line under it stays the text's italic. A hairline instead of the shadow. */
+:global([data-skin="labs"]) .header { box-shadow: none; border-block-end: 1px solid var(--sefaria-color-border); }
+:global([data-skin="labs"]) .title { font-family: var(--labs-font-mono); font-size: 14px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sefaria-color-text-strong); }
+:global([data-skin="labs"]) .title [lang="he"] { font-family: var(--labs-font-mono); font-size: 15px; letter-spacing: 0; }

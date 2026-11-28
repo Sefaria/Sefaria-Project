@@ -15,3 +15,7 @@
 .title, .parashah { color: var(--sefaria-color-text-strong); }
 .parashah[lang="he"] { font-family: var(--sefaria-font-text-he); font-size: calc(24px * var(--sefaria-reader-body-he-ratio)); }
 .parashah[lang="he"][data-aliyah="true"] { font-size: calc(18px * var(--sefaria-reader-body-he-ratio)); }
+
+/* The Sefaria Labs skin (src/ui/tokens/labs-skin.css): chapter and parashah titles in the Labs mono, a gold rule under the box */
+:global([data-skin="labs"]) .title [lang="en"], :global([data-skin="labs"]) .parashah:not([lang="he"]) { font-family: var(--labs-font-mono); font-size: 14px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
+:global([data-skin="labs"]) .box { border-block-end-width: 2px; border-block-end-color: var(--labs-gold-bright); }
